@@ -151,9 +151,21 @@ export const DoctorRegister = () => {
       });
       
       if (authError) {
+        console.error('Auth error:', authError);
+        let errorMessage = authError.message;
+        
+        // Handle specific error cases
+        if (authError.message?.includes('User already registered')) {
+          errorMessage = "An account with this email already exists. Please try logging in instead.";
+        } else if (authError.message?.includes('Invalid email')) {
+          errorMessage = "Please enter a valid email address.";
+        } else if (authError.message?.includes('Password')) {
+          errorMessage = "Password does not meet security requirements.";
+        }
+
         toast({
           title: "Registration Failed",
-          description: authError.message,
+          description: errorMessage,
           variant: "destructive",
         });
         setLoading(false);
@@ -178,16 +190,25 @@ export const DoctorRegister = () => {
           }
         }
 
+        // Wait a moment for the profile to be created by the trigger
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Get the profile ID from the profiles table
-        let profileId = user.id;
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('user_id', user.id)
           .single();
         
-        if (profileData) {
-          profileId = profileData.id;
+        if (profileError || !profileData) {
+          console.error('Profile not found:', profileError);
+          toast({
+            title: "Profile Creation Error",
+            description: "User profile was not created properly. Please try again.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
         }
 
         // Create doctor profile
@@ -195,7 +216,7 @@ export const DoctorRegister = () => {
           .from('doctors')
           .insert({
             user_id: user.id,
-            profile_id: profileId,
+            profile_id: profileData.id,
             specialization: formData.specialization,
             kyc_documents: {
               ...documentUrls,

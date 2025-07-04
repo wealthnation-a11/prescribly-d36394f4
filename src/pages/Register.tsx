@@ -54,9 +54,21 @@ export const Register = () => {
       });
       
       if (error) {
+        console.error('Registration error:', error);
+        let errorMessage = error.message;
+        
+        // Handle specific error cases
+        if (error.message?.includes('User already registered')) {
+          errorMessage = "An account with this email already exists. Please try logging in instead.";
+        } else if (error.message?.includes('Invalid email')) {
+          errorMessage = "Please enter a valid email address.";
+        } else if (error.message?.includes('Password')) {
+          errorMessage = "Password does not meet security requirements.";
+        }
+
         toast({
           title: "Registration Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       } else {
@@ -64,13 +76,14 @@ export const Register = () => {
           title: "Registration Successful!",
           description: "Welcome to Prescribly! Your account has been created successfully.",
         });
-        // Redirect to dashboard instead of login
+        // Redirect to dashboard
         navigate("/dashboard");
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Unexpected registration error:', error);
       toast({
         title: "Registration Failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: "An unexpected error occurred. Please check your connection and try again.",
         variant: "destructive",
       });
     }
