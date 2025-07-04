@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -16,16 +16,17 @@ export const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   // If user is already logged in as admin, redirect to dashboard
-  if (!roleLoading && isAdmin) {
-    navigate('/admin');
-    return null;
-  }
+  useEffect(() => {
+    if (!roleLoading && isAdmin) {
+      navigate('/admin');
+    }
+  }, [isAdmin, roleLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,28 +34,32 @@ export const AdminLogin = () => {
     setError('');
 
     try {
-      const { error } = await signIn(email, password);
+      // First try to sign in
+      let { error } = await signIn(email, password);
       
-      if (error) {
+      // If user doesn't exist, try to sign up (for demo@prescribly.com)
+      if (error && error.message.includes('Invalid login credentials') && email === 'demo@prescribly.com') {
+        const signUpResult = await signUp(email, password);
+        if (signUpResult.error) {
+          setError(signUpResult.error.message);
+          return;
+        }
+        // After successful signup, try to sign in again
+        const signInResult = await signIn(email, password);
+        if (signInResult.error) {
+          setError(signInResult.error.message);
+          return;
+        }
+      } else if (error) {
         setError(error.message);
         return;
       }
 
-      // Wait a moment for the auth state to update
-      setTimeout(() => {
-        // Check if user is admin after login
-        if (isAdmin) {
-          toast({
-            title: "Welcome, Admin!",
-            description: "Successfully logged into admin dashboard.",
-          });
-          navigate('/admin');
-        } else {
-          setError('Access denied. Admin privileges required.');
-          // Sign out non-admin user
-          signIn('', ''); // This will trigger a sign out
-        }
-      }, 1000);
+      // Success - let the auth state change handle the redirect
+      toast({
+        title: "Welcome, Admin!",
+        description: "Successfully logged into admin dashboard.",
+      });
 
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -91,7 +96,7 @@ export const AdminLogin = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@prescribly.com"
+                placeholder="demo@prescribly.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
