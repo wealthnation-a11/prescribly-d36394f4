@@ -49,7 +49,7 @@ export const Header = () => {
               size="sm" 
               onClick={() => setShowUserTypeModal(true)}
             >
-              Sign Up
+              Register
             </Button>
           </div>
 
