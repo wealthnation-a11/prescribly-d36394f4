@@ -197,11 +197,16 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          date_of_birth: string | null
           email: string
           first_name: string | null
+          gender: string | null
           id: string
           is_blocked: boolean | null
           last_name: string | null
+          location_country: string | null
+          location_state: string | null
+          medical_history: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -210,11 +215,16 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email: string
           first_name?: string | null
+          gender?: string | null
           id?: string
           is_blocked?: boolean | null
           last_name?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          medical_history?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -223,11 +233,16 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string
           first_name?: string | null
+          gender?: string | null
           id?: string
           is_blocked?: boolean | null
           last_name?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          medical_history?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string

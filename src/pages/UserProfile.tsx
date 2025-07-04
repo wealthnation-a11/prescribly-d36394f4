@@ -19,7 +19,12 @@ const UserProfile = () => {
     first_name: "",
     last_name: "",
     phone: "",
-    email: ""
+    email: "",
+    date_of_birth: "",
+    gender: "",
+    location_country: "",
+    location_state: "",
+    medical_history: ""
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +47,12 @@ const UserProfile = () => {
           first_name: data.first_name || "",
           last_name: data.last_name || "",
           phone: data.phone || "",
-          email: data.email || ""
+          email: data.email || "",
+          date_of_birth: data.date_of_birth || "",
+          gender: data.gender || "",
+          location_country: data.location_country || "",
+          location_state: data.location_state || "",
+          medical_history: data.medical_history || ""
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -93,7 +103,12 @@ const UserProfile = () => {
       first_name: profile?.first_name || "",
       last_name: profile?.last_name || "",
       phone: profile?.phone || "",
-      email: profile?.email || ""
+      email: profile?.email || "",
+      date_of_birth: profile?.date_of_birth || "",
+      gender: profile?.gender || "",
+      location_country: profile?.location_country || "",
+      location_state: profile?.location_state || "",
+      medical_history: profile?.medical_history || ""
     });
     setIsEditing(false);
   };
