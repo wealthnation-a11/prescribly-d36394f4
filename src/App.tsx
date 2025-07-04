@@ -18,6 +18,8 @@ import { AdminLogin } from "./pages/admin/AdminLogin";
 import { UsersManagement } from "./pages/admin/UsersManagement";
 import { DoctorsManagement } from "./pages/admin/DoctorsManagement";
 import Dashboard from "./pages/Dashboard";
+import UserDashboard from "./pages/UserDashboard";
+import DoctorDashboard from "./pages/DoctorDashboard";
 import SymptomForm from "./pages/SymptomForm";
 import AIDiagnosis from "./pages/AIDiagnosis";
 import MyPrescriptions from "./pages/MyPrescriptions";
@@ -40,24 +42,43 @@ const App = () => (
             <Route path="/doctor-register" element={<DoctorRegister />} />
             <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
             
-            {/* User Dashboard Routes */}
+            {/* Role-based Dashboard Routes */}
+            <Route path="/user-dashboard" element={
+              <ProtectedRoute requirePatient={true}>
+                <UserDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor-dashboard" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin-dashboard" element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Legacy Dashboard Route (redirects based on role) */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
             } />
+
+            {/* Patient-specific Routes */}
             <Route path="/symptom-form" element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePatient={true}>
                 <SymptomForm />
               </ProtectedRoute>
             } />
             <Route path="/ai-diagnosis" element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePatient={true}>
                 <AIDiagnosis />
               </ProtectedRoute>
             } />
             <Route path="/my-prescriptions" element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePatient={true}>
                 <MyPrescriptions />
               </ProtectedRoute>
             } />
@@ -67,21 +88,22 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/appointments" element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePatient={true}>
                 <div>Appointments Page - Coming Soon</div>
               </ProtectedRoute>
             } />
             <Route path="/chat" element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePatient={true}>
                 <div>Chat Page - Coming Soon</div>
               </ProtectedRoute>
             } />
             <Route path="/book-appointment" element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePatient={true}>
                 <div>Book Appointment Page - Coming Soon</div>
               </ProtectedRoute>
             } />
             
+            {/* Admin Routes */}
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={
               <ProtectedRoute requireAdmin={true}>

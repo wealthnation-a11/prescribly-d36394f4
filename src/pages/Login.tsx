@@ -26,9 +26,21 @@ export const Login = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
+        console.error('Login error:', error);
+        let errorMessage = error.message;
+        
+        // Handle specific error cases
+        if (error.message?.includes('Invalid login credentials')) {
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
+        } else if (error.message?.includes('Email not confirmed')) {
+          errorMessage = "Please check your email and confirm your account before logging in.";
+        } else if (error.message?.includes('Too many requests')) {
+          errorMessage = "Too many login attempts. Please wait a moment and try again.";
+        }
+        
         toast({
           title: "Login Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       } else {
@@ -36,12 +48,14 @@ export const Login = () => {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        navigate("/");
+        // Redirect to dashboard which will handle role-based routing
+        navigate("/dashboard");
       }
     } catch (error) {
+      console.error('Unexpected login error:', error);
       toast({
         title: "Login Failed",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please check your connection and try again.",
         variant: "destructive",
       });
     }
