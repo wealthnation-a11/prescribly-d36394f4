@@ -234,31 +234,27 @@ export const LandingPage = () => {
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center fade-in-up">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Globe className="w-8 h-8 text-primary" />
-              </div>
-              <StatCounter endValue={45} label="Countries Served" delay={200} />
+              <div className="text-4xl mb-2">🌍</div>
+              <div className="text-4xl font-bold text-black mb-2">5+</div>
+              <div className="text-muted-foreground font-medium">Countries Served</div>
             </div>
             
             <div className="text-center fade-in-up stagger-1">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <MessageSquare className="w-8 h-8 text-primary" />
-              </div>
-              <StatCounter endValue={250000} label="Diagnoses Made" suffix="+" delay={400} />
+              <div className="text-4xl mb-2">💬</div>
+              <div className="text-4xl font-bold text-black mb-2">200+</div>
+              <div className="text-muted-foreground font-medium">Diagnoses Made</div>
             </div>
             
             <div className="text-center fade-in-up stagger-2">
-              <div className="mx-auto w-16 h-16 rounded-full bg-trust-blue/10 flex items-center justify-center mb-4">
-                <Stethoscope className="w-8 h-8 text-trust-blue" />
-              </div>
-              <StatCounter endValue={5000} label="Doctors Onboarded" suffix="+" delay={600} />
+              <div className="text-4xl mb-2">👨‍⚕️</div>
+              <div className="text-4xl font-bold text-black mb-2">30+</div>
+              <div className="text-muted-foreground font-medium">Doctors Onboarded</div>
             </div>
             
             <div className="text-center fade-in-up stagger-3">
-              <div className="mx-auto w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-                <Heart className="w-8 h-8 text-accent" />
-              </div>
-              <StatCounter endValue={1200000} label="Consultations Completed" delay={800} />
+              <div className="text-4xl mb-2">🩺</div>
+              <div className="text-4xl font-bold text-black mb-2">100+</div>
+              <div className="text-muted-foreground font-medium">Consultations Completed</div>
             </div>
           </div>
         </div>
