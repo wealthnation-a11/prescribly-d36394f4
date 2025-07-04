@@ -34,35 +34,43 @@ export const AdminLogin = () => {
     setError('');
 
     try {
+      console.log('Admin login attempt for:', email);
+      
       // First try to sign in
-      let { error } = await signIn(email, password);
+      let result = await signIn(email, password);
       
       // If user doesn't exist, try to sign up (for demo@prescribly.com)
-      if (error && error.message.includes('Invalid login credentials') && email === 'demo@prescribly.com') {
+      if (result.error && result.error.message && result.error.message.includes('Invalid login credentials') && email === 'demo@prescribly.com') {
+        console.log('User not found, attempting to create admin account');
         const signUpResult = await signUp(email, password);
         if (signUpResult.error) {
-          setError(signUpResult.error.message);
+          console.error('Sign up failed:', signUpResult.error);
+          setError(`Failed to create admin account: ${signUpResult.error.message || signUpResult.error}`);
           return;
         }
         // After successful signup, try to sign in again
-        const signInResult = await signIn(email, password);
-        if (signInResult.error) {
-          setError(signInResult.error.message);
+        result = await signIn(email, password);
+        if (result.error) {
+          console.error('Sign in after signup failed:', result.error);
+          setError(`Login failed after account creation: ${result.error.message || result.error}`);
           return;
         }
-      } else if (error) {
-        setError(error.message);
+      } else if (result.error) {
+        console.error('Sign in failed:', result.error);
+        setError(`Login failed: ${result.error.message || result.error}`);
         return;
       }
 
+      console.log('Login successful');
       // Success - let the auth state change handle the redirect
       toast({
         title: "Welcome, Admin!",
         description: "Successfully logged into admin dashboard.",
       });
 
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+    } catch (err: any) {
+      console.error('Unexpected error during login:', err);
+      setError(`An unexpected error occurred: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
