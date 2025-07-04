@@ -67,7 +67,7 @@ export const LandingPage = () => {
   const faqs = [
     {
       question: "Is Prescribly really free?",
-      answer: "No."
+      answer: "Basic symptom checking is free! Doctor consultations have transparent pricing starting from $29. No hidden fees, ever."
     },
     {
       question: "Can I talk to a real doctor?",
@@ -94,16 +94,16 @@ export const LandingPage = () => {
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         <FloatingIcons />
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="space-y-6 lg:space-y-8 text-center lg:text-left">
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <h1 className="text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
                 AI Healthcare in Your{" "}
                 <span className="text-primary">Pocket</span>
               </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground fade-in-up stagger-1">
+              <p className="text-xl text-muted-foreground fade-in-up stagger-1">
                 Get instant symptom analysis, real-time doctor consultations, and AI-prescribed treatments.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start fade-in-up stagger-2">
+              <div className="flex flex-col sm:flex-row gap-4 fade-in-up stagger-2">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Login
                 </Button>
@@ -115,11 +115,11 @@ export const LandingPage = () => {
                 ✨ Made with AI • Trusted by 50,000+ patients worldwide
               </div>
             </div>
-            <div className="relative fade-in-up stagger-2 order-first lg:order-last">
+            <div className="relative fade-in-up stagger-2">
               <img 
                 src={heroImage} 
                 alt="AI Doctor Avatar"
-                className="w-full h-auto rounded-2xl medical-shadow floating-animation max-w-md mx-auto lg:max-w-none"
+                className="w-full h-auto rounded-2xl medical-shadow floating-animation"
               />
             </div>
           </div>
@@ -158,51 +158,51 @@ export const LandingPage = () => {
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
             Who It's For
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          <div className="grid lg:grid-cols-2 gap-12">
             <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up">
               <CardHeader className="text-center">
-                <div className="mx-auto w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Heart className="w-8 h-8 lg:w-10 lg:h-10 text-primary" />
+                <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Heart className="w-10 h-10 text-primary" />
                 </div>
-                <CardTitle className="text-xl lg:text-2xl">For Patients</CardTitle>
-                <CardDescription className="text-sm lg:text-base">Healthcare when you need it most</CardDescription>
+                <CardTitle className="text-2xl">For Patients</CardTitle>
+                <CardDescription>Healthcare when you need it most</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 lg:space-y-4">
+              <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0"></div>
-                  <span className="text-sm lg:text-base">24/7 access to medical guidance</span>
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                  <span>24/7 access to medical guidance</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0"></div>
-                  <span className="text-sm lg:text-base">Fast diagnosis and treatment</span>
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                  <span>Fast diagnosis and treatment</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0"></div>
-                  <span className="text-sm lg:text-base">Affordable care for everyone</span>
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                  <span>Affordable care for everyone</span>
                 </div>
               </CardContent>
             </Card>
             
             <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1">
               <CardHeader className="text-center">
-                <div className="mx-auto w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-trust-blue/10 flex items-center justify-center mb-4">
-                  <Stethoscope className="w-8 h-8 lg:w-10 lg:h-10 text-trust-blue" />
+                <div className="mx-auto w-20 h-20 rounded-full bg-trust-blue/10 flex items-center justify-center mb-4">
+                  <Stethoscope className="w-10 h-10 text-trust-blue" />
                 </div>
-                <CardTitle className="text-xl lg:text-2xl">For Doctors</CardTitle>
-                <CardDescription className="text-sm lg:text-base">Grow your practice digitally</CardDescription>
+                <CardTitle className="text-2xl">For Doctors</CardTitle>
+                <CardDescription>Grow your practice digitally</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 lg:space-y-4">
+              <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-trust-blue flex-shrink-0"></div>
-                  <span className="text-sm lg:text-base">Verified access and credibility</span>
+                  <div className="w-2 h-2 rounded-full bg-trust-blue"></div>
+                  <span>Verified access and credibility</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-trust-blue flex-shrink-0"></div>
-                  <span className="text-sm lg:text-base">Manage consultations efficiently</span>
+                  <div className="w-2 h-2 rounded-full bg-trust-blue"></div>
+                  <span>Manage consultations efficiently</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-trust-blue flex-shrink-0"></div>
-                  <span className="text-sm lg:text-base">Earn and grow your reputation</span>
+                  <div className="w-2 h-2 rounded-full bg-trust-blue"></div>
+                  <span>Earn and grow your reputation</span>
                 </div>
               </CardContent>
             </Card>
