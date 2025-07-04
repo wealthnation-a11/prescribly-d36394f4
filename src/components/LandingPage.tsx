@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Heart, Stethoscope, Bot } from "lucide-react";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
 import { FloatingIcons } from "./FloatingIcons";
+import { Header } from "./Header";
 import heroImage from "@/assets/hero-doctor.jpg";
 
 export const LandingPage = () => {
@@ -88,8 +89,9 @@ export const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         <FloatingIcons />
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -102,9 +104,6 @@ export const LandingPage = () => {
                 Get instant symptom analysis, real-time doctor consultations, and AI-prescribed treatments.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 fade-in-up stagger-2">
-                <Button variant="hero" size="lg" className="text-lg px-8">
-                  Get Started
-                </Button>
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Login
                 </Button>
@@ -128,7 +127,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-secondary/30">
+      <section id="offer" className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
@@ -154,7 +153,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Who It's For Section */}
-      <section className="py-20">
+      <section id="about" className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
             Who It's For
@@ -234,10 +233,33 @@ export const LandingPage = () => {
             Global Impact
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            <StatCounter endValue={45} label="Countries Served" delay={200} />
-            <StatCounter endValue={250000} label="Diagnoses Made" suffix="+" delay={400} />
-            <StatCounter endValue={5000} label="Doctors Onboarded" suffix="+" delay={600} />
-            <StatCounter endValue={1200000} label="Consultations Completed" delay={800} />
+            <div className="text-center fade-in-up">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Globe className="w-8 h-8 text-primary" />
+              </div>
+              <StatCounter endValue={45} label="Countries Served" delay={200} />
+            </div>
+            
+            <div className="text-center fade-in-up stagger-1">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <MessageSquare className="w-8 h-8 text-primary" />
+              </div>
+              <StatCounter endValue={250000} label="Diagnoses Made" suffix="+" delay={400} />
+            </div>
+            
+            <div className="text-center fade-in-up stagger-2">
+              <div className="mx-auto w-16 h-16 rounded-full bg-trust-blue/10 flex items-center justify-center mb-4">
+                <Stethoscope className="w-8 h-8 text-trust-blue" />
+              </div>
+              <StatCounter endValue={5000} label="Doctors Onboarded" suffix="+" delay={600} />
+            </div>
+            
+            <div className="text-center fade-in-up stagger-3">
+              <div className="mx-auto w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+                <Heart className="w-8 h-8 text-accent" />
+              </div>
+              <StatCounter endValue={1200000} label="Consultations Completed" delay={800} />
+            </div>
           </div>
         </div>
       </section>
@@ -289,7 +311,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-foreground text-background py-16">
+      <footer id="contact" className="bg-foreground text-background py-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
