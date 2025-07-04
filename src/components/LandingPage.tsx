@@ -104,14 +104,6 @@ export const LandingPage = () => {
               <p className="text-xl text-muted-foreground fade-in-up stagger-1">
                 Get instant symptom analysis, real-time doctor consultations, and AI-prescribed treatments.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 fade-in-up stagger-2">
-                <Button variant="outline" size="lg" className="text-lg px-8">
-                  Login
-                </Button>
-                <Button variant="medical" size="lg" className="text-lg px-8">
-                  Sign Up
-                </Button>
-              </div>
               <div className="text-sm text-muted-foreground fade-in-up stagger-3">
                 ✨ Made with AI • Trusted by 50,000+ patients worldwide
               </div>
