@@ -67,7 +67,7 @@ export const LandingPage = () => {
   const faqs = [
     {
       question: "Is Prescribly really free?",
-      answer: "Basic symptom checking is free! Doctor consultations have transparent pricing starting from $29. No hidden fees, ever."
+      answer: "No."
     },
     {
       question: "Can I talk to a real doctor?",
@@ -158,7 +158,7 @@ export const LandingPage = () => {
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
             Who It's For
           </h2>
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid md:grid-cols-2 gap-8">
             <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up">
               <CardHeader className="text-center">
                 <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
