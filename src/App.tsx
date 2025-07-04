@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { DoctorRegister } from "./pages/DoctorRegister";
+import { UserInfoConfirmation } from "./pages/UserInfoConfirmation";
+import { DoctorInfoConfirmation } from "./pages/DoctorInfoConfirmation";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -29,7 +31,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/register-user-info-confirmation" element={<UserInfoConfirmation />} />
             <Route path="/doctor-register" element={<DoctorRegister />} />
+            <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={
               <ProtectedRoute requireAdmin={true}>

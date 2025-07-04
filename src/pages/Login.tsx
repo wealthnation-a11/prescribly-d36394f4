@@ -125,14 +125,14 @@ export const Login = () => {
                 Don't have an account?{" "}
                 {userType === "patient" ? (
                   <Link 
-                    to="/register" 
+                    to="/register-user-info-confirmation" 
                     className="text-primary hover:underline font-medium"
                   >
                     Register here
                   </Link>
                 ) : (
                   <Link 
-                    to="/doctor-register" 
+                    to="/register-doctor-info-confirmation" 
                     className="text-primary hover:underline font-medium"
                   >
                     Register as Doctor
