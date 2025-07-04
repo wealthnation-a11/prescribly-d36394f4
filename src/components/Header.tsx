@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Globe, MessageSquare, Stethoscope } from "lucide-react";
+import { UserTypeModal } from "./UserTypeModal";
 
 export const Header = () => {
+  const [showUserTypeModal, setShowUserTypeModal] = useState(false);
+  
   const menuItems = [
     { name: "Home", href: "#home" },
     { name: "Offer", href: "#offer" },
@@ -40,8 +44,12 @@ export const Header = () => {
             <Button variant="outline" size="sm" asChild>
               <a href="/login">Login</a>
             </Button>
-            <Button variant="medical" size="sm" asChild>
-              <a href="/register">Sign Up</a>
+            <Button 
+              variant="medical" 
+              size="sm" 
+              onClick={() => setShowUserTypeModal(true)}
+            >
+              Sign Up
             </Button>
           </div>
 
@@ -55,6 +63,11 @@ export const Header = () => {
           </button>
         </div>
       </div>
+      
+      <UserTypeModal
+        isOpen={showUserTypeModal}
+        onClose={() => setShowUserTypeModal(false)}
+      />
     </header>
   );
 };
