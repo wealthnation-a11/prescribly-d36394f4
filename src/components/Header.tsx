@@ -37,11 +37,11 @@ export const Header = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              Login
+            <Button variant="outline" size="sm" asChild>
+              <a href="/login">Login</a>
             </Button>
-            <Button variant="medical" size="sm">
-              Sign Up
+            <Button variant="medical" size="sm" asChild>
+              <a href="/register">Sign Up</a>
             </Button>
           </div>
 
