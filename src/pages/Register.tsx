@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PasswordValidator } from "@/components/PasswordValidator";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -72,6 +73,29 @@ export const Register = () => {
           variant: "destructive",
         });
       } else {
+        // Wait for profile creation, then create patient record
+        setTimeout(async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('user_id', user.id)
+              .single();
+            
+            if (profileData) {
+              await supabase.from('patients').insert({
+                user_id: user.id,
+                profile_id: profileData.id,
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+              });
+            }
+          }
+        }, 1500);
+
         toast({
           title: "Registration Successful!",
           description: "Welcome to Prescribly! Your account has been created successfully.",
