@@ -116,6 +116,36 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message_text: string
+          sender_id: string | null
+          sender_type: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_text: string
+          sender_id?: string | null
+          sender_type: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_text?: string
+          sender_id?: string | null
+          sender_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       prescriptions: {
         Row: {
           appointment_id: string | null
@@ -236,6 +266,42 @@ export type Database = {
           priority?: string | null
           status?: Database["public"]["Enums"]["ticket_status"] | null
           subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      symptom_logs: {
+        Row: {
+          additional_symptoms: string | null
+          created_at: string
+          duration: string | null
+          id: string
+          main_symptom: string
+          recent_events: string | null
+          severity: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_symptoms?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          main_symptom: string
+          recent_events?: string | null
+          severity?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_symptoms?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          main_symptom?: string
+          recent_events?: string | null
+          severity?: number | null
           updated_at?: string
           user_id?: string
         }

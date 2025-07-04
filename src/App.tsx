@@ -17,6 +17,11 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { UsersManagement } from "./pages/admin/UsersManagement";
 import { DoctorsManagement } from "./pages/admin/DoctorsManagement";
+import Dashboard from "./pages/Dashboard";
+import SymptomForm from "./pages/SymptomForm";
+import AIDiagnosis from "./pages/AIDiagnosis";
+import MyPrescriptions from "./pages/MyPrescriptions";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +39,49 @@ const App = () => (
             <Route path="/register-user-info-confirmation" element={<UserInfoConfirmation />} />
             <Route path="/doctor-register" element={<DoctorRegister />} />
             <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
+            
+            {/* User Dashboard Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/symptom-form" element={
+              <ProtectedRoute>
+                <SymptomForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/ai-diagnosis" element={
+              <ProtectedRoute>
+                <AIDiagnosis />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-prescriptions" element={
+              <ProtectedRoute>
+                <MyPrescriptions />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/appointments" element={
+              <ProtectedRoute>
+                <div>Appointments Page - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            <Route path="/chat" element={
+              <ProtectedRoute>
+                <div>Chat Page - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            <Route path="/book-appointment" element={
+              <ProtectedRoute>
+                <div>Book Appointment Page - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={
               <ProtectedRoute requireAdmin={true}>
