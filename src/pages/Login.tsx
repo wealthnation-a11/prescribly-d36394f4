@@ -123,12 +123,21 @@ export const Login = () => {
 
               <div className="text-center text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                <Link 
-                  to="/register" 
-                  className="text-primary hover:underline font-medium"
-                >
-                  Register here
-                </Link>
+                {userType === "patient" ? (
+                  <Link 
+                    to="/register" 
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Register here
+                  </Link>
+                ) : (
+                  <Link 
+                    to="/doctor-register" 
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Register as Doctor
+                  </Link>
+                )}
               </div>
             </TabsContent>
           </Tabs>

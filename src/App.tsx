@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { DoctorRegister } from "./pages/DoctorRegister";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/doctor-register" element={<DoctorRegister />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={
               <ProtectedRoute requireAdmin={true}>

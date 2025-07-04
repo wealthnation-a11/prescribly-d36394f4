@@ -1,0 +1,542 @@
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link, useNavigate } from "react-router-dom";
+import { Stethoscope, Upload, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+export const DoctorRegister = () => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    specialization: "",
+    country: "",
+    city: "",
+  });
+  
+  const [documents, setDocuments] = useState({
+    governmentId: null as File | null,
+    degreecert: null as File | null,
+    license: null as File | null,
+    specialization: null as File | null,
+    cv: null as File | null,
+    photo: null as File | null,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const { signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const specializations = [
+    "General Practice",
+    "Internal Medicine",
+    "Pediatrics",
+    "Obstetrics & Gynecology",
+    "Surgery",
+    "Cardiology",
+    "Dermatology",
+    "Psychiatry",
+    "Orthopedics",
+    "Neurology",
+    "Radiology",
+    "Anesthesiology",
+    "Emergency Medicine",
+    "Family Medicine",
+    "Pathology",
+    "Ophthalmology",
+    "ENT (Otolaryngology)",
+    "Urology",
+    "Oncology",
+    "Endocrinology"
+  ];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleFileChange = (documentType: keyof typeof documents, file: File | null) => {
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload PDF, JPG, or PNG files only.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload files smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setDocuments({
+      ...documents,
+      [documentType]: file,
+    });
+  };
+
+  const uploadDocument = async (file: File, documentType: string, userId: string) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${documentType}.${fileExt}`;
+    
+    const { error } = await supabase.storage
+      .from('doctor-documents')
+      .upload(fileName, file);
+
+    if (error) {
+      throw error;
+    }
+
+    return fileName;
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Registration Failed",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Registration Failed",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check required documents
+    const requiredDocs = ['governmentId', 'degreecert', 'license', 'cv', 'photo'];
+    const missingDocs = requiredDocs.filter(doc => !documents[doc as keyof typeof documents]);
+    
+    if (missingDocs.length > 0) {
+      toast({
+        title: "Missing Documents",
+        description: "Please upload all required documents.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // First create the user account
+      const { error: authError } = await signUp(formData.email, formData.password, {
+        first_name: formData.fullName.split(' ')[0],
+        last_name: formData.fullName.split(' ').slice(1).join(' '),
+        phone: formData.phone,
+        role: "doctor",
+      });
+      
+      if (authError) {
+        toast({
+          title: "Registration Failed",
+          description: authError.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Get the current user after successful signup
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Upload documents
+        const documentUrls: Record<string, string> = {};
+        
+        for (const [docType, file] of Object.entries(documents)) {
+          if (file) {
+            try {
+              const url = await uploadDocument(file, docType, user.id);
+              documentUrls[docType] = url;
+            } catch (error) {
+              console.error(`Failed to upload ${docType}:`, error);
+            }
+          }
+        }
+
+        // Create doctor profile
+        const { error: doctorError } = await supabase
+          .from('doctors')
+          .insert({
+            user_id: user.id,
+            profile_id: user.id, // This will be updated when profile is created
+            specialization: formData.specialization,
+            kyc_documents: {
+              ...documentUrls,
+              country: formData.country,
+              city: formData.city,
+            },
+            verification_status: 'pending'
+          });
+
+        if (doctorError) {
+          console.error('Doctor profile creation error:', doctorError);
+        }
+
+        setShowSuccess(true);
+      }
+    } catch (error) {
+      toast({
+        title: "Registration Failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+
+    setLoading(false);
+  };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-2xl text-center">
+          <CardContent className="p-8">
+            <CheckCircle className="w-16 h-16 text-success-green mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-foreground mb-4">
+              ✅ Registration Submitted Successfully
+            </h1>
+            <p className="text-lg text-muted-foreground mb-6">
+              Thank you, Dr. {formData.fullName.split(' ')[0]}, for registering with Prescribly.
+            </p>
+            <div className="bg-medical-light rounded-lg p-6 mb-6 text-left">
+              <p className="text-foreground mb-4">
+                Our verification team is reviewing your documents to ensure compliance and patient safety.
+              </p>
+              <div className="space-y-2 text-muted-foreground">
+                <p>🕐 You will receive an email update within 24–48 hours.</p>
+                <p>If we need further information, our team will contact you directly.</p>
+                <p>📬 Check your inbox and spam folder for emails from Prescribly.</p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => navigate('/login')}
+              variant="medical"
+              size="lg"
+            >
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-4">
+      <div className="container mx-auto max-w-4xl">
+        <Card className="mt-8">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <Stethoscope className="w-6 h-6 text-primary" />
+              <span className="text-2xl font-bold">Prescribly</span>
+            </div>
+            <CardTitle className="text-xl">Doctor Registration</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleRegister} className="space-y-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground">Personal Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      name="fullName"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      placeholder="Create a password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="specialization">Specialization</Label>
+                    <Select value={formData.specialization} onValueChange={(value) => setFormData({...formData, specialization: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your specialization" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specializations.map((spec) => (
+                          <SelectItem key={spec} value={spec}>
+                            {spec}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Input
+                      id="country"
+                      name="country"
+                      type="text"
+                      placeholder="Enter your country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City/State</Label>
+                    <Input
+                      id="city"
+                      name="city"
+                      type="text"
+                      placeholder="Enter your city/state"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Document Upload Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground">Document Upload</h3>
+                <p className="text-sm text-muted-foreground">Upload PDF, JPG, or PNG files (max 5MB each)</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Government ID */}
+                  <div className="space-y-2">
+                    <Label>Government-Issued ID</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('governmentId', e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="governmentId"
+                      />
+                      <label htmlFor="governmentId" className="cursor-pointer">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {documents.governmentId ? documents.governmentId.name : "Upload ID Document"}
+                        </p>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Medical Degree */}
+                  <div className="space-y-2">
+                    <Label>Medical Degree Certificate</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('degreecert', e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="degreecert"
+                      />
+                      <label htmlFor="degreecert" className="cursor-pointer">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {documents.degreecert ? documents.degreecert.name : "Upload Degree Certificate"}
+                        </p>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* License */}
+                  <div className="space-y-2">
+                    <Label>MDCN or Equivalent License</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('license', e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="license"
+                      />
+                      <label htmlFor="license" className="cursor-pointer">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {documents.license ? documents.license.name : "Upload License Certificate"}
+                        </p>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Specialization Proof */}
+                  <div className="space-y-2">
+                    <Label>Proof of Specialization (Optional)</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('specialization', e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="specialization"
+                      />
+                      <label htmlFor="specialization" className="cursor-pointer">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {documents.specialization ? documents.specialization.name : "Upload Specialization Document"}
+                        </p>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* CV */}
+                  <div className="space-y-2">
+                    <Label>Curriculum Vitae (CV)</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('cv', e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="cv"
+                      />
+                      <label htmlFor="cv" className="cursor-pointer">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {documents.cv ? documents.cv.name : "Upload CV"}
+                        </p>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Photo */}
+                  <div className="space-y-2">
+                    <Label>Professional Passport Photograph</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('photo', e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="photo"
+                      />
+                      <label htmlFor="photo" className="cursor-pointer">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {documents.photo ? documents.photo.name : "Upload Profile Photo"}
+                        </p>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loading}
+                variant="medical"
+                size="lg"
+              >
+                {loading ? "Registering..." : "Register"}
+              </Button>
+            </form>
+
+            <div className="text-center text-sm text-muted-foreground mt-6">
+              Already have an account?{" "}
+              <Link 
+                to="/login" 
+                className="text-primary hover:underline font-medium"
+              >
+                Sign in here
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
