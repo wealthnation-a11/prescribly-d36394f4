@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Globe, MessageSquare, Stethoscope } from "lucide-react";
+import { Globe, MessageSquare, Stethoscope, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 export const Header = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
   const menuItems = [
     { name: "Home", href: "#home" },
     { name: "Offer", href: "#offer" },
@@ -35,7 +38,7 @@ export const Header = () => {
           </nav>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             <Button variant="outline" size="sm">
               Login
             </Button>
@@ -45,14 +48,44 @@ export const Header = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button className="md:hidden">
-            <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1">
-              <div className="w-4 h-0.5 bg-foreground"></div>
-              <div className="w-4 h-0.5 bg-foreground"></div>
-              <div className="w-4 h-0.5 bg-foreground"></div>
-            </div>
+          <button 
+            className="md:hidden p-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? (
+              <X className="w-6 h-6 text-foreground" />
+            ) : (
+              <Menu className="w-6 h-6 text-foreground" />
+            )}
           </button>
         </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-background/95 backdrop-blur-sm border-t border-border">
+            <nav className="px-4 py-4 space-y-4">
+              {menuItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="block py-2 text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </a>
+              ))}
+              <div className="flex flex-col space-y-3 pt-4 border-t border-border">
+                <Button variant="outline" size="sm" className="w-full">
+                  Login
+                </Button>
+                <Button variant="medical" size="sm" className="w-full">
+                  Sign Up
+                </Button>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
