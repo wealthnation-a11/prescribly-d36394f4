@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, Upload, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordValidator } from "@/components/PasswordValidator";
 
 export const DoctorRegister = () => {
   const [formData, setFormData] = useState({
@@ -33,6 +34,7 @@ export const DoctorRegister = () => {
 
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -115,19 +117,10 @@ export const DoctorRegister = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
+    if (!isPasswordValid) {
       toast({
-        title: "Registration Failed",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast({
-        title: "Registration Failed",
-        description: "Password must be at least 6 characters long",
+        title: "Invalid Password",
+        description: "Please ensure your password meets all requirements and passwords match",
         variant: "destructive",
       });
       return;
@@ -140,7 +133,7 @@ export const DoctorRegister = () => {
     if (missingDocs.length > 0) {
       toast({
         title: "Missing Documents",
-        description: "Please upload all required documents.",
+        description: "Please upload all required documents before proceeding.",
         variant: "destructive",
       });
       return;
@@ -149,10 +142,10 @@ export const DoctorRegister = () => {
     setLoading(true);
 
     try {
-      // First create the user account
+      // Create the user account with proper metadata
       const { error: authError } = await signUp(formData.email, formData.password, {
-        first_name: formData.fullName.split(' ')[0],
-        last_name: formData.fullName.split(' ').slice(1).join(' '),
+        first_name: formData.fullName.split(' ')[0] || formData.fullName,
+        last_name: formData.fullName.split(' ').slice(1).join(' ') || '',
         phone: formData.phone,
         role: "doctor",
       });
@@ -185,31 +178,50 @@ export const DoctorRegister = () => {
           }
         }
 
+        // Get the profile ID from the profiles table
+        let profileId = user.id;
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profileData) {
+          profileId = profileData.id;
+        }
+
         // Create doctor profile
         const { error: doctorError } = await supabase
           .from('doctors')
           .insert({
             user_id: user.id,
-            profile_id: user.id, // This will be updated when profile is created
+            profile_id: profileId,
             specialization: formData.specialization,
             kyc_documents: {
               ...documentUrls,
               country: formData.country,
               city: formData.city,
+              full_name: formData.fullName,
             },
             verification_status: 'pending'
           });
 
         if (doctorError) {
           console.error('Doctor profile creation error:', doctorError);
+          toast({
+            title: "Profile Creation Error",
+            description: "Account created but doctor profile setup failed. Please contact support.",
+            variant: "destructive",
+          });
+        } else {
+          setShowSuccess(true);
         }
-
-        setShowSuccess(true);
       }
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration Failed",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }
@@ -325,6 +337,13 @@ export const DoctorRegister = () => {
                     />
                   </div>
                 </div>
+
+                {/* Password Validation Component */}
+                <PasswordValidator
+                  password={formData.password}
+                  confirmPassword={formData.confirmPassword}
+                  onValidationChange={setIsPasswordValid}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -517,7 +536,7 @@ export const DoctorRegister = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={loading}
+                disabled={loading || !isPasswordValid}
                 variant="medical"
                 size="lg"
               >

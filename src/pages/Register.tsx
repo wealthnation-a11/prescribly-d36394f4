@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PasswordValidator } from "@/components/PasswordValidator";
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ export const Register = () => {
     phone: "",
   });
   const [loading, setLoading] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -32,19 +34,10 @@ export const Register = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
+    if (!isPasswordValid) {
       toast({
-        title: "Registration Failed",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast({
-        title: "Registration Failed",
-        description: "Password must be at least 6 characters long",
+        title: "Invalid Password",
+        description: "Please ensure your password meets all requirements and passwords match",
         variant: "destructive",
       });
       return;
@@ -68,15 +61,16 @@ export const Register = () => {
         });
       } else {
         toast({
-          title: "Registration Successful",
-          description: "Please check your email to verify your account",
+          title: "Registration Successful!",
+          description: "Welcome to Prescribly! Your account has been created successfully.",
         });
-        navigate("/login");
+        // Redirect to dashboard instead of login
+        navigate("/dashboard");
       }
     } catch (error) {
       toast({
         title: "Registration Failed",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }
@@ -182,10 +176,17 @@ export const Register = () => {
               />
             </div>
 
+            {/* Password Validation Component */}
+            <PasswordValidator
+              password={formData.password}
+              confirmPassword={formData.confirmPassword}
+              onValidationChange={setIsPasswordValid}
+            />
+
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={loading}
+              disabled={loading || !isPasswordValid}
               variant="medical"
             >
               {loading ? "Creating Account..." : "Create Account"}
