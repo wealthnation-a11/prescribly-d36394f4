@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +20,13 @@ export const Register = () => {
     password: "",
     confirmPassword: "",
     phone: "",
+    dateOfBirth: "",
+    gender: "",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    medicalHistory: "",
+    allergies: "",
+    currentMedications: "",
   });
   const [loading, setLoading] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
@@ -25,10 +34,17 @@ export const Register = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData({
+      ...formData,
+      [field]: value,
     });
   };
 
@@ -91,6 +107,13 @@ export const Register = () => {
                 last_name: formData.lastName,
                 email: formData.email,
                 phone: formData.phone,
+                date_of_birth: formData.dateOfBirth || null,
+                gender: formData.gender || null,
+                emergency_contact_name: formData.emergencyContactName || null,
+                emergency_contact_phone: formData.emergencyContactPhone || null,
+                medical_history: formData.medicalHistory || null,
+                allergies: formData.allergies || null,
+                current_medications: formData.currentMedications || null,
               });
             }
           }
@@ -117,7 +140,7 @@ export const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-center space-x-2">
             <Stethoscope className="w-6 h-6 text-primary" />
@@ -184,6 +207,96 @@ export const Register = () => {
                 placeholder="Enter your phone number"
                 value={formData.phone}
                 onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Input
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Select value={formData.gender} onValueChange={(value) => handleSelectChange('gender', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="emergencyContactName">Emergency Contact Name</Label>
+                <Input
+                  id="emergencyContactName"
+                  name="emergencyContactName"
+                  type="text"
+                  placeholder="Emergency contact name"
+                  value={formData.emergencyContactName}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="emergencyContactPhone">Emergency Contact Phone</Label>
+                <Input
+                  id="emergencyContactPhone"
+                  name="emergencyContactPhone"
+                  type="tel"
+                  placeholder="Emergency contact phone"
+                  value={formData.emergencyContactPhone}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="medicalHistory">Medical History</Label>
+              <Textarea
+                id="medicalHistory"
+                name="medicalHistory"
+                placeholder="Any significant medical history..."
+                value={formData.medicalHistory}
+                onChange={handleInputChange}
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="allergies">Allergies</Label>
+              <Textarea
+                id="allergies"
+                name="allergies"
+                placeholder="Any known allergies..."
+                value={formData.allergies}
+                onChange={handleInputChange}
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currentMedications">Current Medications</Label>
+              <Textarea
+                id="currentMedications"
+                name="currentMedications"
+                placeholder="Current medications you're taking..."
+                value={formData.currentMedications}
+                onChange={handleInputChange}
+                rows={2}
               />
             </div>
             

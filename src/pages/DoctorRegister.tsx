@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, Upload, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +20,10 @@ export const DoctorRegister = () => {
     confirmPassword: "",
     phone: "",
     specialization: "",
-    country: "",
-    city: "",
+    bio: "",
+    licenseNumber: "",
+    consultationFee: "",
+    yearsOfExperience: "",
   });
   
   const [documents, setDocuments] = useState({
@@ -62,7 +65,7 @@ export const DoctorRegister = () => {
     "Endocrinology"
   ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -218,10 +221,12 @@ export const DoctorRegister = () => {
             user_id: user.id,
             profile_id: profileData.id,
             specialization: formData.specialization,
+            bio: formData.bio || null,
+            license_number: formData.licenseNumber || null,
+            consultation_fee: formData.consultationFee ? parseFloat(formData.consultationFee) : null,
+            years_of_experience: formData.yearsOfExperience ? parseInt(formData.yearsOfExperience) : null,
             kyc_documents: {
               ...documentUrls,
-              country: formData.country,
-              city: formData.city,
               full_name: formData.fullName,
             },
             verification_status: 'pending'
@@ -399,30 +404,55 @@ export const DoctorRegister = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="licenseNumber">Medical License Number</Label>
                     <Input
-                      id="country"
-                      name="country"
+                      id="licenseNumber"
+                      name="licenseNumber"
                       type="text"
-                      placeholder="Enter your country"
-                      value={formData.country}
+                      placeholder="Enter your license number"
+                      value={formData.licenseNumber}
                       onChange={handleInputChange}
-                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="city">City/State</Label>
+                    <Label htmlFor="yearsOfExperience">Years of Experience</Label>
                     <Input
-                      id="city"
-                      name="city"
-                      type="text"
-                      placeholder="Enter your city/state"
-                      value={formData.city}
+                      id="yearsOfExperience"
+                      name="yearsOfExperience"
+                      type="number"
+                      placeholder="Years of experience"
+                      value={formData.yearsOfExperience}
                       onChange={handleInputChange}
-                      required
+                      min="0"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="consultationFee">Consultation Fee (Optional)</Label>
+                  <Input
+                    id="consultationFee"
+                    name="consultationFee"
+                    type="number"
+                    placeholder="Consultation fee in your local currency"
+                    value={formData.consultationFee}
+                    onChange={handleInputChange}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Professional Bio</Label>
+                  <Textarea
+                    id="bio"
+                    name="bio"
+                    placeholder="Tell us about your professional background, experience, and specialties..."
+                    value={formData.bio}
+                    onChange={handleInputChange}
+                    rows={4}
+                  />
                 </div>
               </div>
 
