@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Heart, Stethoscope, Bot, Globe, MessageSquare } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, PhoneCall } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
@@ -260,8 +261,272 @@ export const LandingPage = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 bg-secondary/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
+              Choose Your Plan
+            </h2>
+            <p className="text-xl text-muted-foreground fade-in-up stagger-1">
+              Flexible pricing options for individuals and organizations
+            </p>
+          </div>
+          
+          <Tabs defaultValue="monthly" className="w-full">
+            <div className="flex justify-center mb-12">
+              <TabsList className="grid w-full max-w-md grid-cols-2 fade-in-up">
+                <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                <TabsTrigger value="yearly">Yearly</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="monthly" className="space-y-8">
+              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                {/* Individual Plan */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up relative">
+                  <CardHeader className="text-center pb-8">
+                    <CardTitle className="text-2xl mb-2">Individual</CardTitle>
+                    <CardDescription>Perfect for personal healthcare needs</CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">$10</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>AI Symptom Analysis</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>24/7 Doctor Consultations</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Medical Records Storage</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Prescription Management</span>
+                    </div>
+                    <div className="pt-4 space-y-2 text-sm text-muted-foreground">
+                      <div>3 months: $25 (save $5)</div>
+                      <div>6 months: $55 (save $5)</div>
+                      <div>12 months: $110 (save $10)</div>
+                    </div>
+                    <Button variant="medical" className="w-full mt-6">
+                      Get Started
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Enterprise Plan */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
+                      Most Popular
+                    </span>
+                  </div>
+                  <CardHeader className="text-center pb-8 pt-8">
+                    <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
+                    <CardDescription>For hospitals and large organizations</CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">$30</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Everything in Individual</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Multi-user Dashboard</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Advanced Analytics</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Priority Support</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>API Integration</span>
+                    </div>
+                    <div className="pt-4 space-y-2 text-sm text-muted-foreground">
+                      <div>6 months: $180 (save $0)</div>
+                    </div>
+                    <Button variant="cta" className="w-full mt-6">
+                      Contact Sales
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Custom Team Plan */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-2">
+                  <CardHeader className="text-center pb-8">
+                    <CardTitle className="text-2xl mb-2">Custom Team</CardTitle>
+                    <CardDescription>Tailored solutions for your organization</CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">Custom</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Custom Feature Development</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Dedicated Account Manager</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>On-premise Deployment</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>24/7 Premium Support</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Training & Onboarding</span>
+                    </div>
+                    <Button variant="outline" className="w-full mt-6">
+                      <PhoneCall className="w-4 h-4 mr-2" />
+                      Contact Support
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="yearly" className="space-y-8">
+              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                {/* Individual Plan - Yearly */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up relative">
+                  <CardHeader className="text-center pb-8">
+                    <CardTitle className="text-2xl mb-2">Individual</CardTitle>
+                    <CardDescription>Perfect for personal healthcare needs</CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">$110</span>
+                      <span className="text-muted-foreground">/year</span>
+                    </div>
+                    <div className="text-sm text-green-600 font-medium">Save $10 annually</div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>AI Symptom Analysis</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>24/7 Doctor Consultations</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Medical Records Storage</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Prescription Management</span>
+                    </div>
+                    <Button variant="medical" className="w-full mt-6">
+                      Get Started
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Enterprise Plan - Yearly */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
+                      Most Popular
+                    </span>
+                  </div>
+                  <CardHeader className="text-center pb-8 pt-8">
+                    <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
+                    <CardDescription>For hospitals and large organizations</CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">$360</span>
+                      <span className="text-muted-foreground">/year</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Everything in Individual</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Multi-user Dashboard</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Advanced Analytics</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Priority Support</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>API Integration</span>
+                    </div>
+                    <Button variant="cta" className="w-full mt-6">
+                      Contact Sales
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Custom Team Plan - Yearly */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-2">
+                  <CardHeader className="text-center pb-8">
+                    <CardTitle className="text-2xl mb-2">Custom Team</CardTitle>
+                    <CardDescription>Tailored solutions for your organization</CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">Custom</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Custom Feature Development</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Dedicated Account Manager</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>On-premise Deployment</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>24/7 Premium Support</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Training & Onboarding</span>
+                    </div>
+                    <Button variant="outline" className="w-full mt-6">
+                      <PhoneCall className="w-4 h-4 mr-2" />
+                      Contact Support
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
       {/* FAQ Section */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-20">
         <div className="container mx-auto px-4 max-w-4xl">
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
             Frequently Asked Questions
