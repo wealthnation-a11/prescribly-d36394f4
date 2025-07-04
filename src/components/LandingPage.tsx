@@ -315,6 +315,9 @@ export const LandingPage = () => {
                       <div>6 months: $55 (save $5)</div>
                       <div>12 months: $110 (save $10)</div>
                     </div>
+                    <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
+                      * Extra charges are applied for doctor consultations
+                    </div>
                     <Button variant="medical" className="w-full mt-6">
                       Get Started
                     </Button>
@@ -359,6 +362,9 @@ export const LandingPage = () => {
                     </div>
                     <div className="pt-4 space-y-2 text-sm text-muted-foreground">
                       <div>6 months: $180 (save $0)</div>
+                    </div>
+                    <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
+                      * Extra charges are applied for doctor consultations
                     </div>
                     <Button variant="cta" className="w-full mt-6">
                       Contact Sales
@@ -435,6 +441,9 @@ export const LandingPage = () => {
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>Prescription Management</span>
                     </div>
+                    <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
+                      * Extra charges are applied for doctor consultations
+                    </div>
                     <Button variant="medical" className="w-full mt-6">
                       Get Started
                     </Button>
@@ -476,6 +485,9 @@ export const LandingPage = () => {
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>API Integration</span>
+                    </div>
+                    <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
+                      * Extra charges are applied for doctor consultations
                     </div>
                     <Button variant="cta" className="w-full mt-6">
                       Contact Sales
