@@ -194,17 +194,28 @@ export const DoctorRegister = () => {
         }
 
         // Wait a moment for the profile to be created by the trigger
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Get the profile ID from the profiles table
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         
-        if (profileError || !profileData) {
-          console.error('Profile not found:', profileError);
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          toast({
+            title: "Profile Creation Error",
+            description: "Error retrieving user profile. Please try again.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
+        if (!profileData) {
+          console.error('Profile not found for user:', user.id);
           toast({
             title: "Profile Creation Error",
             description: "User profile was not created properly. Please try again.",

@@ -91,33 +91,46 @@ export const Register = () => {
       } else {
         // Wait for profile creation, then create patient record
         setTimeout(async () => {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('user_id', user.id)
-              .single();
-            
-            if (profileData) {
-              await supabase.from('patients').insert({
-                user_id: user.id,
-                profile_id: profileData.id,
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                email: formData.email,
-                phone: formData.phone,
-                date_of_birth: formData.dateOfBirth || null,
-                gender: formData.gender || null,
-                emergency_contact_name: formData.emergencyContactName || null,
-                emergency_contact_phone: formData.emergencyContactPhone || null,
-                medical_history: formData.medicalHistory || null,
-                allergies: formData.allergies || null,
-                current_medications: formData.currentMedications || null,
-              });
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('user_id', user.id)
+                .single();
+              
+              if (profileError) {
+                console.error('Profile fetch error:', profileError);
+                return;
+              }
+              
+              if (profileData) {
+                const { error: patientError } = await supabase.from('patients').insert({
+                  user_id: user.id,
+                  profile_id: profileData.id,
+                  first_name: formData.firstName,
+                  last_name: formData.lastName,
+                  email: formData.email,
+                  phone: formData.phone || null,
+                  date_of_birth: formData.dateOfBirth || null,
+                  gender: formData.gender || null,
+                  emergency_contact_name: formData.emergencyContactName || null,
+                  emergency_contact_phone: formData.emergencyContactPhone || null,
+                  medical_history: formData.medicalHistory || null,
+                  allergies: formData.allergies || null,
+                  current_medications: formData.currentMedications || null,
+                });
+                
+                if (patientError) {
+                  console.error('Patient profile creation error:', patientError);
+                }
+              }
             }
+          } catch (err) {
+            console.error('Patient profile creation error:', err);
           }
-        }, 1500);
+        }, 2000);
 
         toast({
           title: "Registration Successful!",

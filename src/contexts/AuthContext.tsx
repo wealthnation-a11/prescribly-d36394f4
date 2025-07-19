@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
-      console.log('Attempting to sign up with:', email);
+      console.log('Attempting to sign up with:', email, userData);
       const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
@@ -74,7 +74,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: userData,
         },
       });
+      
       console.log('Sign up response:', { data, error });
+      
+      // Handle specific error cases
+      if (error) {
+        if (error.message?.includes('User already registered')) {
+          return { error: { ...error, message: 'An account with this email already exists. Please try logging in instead.' } };
+        }
+        if (error.message?.includes('email')) {
+          return { error: { ...error, message: 'Please enter a valid email address.' } };
+        }
+      }
+      
       return { error };
     } catch (err) {
       console.error('Sign up error:', err);
