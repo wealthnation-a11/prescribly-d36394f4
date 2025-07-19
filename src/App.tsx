@@ -12,11 +12,6 @@ import { UserInfoConfirmation } from "./pages/UserInfoConfirmation";
 import { DoctorInfoConfirmation } from "./pages/DoctorInfoConfirmation";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { AdminLayout } from "./components/admin/AdminLayout";
-import { AdminDashboard } from "./pages/admin/AdminDashboard";
-import { AdminLogin } from "./pages/admin/AdminLogin";
-import { UsersManagement } from "./pages/admin/UsersManagement";
-import { DoctorsManagement } from "./pages/admin/DoctorsManagement";
 import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
@@ -51,11 +46,6 @@ const App = () => (
             <Route path="/doctor-dashboard" element={
               <ProtectedRoute requireDoctor={true}>
                 <DoctorDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin-dashboard" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
               </ProtectedRoute>
             } />
             
@@ -102,24 +92,6 @@ const App = () => (
                 <div>Book Appointment Page - Coming Soon</div>
               </ProtectedRoute>
             } />
-            
-            {/* Admin Routes */}
-            <Route path="/admin-login" element={<AdminLogin />} />
-            <Route path="/admin" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<AdminDashboard />} />
-              <Route path="users" element={<UsersManagement />} />
-              <Route path="doctors" element={<DoctorsManagement />} />
-              <Route path="appointments" element={<div>Appointments Management</div>} />
-              <Route path="prescriptions" element={<div>Prescriptions Management</div>} />
-              <Route path="transactions" element={<div>Transactions Management</div>} />
-              <Route path="support" element={<div>Support Tickets</div>} />
-              <Route path="logs" element={<div>System Logs</div>} />
-              <Route path="settings" element={<div>Settings</div>} />
-            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
