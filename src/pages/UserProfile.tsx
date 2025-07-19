@@ -3,13 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, User, Edit, Save, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, User, Edit, Save, X, Phone, Mail, Calendar, MapPin, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  SidebarProvider, 
+  SidebarTrigger,
+  SidebarInset 
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 
 const UserProfile = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, userProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -74,6 +81,11 @@ const UserProfile = () => {
           first_name: formData.first_name,
           last_name: formData.last_name,
           phone: formData.phone,
+          date_of_birth: formData.date_of_birth,
+          gender: formData.gender,
+          location_country: formData.location_country,
+          location_state: formData.location_state,
+          medical_history: formData.medical_history,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user?.id);
@@ -138,154 +150,274 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-primary p-4 text-white">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="text-white hover:bg-white/20"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center space-x-2">
-              <User className="w-5 h-5" />
-              <h1 className="text-lg font-semibold">Profile</h1>
-            </div>
-          </div>
-          {!isEditing && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsEditing(true)}
-              className="text-white hover:bg-white/20"
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Profile Content */}
-      <div className="max-w-md mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Personal Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Avatar */}
-            <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-10 h-10 text-primary" />
-              </div>
-            </div>
-
-            {/* Form Fields */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">First Name</label>
-                <Input
-                  value={formData.first_name}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    first_name: e.target.value
-                  })}
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Last Name</label>
-                <Input
-                  value={formData.last_name}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    last_name: e.target.value
-                  })}
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <Input
-                  value={formData.email}
-                  disabled={true}
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Email cannot be changed
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Phone</label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    phone: e.target.value
-                  })}
-                  disabled={!isEditing}
-                  placeholder="Enter your phone number"
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            {isEditing ? (
-              <div className="flex space-x-3 pt-4">
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        
+        <SidebarInset className="flex-1">
+          {/* Header */}
+          <header className="flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur px-6">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            <div className="flex-1 flex items-center justify-between">
+              <h1 className="text-heading text-foreground">My Profile</h1>
+              {!isEditing && (
                 <Button
                   variant="outline"
-                  onClick={handleCancel}
-                  className="flex-1"
-                  disabled={isSaving}
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="gap-2"
                 >
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
                 </Button>
-                <Button
-                  onClick={handleSave}
-                  className="flex-1"
-                  disabled={isSaving}
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            ) : (
-              <div className="pt-4">
-                <Button
-                  variant="outline"
-                  onClick={handleSignOut}
-                  className="w-full text-destructive hover:bg-destructive/10"
-                >
-                  Sign Out
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </div>
+          </header>
 
-        {/* Health History */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Health History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-center py-4">
-              Your health history will appear here as you use the app.
-            </p>
-          </CardContent>
-        </Card>
+          {/* Main Content */}
+          <main className="flex-1 overflow-auto p-6">
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Profile Header */}
+              <Card className="dashboard-card">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-4 border-primary/10">
+                      <User className="w-12 h-12 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold text-foreground mb-2">
+                        {profile?.first_name} {profile?.last_name}
+                      </h2>
+                      <p className="text-content text-muted-foreground mb-4">
+                        Patient ID: #{user?.id?.slice(0, 8)}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          {profile?.email}
+                        </div>
+                        {profile?.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4" />
+                            {profile.phone}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Personal Information */}
+                <Card className="dashboard-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="w-5 h-5 text-primary" />
+                      Personal Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-content font-medium text-foreground mb-2">
+                          First Name
+                        </label>
+                        <Input
+                          value={formData.first_name}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            first_name: e.target.value
+                          })}
+                          disabled={!isEditing}
+                          className="transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-content font-medium text-foreground mb-2">
+                          Last Name
+                        </label>
+                        <Input
+                          value={formData.last_name}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            last_name: e.target.value
+                          })}
+                          disabled={!isEditing}
+                          className="transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-content font-medium text-foreground mb-2">
+                        Email Address
+                      </label>
+                      <Input
+                        value={formData.email}
+                        disabled={true}
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Email cannot be changed
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-content font-medium text-foreground mb-2">
+                        Phone Number
+                      </label>
+                      <Input
+                        value={formData.phone}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          phone: e.target.value
+                        })}
+                        disabled={!isEditing}
+                        placeholder="Enter your phone number"
+                        className="transition-all duration-200"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-content font-medium text-foreground mb-2">
+                          Date of Birth
+                        </label>
+                        <Input
+                          type="date"
+                          value={formData.date_of_birth}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            date_of_birth: e.target.value
+                          })}
+                          disabled={!isEditing}
+                          className="transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-content font-medium text-foreground mb-2">
+                          Gender
+                        </label>
+                        <Input
+                          value={formData.gender}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            gender: e.target.value
+                          })}
+                          disabled={!isEditing}
+                          placeholder="Gender"
+                          className="transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Location & Health */}
+                <Card className="dashboard-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      Location & Health
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-content font-medium text-foreground mb-2">
+                          Country
+                        </label>
+                        <Input
+                          value={formData.location_country}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            location_country: e.target.value
+                          })}
+                          disabled={!isEditing}
+                          placeholder="Country"
+                          className="transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-content font-medium text-foreground mb-2">
+                          State/Province
+                        </label>
+                        <Input
+                          value={formData.location_state}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            location_state: e.target.value
+                          })}
+                          disabled={!isEditing}
+                          placeholder="State or Province"
+                          className="transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-content font-medium text-foreground mb-2">
+                        Medical History
+                      </label>
+                      <Textarea
+                        value={formData.medical_history}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          medical_history: e.target.value
+                        })}
+                        disabled={!isEditing}
+                        placeholder="Enter any relevant medical history, allergies, or current medications..."
+                        className="min-h-[120px] transition-all duration-200"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              {isEditing ? (
+                <Card className="dashboard-card">
+                  <CardContent className="p-6">
+                    <div className="flex gap-4">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancel}
+                        className="flex-1 gap-2"
+                        disabled={isSaving}
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSave}
+                        className="flex-1 gap-2"
+                        disabled={isSaving}
+                      >
+                        <Save className="w-4 h-4" />
+                        {isSaving ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="dashboard-card">
+                  <CardContent className="p-6">
+                    <Button
+                      variant="outline"
+                      onClick={handleSignOut}
+                      className="w-full text-destructive hover:bg-destructive/10 gap-2"
+                    >
+                      Sign Out
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </main>
+        </SidebarInset>
       </div>
-
-      {/* Bottom padding */}
-      <div className="h-20"></div>
-    </div>
+    </SidebarProvider>
   );
 };
 
