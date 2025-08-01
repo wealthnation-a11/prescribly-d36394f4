@@ -13,6 +13,8 @@ import { Calendar as CalendarIcon, Clock, UserCog, Loader2 } from 'lucide-react'
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 
 interface Doctor {
   user_id: string;
@@ -145,137 +147,159 @@ export default function BookAppointment() {
 
   if (isLoadingDoctors) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar />
+          <main className="flex-1">
+            <header className="h-16 flex items-center border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <SidebarTrigger className="ml-4" />
+              <h1 className="ml-4 text-xl font-semibold">Book Appointment</h1>
+            </header>
+            <div className="container mx-auto px-4 py-8">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            </div>
+          </main>
         </div>
-      </div>
+      </SidebarProvider>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Book Appointment</h1>
-        <p className="text-muted-foreground">Schedule a consultation with our verified doctors</p>
-      </div>
-
-      <Card className="shadow-lg border-medical-blue/10">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-medical-blue">
-            <UserCog className="h-5 w-5" />
-            Appointment Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Doctor Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="doctor" className="text-sm font-medium">Select Doctor</Label>
-              <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-                <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder="Choose a doctor" />
-                </SelectTrigger>
-                <SelectContent className="bg-background">
-                  {doctors.map((doctor) => (
-                    <SelectItem key={doctor.user_id} value={doctor.user_id}>
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">
-                          Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {doctor.specialization} • ₦{doctor.consultation_fee}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <main className="flex-1">
+          <header className="h-16 flex items-center border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <SidebarTrigger className="ml-4" />
+            <h1 className="ml-4 text-xl font-semibold">Book Appointment</h1>
+          </header>
+          <div className="container mx-auto px-4 py-6 max-w-2xl">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-foreground mb-2">Book Appointment</h1>
+              <p className="text-muted-foreground">Schedule a consultation with our verified doctors</p>
             </div>
 
-            {/* Date Selection */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Select Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
+            <Card className="shadow-lg border-medical-blue/10">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-medical-blue">
+                  <UserCog className="h-5 w-5" />
+                  Appointment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Doctor Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="doctor" className="text-sm font-medium">Select Doctor</Label>
+                    <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="Choose a doctor" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background">
+                        {doctors.map((doctor) => (
+                          <SelectItem key={doctor.user_id} value={doctor.user_id}>
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium">
+                                Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {doctor.specialization} • ₦{doctor.consultation_fee}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Date Selection */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Select Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full h-12 justify-start text-left font-normal",
+                            !selectedDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-background" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          disabled={(date) =>
+                            date < new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Time Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="time" className="text-sm font-medium">Select Time</Label>
+                    <Select value={selectedTime} onValueChange={setSelectedTime}>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="Choose a time slot" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background">
+                        {timeSlots.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              {time}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Reason for Appointment */}
+                  <div className="space-y-2">
+                    <Label htmlFor="reason" className="text-sm font-medium">Reason for Appointment</Label>
+                    <Textarea
+                      id="reason"
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      placeholder="Please describe your symptoms or reason for the consultation..."
+                      className="min-h-[100px] text-base"
+                      required
+                    />
+                  </div>
+
+                  {/* Submit Button */}
                   <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full h-12 justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
+                    type="submit"
+                    disabled={!isFormValid || isLoading}
+                    className="w-full h-12 text-base font-semibold"
+                    variant="medical"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Booking...
+                      </>
+                    ) : (
+                      'Book Now'
+                    )}
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-background" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={(date) =>
-                      date < new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Time Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="time" className="text-sm font-medium">Select Time</Label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
-                <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder="Choose a time slot" />
-                </SelectTrigger>
-                <SelectContent className="bg-background">
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        {time}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Reason for Appointment */}
-            <div className="space-y-2">
-              <Label htmlFor="reason" className="text-sm font-medium">Reason for Appointment</Label>
-              <Textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Please describe your symptoms or reason for the consultation..."
-                className="min-h-[100px] text-base"
-                required
-              />
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={!isFormValid || isLoading}
-              className="w-full h-12 text-base font-semibold"
-              variant="medical"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Booking...
-                </>
-              ) : (
-                'Book Now'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
