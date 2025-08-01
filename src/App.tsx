@@ -20,6 +20,7 @@ import AIDiagnosis from "./pages/AIDiagnosis";
 import MyPrescriptions from "./pages/MyPrescriptions";
 import UserProfile from "./pages/UserProfile";
 import BookAppointment from "./pages/BookAppointment";
+import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -85,7 +86,7 @@ const App = () => (
             } />
             <Route path="/chat" element={
               <ProtectedRoute requirePatient={true}>
-                <div>Chat Page - Coming Soon</div>
+                <Chat />
               </ProtectedRoute>
             } />
             <Route path="/book-appointment" element={
