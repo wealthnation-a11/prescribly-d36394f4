@@ -1,4 +1,4 @@
-import { Home, Stethoscope, FileText, Calendar, MessageCircle, User, BookOpen } from "lucide-react";
+import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import {
@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
+  { title: "Dashboard", url: "/user-dashboard", icon: Home },
+  { title: "Book Appointment", url: "/book-appointment", icon: CalendarPlus },
   { title: "AI Diagnosis", url: "/symptom-form", icon: Stethoscope },
   { title: "Prescriptions", url: "/my-prescriptions", icon: FileText },
   { title: "Appointments", url: "/appointments", icon: Calendar },

@@ -19,6 +19,7 @@ import SymptomForm from "./pages/SymptomForm";
 import AIDiagnosis from "./pages/AIDiagnosis";
 import MyPrescriptions from "./pages/MyPrescriptions";
 import UserProfile from "./pages/UserProfile";
+import BookAppointment from "./pages/BookAppointment";
 
 const queryClient = new QueryClient();
 
@@ -89,7 +90,7 @@ const App = () => (
             } />
             <Route path="/book-appointment" element={
               <ProtectedRoute requirePatient={true}>
-                <div>Book Appointment Page - Coming Soon</div>
+                <BookAppointment />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
