@@ -9,8 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Clock, UserCog, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Calendar as CalendarIcon, Clock, UserCog, Loader2, MessageCircle, CheckCircle, XCircle, History } from 'lucide-react';
+import { format, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -23,6 +26,24 @@ interface Doctor {
   profiles: {
     first_name: string;
     last_name: string;
+    avatar_url?: string;
+  };
+}
+
+interface Appointment {
+  id: string;
+  patient_id: string;
+  doctor_id: string;
+  scheduled_time: string;
+  duration_minutes: number;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'no_show';
+  consultation_fee: number;
+  notes?: string;
+  created_at: string;
+  profiles?: {
+    first_name: string;
+    last_name: string;
+    avatar_url?: string;
   };
 }
 
@@ -39,12 +60,14 @@ export default function BookAppointment() {
   const { toast } = useToast();
   
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('');
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
 
   useEffect(() => {
     if (!user) {
@@ -52,6 +75,7 @@ export default function BookAppointment() {
       return;
     }
     fetchDoctors();
+    fetchAppointments();
   }, [user, navigate]);
 
   const fetchDoctors = async () => {
@@ -64,7 +88,8 @@ export default function BookAppointment() {
           consultation_fee,
           profiles!inner(
             first_name,
-            last_name
+            last_name,
+            avatar_url
           )
         `)
         .eq('verification_status', 'approved');
@@ -80,6 +105,49 @@ export default function BookAppointment() {
       });
     } finally {
       setIsLoadingDoctors(false);
+    }
+  };
+
+  const fetchAppointments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          patient_id,
+          doctor_id,
+          scheduled_time,
+          duration_minutes,
+          status,
+          consultation_fee,
+          notes,
+          created_at,
+          profiles!doctor_id(
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .eq('patient_id', user?.id)
+        .order('scheduled_time', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedAppointments = data?.map(appointment => ({
+        ...appointment,
+        profiles: Array.isArray(appointment.profiles) ? appointment.profiles[0] : appointment.profiles
+      })) || [];
+      
+      setAppointments(formattedAppointments as Appointment[]);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load appointments. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAppointments(false);
     }
   };
 
@@ -120,7 +188,7 @@ export default function BookAppointment() {
 
       toast({
         title: "Success!",
-        description: "Your appointment has been booked successfully.",
+        description: "Your appointment request has been sent.",
       });
 
       // Reset form
@@ -129,8 +197,8 @@ export default function BookAppointment() {
       setSelectedTime('');
       setReason('');
       
-      // Navigate to appointments page
-      navigate('/user-dashboard');
+      // Refresh appointments
+      fetchAppointments();
     } catch (error) {
       console.error('Error booking appointment:', error);
       toast({
@@ -145,7 +213,47 @@ export default function BookAppointment() {
 
   const isFormValid = selectedDoctor && selectedDate && selectedTime && reason.trim();
 
-  if (isLoadingDoctors) {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-blue-500" />;
+      case 'cancelled':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const canChat = (appointment: Appointment) => {
+    return (appointment.status === 'confirmed' || appointment.status === 'completed') && 
+           isPast(new Date(appointment.scheduled_time));
+  };
+
+  const pendingAppointments = appointments.filter(app => app.status === 'pending');
+  const upcomingAppointments = appointments.filter(app => 
+    (app.status === 'confirmed') && !isPast(new Date(app.scheduled_time))
+  );
+  const appointmentHistory = appointments.filter(app => 
+    app.status === 'completed' || app.status === 'cancelled' || 
+    (app.status === 'confirmed' && isPast(new Date(app.scheduled_time)))
+  );
+
+  if (isLoadingDoctors || isLoadingAppointments) {
     return (
       <SidebarProvider>
         <div className="min-h-screen flex w-full">
@@ -175,128 +283,285 @@ export default function BookAppointment() {
             <SidebarTrigger className="ml-4" />
             <h1 className="ml-4 text-xl font-semibold">Book Appointment</h1>
           </header>
-          <div className="container mx-auto px-4 py-6 max-w-2xl">
+          <div className="container mx-auto px-4 py-6 max-w-4xl">
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Book Appointment</h1>
-              <p className="text-muted-foreground">Schedule a consultation with our verified doctors</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Appointments</h1>
+              <p className="text-muted-foreground">Manage your appointments and consultations</p>
             </div>
 
-            <Card className="shadow-lg border-medical-blue/10">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-medical-blue">
-                  <UserCog className="h-5 w-5" />
-                  Appointment Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Doctor Selection */}
-                  <div className="space-y-2">
-                    <Label htmlFor="doctor" className="text-sm font-medium">Select Doctor</Label>
-                    <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-                      <SelectTrigger className="h-12 text-base">
-                        <SelectValue placeholder="Choose a doctor" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background">
-                        {doctors.map((doctor) => (
-                          <SelectItem key={doctor.user_id} value={doctor.user_id}>
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">
-                                Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {doctor.specialization} • ₦{doctor.consultation_fee}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <Tabs defaultValue="book" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="book">Book New</TabsTrigger>
+                <TabsTrigger value="pending">
+                  Pending {pendingAppointments.length > 0 && `(${pendingAppointments.length})`}
+                </TabsTrigger>
+                <TabsTrigger value="upcoming">
+                  Upcoming {upcomingAppointments.length > 0 && `(${upcomingAppointments.length})`}
+                </TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
+              </TabsList>
 
-                  {/* Date Selection */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Select Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full h-12 justify-start text-left font-normal",
-                            !selectedDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-background" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          disabled={(date) =>
-                            date < new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                          className="pointer-events-auto"
+              <TabsContent value="book">
+                <Card className="shadow-lg border-medical-blue/10">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-medical-blue">
+                      <UserCog className="h-5 w-5" />
+                      Book New Appointment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Doctor Selection */}
+                      <div className="space-y-2">
+                        <Label htmlFor="doctor" className="text-sm font-medium">Select Doctor</Label>
+                        <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+                          <SelectTrigger className="h-12 text-base">
+                            <SelectValue placeholder="Choose a doctor" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background">
+                            {doctors.map((doctor) => (
+                              <SelectItem key={doctor.user_id} value={doctor.user_id}>
+                                <div className="flex flex-col items-start">
+                                  <span className="font-medium">
+                                    Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
+                                  </span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {doctor.specialization} • ₦{doctor.consultation_fee}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Date Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Select Date</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full h-12 justify-start text-left font-normal",
+                                !selectedDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-background" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              onSelect={setSelectedDate}
+                              disabled={(date) =>
+                                date < new Date() || date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Time Selection */}
+                      <div className="space-y-2">
+                        <Label htmlFor="time" className="text-sm font-medium">Select Time</Label>
+                        <Select value={selectedTime} onValueChange={setSelectedTime}>
+                          <SelectTrigger className="h-12 text-base">
+                            <SelectValue placeholder="Choose a time slot" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background">
+                            {timeSlots.map((time) => (
+                              <SelectItem key={time} value={time}>
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-4 w-4" />
+                                  {time}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Reason for Appointment */}
+                      <div className="space-y-2">
+                        <Label htmlFor="reason" className="text-sm font-medium">Reason for Appointment</Label>
+                        <Textarea
+                          id="reason"
+                          value={reason}
+                          onChange={(e) => setReason(e.target.value)}
+                          placeholder="Please describe your symptoms or reason for the consultation..."
+                          className="min-h-[100px] text-base"
+                          required
                         />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                      </div>
 
-                  {/* Time Selection */}
-                  <div className="space-y-2">
-                    <Label htmlFor="time" className="text-sm font-medium">Select Time</Label>
-                    <Select value={selectedTime} onValueChange={setSelectedTime}>
-                      <SelectTrigger className="h-12 text-base">
-                        <SelectValue placeholder="Choose a time slot" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background">
-                        {timeSlots.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4" />
-                              {time}
+                      {/* Submit Button */}
+                      <Button
+                        type="submit"
+                        disabled={!isFormValid || isLoading}
+                        className="w-full h-12 text-base font-semibold"
+                        variant="medical"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Booking...
+                          </>
+                        ) : (
+                          'Send Request'
+                        )}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="pending">
+                <div className="space-y-4">
+                  {pendingAppointments.length === 0 ? (
+                    <Card>
+                      <CardContent className="text-center py-8">
+                        <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground">No pending appointments</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    pendingAppointments.map((appointment) => (
+                      <Card key={appointment.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                <AvatarImage src={appointment.profiles?.avatar_url} />
+                                <AvatarFallback>
+                                  {appointment.profiles?.first_name?.[0]}{appointment.profiles?.last_name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  Dr. {appointment.profiles?.first_name} {appointment.profiles?.last_name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(appointment.scheduled_time), "PPP 'at' p")}
+                                </p>
+                              </div>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(appointment.status)}
+                              <Badge className={getStatusColor(appointment.status)}>
+                                {appointment.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </TabsContent>
 
-                  {/* Reason for Appointment */}
-                  <div className="space-y-2">
-                    <Label htmlFor="reason" className="text-sm font-medium">Reason for Appointment</Label>
-                    <Textarea
-                      id="reason"
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      placeholder="Please describe your symptoms or reason for the consultation..."
-                      className="min-h-[100px] text-base"
-                      required
-                    />
-                  </div>
+              <TabsContent value="upcoming">
+                <div className="space-y-4">
+                  {upcomingAppointments.length === 0 ? (
+                    <Card>
+                      <CardContent className="text-center py-8">
+                        <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground">No upcoming appointments</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    upcomingAppointments.map((appointment) => (
+                      <Card key={appointment.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                <AvatarImage src={appointment.profiles?.avatar_url} />
+                                <AvatarFallback>
+                                  {appointment.profiles?.first_name?.[0]}{appointment.profiles?.last_name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  Dr. {appointment.profiles?.first_name} {appointment.profiles?.last_name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(appointment.scheduled_time), "PPP 'at' p")}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(appointment.status)}
+                              <Badge className={getStatusColor(appointment.status)}>
+                                {appointment.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </TabsContent>
 
-                  {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    disabled={!isFormValid || isLoading}
-                    className="w-full h-12 text-base font-semibold"
-                    variant="medical"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Booking...
-                      </>
-                    ) : (
-                      'Book Now'
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+              <TabsContent value="history">
+                <div className="space-y-4">
+                  {appointmentHistory.length === 0 ? (
+                    <Card>
+                      <CardContent className="text-center py-8">
+                        <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground">No appointment history</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    appointmentHistory.map((appointment) => (
+                      <Card key={appointment.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                <AvatarImage src={appointment.profiles?.avatar_url} />
+                                <AvatarFallback>
+                                  {appointment.profiles?.first_name?.[0]}{appointment.profiles?.last_name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  Dr. {appointment.profiles?.first_name} {appointment.profiles?.last_name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(appointment.scheduled_time), "PPP 'at' p")}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {canChat(appointment) && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => navigate('/chat')}
+                                >
+                                  <MessageCircle className="h-4 w-4 mr-1" />
+                                  Chat Now
+                                </Button>
+                              )}
+                              {getStatusIcon(appointment.status)}
+                              <Badge className={getStatusColor(appointment.status)}>
+                                {appointment.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>

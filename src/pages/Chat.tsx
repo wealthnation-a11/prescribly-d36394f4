@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Send, 
   Search, 
@@ -15,7 +17,14 @@ import {
   Video,
   MoreVertical,
   Clock,
-  Wifi
+  Wifi,
+  Paperclip,
+  Mic,
+  MicOff,
+  Play,
+  Pause,
+  ArrowLeft,
+  Calendar
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -32,13 +41,14 @@ interface Doctor {
   online_status?: boolean;
 }
 
-interface Message {
+interface ChatMessage {
   id: string;
   sender_id: string;
-  conversation_id: string;
-  message_text: string;
+  recipient_id: string;
+  message?: string | null;
+  file_url?: string | null;
+  file_type?: 'image' | 'pdf' | 'docx' | 'audio' | null;
   created_at: string;
-  sender_type: 'patient' | 'doctor';
   sender_name?: string;
   sender_avatar?: string;
 }
@@ -46,20 +56,27 @@ interface Message {
 interface Conversation {
   id: string;
   doctor: Doctor;
-  last_message?: Message;
+  last_message?: ChatMessage;
   unread_count?: number;
 }
 
 export default function Chat() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -125,19 +142,17 @@ export default function Chat() {
 
   const fetchMessages = async (doctorId: string) => {
     try {
-      const conversationId = `${user?.id}-${doctorId}`;
-      
       const { data, error } = await supabase
-        .from('messages')
+        .from('chats')
         .select('*')
-        .eq('conversation_id', conversationId)
+        .or(`and(sender_id.eq.${user?.id},recipient_id.eq.${doctorId}),and(sender_id.eq.${doctorId},recipient_id.eq.${user?.id})`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      const formattedMessages: Message[] = data?.map(msg => ({
+      const formattedMessages: ChatMessage[] = data?.map(msg => ({
         ...msg,
-        sender_type: (msg.sender_type as 'patient' | 'doctor') || 'patient',
+        file_type: msg.file_type as 'image' | 'pdf' | 'docx' | 'audio' | null,
         sender_name: msg.sender_id === user?.id ? 'You' : selectedDoctor?.first_name || 'Doctor',
         sender_avatar: msg.sender_id === user?.id ? user?.user_metadata?.avatar_url : selectedDoctor?.avatar_url
       })) || [];
@@ -151,24 +166,29 @@ export default function Chat() {
   const subscribeToMessages = () => {
     if (!selectedDoctor || !user) return;
 
-    const conversationId = `${user.id}-${selectedDoctor.user_id}`;
-    
     const channel = supabase
-      .channel('message-changes')
+      .channel('chat-changes')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
+          table: 'chats',
+          filter: `or(and(sender_id.eq.${user.id},recipient_id.eq.${selectedDoctor.user_id}),and(sender_id.eq.${selectedDoctor.user_id},recipient_id.eq.${user.id}))`
         },
         (payload) => {
-          const newMessage = payload.new as Message;
+          const newMessage = payload.new as ChatMessage;
           newMessage.sender_name = newMessage.sender_id === user.id ? 'You' : selectedDoctor?.first_name || 'Doctor';
           newMessage.sender_avatar = newMessage.sender_id === user.id ? user?.user_metadata?.avatar_url : selectedDoctor?.avatar_url;
           
           setMessages(prev => [...prev, newMessage]);
+          
+          if (newMessage.sender_id !== user.id) {
+            toast({
+              title: 'New Message',
+              description: `Message from Dr. ${selectedDoctor?.first_name}`,
+            });
+          }
         }
       )
       .subscribe();
@@ -178,23 +198,21 @@ export default function Chat() {
     };
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedDoctor || !user) return;
+  const sendMessage = async (messageContent?: string, fileUrl?: string, fileType?: string) => {
+    if ((!newMessage.trim() && !messageContent && !fileUrl) || !selectedDoctor || !user) return;
 
     setIsLoading(true);
     setIsTyping(true);
 
     try {
-      const conversationId = `${user.id}-${selectedDoctor.user_id}`;
-      
       const { error } = await supabase
-        .from('messages')
+        .from('chats')
         .insert({
-          user_id: user.id,
-          conversation_id: conversationId,
           sender_id: user.id,
-          message_text: newMessage.trim(),
-          sender_type: 'patient'
+          recipient_id: selectedDoctor.user_id,
+          message: messageContent || newMessage.trim() || undefined,
+          file_url: fileUrl,
+          file_type: fileType as any
         });
 
       if (error) throw error;
@@ -213,6 +231,132 @@ export default function Chat() {
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedDoctor || !user) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please upload only images, PDFs, or Word documents.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('chat-files')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-files')
+        .getPublicUrl(fileName);
+
+      let fileType: string;
+      if (file.type.startsWith('image/')) fileType = 'image';
+      else if (file.type === 'application/pdf') fileType = 'pdf';
+      else if (file.type.includes('wordprocessing')) fileType = 'docx';
+      else fileType = 'image';
+
+      await sendMessage(`Shared a ${fileType}`, publicUrl, fileType);
+      
+      toast({
+        title: 'File Uploaded',
+        description: 'File has been shared successfully.',
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: 'Upload Error',
+        description: 'Failed to upload file. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      
+      setMediaRecorder(recorder);
+      setAudioChunks([]);
+      setIsRecording(true);
+
+      recorder.ondataavailable = (event) => {
+        setAudioChunks(prev => [...prev, event.data]);
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const fileName = `${user?.id}/${Date.now()}_voice_note.wav`;
+
+        try {
+          const { data, error } = await supabase.storage
+            .from('chat-files')
+            .upload(fileName, audioBlob);
+
+          if (error) throw error;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('chat-files')
+            .getPublicUrl(fileName);
+
+          await sendMessage('Sent a voice note', publicUrl, 'audio');
+          
+          toast({
+            title: 'Voice Note Sent',
+            description: 'Your voice note has been shared.',
+          });
+        } catch (error) {
+          console.error('Error uploading voice note:', error);
+          toast({
+            title: 'Upload Error',
+            description: 'Failed to upload voice note.',
+            variant: 'destructive'
+          });
+        }
+
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: 'Recording Error',
+        description: 'Could not access microphone.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
+  const playAudio = (audioUrl: string) => {
+    if (playingAudio === audioUrl) {
+      setPlayingAudio(null);
+      return;
+    }
+    
+    const audio = new Audio(audioUrl);
+    setPlayingAudio(audioUrl);
+    
+    audio.onended = () => setPlayingAudio(null);
+    audio.play();
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -229,6 +373,69 @@ export default function Chat() {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const renderMessage = (message: ChatMessage) => {
+    const isOwn = message.sender_id === user?.id;
+    
+    return (
+      <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+        <div className={`max-w-[70%] rounded-lg p-3 ${
+          isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
+        }`}>
+          {message.file_url ? (
+            <div className="space-y-2">
+              {message.file_type === 'image' && (
+                <img 
+                  src={message.file_url} 
+                  alt="Shared image" 
+                  className="max-w-full h-auto rounded"
+                />
+              )}
+              {message.file_type === 'audio' && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => playAudio(message.file_url!)}
+                  >
+                    {playingAudio === message.file_url ? (
+                      <Pause className="h-4 w-4" />
+                    ) : (
+                      <Play className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <span className="text-sm">Voice Note</span>
+                </div>
+              )}
+              {(message.file_type === 'pdf' || message.file_type === 'docx') && (
+                <div className="flex items-center gap-2">
+                  <Paperclip className="h-4 w-4" />
+                  <a 
+                    href={message.file_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm underline"
+                  >
+                    Download {message.file_type.toUpperCase()}
+                  </a>
+                </div>
+              )}
+              {message.message && (
+                <p className="body-medium">{message.message}</p>
+              )}
+            </div>
+          ) : (
+            <p className="body-medium">{message.message}</p>
+          )}
+          <p className={`body-small mt-1 ${
+            isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+          }`}>
+            {formatTime(message.created_at)}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full bg-background">
@@ -238,6 +445,16 @@ export default function Chat() {
             {/* Conversations Sidebar */}
             <div className="w-80 border-r border-border bg-card flex flex-col">
               <div className="p-4 border-b border-border">
+                <div className="flex items-center gap-2 mb-4">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate('/book-appointment')}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Back to Appointments
+                  </Button>
+                </div>
                 <h2 className="heading-lg mb-4">Chat with Doctors</h2>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -355,29 +572,7 @@ export default function Chat() {
                           <p className="body-small">Send a message to begin chatting with the doctor</p>
                         </div>
                       ) : (
-                        messages.map((message) => (
-                          <div
-                            key={message.id}
-                            className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div
-                              className={`max-w-[70%] rounded-lg p-3 ${
-                                message.sender_id === user?.id
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted'
-                              }`}
-                            >
-                              <p className="body-medium">{message.message_text}</p>
-                              <p className={`body-small mt-1 ${
-                                message.sender_id === user?.id
-                                  ? 'text-primary-foreground/70'
-                                  : 'text-muted-foreground'
-                              }`}>
-                                {formatTime(message.created_at)}
-                              </p>
-                            </div>
-                          </div>
-                        ))
+                        messages.map(renderMessage)
                       )}
                       {isTyping && (
                         <div className="flex justify-start">
@@ -395,8 +590,46 @@ export default function Chat() {
                   </ScrollArea>
 
                   {/* Message Input */}
-                  <div className="p-4 border-t border-border bg-card">
+                  <div className="p-4 border-t border-border bg-card space-y-3">
+                    {/* Schedule Call Button */}
+                    <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Schedule a Call
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Schedule a Call</DialogTitle>
+                        </DialogHeader>
+                        <div className="text-center py-8">
+                          <Phone className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                          <h3 className="text-lg font-semibold mb-2">Coming Soon!</h3>
+                          <p className="text-muted-foreground">
+                            Video and voice calling features will be available soon. 
+                            Stay tuned for updates!
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
                     <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        accept="image/*,application/pdf,.docx"
+                        className="hidden"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-3"
+                      >
+                        <Paperclip className="w-4 h-4" />
+                      </Button>
                       <Input
                         placeholder="Type your message..."
                         value={newMessage}
@@ -406,7 +639,15 @@ export default function Chat() {
                         className="flex-1"
                       />
                       <Button
-                        onClick={sendMessage}
+                        variant="ghost"
+                        size="sm"
+                        onClick={isRecording ? stopRecording : startRecording}
+                        className={`px-3 ${isRecording ? 'text-red-500' : ''}`}
+                      >
+                        {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                      </Button>
+                      <Button
+                        onClick={() => sendMessage()}
                         disabled={!newMessage.trim() || isLoading}
                         size="sm"
                         className="px-3"
