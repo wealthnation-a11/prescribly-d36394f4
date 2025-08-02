@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       appointments: {
         Row: {
-          appointment_date: string
           consultation_fee: number | null
           consultation_log: string | null
           created_at: string
@@ -25,11 +24,11 @@ export type Database = {
           id: string
           notes: string | null
           patient_id: string
+          scheduled_time: string
           status: Database["public"]["Enums"]["appointment_status"] | null
           updated_at: string
         }
         Insert: {
-          appointment_date: string
           consultation_fee?: number | null
           consultation_log?: string | null
           created_at?: string
@@ -38,11 +37,11 @@ export type Database = {
           id?: string
           notes?: string | null
           patient_id: string
+          scheduled_time: string
           status?: Database["public"]["Enums"]["appointment_status"] | null
           updated_at?: string
         }
         Update: {
-          appointment_date?: string
           consultation_fee?: number | null
           consultation_log?: string | null
           created_at?: string
@@ -51,8 +50,39 @@ export type Database = {
           id?: string
           notes?: string | null
           patient_id?: string
+          scheduled_time?: string
           status?: Database["public"]["Enums"]["appointment_status"] | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      chats: {
+        Row: {
+          created_at: string
+          file_type: string | null
+          file_url: string | null
+          id: string
+          message: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          message?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          message?: string | null
+          recipient_id?: string
+          sender_id?: string
         }
         Relationships: []
       }
