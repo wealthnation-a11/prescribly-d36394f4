@@ -22,10 +22,13 @@ import {
   SidebarInset 
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const UserDashboard = () => {
   const { user, userProfile } = useAuth();
   const { role } = useUserRole();
+  const { stats, loading: statsLoading, error: statsError } = useDashboardStats();
 
   const quickActions = [
     {
@@ -62,29 +65,51 @@ export const UserDashboard = () => {
     }
   ];
 
-  const statsCards = [
-    {
-      title: "Total Consultations",
-      value: "12",
-      icon: Activity,
-      trend: "+2 this month",
-      color: "text-primary"
-    },
-    {
-      title: "Active Prescriptions",
-      value: "3",
-      icon: FileText,
-      trend: "2 expiring soon",
-      color: "text-blue-600"
-    },
-    {
-      title: "Next Appointment",
-      value: "Tomorrow",
-      icon: Clock,
-      trend: "2:00 PM",
-      color: "text-green-600"
+  // Create dynamic stats cards based on fetched data
+  const getStatsCards = () => {
+    if (statsLoading) {
+      return [
+        { title: "Total Consultations", loading: true, icon: Activity, color: "text-primary" },
+        { title: "Active Prescriptions", loading: true, icon: FileText, color: "text-blue-600" },
+        { title: "Next Appointment", loading: true, icon: Clock, color: "text-green-600" }
+      ];
     }
-  ];
+
+    return [
+      {
+        title: "Total Consultations",
+        value: stats.totalConsultations > 0 ? stats.totalConsultations.toString() : "0",
+        icon: Activity,
+        trend: stats.totalConsultations > 0 ? 
+          (stats.consultationsThisMonth > 0 ? `+${stats.consultationsThisMonth} this month` : "No consultations this month") :
+          "No consultations yet",
+        color: "text-primary",
+        empty: stats.totalConsultations === 0
+      },
+      {
+        title: "Active Prescriptions",
+        value: stats.activePrescriptions > 0 ? stats.activePrescriptions.toString() : "0",
+        icon: FileText,
+        trend: stats.activePrescriptions > 0 ?
+          (stats.expiringPrescriptions > 0 ? `${stats.expiringPrescriptions} expiring soon` : "None expiring soon") :
+          "No prescriptions found",
+        color: "text-blue-600",
+        empty: stats.activePrescriptions === 0
+      },
+      {
+        title: "Next Appointment",
+        value: stats.nextAppointment ? stats.nextAppointment.date || "Scheduled" : "None",
+        icon: Clock,
+        trend: stats.nextAppointment ? 
+          `${stats.nextAppointment.time || ''} ${stats.nextAppointment.doctorName ? 'with ' + stats.nextAppointment.doctorName : ''}`.trim() :
+          "No appointments yet",
+        color: "text-green-600",
+        empty: !stats.nextAppointment
+      }
+    ];
+  };
+
+  const statsCards = getStatsCards();
 
   return (
     <SidebarProvider>
@@ -130,8 +155,21 @@ export const UserDashboard = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-content text-muted-foreground mb-1">{stat.title}</p>
-                          <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{stat.trend}</p>
+                          {(stat as any).loading ? (
+                            <>
+                              <Skeleton className="h-8 w-16 mb-2" />
+                              <Skeleton className="h-3 w-24" />
+                            </>
+                          ) : (
+                            <>
+                              <p className={`text-2xl font-bold ${(stat as any).empty ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                {(stat as any).value}
+                              </p>
+                              <p className={`text-xs mt-1 ${(stat as any).empty ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
+                                {(stat as any).trend}
+                              </p>
+                            </>
+                          )}
                         </div>
                         <div className="icon-container">
                           <stat.icon className={`w-6 h-6 ${stat.color}`} />
