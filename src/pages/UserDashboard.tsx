@@ -15,6 +15,7 @@ import {
   Clock,
   Shield
 } from "lucide-react";
+import { RecentActivity } from "@/components/RecentActivity";
 import { 
   SidebarProvider, 
   SidebarTrigger,
@@ -177,19 +178,7 @@ export const UserDashboard = () => {
               {/* Recent Activity */}
               <div>
                 <h2 className="text-heading text-foreground mb-6">Recent Activity</h2>
-                <Card className="dashboard-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-center py-12">
-                      <div className="text-center">
-                        <Activity className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-foreground mb-2">No Recent Activity</h3>
-                        <p className="text-content text-muted-foreground">
-                          Start using our services to see your activity here
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <RecentActivity />
               </div>
             </div>
           </main>
