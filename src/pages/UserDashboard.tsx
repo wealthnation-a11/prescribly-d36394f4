@@ -48,14 +48,6 @@ export const UserDashboard = () => {
       color: "text-blue-600"
     },
     {
-      title: "Book Appointment",
-      description: "Schedule a consultation with our verified doctors.",
-      icon: Calendar,
-      href: "/book-appointment",
-      variant: "primary" as const,
-      color: "text-green-600"
-    },
-    {
       title: "Chat with Doctors",
       description: "Connect with healthcare professionals instantly.",
       icon: MessageCircle,
