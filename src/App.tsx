@@ -7,9 +7,18 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { DoctorLogin } from "./pages/DoctorLogin";
 import { DoctorRegister } from "./pages/DoctorRegister";
 import { UserInfoConfirmation } from "./pages/UserInfoConfirmation";
 import { DoctorInfoConfirmation } from "./pages/DoctorInfoConfirmation";
+import { DoctorPendingApproval } from "./pages/DoctorPendingApproval";
+import DoctorAppointments from "./pages/doctor/DoctorAppointments";
+import DoctorPatients from "./pages/doctor/DoctorPatients";
+import DoctorPrescriptions from "./pages/doctor/DoctorPrescriptions";
+import DoctorMessages from "./pages/doctor/DoctorMessages";
+import DoctorProfile from "./pages/doctor/DoctorProfile";
+import DoctorAvailability from "./pages/doctor/DoctorAvailability";
+import DoctorEarnings from "./pages/doctor/DoctorEarnings";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
@@ -36,8 +45,10 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register-user-info-confirmation" element={<UserInfoConfirmation />} />
+            <Route path="/doctor-login" element={<DoctorLogin />} />
             <Route path="/doctor-register" element={<DoctorRegister />} />
             <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
+            <Route path="/doctor-pending-approval" element={<DoctorPendingApproval />} />
             
             {/* Role-based Dashboard Routes */}
             <Route path="/user-dashboard" element={
@@ -94,6 +105,44 @@ const App = () => (
                 <BookAppointment />
               </ProtectedRoute>
             } />
+
+            {/* Doctor-specific Routes */}
+            <Route path="/doctor/appointments" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorAppointments />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/patients" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorPatients />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/prescriptions" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorPrescriptions />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/messages" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorMessages />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/profile" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/availability" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorAvailability />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/earnings" element={
+              <ProtectedRoute requireDoctor={true}>
+                <DoctorEarnings />
+              </ProtectedRoute>
+            } />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -20,6 +20,17 @@ export const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Block doctors from logging in through patient login
+    if (userType === "doctor") {
+      toast({
+        title: "Access Denied",
+        description: "Doctors must use the Doctor Login section.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -137,22 +148,27 @@ export const Login = () => {
 
               <div className="text-center text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                {userType === "patient" ? (
-                  <Link 
-                    to="/register-user-info-confirmation" 
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Register here
-                  </Link>
-                ) : (
-                  <Link 
-                    to="/register-doctor-info-confirmation" 
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Register as Doctor
-                  </Link>
-                )}
+                <Link 
+                  to="/register-user-info-confirmation" 
+                  className="text-primary hover:underline font-medium"
+                >
+                  Register as Patient
+                </Link>
               </div>
+              
+              {userType === "doctor" && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800 font-medium mb-2">
+                    🚫 Doctors must use the Doctor Login section
+                  </p>
+                  <Link 
+                    to="/doctor-login" 
+                    className="text-amber-700 hover:underline font-medium text-sm inline-flex items-center gap-1"
+                  >
+                    Go to Doctor Login →
+                  </Link>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
