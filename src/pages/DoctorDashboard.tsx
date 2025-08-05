@@ -62,15 +62,22 @@ export const DoctorDashboard = () => {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="h-16 border-b bg-white/80 backdrop-blur-sm flex items-center px-6 shadow-sm">
-            <SidebarTrigger className="mr-4" />
-            <div className="flex-1">
-              <h1 className="text-xl font-semibold text-slate-900">
-                Welcome, Dr. {user?.user_metadata?.first_name || "Doctor"}!
+          <header className="relative h-24 border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 backdrop-blur-sm flex items-center px-6 shadow-sm overflow-hidden">
+            <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+            <SidebarTrigger className="mr-4 z-10" />
+            <div className="flex-1 z-10">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                Welcome back, Dr. {user?.user_metadata?.first_name || "Doctor"}! 👋
               </h1>
-              <p className="text-sm text-slate-600">
-                Manage your practice and provide excellent patient care.
+              <p className="text-sm text-muted-foreground mt-1">
+                Ready to provide excellent patient care today • {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
+            </div>
+            <div className="hidden md:flex items-center gap-4 z-10">
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Today</p>
+                <p className="text-sm font-medium text-foreground">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
             </div>
           </header>
 
