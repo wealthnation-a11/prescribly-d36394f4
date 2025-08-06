@@ -56,6 +56,45 @@ export type Database = {
         }
         Relationships: []
       }
+      call_logs: {
+        Row: {
+          admin_fee: number | null
+          call_date: string
+          created_at: string | null
+          doctor_earnings: number | null
+          doctor_id: string
+          duration_minutes: number | null
+          id: string
+          patient_id: string
+          patient_payment: number | null
+          status: string | null
+        }
+        Insert: {
+          admin_fee?: number | null
+          call_date: string
+          created_at?: string | null
+          doctor_earnings?: number | null
+          doctor_id: string
+          duration_minutes?: number | null
+          id?: string
+          patient_id: string
+          patient_payment?: number | null
+          status?: string | null
+        }
+        Update: {
+          admin_fee?: number | null
+          call_date?: string
+          created_at?: string | null
+          doctor_earnings?: number | null
+          doctor_id?: string
+          duration_minutes?: number | null
+          id?: string
+          patient_id?: string
+          patient_payment?: number | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       chats: {
         Row: {
           created_at: string
@@ -83,6 +122,42 @@ export type Database = {
           message?: string | null
           recipient_id?: string
           sender_id?: string
+        }
+        Relationships: []
+      }
+      doctor_availability: {
+        Row: {
+          created_at: string | null
+          doctor_id: string
+          end_time: string | null
+          id: string
+          is_available: boolean | null
+          start_time: string | null
+          timezone: string | null
+          updated_at: string | null
+          weekday: string
+        }
+        Insert: {
+          created_at?: string | null
+          doctor_id: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          start_time?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          weekday: string
+        }
+        Update: {
+          created_at?: string | null
+          doctor_id?: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          start_time?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          weekday?: string
         }
         Relationships: []
       }
@@ -150,6 +225,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      doctors_profile: {
+        Row: {
+          bio: string | null
+          clinic_name: string | null
+          created_at: string | null
+          id: string
+          license_number: string | null
+          profile_picture_url: string | null
+          specialty: string | null
+          updated_at: string | null
+          user_id: string
+          years_experience: number | null
+        }
+        Insert: {
+          bio?: string | null
+          clinic_name?: string | null
+          created_at?: string | null
+          id?: string
+          license_number?: string | null
+          profile_picture_url?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+          user_id: string
+          years_experience?: number | null
+        }
+        Update: {
+          bio?: string | null
+          clinic_name?: string | null
+          created_at?: string | null
+          id?: string
+          license_number?: string | null
+          profile_picture_url?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+          user_id?: string
+          years_experience?: number | null
+        }
+        Relationships: []
       }
       messages: {
         Row: {
