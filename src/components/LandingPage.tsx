@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, PhoneCall } from "lucide-react";
@@ -316,50 +317,70 @@ export const LandingPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Enterprise Plan */}
-                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative">
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
-                      Most Popular
-                    </span>
-                  </div>
-                  <CardHeader className="text-center pb-8 pt-8">
-                    <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
-                    <CardDescription>For hospitals and large organizations</CardDescription>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-primary">$30</span>
-                      <span className="text-muted-foreground">/month</span>
+                {/* Healthcare Plans for Organizations (Monthly) */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative ring-1 ring-primary/20">
+                  <CardHeader className="text-center pb-6 pt-8 space-y-2">
+                    <div className="flex justify-center">
+                      <Badge variant="secondary" className="px-3 py-1 rounded-full">
+                        Perfect for Hospitals & Clinics
+                      </Badge>
                     </div>
+                    <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
+                    <CardDescription>
+                      Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Everything in Individual</span>
+                      <span>Unlimited Licensed Doctor Access</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Multi-user Dashboard</span>
+                      <span>AI-Powered Triage & Diagnostics</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Advanced Analytics</span>
+                      <span>Multi-Clinic Dashboard</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Priority Support</span>
+                      <span>Patient Record Synchronization</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>API Integration</span>
+                      <span>HIPAA / NDPR / GDPR Compliance</span>
                     </div>
-                    <div className="pt-4 space-y-2 text-sm text-muted-foreground">
-                      <div>6 months: $180 (save $0)</div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Dedicated Account Manager</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Custom Analytics & Reporting</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Integration with Hospital Systems (EHR, EMR, etc.)</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Priority Deployment & Staff Training</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Direct Line to Medical Support & Engineering Teams</span>
                     </div>
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button variant="cta" className="w-full mt-6">
-                      Contact Sales
+                    <Button
+                      variant="cta"
+                      className="w-full mt-4"
+                      aria-label="Request Enterprise Demo"
+                      onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                    >
+                      Request Enterprise Demo
                     </Button>
                   </CardContent>
                 </Card>
@@ -442,47 +463,70 @@ export const LandingPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Enterprise Plan - Yearly */}
-                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative">
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
-                      Most Popular
-                    </span>
-                  </div>
-                  <CardHeader className="text-center pb-8 pt-8">
-                    <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
-                    <CardDescription>For hospitals and large organizations</CardDescription>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-primary">$360</span>
-                      <span className="text-muted-foreground">/year</span>
+                {/* Healthcare Plans for Organizations (Yearly) */}
+                <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative ring-1 ring-primary/20">
+                  <CardHeader className="text-center pb-6 pt-8 space-y-2">
+                    <div className="flex justify-center">
+                      <Badge variant="secondary" className="px-3 py-1 rounded-full">
+                        Perfect for Hospitals & Clinics
+                      </Badge>
                     </div>
+                    <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
+                    <CardDescription>
+                      Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Everything in Individual</span>
+                      <span>Unlimited Licensed Doctor Access</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Multi-user Dashboard</span>
+                      <span>AI-Powered Triage & Diagnostics</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Advanced Analytics</span>
+                      <span>Multi-Clinic Dashboard</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Priority Support</span>
+                      <span>Patient Record Synchronization</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>API Integration</span>
+                      <span>HIPAA / NDPR / GDPR Compliance</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Dedicated Account Manager</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Custom Analytics & Reporting</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Integration with Hospital Systems (EHR, EMR, etc.)</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Priority Deployment & Staff Training</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span>Direct Line to Medical Support & Engineering Teams</span>
                     </div>
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button variant="cta" className="w-full mt-6">
-                      Contact Sales
+                    <Button
+                      variant="cta"
+                      className="w-full mt-4"
+                      aria-label="Request Enterprise Demo"
+                      onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                    >
+                      Request Enterprise Demo
                     </Button>
                   </CardContent>
                 </Card>
@@ -555,17 +599,23 @@ export const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section id="demo" className="py-20">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-8 fade-in-up">
             <h2 className="text-4xl lg:text-5xl font-bold text-foreground">
-              Start Your Health Journey with{" "}
+              Start Your Health Journey with {" "}
               <span className="text-primary">Prescribly</span>
             </h2>
             <p className="text-xl text-muted-foreground">
               Join thousands of patients and doctors who trust Prescribly for better healthcare outcomes.
             </p>
-            <Button variant="cta" size="lg" className="text-xl px-12 py-6">
+            <Button
+              variant="cta"
+              size="lg"
+              className="text-xl px-12 py-6"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+              aria-label="Go to contact section"
+            >
               Sign Up Now
             </Button>
             <div className="text-sm text-muted-foreground">
