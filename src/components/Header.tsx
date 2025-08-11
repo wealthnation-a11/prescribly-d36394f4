@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Globe, MessageSquare, Stethoscope } from "lucide-react";
 import { UserTypeModal } from "./UserTypeModal";
 
 export const Header = () => {
@@ -19,12 +19,18 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Stethoscope className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xl font-bold text-foreground">Prescribly</span>
-          </div>
+          <Link to="/" aria-label="Go to home" className="flex items-center space-x-2">
+            <img
+              src="/lovable-uploads/7675acdf-8e5e-4c27-a892-23a63e6023f6.png"
+              alt="Prescribly logo"
+              width={236}
+              height={286}
+              className="h-8 w-auto"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
+          </Link>
 
           {/* Navigation Menu */}
           <nav className="hidden md:flex items-center space-x-8">
