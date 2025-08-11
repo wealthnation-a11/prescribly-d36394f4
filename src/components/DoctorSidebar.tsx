@@ -1,5 +1,6 @@
 import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Stethoscope } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useDoctorApproval } from "@/hooks/useDoctorApproval";
 
 import {
   Sidebar,
@@ -28,6 +29,9 @@ export function DoctorSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { isApproved } = useDoctorApproval();
+
+  const visibleItems = isApproved ? items : items.filter((i) => i.title === "My Profile");
 
   const isActive = (path: string) => currentPath === path;
   const isExpanded = items.some((i) => isActive(i.url));
@@ -63,7 +67,7 @@ export function DoctorSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {items.map((item) => (
+              {visibleItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild className="h-12">
                     <NavLink 

@@ -6,33 +6,17 @@ import { Link, Navigate } from "react-router-dom";
 import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DoctorSidebar } from "@/components/DoctorSidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useDoctorApproval } from "@/hooks/useDoctorApproval";
 
 export const DoctorDashboard = () => {
   const { user } = useAuth();
   const { role, isDoctor, loading: roleLoading } = useUserRole();
 
   // Check doctor approval status
-  const { data: doctorData, isLoading: doctorLoading } = useQuery({
-    queryKey: ['doctor-profile', user?.id],
-    queryFn: async () => {
-      if (!user?.id) throw new Error('No user ID');
-      
-      const { data, error } = await supabase
-        .from('doctors')
-        .select('verification_status')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id && isDoctor,
-  });
+  const { isApproved, isLoading: approvalLoading } = useDoctorApproval();
 
   // Show loading while checking auth and role
-  if (roleLoading || doctorLoading) {
+  if (roleLoading || approvalLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -48,12 +32,10 @@ export const DoctorDashboard = () => {
     return <Navigate to="/doctor-login" replace />;
   }
 
-  // TODO: TEMPORARY - Bypass approval check for testing
-  // Will be reinstated after setup/testing is complete
   // Redirect if not approved
-  // if (doctorData?.verification_status !== 'approved') {
-  //   return <Navigate to="/doctor-pending-approval" replace />;
-  // }
+  if (!isApproved) {
+    return <Navigate to="/doctor-pending-approval" replace />;
+  }
 
   return (
     <SidebarProvider defaultOpen>

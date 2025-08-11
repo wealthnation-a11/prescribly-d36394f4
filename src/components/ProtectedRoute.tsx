@@ -1,26 +1,30 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useDoctorApproval } from '@/hooks/useDoctorApproval';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
   requireDoctor?: boolean;
   requirePatient?: boolean;
+  requireApprovedDoctor?: boolean;
 }
 
 export const ProtectedRoute = ({ 
   children, 
   requireAdmin = false, 
   requireDoctor = false, 
-  requirePatient = false 
+  requirePatient = false,
+  requireApprovedDoctor = false,
 }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { role, isAdmin, isDoctor, isPatient, loading: roleLoading } = useUserRole();
+  const { isApproved, isLoading: approvalLoading } = useDoctorApproval();
   const location = useLocation();
 
   // Show loading while authentication is being checked
-  if (authLoading || roleLoading) {
+  if (authLoading || roleLoading || (requireApprovedDoctor && approvalLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -96,6 +100,11 @@ export const ProtectedRoute = ({
         </div>
       </div>
     );
+  }
+
+  // If route requires an approved doctor, redirect pending doctors
+  if (requireApprovedDoctor && isDoctor && !isApproved) {
+    return <Navigate to="/doctor-pending-approval" replace />;
   }
 
   return <>{children}</>;

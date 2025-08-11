@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { Clock, CheckCircle, Phone, Mail } from "lucide-react";
+import { Lock, CheckCircle, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const DoctorPendingApproval = () => {
@@ -16,8 +16,8 @@ export const DoctorPendingApproval = () => {
       <div className="w-full max-w-2xl">
         <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-xl">
           <CardHeader className="text-center pb-6">
-            <div className="mx-auto w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mb-6">
-              <Clock className="w-10 h-10 text-amber-600" />
+            <div className="mx-auto w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mb-6 animate-enter">
+              <Lock className="w-10 h-10 text-amber-600" />
             </div>
             <CardTitle className="text-2xl text-slate-900">Account Under Review</CardTitle>
           </CardHeader>
@@ -61,14 +61,7 @@ export const DoctorPendingApproval = () => {
                   <Mail className="w-5 h-5 text-slate-600" />
                   <div>
                     <p className="font-medium text-slate-900">Email Support</p>
-                    <p className="text-sm text-slate-600">support@prescribly.com</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg">
-                  <Phone className="w-5 h-5 text-slate-600" />
-                  <div>
-                    <p className="font-medium text-slate-900">Phone Support</p>
-                    <p className="text-sm text-slate-600">+1 (555) 123-4567</p>
+                    <p className="text-sm text-slate-600">support@example.com</p>
                   </div>
                 </div>
               </div>
@@ -83,7 +76,7 @@ export const DoctorPendingApproval = () => {
                 Sign Out
               </Button>
               <Button asChild className="flex-1">
-                <Link to="/doctor-register">
+                <Link to="/doctor/profile">
                   Update Profile
                 </Link>
               </Button>

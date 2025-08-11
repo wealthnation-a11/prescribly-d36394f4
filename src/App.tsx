@@ -57,7 +57,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/doctor-dashboard" element={
-              <ProtectedRoute requireDoctor={true}>
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorDashboard />
               </ProtectedRoute>
             } />
@@ -108,22 +108,22 @@ const App = () => (
 
             {/* Doctor-specific Routes */}
             <Route path="/doctor/appointments" element={
-              <ProtectedRoute requireDoctor={true}>
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorAppointments />
               </ProtectedRoute>
             } />
             <Route path="/doctor/patients" element={
-              <ProtectedRoute requireDoctor={true}>
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorPatients />
               </ProtectedRoute>
             } />
             <Route path="/doctor/prescriptions" element={
-              <ProtectedRoute requireDoctor={true}>
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorPrescriptions />
               </ProtectedRoute>
             } />
             <Route path="/doctor/messages" element={
-              <ProtectedRoute requireDoctor={true}>
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorMessages />
               </ProtectedRoute>
             } />
@@ -133,12 +133,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/doctor/availability" element={
-              <ProtectedRoute requireDoctor={true}>
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorAvailability />
               </ProtectedRoute>
             } />
             <Route path="/doctor/earnings" element={
-              <ProtectedRoute requireDoctor={true}>
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorEarnings />
               </ProtectedRoute>
             } />
