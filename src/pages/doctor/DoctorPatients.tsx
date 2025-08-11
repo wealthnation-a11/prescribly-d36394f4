@@ -62,7 +62,7 @@ export const DoctorPatients = () => {
           status
         `)
         .eq('doctor_id', user.id)
-        .in('status', ['scheduled', 'completed'])
+        .eq('status', 'completed')
         .order('scheduled_time', { ascending: false });
 
       if (error) {
@@ -148,8 +148,7 @@ export const DoctorPatients = () => {
   };
 
   const handleManagePatient = (patientId: string) => {
-    // TODO: Navigate to patient detail page
-    toast.info("Patient management feature coming soon");
+    navigate(`/doctor/patient/${patientId}`);
   };
 
   if (loading) {
@@ -324,7 +323,7 @@ export const DoctorPatients = () => {
                         className="w-full mt-4 group-hover:bg-primary/90"
                         onClick={() => handleManagePatient(patient.user_id)}
                       >
-                        Manage Patient
+                        View Records
                       </Button>
                     </div>
                   </div>

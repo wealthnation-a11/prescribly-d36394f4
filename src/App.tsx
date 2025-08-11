@@ -19,6 +19,7 @@ import DoctorMessages from "./pages/doctor/DoctorMessages";
 import DoctorProfile from "./pages/doctor/DoctorProfile";
 import DoctorAvailability from "./pages/doctor/DoctorAvailability";
 import DoctorEarnings from "./pages/doctor/DoctorEarnings";
+import PatientDetails from "./pages/doctor/PatientDetails";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
@@ -115,6 +116,11 @@ const App = () => (
             <Route path="/doctor/patients" element={
               <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorPatients />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/patient/:id" element={
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
+                <PatientDetails />
               </ProtectedRoute>
             } />
             <Route path="/doctor/prescriptions" element={
