@@ -113,6 +113,8 @@ export const LandingPage = () => {
               <img 
                 src={heroImage} 
                 alt="AI Doctor Avatar"
+                width={1200}
+                height={800}
                 className="w-full h-auto rounded-2xl medical-shadow floating-animation"
               />
             </div>
