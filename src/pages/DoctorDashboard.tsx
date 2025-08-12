@@ -146,7 +146,7 @@ export const DoctorDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
               
               {/* Today's Appointments */}
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-blue-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
                     <div className="p-2 bg-blue-100 rounded-lg">
@@ -170,7 +170,7 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* My Patients */}
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-blue-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
                     <div className="p-2 bg-green-100 rounded-lg">
@@ -194,11 +194,11 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* Write Prescription */}
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-green-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <FileText className="w-5 h-5 text-purple-600" />
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <FileText className="w-5 h-5 text-green-600" />
                     </div>
                     Write Prescription
                   </CardTitle>
@@ -218,11 +218,11 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* Patient Messages */}
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-purple-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
-                    <div className="p-2 bg-orange-100 rounded-lg">
-                      <MessageCircle className="w-5 h-5 text-orange-600" />
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <MessageCircle className="w-5 h-5 text-purple-600" />
                     </div>
                     Patient Messages
                   </CardTitle>
@@ -242,11 +242,11 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* My Profile */}
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-gray-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <User className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                      <User className="w-5 h-5 text-gray-600" />
                     </div>
                     My Profile
                   </CardTitle>
@@ -266,11 +266,11 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* Availability */}
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-orange-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
-                    <div className="p-2 bg-teal-100 rounded-lg">
-                      <Clock className="w-5 h-5 text-teal-600" />
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <Clock className="w-5 h-5 text-orange-600" />
                     </div>
                     Availability
                   </CardTitle>
@@ -290,11 +290,11 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* Earnings */}
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg hover:shadow-xl transition-all duration-300 md:col-span-2 xl:col-span-1">
+              <Card className="backdrop-blur-sm bg-teal-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 md:col-span-2 xl:col-span-1">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
-                    <div className="p-2 bg-yellow-100 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-yellow-600" />
+                    <div className="p-2 bg-teal-100 rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-teal-600" />
                     </div>
                     Earnings
                   </CardTitle>

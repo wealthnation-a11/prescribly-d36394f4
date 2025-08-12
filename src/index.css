@@ -65,6 +65,22 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Doctor Dashboard Section Colors */
+    --section-appointments: 214 100% 97%;
+    --section-prescriptions: 149 100% 97%;
+    --section-messages: 262 100% 97%;
+    --section-availability: 25 100% 97%;
+    --section-earnings: 173 100% 97%;
+
+    /* Sidebar Colors */
+    --doctor-sidebar-bg: 222 47% 11%;
+    --doctor-sidebar-text: 0 0% 100%;
+    --doctor-sidebar-hover-appointments: 214 100% 35%;
+    --doctor-sidebar-hover-prescriptions: 149 71% 35%;
+    --doctor-sidebar-hover-messages: 262 83% 45%;
+    --doctor-sidebar-hover-availability: 25 95% 45%;
+    --doctor-sidebar-hover-earnings: 173 71% 35%;
   }
 
   .dark {
