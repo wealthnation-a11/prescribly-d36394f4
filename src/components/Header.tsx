@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Logo } from "./Logo";
 import { UserTypeModal } from "./UserTypeModal";
 
 export const Header = () => {
@@ -19,18 +19,7 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" aria-label="Go to home" className="flex items-center space-x-2">
-            <img
-              src="/lovable-uploads/7675acdf-8e5e-4c27-a892-23a63e6023f6.png"
-              alt="Prescribly logo"
-              width={236}
-              height={286}
-              className="h-8 w-auto"
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
-            />
-          </Link>
+          <Logo withLink priority size="md" />
 
           {/* Navigation Menu */}
           <nav className="hidden md:flex items-center space-x-8">

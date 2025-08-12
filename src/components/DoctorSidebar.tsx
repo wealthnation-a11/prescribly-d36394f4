@@ -1,7 +1,7 @@
 import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Stethoscope } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useDoctorApproval } from "@/hooks/useDoctorApproval";
-
+import { Logo } from "./Logo";
 import {
   Sidebar,
   SidebarContent,
@@ -47,17 +47,15 @@ export function DoctorSidebar() {
     >
       <SidebarContent className="bg-sidebar">
         <div className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="icon-container">
-              <Stethoscope className="w-6 h-6 text-primary" />
-            </div>
+          <NavLink to="/" end className="flex items-center gap-3" aria-label="Go to home">
+            <Logo size="sm" />
             {!isCollapsed && (
               <div>
                 <h2 className="font-bold text-lg text-sidebar-foreground">Prescribly</h2>
                 <p className="text-xs text-sidebar-foreground/70">Doctor Portal</p>
               </div>
             )}
-          </div>
+          </NavLink>
         </div>
 
         <SidebarGroup className="px-2 py-4">
