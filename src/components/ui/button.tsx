@@ -21,6 +21,7 @@ const buttonVariants = cva(
         hero: "hero-gradient text-primary-foreground hover:opacity-90 hover:scale-105 transition-all duration-300 glow-effect font-semibold",
         medical: "bg-medical-blue text-primary-foreground hover:bg-trust-blue transition-all duration-300 medical-shadow",
         cta: "bg-trust-blue text-primary-foreground hover:bg-primary pulse-glow hover:scale-105 transition-all duration-300 font-bold",
+        oauth: "bg-background text-foreground border border-input hover:bg-accent hover:text-accent-foreground",
       },
       size: {
         default: "h-10 px-4 py-2",
