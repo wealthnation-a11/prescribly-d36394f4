@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ interface Conversation {
 export default function Chat() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { logMessageSent } = useActivityLogger();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -264,6 +266,15 @@ export default function Chat() {
 
       if (error) throw error;
 
+      // Log the message activity
+      if (selectedDoctor) {
+        const messageType = fileType ? 'file' : 'text';
+        logMessageSent(
+          `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`,
+          messageType as 'text' | 'file' | 'voice'
+        );
+      }
+
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -312,6 +323,14 @@ export default function Chat() {
 
       await sendMessage(`Shared a ${fileType}`, publicUrl, fileType);
       
+      // Log file sharing activity
+      if (selectedDoctor) {
+        logMessageSent(
+          `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`,
+          'file'
+        );
+      }
+      
       toast({
         title: 'File Uploaded',
         description: 'File has been shared successfully.',
@@ -355,6 +374,14 @@ export default function Chat() {
             .getPublicUrl(fileName);
 
           await sendMessage('Sent a voice note', publicUrl, 'audio');
+          
+          // Log voice message activity
+          if (selectedDoctor) {
+            logMessageSent(
+              `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`,
+              'voice'
+            );
+          }
           
           toast({
             title: 'Voice Note Sent',

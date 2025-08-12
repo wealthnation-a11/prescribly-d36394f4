@@ -16,6 +16,7 @@ import {
   Shield
 } from "lucide-react";
 import { RecentActivity } from "@/components/RecentActivity";
+import ActivityLog from "@/components/ActivityLog";
 import { 
   SidebarProvider, 
   SidebarTrigger,
@@ -206,10 +207,12 @@ export const UserDashboard = () => {
               </div>
 
               {/* Recent Activity */}
-              <div>
-                <h2 className="text-heading text-foreground mb-6">Recent Activity</h2>
-                <RecentActivity />
-              </div>
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                 <div className="lg:col-span-2">
+                   <h2 className="text-heading text-foreground mb-6">Recent Activity</h2>
+                   <ActivityLog limit={10} showTitle={false} />
+                 </div>
+               </div>
             </div>
           </main>
         </SidebarInset>

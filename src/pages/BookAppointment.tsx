@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { supabase } from '@/integrations/supabase/client';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -16,10 +20,9 @@ import { Calendar as CalendarIcon, Clock, UserCog, Loader2, MessageCircle, Check
 import { format, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import { formatNGNAsUSD } from '@/utils/currency';
+import ActivityLog from '@/components/ActivityLog';
 
 interface Doctor {
   user_id: string;
@@ -58,6 +61,7 @@ const timeSlots = [
 
 export default function BookAppointment() {
   const { user } = useAuth();
+  const { logAppointmentBooked } = useActivityLogger();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { exchangeRate } = useExchangeRate();
@@ -265,6 +269,15 @@ export default function BookAppointment() {
         title: "Appointment Booked!",
         description: data?.message || "Appointment booked successfully! Waiting for doctor approval to enable chat.",
       });
+
+      // Log the appointment booking activity
+      const selectedDoctorData = doctors.find(d => d.user_id === selectedDoctor);
+      if (selectedDoctorData) {
+        logAppointmentBooked(
+          `${selectedDoctorData.profiles.first_name} ${selectedDoctorData.profiles.last_name}`,
+          format(selectedDate!, 'PPP') + ' at ' + selectedTime
+        );
+      }
 
       // Reset form
       setSelectedDoctor('');

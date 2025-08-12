@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ interface ChatMessage {
 
 export const DoctorMessages = () => {
   const { user } = useAuth();
+  const { logMessageSent } = useActivityLogger();
 
   const [patients, setPatients] = useState<PatientProfile[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<PatientProfile | null>(null);
@@ -218,6 +220,16 @@ export const DoctorMessages = () => {
         file_type: fileType as any,
       });
       if (error) throw error;
+      
+      // Log the message activity
+      if (selectedPatient) {
+        const messageType = fileType ? 'file' : 'text';
+        logMessageSent(
+          `${selectedPatient.first_name || 'Patient'} ${selectedPatient.last_name || ''}`.trim(),
+          messageType as 'text' | 'file' | 'voice'
+        );
+      }
+      
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
