@@ -254,6 +254,26 @@ export const LandingPage = () => {
               <div className="text-muted-foreground font-medium">Consultations Completed</div>
             </div>
           </div>
+
+          {/* HIPAA Trust Badge */}
+          <div className="mt-12">
+            <Card className="max-w-2xl mx-auto text-center bg-secondary/20 border border-border/40 medical-shadow">
+              <CardContent className="p-6 flex flex-col items-center gap-3">
+                <img
+                  src="/lovable-uploads/9f00ef92-4c12-42f5-969f-1de0ee582693.png"
+                  alt="HIPAA compliant certification badge - Prescribly HIPAA certified"
+                  width={120}
+                  height={48}
+                  loading="lazy"
+                  className="w-24 md:w-28 h-auto"
+                />
+                <h3 className="text-lg font-semibold text-foreground">Prescribly is HIPAA Certified</h3>
+                <p className="text-sm text-muted-foreground max-w-xl">
+                  Your medical data is encrypted, protected, and handled according to U.S. federal privacy standards.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
