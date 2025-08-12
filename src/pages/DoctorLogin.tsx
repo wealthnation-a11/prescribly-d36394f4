@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
 import { Stethoscope, Loader2 } from "lucide-react";
 
@@ -12,15 +13,27 @@ export const DoctorLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, user } = useAuth();
+  const { signIn, signOut, user } = useAuth();
+  const { isDoctor, loading: roleLoading } = useUserRole();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Redirect if already logged in
-  if (user) {
-    navigate("/doctor-dashboard");
-    return null;
-  }
+  // Check if user is already logged in and is a doctor
+  useEffect(() => {
+    if (user && !roleLoading) {
+      if (isDoctor) {
+        navigate("/doctor-dashboard");
+      } else {
+        // User is logged in but not a doctor - sign them out
+        signOut();
+        toast({
+          variant: "destructive",
+          title: "Access Denied",
+          description: "Doctor accounts only. Please use the patient login.",
+        });
+      }
+    }
+  }, [user, isDoctor, roleLoading, navigate, signOut, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,11 +63,11 @@ export const DoctorLogin = () => {
           });
         }
       } else {
+        // Authentication successful - role check will happen in useEffect
         toast({
           title: "Login Successful",
-          description: "Welcome back, Doctor!",
+          description: "Verifying doctor credentials...",
         });
-        navigate("/doctor-dashboard");
       }
     } catch (error) {
       toast({
