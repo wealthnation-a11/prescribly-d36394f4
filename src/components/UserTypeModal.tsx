@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Stethoscope, User } from "lucide-react";
 import { SignUpModal } from "./SignUpModal";
+import { Logo } from "@/components/Logo";
 
 interface UserTypeModalProps {
   isOpen: boolean;
@@ -28,9 +29,8 @@ export const UserTypeModal = ({ isOpen, onClose }: UserTypeModalProps) => {
       <Dialog open={isOpen && !showSignUpModal} onOpenChange={onClose}>
         <DialogContent className="max-w-md">
           <DialogHeader className="space-y-4 text-center">
-            <div className="flex items-center justify-center space-x-2">
-              <Stethoscope className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold">Prescribly</span>
+            <div className="flex items-center justify-center">
+              <Logo size="md" priority />
             </div>
             <DialogTitle className="text-2xl">Choose Your Account Type</DialogTitle>
           </DialogHeader>

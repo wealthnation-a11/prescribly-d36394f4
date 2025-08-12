@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Stethoscope, Shield, FileText, MapPin } from "lucide-react";
-
-export const UserInfoConfirmation = () => {
+import { Logo } from "@/components/Logo";
+ 
+ export const UserInfoConfirmation = () => {
   const [agreed, setAgreed] = useState(false);
   const navigate = useNavigate();
 
@@ -19,9 +20,8 @@ export const UserInfoConfirmation = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-4 text-center">
-          <div className="flex items-center justify-center space-x-2">
-            <Stethoscope className="w-6 h-6 text-primary" />
-            <span className="text-2xl font-bold">Prescribly</span>
+          <div className="flex justify-center">
+            <Logo size="lg" priority />
           </div>
           <CardTitle className="text-2xl">Before You Proceed with Registration</CardTitle>
           <p className="text-muted-foreground">Please read the following carefully.</p>

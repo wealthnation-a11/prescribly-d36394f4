@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Logo } from "@/components/Logo";
 export const Login = () => {
   const [userType, setUserType] = useState<"patient" | "doctor">("patient");
   const [email, setEmail] = useState("");
@@ -87,9 +88,8 @@ export const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4">
-          <div className="flex items-center justify-center space-x-2">
-            <Stethoscope className="w-6 h-6 text-primary" />
-            <span className="text-2xl font-bold">Prescribly</span>
+          <div className="flex justify-center">
+            <Logo size="lg" priority />
           </div>
           
           {/* User Type Selection */}

@@ -11,8 +11,9 @@ import { Stethoscope, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PasswordValidator } from "@/components/PasswordValidator";
 import { supabase } from "@/integrations/supabase/client";
-
-export const Register = () => {
+import { Logo } from "@/components/Logo";
+ 
+ export const Register = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -164,9 +165,8 @@ export const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-4">
-          <div className="flex items-center justify-center space-x-2">
-            <Stethoscope className="w-6 h-6 text-primary" />
-            <span className="text-2xl font-bold">Prescribly</span>
+          <div className="flex justify-center">
+            <Logo size="lg" priority />
           </div>
           
           <div className="text-center">
