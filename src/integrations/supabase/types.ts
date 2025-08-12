@@ -593,7 +593,13 @@ export type Database = {
       }
     }
     Enums: {
-      appointment_status: "scheduled" | "completed" | "cancelled" | "no_show"
+      appointment_status:
+        | "scheduled"
+        | "completed"
+        | "cancelled"
+        | "no_show"
+        | "pending"
+        | "approved"
       prescription_status: "pending" | "dispensed" | "cancelled"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       user_role: "admin" | "doctor" | "patient"
@@ -725,7 +731,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      appointment_status: ["scheduled", "completed", "cancelled", "no_show"],
+      appointment_status: [
+        "scheduled",
+        "completed",
+        "cancelled",
+        "no_show",
+        "pending",
+        "approved",
+      ],
       prescription_status: ["pending", "dispensed", "cancelled"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
       user_role: ["admin", "doctor", "patient"],
