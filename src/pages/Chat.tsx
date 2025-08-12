@@ -89,6 +89,28 @@ export default function Chat() {
   useEffect(() => {
     if (user) {
       fetchConversations();
+      
+      // Subscribe to appointment changes for real-time updates
+      const appointmentsChannel = supabase
+        .channel('patient-appointment-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'appointments',
+            filter: `patient_id=eq.${user.id}`
+          },
+          () => {
+            // Refetch conversations when appointments change
+            fetchConversations();
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(appointmentsChannel);
+      };
     }
   }, [user]);
 
@@ -101,9 +123,28 @@ export default function Chat() {
 
   const fetchConversations = async () => {
     try {
+      if (!user?.id) return;
+      
+      // Get doctors with approved appointments for this patient
+      const { data: approvedAppointments, error: apptError } = await supabase
+        .from('appointments')
+        .select('doctor_id')
+        .eq('patient_id', user.id)
+        .eq('status', 'approved');
+
+      if (apptError) throw apptError;
+
+      const doctorIds = approvedAppointments?.map(apt => apt.doctor_id) || [];
+      
+      if (doctorIds.length === 0) {
+        setConversations([]);
+        return;
+      }
+
       const { data: doctors, error } = await supabase
         .from('doctors')
         .select('id, user_id, specialization, bio')
+        .in('user_id', doctorIds)
         .eq('verification_status', 'approved');
 
       if (error) throw error;
@@ -140,7 +181,7 @@ export default function Chat() {
       console.error('Error fetching conversations:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load doctors',
+        description: 'Failed to load approved doctors',
         variant: 'destructive'
       });
     }
@@ -478,8 +519,8 @@ export default function Chat() {
                   {filteredConversations.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="body-medium">No doctors available</p>
-                      <p className="body-small">Please book an appointment first</p>
+                      <p className="body-medium">No approved doctors available</p>
+                      <p className="body-small">Chat becomes available after doctor approval</p>
                     </div>
                   ) : (
                     filteredConversations.map((conversation) => (

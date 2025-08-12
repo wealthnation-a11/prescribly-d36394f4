@@ -148,7 +148,7 @@ serve(async (req) => {
         scheduled_time: scheduledTime.toISOString(),
         notes: reason,
         consultation_fee: doctorData?.consultation_fee || 0,
-        status: 'scheduled'
+        status: 'pending'
       })
       .select()
       .single();

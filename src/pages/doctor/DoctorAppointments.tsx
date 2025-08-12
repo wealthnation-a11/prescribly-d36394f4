@@ -93,10 +93,40 @@ export const DoctorAppointments = () => {
     },
   });
 
+  // Approve appointment
+  const approveAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: string) => {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'approved' })
+        .eq('id', appointmentId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Appointment approved",
+        description: "The patient can now start chatting with you.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['doctor-appointments'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to approve appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800 border-green-200';
+      case 'approved':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
+      case 'pending':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'scheduled':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'cancelled':
@@ -110,7 +140,8 @@ export const DoctorAppointments = () => {
 
   const totalAppointments = appointments.length;
   const completedAppointments = appointments.filter(apt => apt.status === 'completed').length;
-  const upcomingAppointments = appointments.filter(apt => apt.status !== 'completed').length;
+  const pendingAppointments = appointments.filter(apt => apt.status === 'pending').length;
+  const approvedAppointments = appointments.filter(apt => apt.status === 'approved').length;
 
   if (isLoading) {
     return (
@@ -167,12 +198,12 @@ export const DoctorAppointments = () => {
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <Clock className="w-5 h-5 text-orange-600" />
                 </div>
-                Upcoming
+                Pending Approval
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-slate-900">{upcomingAppointments}</p>
-              <p className="text-sm text-slate-600">remaining</p>
+              <p className="text-2xl font-bold text-slate-900">{pendingAppointments}</p>
+              <p className="text-sm text-slate-600">awaiting approval</p>
             </CardContent>
           </Card>
         </div>
@@ -228,7 +259,25 @@ export const DoctorAppointments = () => {
                         </Badge>
                         
                         <div className="flex gap-2">
-                          {appointment.status === 'scheduled' && (
+                          {appointment.status === 'pending' && (
+                            <Button
+                              size="sm"
+                              onClick={() => approveAppointmentMutation.mutate(appointment.id)}
+                              disabled={approveAppointmentMutation.isPending}
+                              className="bg-teal-600 hover:bg-teal-700 text-white"
+                            >
+                              {approveAppointmentMutation.isPending ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  Approve
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          
+                          {appointment.status === 'approved' && (
                             <Button
                               size="sm"
                               onClick={() => markCompletedMutation.mutate(appointment.id)}

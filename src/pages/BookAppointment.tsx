@@ -38,7 +38,7 @@ interface Appointment {
   doctor_id: string;
   scheduled_time: string;
   duration_minutes: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'no_show';
+  status: 'pending' | 'approved' | 'completed' | 'cancelled' | 'scheduled' | 'no_show';
   consultation_fee: number;
   notes?: string;
   created_at: string;
@@ -79,6 +79,28 @@ export default function BookAppointment() {
     }
     fetchDoctors();
     fetchAppointments();
+    
+    // Subscribe to appointment changes for real-time updates
+    const appointmentsChannel = supabase
+      .channel('patient-appointment-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `patient_id=eq.${user.id}`
+        },
+        () => {
+          // Refetch appointments when they change
+          fetchAppointments();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(appointmentsChannel);
+    };
   }, [user, navigate]);
 
   const fetchDoctors = async () => {
@@ -241,7 +263,7 @@ export default function BookAppointment() {
       // Success!
       toast({
         title: "Appointment Booked!",
-        description: data?.message || "Appointment booked successfully!",
+        description: data?.message || "Appointment booked successfully! Waiting for doctor approval to enable chat.",
       });
 
       // Reset form
@@ -287,12 +309,14 @@ export default function BookAppointment() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'approved':
+        return <CheckCircle className="h-4 w-4 text-teal-500" />;
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-blue-500" />;
       case 'cancelled':
         return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'pending':
+        return <Clock className="h-4 w-4 text-orange-500" />;
       default:
         return <Clock className="h-4 w-4 text-yellow-500" />;
     }
@@ -300,29 +324,30 @@ export default function BookAppointment() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800';
+      case 'approved':
+        return 'bg-teal-100 text-teal-800';
       case 'completed':
         return 'bg-blue-100 text-blue-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-yellow-100 text-yellow-800';
     }
   };
 
   const canChat = (appointment: Appointment) => {
-    return (appointment.status === 'confirmed' || appointment.status === 'completed') && 
-           isPast(new Date(appointment.scheduled_time));
+    return appointment.status === 'approved' || appointment.status === 'completed';
   };
 
   const pendingAppointments = appointments.filter(app => app.status === 'pending');
   const upcomingAppointments = appointments.filter(app => 
-    (app.status === 'confirmed') && !isPast(new Date(app.scheduled_time))
+    (app.status === 'approved') && !isPast(new Date(app.scheduled_time))
   );
   const appointmentHistory = appointments.filter(app => 
     app.status === 'completed' || app.status === 'cancelled' || 
-    (app.status === 'confirmed' && isPast(new Date(app.scheduled_time)))
+    (app.status === 'approved' && isPast(new Date(app.scheduled_time)))
   );
 
   if (isLoadingDoctors || isLoadingAppointments) {

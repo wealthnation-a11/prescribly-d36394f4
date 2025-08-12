@@ -70,6 +70,28 @@ export const DoctorMessages = () => {
   useEffect(() => {
     if (!user?.id) return;
     fetchEligiblePatients();
+    
+    // Subscribe to appointment changes for real-time updates
+    const appointmentsChannel = supabase
+      .channel('appointment-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `doctor_id=eq.${user.id}`
+        },
+        () => {
+          // Refetch eligible patients when appointments change
+          fetchEligiblePatients();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(appointmentsChannel);
+    };
   }, [user?.id]);
 
   useEffect(() => {
@@ -84,13 +106,12 @@ export const DoctorMessages = () => {
 
   const fetchEligiblePatients = async () => {
     try {
-      // 1) Get distinct patients from eligible appointments
-      const nowIso = new Date().toISOString();
+      // 1) Get distinct patients from eligible appointments (approved or completed only)
       const { data: appts, error: apptErr } = await supabase
         .from("appointments")
         .select("patient_id, status, scheduled_time")
         .eq("doctor_id", user!.id)
-        .or(`status.eq.completed,and(status.eq.scheduled,scheduled_time.lte.${nowIso})`);
+        .or(`status.eq.completed,status.eq.approved`);
 
       if (apptErr) throw apptErr;
 
