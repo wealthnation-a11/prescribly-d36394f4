@@ -85,12 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting to sign in with:', email);
+      console.debug('Auth: signIn attempted');
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      console.log('Sign in response:', { data, error });
+      console.debug('Auth: signIn completed');
       return { error };
     } catch (err) {
       console.error('Sign in error:', err);
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
-      console.log('Attempting to sign up with:', email, userData);
+      console.debug('Auth: signUp attempted');
       const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
       
-      console.log('Sign up response:', { data, error });
+      console.debug('Auth: signUp completed');
       
       // Handle specific error cases
       if (error) {
