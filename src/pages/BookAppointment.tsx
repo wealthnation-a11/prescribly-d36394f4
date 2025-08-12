@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
+import { formatNGNAsUSD } from '@/utils/currency';
 
 interface Doctor {
   user_id: string;
@@ -58,6 +60,7 @@ export default function BookAppointment() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { exchangeRate } = useExchangeRate();
   
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -340,9 +343,9 @@ export default function BookAppointment() {
                                   <span className="font-medium">
                                     Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
                                   </span>
-                                  <span className="text-sm text-muted-foreground">
-                                    {doctor.specialization} • ₦{doctor.consultation_fee}
-                                  </span>
+                                   <span className="text-sm text-muted-foreground">
+                                     {doctor.specialization} • {formatNGNAsUSD(doctor.consultation_fee, exchangeRate)}
+                                   </span>
                                 </div>
                               </SelectItem>
                             ))}
