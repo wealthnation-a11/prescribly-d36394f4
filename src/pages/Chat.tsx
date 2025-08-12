@@ -144,36 +144,22 @@ export default function Chat() {
       }
 
       const { data: doctors, error } = await supabase
-        .from('doctors')
-        .select('id, user_id, specialization, bio')
-        .in('user_id', doctorIds)
-        .eq('verification_status', 'approved');
+        .from('public_doctor_profiles')
+        .select('doctor_id, doctor_user_id, specialization, bio, first_name, last_name, avatar_url')
+        .in('doctor_user_id', doctorIds);
 
       if (error) throw error;
 
-      // Fetch profiles separately
-      const doctorsWithProfiles = await Promise.all(
-        (doctors || []).map(async (doctor) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, avatar_url')
-            .eq('user_id', doctor.user_id)
-            .single();
-          
-          return {
-            ...doctor,
-            profiles: profile || { first_name: '', last_name: '', avatar_url: '' }
-          };
-        })
-      );
-
-      const formattedConversations: Conversation[] = doctorsWithProfiles?.map(doctor => ({
-        id: `${user?.id}-${doctor.user_id}`,
+      const formattedConversations: Conversation[] = (doctors || []).map((doctor: any) => ({
+        id: `${user?.id}-${doctor.doctor_user_id}`,
         doctor: {
-          ...doctor,
-          first_name: doctor.profiles.first_name,
-          last_name: doctor.profiles.last_name,
-          avatar_url: doctor.profiles.avatar_url,
+          id: doctor.doctor_id,
+          user_id: doctor.doctor_user_id,
+          specialization: doctor.specialization,
+          bio: doctor.bio,
+          first_name: doctor.first_name,
+          last_name: doctor.last_name,
+          avatar_url: doctor.avatar_url,
           online_status: Math.random() > 0.5 // Mock online status
         }
       })) || [];

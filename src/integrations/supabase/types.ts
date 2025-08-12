@@ -430,6 +430,54 @@ export type Database = {
         }
         Relationships: []
       }
+      public_doctor_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          consultation_fee: number | null
+          created_at: string
+          doctor_id: string
+          doctor_user_id: string
+          first_name: string | null
+          last_name: string | null
+          rating: number | null
+          specialization: string
+          total_reviews: number | null
+          updated_at: string
+          years_of_experience: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          doctor_id: string
+          doctor_user_id: string
+          first_name?: string | null
+          last_name?: string | null
+          rating?: number | null
+          specialization: string
+          total_reviews?: number | null
+          updated_at?: string
+          years_of_experience?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          doctor_id?: string
+          doctor_user_id?: string
+          first_name?: string | null
+          last_name?: string | null
+          rating?: number | null
+          specialization?: string
+          total_reviews?: number | null
+          updated_at?: string
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           assigned_to: string | null
@@ -590,6 +638,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["user_role"]
         }
         Returns: boolean
+      }
+      refresh_public_doctor_profile: {
+        Args: { _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

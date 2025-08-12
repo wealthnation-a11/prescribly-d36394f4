@@ -109,30 +109,24 @@ export default function BookAppointment() {
 
   const fetchDoctors = async () => {
     try {
-      const { data: doctorsData, error } = await supabase
-        .from('doctors')
-        .select('user_id, specialization, consultation_fee')
-        .eq('verification_status', 'approved');
+      const { data, error } = await supabase
+        .from('public_doctor_profiles')
+        .select('doctor_user_id, specialization, consultation_fee, first_name, last_name, avatar_url');
 
       if (error) throw error;
 
-      // Fetch profiles separately
-      const doctorsWithProfiles = await Promise.all(
-        (doctorsData || []).map(async (doctor) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, avatar_url')
-            .eq('user_id', doctor.user_id)
-            .single();
-          
-          return {
-            ...doctor,
-            profiles: profile || { first_name: '', last_name: '', avatar_url: '' }
-          };
-        })
-      );
+      const doctorsWithProfiles = (data || []).map((doc: any) => ({
+        user_id: doc.doctor_user_id,
+        specialization: doc.specialization,
+        consultation_fee: doc.consultation_fee,
+        profiles: {
+          first_name: doc.first_name || '',
+          last_name: doc.last_name || '',
+          avatar_url: doc.avatar_url || ''
+        }
+      }));
 
-      setDoctors(doctorsWithProfiles || []);
+      setDoctors(doctorsWithProfiles as Doctor[]);
     } catch (error) {
       console.error('Error fetching doctors:', error);
       toast({
