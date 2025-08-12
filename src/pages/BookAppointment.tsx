@@ -279,6 +279,42 @@ export default function BookAppointment() {
         );
       }
 
+      // Set up real-time subscription for appointment status updates
+      const statusChannel = supabase
+        .channel('appointment-status-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'appointments',
+            filter: `patient_id=eq.${user.id}`
+          },
+          (payload) => {
+            const updatedAppointment = payload.new;
+            if (updatedAppointment.status === 'cancelled') {
+              toast({
+                title: "Appointment Declined",
+                description: "Your appointment request has been declined by the doctor.",
+                variant: "destructive",
+              });
+            } else if (updatedAppointment.status === 'approved') {
+              toast({
+                title: "Appointment Approved",
+                description: "Your appointment has been approved! You can now chat with the doctor.",
+              });
+            }
+            // Refresh appointments list
+            fetchAppointments();
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscription after a delay
+      setTimeout(() => {
+        supabase.removeChannel(statusChannel);
+      }, 30000);
+
       // Reset form
       setSelectedDoctor('');
       setSelectedDate(undefined);

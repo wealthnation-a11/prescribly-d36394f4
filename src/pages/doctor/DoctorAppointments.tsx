@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, CheckCircle, User, CalendarDays } from "lucide-react";
+import { Calendar, Clock, Users, CheckCircle, User, CalendarDays, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +14,7 @@ export const DoctorAppointments = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { logAppointmentApproved, logAppointmentCompleted } = useActivityLogger();
+  const { logAppointmentApproved, logAppointmentCompleted, logActivity } = useActivityLogger();
 
   // Fetch today's appointments for the doctor
   const { data: appointments = [], isLoading } = useQuery({
@@ -132,6 +132,44 @@ export const DoctorAppointments = () => {
       toast({
         title: "Error",
         description: "Failed to approve appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Decline appointment
+  const declineAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: string) => {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'cancelled' })
+        .eq('id', appointmentId);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, appointmentId) => {
+      const appointment = appointments.find(apt => apt.id === appointmentId);
+      if (appointment?.patient) {
+        logActivity(
+          'appointment_declined',
+          `Declined appointment with ${appointment.patient.first_name} ${appointment.patient.last_name}`,
+          { 
+            patientName: `${appointment.patient.first_name} ${appointment.patient.last_name}`,
+            appointmentDate: format(new Date(appointment.scheduled_time), 'PPP')
+          }
+        );
+      }
+      
+      toast({
+        title: "Appointment declined",
+        description: "The patient has been notified of the declined appointment.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['doctor-appointments'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to decline appointment. Please try again.",
         variant: "destructive",
       });
     },
@@ -278,21 +316,38 @@ export const DoctorAppointments = () => {
                         
                         <div className="flex gap-2">
                           {appointment.status === 'pending' && (
-                            <Button
-                              size="sm"
-                              onClick={() => approveAppointmentMutation.mutate(appointment.id)}
-                              disabled={approveAppointmentMutation.isPending}
-                              className="bg-teal-600 hover:bg-teal-700 text-white"
-                            >
-                              {approveAppointmentMutation.isPending ? (
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  Approve
-                                </>
-                              )}
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => approveAppointmentMutation.mutate(appointment.id)}
+                                disabled={approveAppointmentMutation.isPending || declineAppointmentMutation.isPending}
+                                className="bg-teal-600 hover:bg-teal-700 text-white"
+                              >
+                                {approveAppointmentMutation.isPending ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    Approve
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => declineAppointmentMutation.mutate(appointment.id)}
+                                disabled={approveAppointmentMutation.isPending || declineAppointmentMutation.isPending}
+                              >
+                                {declineAppointmentMutation.isPending ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <>
+                                    <X className="w-4 h-4 mr-1" />
+                                    Decline
+                                  </>
+                                )}
+                              </Button>
+                            </>
                           )}
                           
                           {appointment.status === 'approved' && (

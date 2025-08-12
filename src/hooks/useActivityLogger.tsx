@@ -47,6 +47,14 @@ export const useActivityLogger = () => {
     );
   };
 
+  const logAppointmentDeclined = (patientName: string, appointmentDate: string) => {
+    logActivity(
+      'appointment_declined',
+      `Declined appointment with ${patientName}`,
+      { patientName, appointmentDate }
+    );
+  };
+
   const logAppointmentCompleted = (patientName: string, appointmentDate: string) => {
     logActivity(
       'appointment_completed',
@@ -89,6 +97,7 @@ export const useActivityLogger = () => {
     logActivity,
     logAppointmentBooked,
     logAppointmentApproved,
+    logAppointmentDeclined,
     logAppointmentCompleted,
     logMessageSent,
     logProfileUpdated,
