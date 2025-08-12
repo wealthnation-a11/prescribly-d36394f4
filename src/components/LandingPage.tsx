@@ -650,12 +650,12 @@ export const LandingPage = () => {
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-background">Legal</h4>
-              <div className="space-y-2 text-sm text-background/80">
-                <div>Terms of Use</div>
-                <div>Privacy Policy</div>
-                <div>Cookie Policy</div>
-                <div>HIPAA Compliance</div>
-              </div>
+              <ul className="space-y-2 text-sm text-background/80 list-disc list-inside">
+                <li><Link to="/terms" className="hover:underline">Terms of Use</Link></li>
+                <li><Link to="/privacy" className="hover:underline">Privacy Policy</Link></li>
+                <li><Link to="/cookies" className="hover:underline">Cookies Policy</Link></li>
+                <li><Link to="/hipaa-compliance" className="hover:underline">HIPAA Compliance</Link></li>
+              </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-background">Contact</h4>
