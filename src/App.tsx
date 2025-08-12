@@ -31,6 +31,10 @@ import MyPrescriptions from "./pages/MyPrescriptions";
 import UserProfile from "./pages/UserProfile";
 import BookAppointment from "./pages/BookAppointment";
 import Chat from "./pages/Chat";
+import About from "./pages/About";
+import Blog from "./pages/Blog";
+import Press from "./pages/Press";
+import Careers from "./pages/Careers";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +54,10 @@ const App = () => (
             <Route path="/doctor-register" element={<DoctorRegister />} />
             <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
             <Route path="/doctor-pending-approval" element={<DoctorPendingApproval />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/press" element={<Press />} />
+            <Route path="/careers" element={<Careers />} />
             
             {/* Role-based Dashboard Routes */}
             <Route path="/user-dashboard" element={

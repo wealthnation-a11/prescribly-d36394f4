@@ -10,6 +10,7 @@ import { StatCounter } from "./StatCounter";
 import { FloatingIcons } from "./FloatingIcons";
 import { Header } from "./Header";
 import heroImage from "@/assets/hero-doctor.jpg";
+import { Link } from "react-router-dom";
 
 export const LandingPage = () => {
   const features = [
@@ -641,10 +642,10 @@ export const LandingPage = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-background">Company</h4>
               <div className="space-y-2 text-sm text-background/80">
-                <div>About</div>
-                <div>Blog</div>
-                <div>Press</div>
-                <div>Careers</div>
+                <Link to="/about" className="hover:underline">About</Link>
+                <Link to="/blog" className="hover:underline">Blog</Link>
+                <Link to="/press" className="hover:underline">Press</Link>
+                <Link to="/careers" className="hover:underline">Careers</Link>
               </div>
             </div>
             <div className="space-y-4">
