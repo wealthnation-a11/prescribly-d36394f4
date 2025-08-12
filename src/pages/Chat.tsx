@@ -103,28 +103,34 @@ export default function Chat() {
     try {
       const { data: doctors, error } = await supabase
         .from('doctors')
-        .select(`
-          id,
-          user_id,
-          specialization,
-          bio,
-          profiles!inner(
-            first_name,
-            last_name,
-            avatar_url
-          )
-        `)
+        .select('id, user_id, specialization, bio')
         .eq('verification_status', 'approved');
 
       if (error) throw error;
 
-      const formattedConversations: Conversation[] = doctors?.map(doctor => ({
+      // Fetch profiles separately
+      const doctorsWithProfiles = await Promise.all(
+        (doctors || []).map(async (doctor) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, avatar_url')
+            .eq('user_id', doctor.user_id)
+            .single();
+          
+          return {
+            ...doctor,
+            profiles: profile || { first_name: '', last_name: '', avatar_url: '' }
+          };
+        })
+      );
+
+      const formattedConversations: Conversation[] = doctorsWithProfiles?.map(doctor => ({
         id: `${user?.id}-${doctor.user_id}`,
         doctor: {
           ...doctor,
-          first_name: doctor.profiles?.first_name,
-          last_name: doctor.profiles?.last_name,
-          avatar_url: doctor.profiles?.avatar_url,
+          first_name: doctor.profiles.first_name,
+          last_name: doctor.profiles.last_name,
+          avatar_url: doctor.profiles.avatar_url,
           online_status: Math.random() > 0.5 // Mock online status
         }
       })) || [];

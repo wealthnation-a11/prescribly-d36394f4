@@ -169,7 +169,6 @@ export type Database = {
           id: string
           kyc_documents: Json | null
           license_number: string | null
-          profile_id: string
           rating: number | null
           specialization: string
           total_reviews: number | null
@@ -187,7 +186,6 @@ export type Database = {
           id?: string
           kyc_documents?: Json | null
           license_number?: string | null
-          profile_id: string
           rating?: number | null
           specialization: string
           total_reviews?: number | null
@@ -205,7 +203,6 @@ export type Database = {
           id?: string
           kyc_documents?: Json | null
           license_number?: string | null
-          profile_id?: string
           rating?: number | null
           specialization?: string
           total_reviews?: number | null
@@ -215,53 +212,6 @@ export type Database = {
             | Database["public"]["Enums"]["verification_status"]
             | null
           years_of_experience?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "doctors_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      doctors_profile: {
-        Row: {
-          bio: string | null
-          clinic_name: string | null
-          created_at: string | null
-          id: string
-          license_number: string | null
-          profile_picture_url: string | null
-          specialty: string | null
-          updated_at: string | null
-          user_id: string
-          years_experience: number | null
-        }
-        Insert: {
-          bio?: string | null
-          clinic_name?: string | null
-          created_at?: string | null
-          id?: string
-          license_number?: string | null
-          profile_picture_url?: string | null
-          specialty?: string | null
-          updated_at?: string | null
-          user_id: string
-          years_experience?: number | null
-        }
-        Update: {
-          bio?: string | null
-          clinic_name?: string | null
-          created_at?: string | null
-          id?: string
-          license_number?: string | null
-          profile_picture_url?: string | null
-          specialty?: string | null
-          updated_at?: string | null
-          user_id?: string
-          years_experience?: number | null
         }
         Relationships: []
       }
@@ -310,7 +260,6 @@ export type Database = {
           last_name: string
           medical_history: string | null
           phone: string | null
-          profile_id: string
           registration_status: string | null
           updated_at: string
           user_id: string
@@ -329,7 +278,6 @@ export type Database = {
           last_name: string
           medical_history?: string | null
           phone?: string | null
-          profile_id: string
           registration_status?: string | null
           updated_at?: string
           user_id: string
@@ -348,20 +296,11 @@ export type Database = {
           last_name?: string
           medical_history?: string | null
           phone?: string | null
-          profile_id?: string
           registration_status?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "patients_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       prescriptions: {
         Row: {

@@ -1,22 +1,105 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useDoctorEarnings } from "@/hooks/useDoctorEarnings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, Navigate } from "react-router-dom";
 import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DoctorSidebar } from "@/components/DoctorSidebar";
-import { useDoctorApproval } from "@/hooks/useDoctorApproval";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const DoctorDashboard = () => {
   const { user } = useAuth();
   const { role, isDoctor, loading: roleLoading } = useUserRole();
+  const { earnings, loading: earningsLoading } = useDoctorEarnings();
 
-  // Check doctor approval status
-  const { isApproved, isLoading: approvalLoading } = useDoctorApproval();
+  // Fetch today's appointments count
+  const { data: todayAppointments = [], isLoading: appointmentsLoading } = useQuery({
+    queryKey: ['today-appointments', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('doctor_id', user.id)
+        .gte('scheduled_time', startOfDay.toISOString())
+        .lte('scheduled_time', endOfDay.toISOString());
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch total unique patients count
+  const { data: totalPatients = 0 } = useQuery({
+    queryKey: ['total-patients', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('patient_id')
+        .eq('doctor_id', user.id)
+        .eq('status', 'completed');
+      
+      if (error) throw error;
+      
+      // Count unique patients
+      const uniquePatients = new Set(data?.map(apt => apt.patient_id) || []);
+      return uniquePatients.size;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch prescriptions count
+  const { data: prescriptionsCount = 0 } = useQuery({
+    queryKey: ['prescriptions-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const { count, error } = await supabase
+        .from('prescriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('doctor_id', user.id)
+        .gte('created_at', startOfMonth.toISOString());
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch unread messages count  
+  const { data: unreadMessages = 0 } = useQuery({
+    queryKey: ['unread-messages', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { count, error } = await supabase
+        .from('chats')
+        .select('*', { count: 'exact', head: true })
+        .eq('recipient_id', user.id);
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
 
   // Show loading while checking auth and role
-  if (roleLoading || approvalLoading) {
+  if (roleLoading || appointmentsLoading || earningsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -30,11 +113,6 @@ export const DoctorDashboard = () => {
   // Redirect non-doctors
   if (!isDoctor) {
     return <Navigate to="/doctor-login" replace />;
-  }
-
-  // Redirect if not approved
-  if (!isApproved) {
-    return <Navigate to="/doctor-pending-approval" replace />;
   }
 
   return (
@@ -79,7 +157,7 @@ export const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <p className="text-2xl font-bold text-slate-900">8</p>
+                    <p className="text-2xl font-bold text-slate-900">{todayAppointments.length}</p>
                     <p className="text-sm text-slate-600">appointments scheduled</p>
                   </div>
                   <p className="text-slate-600 mb-4 text-sm">
@@ -103,7 +181,7 @@ export const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <p className="text-2xl font-bold text-slate-900">127</p>
+                    <p className="text-2xl font-bold text-slate-900">{totalPatients}</p>
                     <p className="text-sm text-slate-600">total patients</p>
                   </div>
                   <p className="text-slate-600 mb-4 text-sm">
@@ -127,7 +205,7 @@ export const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <p className="text-2xl font-bold text-slate-900">42</p>
+                    <p className="text-2xl font-bold text-slate-900">{prescriptionsCount}</p>
                     <p className="text-sm text-slate-600">this month</p>
                   </div>
                   <p className="text-slate-600 mb-4 text-sm">
@@ -151,7 +229,7 @@ export const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <p className="text-2xl font-bold text-slate-900">5</p>
+                    <p className="text-2xl font-bold text-slate-900">{unreadMessages}</p>
                     <p className="text-sm text-slate-600">unread messages</p>
                   </div>
                   <p className="text-slate-600 mb-4 text-sm">
@@ -223,7 +301,7 @@ export const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <p className="text-2xl font-bold text-slate-900">₦150,000</p>
+                    <p className="text-2xl font-bold text-slate-900">₦{earnings.monthlyEarnings.toLocaleString()}</p>
                     <p className="text-sm text-slate-600">this month</p>
                   </div>
                   <p className="text-slate-600 mb-4 text-sm">

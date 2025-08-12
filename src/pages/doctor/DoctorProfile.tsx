@@ -29,12 +29,14 @@ import { Link } from "react-router-dom";
 interface DoctorProfileData {
   id?: string;
   user_id: string;
-  specialty?: string;
+  specialization: string;
   license_number?: string;
-  clinic_name?: string;
-  years_experience?: number;
   bio?: string;
-  profile_picture_url?: string;
+  consultation_fee?: number;
+  years_of_experience?: number;
+  verification_status?: 'pending' | 'approved' | 'rejected' | 'suspended';
+  rating?: number;
+  total_reviews?: number;
 }
 
 interface AvailabilityData {
@@ -72,12 +74,14 @@ export const DoctorProfile = () => {
   // Profile data
   const [profileData, setProfileData] = useState<DoctorProfileData>({
     user_id: user?.id || '',
-    specialty: '',
+    specialization: '',
     license_number: '',
-    clinic_name: '',
-    years_experience: 0,
     bio: '',
-    profile_picture_url: ''
+    consultation_fee: 0,
+    years_of_experience: 0,
+    verification_status: 'pending',
+    rating: 0,
+    total_reviews: 0
   });
 
   // Availability data
@@ -101,7 +105,7 @@ export const DoctorProfile = () => {
   const fetchDoctorProfile = async () => {
     try {
       const { data, error } = await supabase
-        .from('doctors_profile')
+        .from('doctors')
         .select('*')
         .eq('user_id', user?.id)
         .single();
@@ -186,7 +190,7 @@ export const DoctorProfile = () => {
 
     try {
       const { error } = await supabase
-        .from('doctors_profile')
+        .from('doctors')
         .upsert(profileData, { onConflict: 'user_id' });
 
       if (error) throw error;
@@ -276,7 +280,7 @@ export const DoctorProfile = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-card-foreground">
-              {profileData.specialty ? '95%' : '60%'}
+              {profileData.specialization ? '95%' : '60%'}
             </p>
             <p className="text-sm text-muted-foreground">completion rate</p>
           </CardContent>
@@ -291,7 +295,7 @@ export const DoctorProfile = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-card-foreground">
-              {profileData.years_experience || 0}
+              {profileData.years_of_experience || 0}
             </p>
             <p className="text-sm text-muted-foreground">years practicing</p>
           </CardContent>
@@ -380,11 +384,11 @@ export const DoctorProfile = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="specialty">Medical Specialty</Label>
+                      <Label htmlFor="specialization">Medical Specialization</Label>
                       <Input
-                        id="specialty"
-                        value={profileData.specialty || ''}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, specialty: e.target.value }))}
+                        id="specialization"
+                        value={profileData.specialization || ''}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, specialization: e.target.value }))}
                         placeholder="e.g., Cardiology, Pediatrics, General Medicine"
                       />
                     </div>
@@ -400,22 +404,23 @@ export const DoctorProfile = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="clinic_name">Hospital/Clinic Name</Label>
+                      <Label htmlFor="consultation_fee">Consultation Fee (₦)</Label>
                       <Input
-                        id="clinic_name"
-                        value={profileData.clinic_name || ''}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, clinic_name: e.target.value }))}
-                        placeholder="Where you practice"
+                        id="consultation_fee"
+                        type="number"
+                        value={profileData.consultation_fee || ''}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, consultation_fee: parseInt(e.target.value) || 0 }))}
+                        placeholder="Consultation fee in Naira"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="years_experience">Years of Experience</Label>
+                      <Label htmlFor="years_of_experience">Years of Experience</Label>
                       <Input
-                        id="years_experience"
+                        id="years_of_experience"
                         type="number"
-                        value={profileData.years_experience || ''}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, years_experience: parseInt(e.target.value) || 0 }))}
+                        value={profileData.years_of_experience || ''}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, years_of_experience: parseInt(e.target.value) || 0 }))}
                         placeholder="Years practicing medicine"
                       />
                     </div>
@@ -448,7 +453,7 @@ export const DoctorProfile = () => {
                   <Card className="border-border">
                     <CardContent className="p-6 text-center space-y-4">
                       <Avatar className="w-24 h-24 mx-auto">
-                        <AvatarImage src={profileData.profile_picture_url} />
+                        <AvatarImage src={userProfile?.avatar_url} />
                         <AvatarFallback className="text-xl">
                           {userProfile?.first_name?.[0]}{userProfile?.last_name?.[0]}
                         </AvatarFallback>
@@ -463,14 +468,14 @@ export const DoctorProfile = () => {
                         <h4 className="font-semibold text-lg text-card-foreground">
                           Dr. {userProfile?.first_name} {userProfile?.last_name}
                         </h4>
-                        <p className="text-muted-foreground">{profileData.specialty || 'Specialty not set'}</p>
+                        <p className="text-muted-foreground">{profileData.specialization || 'Specialization not set'}</p>
                         <p className="text-sm text-muted-foreground flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          {profileData.clinic_name || 'Hospital/Clinic not set'}
+                          <DollarSign className="w-4 h-4" />
+                          ₦{profileData.consultation_fee || 0} consultation fee
                         </p>
                         <p className="text-sm text-muted-foreground flex items-center gap-2">
                           <Award className="w-4 h-4" />
-                          {profileData.years_experience || 0} years experience
+                          {profileData.years_of_experience || 0} years experience
                         </p>
                       </div>
                     </CardContent>
