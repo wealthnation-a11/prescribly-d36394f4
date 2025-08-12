@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, PhoneCall } from "lucide-react";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, PhoneCall, Linkedin, Instagram, Twitter } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
@@ -679,12 +679,39 @@ export const LandingPage = () => {
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-background">Contact</h4>
-              <div className="space-y-2 text-sm text-background/80">
-                <div>support@prescribly.com</div>
-                <div>LinkedIn</div>
-                <div>Instagram</div>
-                <div>Twitter</div>
-                <div>YouTube</div>
+              <div className="space-y-3 text-sm text-background/80">
+                <div>
+                  <a href="mailto:support@prescribly.app" className="hover:underline">support@prescribly.app</a>
+                </div>
+                <nav aria-label="Social media" className="flex items-center gap-4">
+                  <a
+                    href="https://www.linkedin.com/in/bonaventure-joshua-augustine-526b81374?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn"
+                    className="text-background hover:text-primary transition-colors"
+                  >
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                  <a
+                    href="https://www.instagram.com/prescribly?igsh=MWo5azZ5bXVia2FpNQ=="
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    className="text-background hover:text-primary transition-colors"
+                  >
+                    <Instagram className="w-5 h-5" />
+                  </a>
+                  <a
+                    href="https://x.com/prescribly?t=WvKfzzmqXkht038Y1Mxjog&s=09"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Twitter/X"
+                    className="text-background hover:text-primary transition-colors"
+                  >
+                    <Twitter className="w-5 h-5" />
+                  </a>
+                </nav>
               </div>
             </div>
           </div>
