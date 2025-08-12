@@ -641,12 +641,12 @@ export const LandingPage = () => {
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-background">Company</h4>
-              <div className="space-y-2 text-sm text-background/80">
-                <Link to="/about" className="hover:underline">About</Link>
-                <Link to="/blog" className="hover:underline">Blog</Link>
-                <Link to="/press" className="hover:underline">Press</Link>
-                <Link to="/careers" className="hover:underline">Careers</Link>
-              </div>
+              <ul className="space-y-2 text-sm text-background/80 list-disc list-inside">
+                <li><Link to="/about" className="hover:underline">About</Link></li>
+                <li><Link to="/blog" className="hover:underline">Blog</Link></li>
+                <li><Link to="/press" className="hover:underline">Press</Link></li>
+                <li><Link to="/careers" className="hover:underline">Careers</Link></li>
+              </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-background">Legal</h4>
