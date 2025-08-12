@@ -172,10 +172,31 @@ export default function BookAppointment() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate user session
+    if (!user?.id) {
+      toast({
+        title: "Session Expired",
+        description: "Please log in again to book an appointment.",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+    
     if (!selectedDoctor || !selectedDate || !selectedTime || !reason.trim()) {
       toast({
-        title: "Validation Error",
+        title: "Missing Information",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Additional validation - check if date is in the past
+    if (selectedDate && selectedDate < new Date(new Date().setHours(0, 0, 0, 0))) {
+      toast({
+        title: "Invalid Date",
+        description: "Cannot book appointments for past dates.",
         variant: "destructive",
       });
       return;
@@ -184,18 +205,31 @@ export default function BookAppointment() {
     setIsLoading(true);
 
     try {
+      console.log('Booking appointment with:', {
+        doctor_id: selectedDoctor,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        time: selectedTime,
+        reason: reason.trim(),
+        patient_id: user.id
+      });
+
       const { data, error } = await supabase.functions.invoke('bookAppointment', {
         body: {
           doctor_id: selectedDoctor,
           date: format(selectedDate, 'yyyy-MM-dd'),
           time: selectedTime,
-          reason: reason
+          reason: reason.trim()
         }
       });
 
-      if (error) throw error;
+      console.log('Booking response:', { data, error });
 
-      if (data.error) {
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
         toast({
           title: "Booking Failed",
           description: data.error,
@@ -204,9 +238,10 @@ export default function BookAppointment() {
         return;
       }
 
+      // Success!
       toast({
-        title: "Success!",
-        description: "Your appointment request has been sent.",
+        title: "Appointment Booked!",
+        description: data?.message || "Appointment booked successfully!",
       });
 
       // Reset form
@@ -215,13 +250,32 @@ export default function BookAppointment() {
       setSelectedTime('');
       setReason('');
       
-      // Refresh appointments
-      fetchAppointments();
-    } catch (error) {
+      // Refresh appointments and redirect to pending tab
+      await fetchAppointments();
+      
+      // Switch to pending tab to show the new appointment
+      const pendingTab = document.querySelector('[value="pending"]') as HTMLElement;
+      if (pendingTab) {
+        pendingTab.click();
+      }
+      
+    } catch (error: any) {
       console.error('Error booking appointment:', error);
+      
+      // Handle specific error types
+      let errorMessage = "Unable to book appointment. Please try again.";
+      
+      if (error?.message?.includes('Failed to fetch')) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error?.message?.includes('unauthorized') || error?.message?.includes('401')) {
+        errorMessage = "Session expired. Please log in again.";
+        navigate('/login');
+        return;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to book appointment. Please try again.",
+        title: "Booking Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

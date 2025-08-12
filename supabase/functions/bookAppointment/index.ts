@@ -36,49 +36,105 @@ serve(async (req) => {
 
     // Validate required fields
     if (!doctor_id || !date || !time || !reason) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+      return new Response(JSON.stringify({ error: 'Please fill in all required fields' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Combine date and time for appointment_date
-    const appointmentDate = new Date(`${date}T${time}`);
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      return new Response(JSON.stringify({ error: 'Invalid date format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate time format
+    const timeRegex = /^\d{2}:\d{2}$/;
+    if (!timeRegex.test(time)) {
+      return new Response(JSON.stringify({ error: 'Invalid time format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Combine date and time for scheduled_time
+    const scheduledTime = new Date(`${date}T${time}`);
+    
+    // Validate the appointment is not in the past
+    if (scheduledTime <= new Date()) {
+      return new Response(JSON.stringify({ error: 'Cannot book appointments in the past' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if the patient already has an appointment at this time
+    const { data: patientConflicts, error: patientCheckError } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('patient_id', user.id)
+      .eq('scheduled_time', scheduledTime.toISOString())
+      .neq('status', 'cancelled');
+
+    if (patientCheckError) {
+      console.error('Error checking patient availability:', patientCheckError);
+      return new Response(JSON.stringify({ error: 'Unable to verify your availability. Please try again.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (patientConflicts && patientConflicts.length > 0) {
+      return new Response(JSON.stringify({ error: 'You already have an appointment at this time' }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     // Check if the doctor is available at this time
     const { data: existingAppointments, error: checkError } = await supabase
       .from('appointments')
       .select('*')
       .eq('doctor_id', doctor_id)
-      .eq('appointment_date', appointmentDate.toISOString())
+      .eq('scheduled_time', scheduledTime.toISOString())
       .neq('status', 'cancelled');
 
     if (checkError) {
-      console.error('Error checking availability:', checkError);
-      return new Response(JSON.stringify({ error: 'Error checking availability' }), {
+      console.error('Error checking doctor availability:', checkError);
+      return new Response(JSON.stringify({ error: 'Unable to verify doctor availability. Please try again.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     if (existingAppointments && existingAppointments.length > 0) {
-      return new Response(JSON.stringify({ error: 'Doctor is not available at this time' }), {
+      return new Response(JSON.stringify({ error: 'Time slot already taken. Please choose a different time.' }), {
         status: 409,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Get doctor's consultation fee
+    // Get doctor's consultation fee and verify doctor exists
     const { data: doctorData, error: doctorError } = await supabase
       .from('doctors')
-      .select('consultation_fee')
+      .select('consultation_fee, verification_status')
       .eq('user_id', doctor_id)
       .single();
 
     if (doctorError) {
       console.error('Error fetching doctor data:', doctorError);
-      return new Response(JSON.stringify({ error: 'Error fetching doctor data' }), {
-        status: 500,
+      return new Response(JSON.stringify({ error: 'Doctor not found. Please select a different doctor.' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (doctorData.verification_status !== 'approved') {
+      return new Response(JSON.stringify({ error: 'Doctor not available. Please select a different doctor.' }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -89,7 +145,7 @@ serve(async (req) => {
       .insert({
         patient_id: user.id,
         doctor_id: doctor_id,
-        appointment_date: appointmentDate.toISOString(),
+        scheduled_time: scheduledTime.toISOString(),
         notes: reason,
         consultation_fee: doctorData?.consultation_fee || 0,
         status: 'scheduled'
@@ -99,7 +155,14 @@ serve(async (req) => {
 
     if (createError) {
       console.error('Error creating appointment:', createError);
-      return new Response(JSON.stringify({ error: 'Failed to book appointment' }), {
+      // Check if it's a duplicate key error or similar
+      if (createError.code === '23505') {
+        return new Response(JSON.stringify({ error: 'You already have an appointment at this time' }), {
+          status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ error: 'Unable to book appointment. Please try again.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
