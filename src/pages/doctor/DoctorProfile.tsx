@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { DoctorLayout } from "@/components/DoctorLayout";
 import { 
   User, 
   Award, 
@@ -21,10 +22,8 @@ import {
   Stethoscope,
   FileText,
   Camera,
-  Save,
-  ChevronLeft
+  Save
 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 interface DoctorProfileData {
   id?: string;
@@ -254,20 +253,8 @@ export const DoctorProfile = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header with back button */}
-      <div className="flex items-center gap-4">
-        <Link to="/doctor-dashboard">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <ChevronLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-          <p className="text-muted-foreground">Manage your professional information and settings</p>
-        </div>
-      </div>
+    <DoctorLayout title="My Profile" subtitle="Manage your professional information and settings">
+      <div className="space-y-6">
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -633,7 +620,8 @@ export const DoctorProfile = () => {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DoctorLayout>
   );
 };
 

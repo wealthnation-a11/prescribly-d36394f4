@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users, Search, ArrowLeft, UserCheck, Calendar, FileText, Phone, Mail } from "lucide-react";
+import { Users, Search, UserCheck, Calendar, FileText, Phone, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { DoctorLayout } from "@/components/DoctorLayout";
 
 interface Patient {
   user_id: string;
@@ -153,187 +154,169 @@ export const DoctorPatients = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/doctor-dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
+      <DoctorLayout title="My Patients" subtitle="Manage your patient records and medical histories">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse bg-white shadow-sm rounded-xl border border-gray-200">
               <CardContent className="p-6">
-                <div className="h-20 bg-muted rounded"></div>
+                <div className="h-20 bg-gray-200 rounded"></div>
               </CardContent>
             </Card>
           ))}
         </div>
-      </div>
+      </DoctorLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header with Back Button */}
-      <div className="flex items-center justify-between">
+    <DoctorLayout title="My Patients" subtitle="Manage your patient records and medical histories">
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-teal-600">
+                <Users className="w-5 h-5" />
+                Total Patients
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-slate-900">{patients.length}</p>
+              <p className="text-sm text-slate-600">registered</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-green-600">
+                <UserCheck className="w-5 h-5" />
+                Active Cases
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-slate-900">{patients.filter(p => {
+                const lastAppointment = new Date(p.last_appointment);
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                return lastAppointment > thirtyDaysAgo;
+              }).length}</p>
+              <p className="text-sm text-slate-600">recent patients</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-orange-600">
+                <Calendar className="w-5 h-5" />
+                Total Visits
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-slate-900">
+                {patients.reduce((sum, patient) => sum + patient.total_appointments, 0)}
+              </p>
+              <p className="text-sm text-slate-600">appointments</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/doctor-dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">My Patients</h1>
-            <p className="text-muted-foreground">Manage your patient records and medical histories</p>
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Input
+              placeholder="Search patients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+            />
           </div>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg text-primary">
-              <Users className="w-5 h-5" />
-              Total Patients
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-foreground">{patients.length}</p>
-            <p className="text-sm text-muted-foreground">registered</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg text-green-600">
-              <UserCheck className="w-5 h-5" />
-              Active Cases
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-foreground">{patients.filter(p => {
-              const lastAppointment = new Date(p.last_appointment);
-              const thirtyDaysAgo = new Date();
-              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-              return lastAppointment > thirtyDaysAgo;
-            }).length}</p>
-            <p className="text-sm text-muted-foreground">recent patients</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg text-orange-600">
-              <Calendar className="w-5 h-5" />
-              Total Visits
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-foreground">
-              {patients.reduce((sum, patient) => sum + patient.total_appointments, 0)}
-            </p>
-            <p className="text-sm text-muted-foreground">appointments</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search patients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {/* Patients Grid */}
-      {filteredPatients.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              {searchTerm ? "No patients found" : "You haven't treated any patients yet"}
-            </h3>
-            <p className="text-muted-foreground">
-              {searchTerm 
-                ? "Try adjusting your search terms" 
-                : "Patients will appear here after you complete appointments with them"
-              }
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPatients.map((patient) => {
-            const age = calculateAge(patient.date_of_birth || '');
-            
-            return (
-              <Card key={patient.user_id} className="hover:shadow-md transition-shadow cursor-pointer group">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={patient.avatar_url} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {patient.first_name?.[0]}{patient.last_name?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground truncate">
-                        {patient.first_name} {patient.last_name}
-                      </h3>
+        {/* Patients Grid */}
+        {filteredPatients.length === 0 ? (
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
+            <CardContent className="p-12 text-center">
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                {searchTerm ? "No patients found" : "You haven't treated any patients yet"}
+              </h3>
+              <p className="text-slate-600">
+                {searchTerm 
+                  ? "Try adjusting your search terms" 
+                  : "Patients will appear here after you complete appointments with them"
+                }
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPatients.map((patient) => {
+              const age = calculateAge(patient.date_of_birth || '');
+              
+              return (
+                <Card key={patient.user_id} className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer group">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={patient.avatar_url} />
+                        <AvatarFallback className="bg-teal-100 text-teal-600">
+                          {patient.first_name?.[0]}{patient.last_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
                       
-                      <div className="flex items-center gap-2 mt-1">
-                        {age && (
-                          <Badge variant="secondary" className="text-xs">
-                            {age} years
-                          </Badge>
-                        )}
-                        {patient.gender && (
-                          <Badge variant="outline" className="text-xs">
-                            {patient.gender}
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-1 mt-3">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Mail className="w-3 h-3" />
-                          <span className="truncate">{patient.email}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-slate-900 truncate">
+                          {patient.first_name} {patient.last_name}
+                        </h3>
+                        
+                        <div className="flex items-center gap-2 mt-1">
+                          {age && (
+                            <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                              {age} years
+                            </Badge>
+                          )}
+                          {patient.gender && (
+                            <Badge variant="outline" className="text-xs border-gray-300">
+                              {patient.gender}
+                            </Badge>
+                          )}
                         </div>
-                        {patient.phone && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Phone className="w-3 h-3" />
-                            <span>{patient.phone}</span>
+                        
+                        <div className="space-y-1 mt-3">
+                          <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <Mail className="w-3 h-3" />
+                            <span className="truncate">{patient.email}</span>
                           </div>
-                        )}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <FileText className="w-3 h-3" />
-                          <span>{patient.total_appointments} appointment{patient.total_appointments !== 1 ? 's' : ''}</span>
+                          {patient.phone && (
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                              <Phone className="w-3 h-3" />
+                              <span>{patient.phone}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <FileText className="w-3 h-3" />
+                            <span>{patient.total_appointments} appointment{patient.total_appointments !== 1 ? 's' : ''}</span>
+                          </div>
                         </div>
+                        
+                        <Button 
+                          size="sm" 
+                          className="w-full mt-4 bg-teal-600 hover:bg-teal-700 text-white rounded-lg shadow-sm"
+                          onClick={() => handleManagePatient(patient.user_id)}
+                        >
+                          View Records
+                        </Button>
                       </div>
-                      
-                      <Button 
-                        size="sm" 
-                        className="w-full mt-4 group-hover:bg-primary/90"
-                        onClick={() => handleManagePatient(patient.user_id)}
-                      >
-                        View Records
-                      </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </DoctorLayout>
   );
 };
 

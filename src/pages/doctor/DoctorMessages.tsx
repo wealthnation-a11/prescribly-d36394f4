@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DoctorLayout } from "@/components/DoctorLayout";
 import {
   MessageCircle,
   Phone,
@@ -306,7 +307,7 @@ export const DoctorMessages = () => {
     const isOwn = m.sender_id === user?.id;
     return (
       <div key={m.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-        <div className={`max-w-[70%] rounded-lg p-3 ${isOwn ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+        <div className={`max-w-[70%] rounded-lg p-3 ${isOwn ? "bg-teal-600 text-white" : "bg-white border border-gray-200"}`}>
           {m.file_url ? (
             <div className="space-y-2">
               {m.file_type === "image" && (
@@ -328,37 +329,32 @@ export const DoctorMessages = () => {
                   </a>
                 </div>
               )}
-              {m.message && <p className="body-medium">{m.message}</p>}
+              {m.message && <p className="text-sm">{m.message}</p>}
             </div>
           ) : (
-            <p className="body-medium">{m.message}</p>
+            <p className="text-sm">{m.message}</p>
           )}
-          <p className={`body-small mt-1 ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{formatTime(m.created_at)}</p>
+          <p className={`text-xs mt-1 ${isOwn ? "text-white/70" : "text-slate-500"}`}>{formatTime(m.created_at)}</p>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Patient Messages</h1>
-        <p className="text-muted-foreground">Securely chat with patients after confirmed/completed appointments</p>
-      </div>
-
-      <Card className="border-border bg-card">
+    <DoctorLayout title="Patient Messages" subtitle="Securely chat with patients after confirmed/completed appointments">
+      <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
         <CardContent className="p-0">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
             {/* Patients Sidebar */}
-            <div className="md:col-span-1 border-r border-border bg-card flex flex-col min-h-[70vh]">
-              <div className="p-4 border-b border-border">
-                <h2 className="heading-lg mb-4">Your Patients</h2>
+            <div className="md:col-span-1 border-r border-gray-200 bg-white flex flex-col min-h-[70vh]">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-slate-900 mb-4">Your Patients</h2>
                 <div className="relative">
                   <Input
                     placeholder="Search patients..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-3"
+                    className="pl-3 bg-white border-gray-300"
                   />
                 </div>
               </div>
@@ -366,17 +362,17 @@ export const DoctorMessages = () => {
               <ScrollArea className="flex-1">
                 <div className="p-2">
                   {filteredPatients.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
+                    <div className="text-center py-8 text-slate-600">
                       <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="body-medium">No chat-enabled patients</p>
-                      <p className="body-small">Chats appear after eligible appointments</p>
+                      <p className="text-sm">No chat-enabled patients</p>
+                      <p className="text-xs">Chats appear after eligible appointments</p>
                     </div>
                   ) : (
                     filteredPatients.map((p) => (
                       <Card
                         key={p.user_id}
-                        className={`mb-2 cursor-pointer transition-all hover:bg-accent/50 ${
-                          selectedPatient?.user_id === p.user_id ? "bg-primary/10 border-primary" : ""
+                        className={`mb-2 cursor-pointer transition-all hover:bg-teal-50 border ${
+                          selectedPatient?.user_id === p.user_id ? "bg-teal-50 border-teal-200" : "border-gray-200"
                         }`}
                         onClick={() => setSelectedPatient(p)}
                       >
@@ -385,19 +381,19 @@ export const DoctorMessages = () => {
                             <div className="relative">
                               <Avatar className="w-12 h-12">
                                 <AvatarImage src={p.avatar_url || undefined} />
-                                <AvatarFallback className="bg-primary/10 text-primary">
+                                <AvatarFallback className="bg-teal-100 text-teal-600">
                                   {(p.first_name?.[0] || "P") + (p.last_name?.[0] || " ")}
                                 </AvatarFallback>
                               </Avatar>
                               {p.online_status && (
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="body-medium font-semibold">
+                              <p className="text-sm font-semibold text-slate-900">
                                 {p.first_name || "Patient"} {p.last_name || ""}
                               </p>
-                              <Badge variant="outline" className="mt-1">
+                              <Badge variant="outline" className="mt-1 text-xs border-teal-300 text-teal-600">
                                 Chat Enabled
                               </Badge>
                             </div>
@@ -415,30 +411,30 @@ export const DoctorMessages = () => {
               {selectedPatient ? (
                 <>
                   {/* Chat Header */}
-                  <div className="p-4 border-b border-border bg-card">
+                  <div className="p-4 border-b border-gray-200 bg-white">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
                           <AvatarImage src={selectedPatient.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary">
+                          <AvatarFallback className="bg-teal-100 text-teal-600">
                             {(selectedPatient.first_name?.[0] || "P") + (selectedPatient.last_name?.[0] || " ")}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="body-medium font-semibold">
+                          <h3 className="text-sm font-semibold text-slate-900">
                             {selectedPatient.first_name || "Patient"} {selectedPatient.last_name || ""}
                           </h3>
-                          <p className="body-small text-muted-foreground">Secure chat</p>
+                          <p className="text-xs text-slate-600">Secure chat</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="text-teal-600 hover:bg-teal-50">
                           <Phone className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="text-teal-600 hover:bg-teal-50">
                           <Video className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="text-slate-600 hover:bg-gray-50">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </div>
@@ -446,98 +442,84 @@ export const DoctorMessages = () => {
                   </div>
 
                   {/* Messages */}
-                  <ScrollArea className="flex-1 p-4">
+                  <ScrollArea className="flex-1 p-4 bg-gray-50">
                     <div className="space-y-4">
                       {messages.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
+                        <div className="text-center py-8 text-slate-600">
                           <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                          <p className="body-medium">Start a conversation</p>
-                          <p className="body-small">Send a message to begin chatting with the patient</p>
+                          <p className="text-sm">Start a conversation</p>
+                          <p className="text-xs">Your messages are secure and private</p>
                         </div>
                       ) : (
                         messages.map(renderMessage)
-                      )}
-                      {isTyping && (
-                        <div className="flex justify-start">
-                          <div className="bg-muted rounded-lg p-3 max-w-[70%]">
-                            <div className="flex space-x-1">
-                              <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                              <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                              <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                            </div>
-                          </div>
-                        </div>
                       )}
                       <div ref={messagesEndRef} />
                     </div>
                   </ScrollArea>
 
-                  {/* Composer */}
-                  <div className="p-4 border-t border-border bg-card space-y-3">
-                    {/* Schedule Call (placeholder) */}
-                    <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Schedule a Call
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Schedule a Call</DialogTitle>
-                        </DialogHeader>
-                        <div className="text-center py-8">
-                          <Phone className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                          <h3 className="text-lg font-semibold mb-2">Coming Soon!</h3>
-                          <p className="text-muted-foreground">Video and voice calling features will be available soon.</p>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
+                  {/* Message Input */}
+                  <div className="p-4 border-t border-gray-200 bg-white">
                     <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileUpload}
-                        accept="image/*,application/pdf,.docx"
-                        className="hidden"
-                      />
-                      <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} className="px-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-slate-600 hover:bg-gray-50"
+                      >
                         <Paperclip className="w-4 h-4" />
                       </Button>
-                      <Input
-                        placeholder="Type your message..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            sendMessage();
-                          }
-                        }}
-                        disabled={isLoading}
-                        className="flex-1"
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,.pdf,.docx"
+                        onChange={handleFileUpload}
+                        className="hidden"
                       />
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={isRecording ? stopRecording : startRecording}
-                        className={`px-3 ${isRecording ? "text-red-500" : ""}`}
+                        onMouseDown={startRecording}
+                        onMouseUp={stopRecording}
+                        className={`text-slate-600 hover:bg-gray-50 ${isRecording ? "bg-red-100 text-red-600" : ""}`}
                       >
                         {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                       </Button>
-                      <Button onClick={() => sendMessage()} disabled={!newMessage.trim() || isLoading} size="sm" className="px-3">
-                        Send
-                      </Button>
+                      <div className="flex-1 flex items-center gap-2">
+                        <Input
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="Type your message..."
+                          onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                          disabled={isLoading}
+                          className="bg-white border-gray-300"
+                        />
+                        <Button
+                          onClick={() => sendMessage()}
+                          disabled={isLoading || !newMessage.trim()}
+                          className="bg-teal-600 hover:bg-teal-700 text-white"
+                        >
+                          Send
+                        </Button>
+                      </div>
                     </div>
+                    {isTyping && (
+                      <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
+                        <div className="flex space-x-1">
+                          <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce"></div>
+                          <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                          <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                        </div>
+                        <span>Sending...</span>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center bg-muted/20">
-                  <div className="text-center">
-                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="heading-md mb-2">Select a patient to start chatting</h3>
-                    <p className="body-medium text-muted-foreground">Choose a patient from the list to begin the conversation</p>
+                <div className="flex-1 flex items-center justify-center bg-gray-50">
+                  <div className="text-center text-slate-600">
+                    <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-semibold mb-2">Select a patient to start chatting</h3>
+                    <p className="text-sm">Choose a patient from the list to begin a secure conversation</p>
                   </div>
                 </div>
               )}
@@ -545,7 +527,7 @@ export const DoctorMessages = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </DoctorLayout>
   );
 };
 
