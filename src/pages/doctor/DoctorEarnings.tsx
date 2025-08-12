@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Calendar, DollarSign, TrendingUp } from "lucide-react";
 import { DoctorLayout } from "@/components/DoctorLayout";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { formatNGNAsUSD } from "@/utils/currency";
 
 interface CallLogRow {
   id: string;
@@ -19,6 +21,7 @@ interface CallLogRow {
 
 export const DoctorEarnings = () => {
   const { user } = useAuth();
+  const { exchangeRate } = useExchangeRate();
   const [rows, setRows] = useState<CallLogRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -111,7 +114,7 @@ export const DoctorEarnings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-slate-900">₦{totals.paidByPatients.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-slate-900">{formatNGNAsUSD(totals.paidByPatients, exchangeRate)}</p>
               <p className="text-sm text-slate-600">sum of completed calls</p>
             </CardContent>
           </Card>
@@ -124,8 +127,8 @@ export const DoctorEarnings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-slate-900">₦{totals.doctor.toLocaleString()}</p>
-              <p className="text-sm text-slate-600">₦8,000 per 1,000 calls equivalent</p>
+              <p className="text-2xl font-bold text-slate-900">{formatNGNAsUSD(totals.doctor, exchangeRate)}</p>
+              <p className="text-sm text-slate-600">$8 per call</p>
             </CardContent>
           </Card>
 
@@ -137,7 +140,7 @@ export const DoctorEarnings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-slate-900">₦{totals.admin.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-slate-900">{formatNGNAsUSD(totals.admin, exchangeRate)}</p>
               <p className="text-sm text-slate-600">platform fees</p>
             </CardContent>
           </Card>
@@ -148,7 +151,7 @@ export const DoctorEarnings = () => {
             Last completed call: {totals.lastDate ? totals.lastDate.toLocaleDateString() : "—"}
           </Badge>
           <Badge variant="outline" className="border-teal-300 text-teal-600">
-            Estimated unpaid: ₦{totals.doctor.toLocaleString()}
+            Estimated unpaid: {formatNGNAsUSD(totals.doctor, exchangeRate)}
           </Badge>
         </div>
 
@@ -181,9 +184,9 @@ export const DoctorEarnings = () => {
                       <TableRow key={r.id}>
                         <TableCell>{new Date(r.call_date).toLocaleString()}</TableCell>
                         <TableCell className="font-mono text-xs">{r.patient_id?.slice(0, 8)}…</TableCell>
-                        <TableCell className="text-right">₦{Number(r.patient_payment ?? 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right">₦{Number(r.doctor_earnings ?? 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right">₦{Number(r.admin_fee ?? 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{formatNGNAsUSD(Number(r.patient_payment ?? 0), exchangeRate)}</TableCell>
+                        <TableCell className="text-right">{formatNGNAsUSD(Number(r.doctor_earnings ?? 0), exchangeRate)}</TableCell>
+                        <TableCell className="text-right">{formatNGNAsUSD(Number(r.admin_fee ?? 0), exchangeRate)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

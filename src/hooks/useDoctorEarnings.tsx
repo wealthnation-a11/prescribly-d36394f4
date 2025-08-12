@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useExchangeRate } from './useExchangeRate';
+import { convertNGNtoUSD } from '@/utils/currency';
 
 export interface DoctorEarnings {
   totalEarnings: number;
@@ -13,6 +15,7 @@ export interface DoctorEarnings {
 
 export const useDoctorEarnings = () => {
   const { user } = useAuth();
+  const { exchangeRate } = useExchangeRate();
   const [earnings, setEarnings] = useState<DoctorEarnings>({
     totalEarnings: 0,
     totalAppointments: 0,
@@ -57,27 +60,29 @@ export const useDoctorEarnings = () => {
         );
 
         // Calculate earnings (80% of consultation fee goes to doctor, 20% platform fee)
-        const totalEarnings = completedAppointments.reduce((sum, apt) => 
+        // Convert NGN to USD using exchange rate
+        const totalEarningsNGN = completedAppointments.reduce((sum, apt) => 
           sum + (apt.consultation_fee * 0.8), 0
         );
-        const weeklyEarnings = weeklyCompleted.reduce((sum, apt) => 
+        const weeklyEarningsNGN = weeklyCompleted.reduce((sum, apt) => 
           sum + (apt.consultation_fee * 0.8), 0
         );
-        const monthlyEarnings = monthlyCompleted.reduce((sum, apt) => 
+        const monthlyEarningsNGN = monthlyCompleted.reduce((sum, apt) => 
           sum + (apt.consultation_fee * 0.8), 0
         );
 
-        const averageFee = completedAppointments.length > 0 
+        const averageFeeNGN = completedAppointments.length > 0 
           ? completedAppointments.reduce((sum, apt) => sum + apt.consultation_fee, 0) / completedAppointments.length
           : 0;
 
+        // Convert all values to USD
         setEarnings({
-          totalEarnings,
+          totalEarnings: convertNGNtoUSD(totalEarningsNGN, exchangeRate),
           totalAppointments: appointments?.length || 0,
           completedAppointments: completedAppointments.length,
-          averageFee,
-          monthlyEarnings,
-          weeklyEarnings,
+          averageFee: convertNGNtoUSD(averageFeeNGN, exchangeRate),
+          monthlyEarnings: convertNGNtoUSD(monthlyEarningsNGN, exchangeRate),
+          weeklyEarnings: convertNGNtoUSD(weeklyEarningsNGN, exchangeRate),
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch earnings');
@@ -87,7 +92,7 @@ export const useDoctorEarnings = () => {
     };
 
     fetchEarnings();
-  }, [user]);
+  }, [user, exchangeRate]);
 
   return { earnings, loading, error };
 };
