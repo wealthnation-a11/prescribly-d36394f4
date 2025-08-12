@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Calendar, DollarSign, TrendingUp } from "lucide-react";
+import { DoctorLayout } from "@/components/DoctorLayout";
 
 interface CallLogRow {
   id: string;
@@ -73,136 +74,135 @@ export const DoctorEarnings = () => {
 
   if (!user) {
     return (
-      <div className="space-y-6">
-        <Card>
+      <DoctorLayout title="Earnings" subtitle="Please log in to view your earnings">
+        <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
           <CardContent className="p-12 text-center">
-            <AlertCircle className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-slate-900 mb-2">Please log in</h3>
             <p className="text-slate-600">You must be logged in to view earnings.</p>
           </CardContent>
         </Card>
-      </div>
+      </DoctorLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Earnings</h1>
-        <p className="text-slate-600">Track your calls and payouts in real-time</p>
-      </div>
+    <DoctorLayout title="Earnings" subtitle="Track your calls and payouts in real-time">
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <TrendingUp className="w-5 h-5 text-teal-600" />
+                Completed Calls
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-slate-900">{totals.calls}</p>
+              <p className="text-sm text-slate-600">this period</p>
+            </CardContent>
+          </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="w-5 h-5 text-blue-600" />
+                Paid by Patients
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-slate-900">₦{totals.paidByPatients.toLocaleString()}</p>
+              <p className="text-sm text-slate-600">sum of completed calls</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                Doctor Earnings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-slate-900">₦{totals.doctor.toLocaleString()}</p>
+              <p className="text-sm text-slate-600">₦8,000 per 1,000 calls equivalent</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="w-5 h-5 text-orange-600" />
+                Admin Share
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-slate-900">₦{totals.admin.toLocaleString()}</p>
+              <p className="text-sm text-slate-600">platform fees</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+            Last completed call: {totals.lastDate ? totals.lastDate.toLocaleDateString() : "—"}
+          </Badge>
+          <Badge variant="outline" className="border-teal-300 text-teal-600">
+            Estimated unpaid: ₦{totals.doctor.toLocaleString()}
+          </Badge>
+        </div>
+
+        <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="w-5 h-5 text-green-600" />
-              Completed Calls
+            <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
+              <Calendar className="w-5 h-5 text-teal-600" />
+              Earnings History
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{totals.calls}</p>
-            <p className="text-sm text-slate-600">this period</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="w-5 h-5 text-blue-600" />
-              Paid by Patients
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">₦{totals.paidByPatients.toLocaleString()}</p>
-            <p className="text-sm text-slate-600">sum of completed calls</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="w-5 h-5 text-indigo-600" />
-              Doctor Earnings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">₦{totals.doctor.toLocaleString()}</p>
-            <p className="text-sm text-slate-600">₦8,000 per 1,000 calls equivalent</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="w-5 h-5 text-orange-600" />
-              Admin Share
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">₦{totals.admin.toLocaleString()}</p>
-            <p className="text-sm text-slate-600">platform fees</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Badge variant="secondary">
-          Last completed call: {totals.lastDate ? totals.lastDate.toLocaleDateString() : "—"}
-        </Badge>
-        <Badge variant="outline">Estimated unpaid: ₦{totals.doctor.toLocaleString()}</Badge>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Calendar className="w-5 h-5 text-slate-600" />
-            Earnings History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-slate-600">Loading...</p>
-          ) : rows.length === 0 ? (
-            <div className="text-center text-slate-600 py-8">No completed calls yet.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Patient</TableHead>
-                    <TableHead className="text-right">Paid by Patient</TableHead>
-                    <TableHead className="text-right">Doctor</TableHead>
-                    <TableHead className="text-right">Admin</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((r) => (
-                    <TableRow key={r.id}>
-                      <TableCell>{new Date(r.call_date).toLocaleString()}</TableCell>
-                      <TableCell className="font-mono text-xs">{r.patient_id?.slice(0, 8)}…</TableCell>
-                      <TableCell className="text-right">₦{Number(r.patient_payment ?? 0).toLocaleString()}</TableCell>
-                      <TableCell className="text-right">₦{Number(r.doctor_earnings ?? 0).toLocaleString()}</TableCell>
-                      <TableCell className="text-right">₦{Number(r.admin_fee ?? 0).toLocaleString()}</TableCell>
+            {loading ? (
+              <p className="text-slate-600">Loading...</p>
+            ) : rows.length === 0 ? (
+              <div className="text-center text-slate-600 py-8">No completed calls yet.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Patient</TableHead>
+                      <TableHead className="text-right">Paid by Patient</TableHead>
+                      <TableHead className="text-right">Doctor</TableHead>
+                      <TableHead className="text-right">Admin</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell>{new Date(r.call_date).toLocaleString()}</TableCell>
+                        <TableCell className="font-mono text-xs">{r.patient_id?.slice(0, 8)}…</TableCell>
+                        <TableCell className="text-right">₦{Number(r.patient_payment ?? 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right">₦{Number(r.doctor_earnings ?? 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right">₦{Number(r.admin_fee ?? 0).toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-sm text-slate-600">
-            Earnings are calculated based on completed audio calls. You earn $8 per call. Payments are processed weekly or
-            monthly.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
+          <CardContent className="p-6">
+            <p className="text-sm text-slate-600">
+              Earnings are calculated based on completed audio calls. You earn $8 per call. Payments are processed weekly or
+              monthly.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </DoctorLayout>
   );
 };
 
