@@ -27,6 +27,7 @@ import UserDashboard from "./pages/UserDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import SymptomForm from "./pages/SymptomForm";
 import AIDiagnosis from "./pages/AIDiagnosis";
+import WellnessChecker from "./pages/WellnessChecker";
 import MyPrescriptions from "./pages/MyPrescriptions";
 import PrescriptionPrint from "./pages/PrescriptionPrint";
 import UserProfile from "./pages/UserProfile";
@@ -96,6 +97,11 @@ const App = () => (
             <Route path="/ai-diagnosis" element={
               <ProtectedRoute requirePatient={true}>
                 <AIDiagnosis />
+              </ProtectedRoute>
+            } />
+            <Route path="/wellness-checker" element={
+              <ProtectedRoute requirePatient={true}>
+                <WellnessChecker />
               </ProtectedRoute>
             } />
             <Route path="/my-prescriptions" element={
