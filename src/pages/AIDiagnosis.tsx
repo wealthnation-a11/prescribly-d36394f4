@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Bot, User, Calendar } from "lucide-react";
-
+import { supabase } from "@/integrations/supabase/client";
 const AIDiagnosis = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -49,17 +49,58 @@ Please answer these questions so I can provide a more accurate assessment.`,
     setInputMessage("");
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const symptomSummary = symptomData
+        ? `Main: ${symptomData.mainSymptom}; Additional: ${symptomData.additionalSymptoms || 'none'}; Duration: ${symptomData.duration}; Severity: ${Array.isArray(symptomData.severity) ? symptomData.severity[0] : symptomData.severity}/5.`
+        : inputMessage;
+
+      const { data, error } = await supabase.functions.invoke('ai-diagnosis', {
+        body: {
+          symptomText: `${symptomSummary}\nUser response: ${inputMessage}`,
+          selectedSymptoms: symptomData ? [symptomData.mainSymptom, ...(symptomData.additionalSymptoms ? symptomData.additionalSymptoms.split(',').map((s:string)=>s.trim()) : [])] : [],
+          clarifyingAnswers: inputMessage,
+        },
+      });
+
+      if (error) throw error;
+
+      const lines: string[] = [];
+      if (data?.diagnoses?.length) {
+        lines.push('Based on the information, here are possible diagnoses:');
+        data.diagnoses.forEach((d: any, i: number) => {
+          lines.push(`${i+1}. ${d.name} (ICD-10: ${d.icd10}) — Confidence: ${(d.confidence*100).toFixed(0)}%`);
+        });
+      }
+      if (data?.status === 'prescription_generated') {
+        lines.push('\n✅ Prescription generated according to standing order protocols. You can view it in My Prescriptions.');
+      } else if (data?.status === 'review_required') {
+        lines.push('\n⚠️ This case requires doctor review before prescribing.');
+      } else {
+        lines.push('\n✅ Diagnosis complete.');
+      }
+      if (data?.safetyFlags?.length) {
+        lines.push('\nSafety notes:');
+        data.safetyFlags.forEach((s: string) => lines.push(`- ${s}`));
+      }
+
       const aiResponse = {
         id: messages.length + 2,
         type: 'ai',
-        content: "Based on your symptoms and responses, this appears to be a mild upper respiratory infection. I recommend:\n\n💊 **Suggested Treatment:**\n- Rest and adequate hydration\n- Paracetamol 500mg every 6 hours for fever\n- Throat lozenges for throat irritation\n\n⚠️ **When to see a doctor:**\n- If symptoms worsen or persist beyond 5 days\n- If you develop difficulty breathing\n- If fever exceeds 39°C (102°F)\n\nWould you like me to generate a prescription or would you prefer to book an appointment with a doctor?",
+        content: lines.join('\n'),
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiResponse]);
+    } catch (err: any) {
+      const aiResponse = {
+        id: messages.length + 2,
+        type: 'ai',
+        content: 'Sorry, something went wrong analyzing your symptoms. Please try again or contact support.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   return (

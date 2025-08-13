@@ -305,6 +305,42 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_prescriptions: {
+        Row: {
+          created_at: string
+          diagnosis: Json | null
+          id: string
+          medications: Json
+          patient_id: string
+          safety_flags: Json | null
+          status: string
+          updated_at: string
+          visit_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: Json | null
+          id?: string
+          medications: Json
+          patient_id: string
+          safety_flags?: Json | null
+          status?: string
+          updated_at?: string
+          visit_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: Json | null
+          id?: string
+          medications?: Json
+          patient_id?: string
+          safety_flags?: Json | null
+          status?: string
+          updated_at?: string
+          visit_id?: string
+        }
+        Relationships: []
+      }
       patient_visits: {
         Row: {
           ai_differential: Json | null
