@@ -97,6 +97,23 @@ const WellnessChecker = () => {
         setDiagnoses(res.diagnoses || []);
         setSafetyNotes(res.safetyFlags || []);
         setPrescriptionId(res.prescription?.id || null);
+        
+        // Navigate to prescription page with results
+        const prescriptionData = {
+          visitId: res.visitId,
+          diagnoses: res.diagnoses || [],
+          prescription: res.prescription,
+          safetyFlags: res.safetyFlags || [],
+          status: res.status,
+          symptoms: {
+            symptomText,
+            selectedSymptoms,
+            answers: nextAnswers,
+          }
+        };
+        
+        navigate('/prescription', { state: { prescriptionData } });
+        
         if (res.status === 'no_safe_medication') {
           toast({ 
             title: 'Assessment Complete', 
