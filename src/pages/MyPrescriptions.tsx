@@ -16,19 +16,37 @@ const MyPrescriptions = () => {
   useEffect(() => {
     const fetchPrescriptions = async () => {
       if (!user) return;
+      setIsLoading(true);
 
       try {
-        const { data, error } = await supabase
-          .from('prescriptions')
-          .select(`
-            *,
-            doctors!inner(*)
-          `)
-          .eq('patient_id', user.id)
-          .order('created_at', { ascending: false });
+        const [prescRes, aiRes] = await Promise.all([
+          supabase
+            .from('prescriptions')
+            .select('*')
+            .eq('patient_id', user.id)
+            .order('issued_at', { ascending: false }),
+          supabase
+            .from('patient_prescriptions')
+            .select('id, medications, diagnosis, created_at, status')
+            .eq('patient_id', user.id)
+            .order('created_at', { ascending: false })
+        ]);
 
-        if (error) throw error;
-        setPrescriptions(data || []);
+        const presc = prescRes.data || [];
+        const aiPresc = aiRes.data || [];
+        if (prescRes.error) console.error('Error fetching prescriptions:', prescRes.error);
+        if (aiRes.error) console.error('Error fetching AI prescriptions:', aiRes.error);
+
+        const mappedAi = aiPresc.map((p: any) => ({
+          id: p.id,
+          doctor_name: 'AI Assistant',
+          diagnosis: (p.diagnosis?.name) || 'AI Diagnosis',
+          medications: p.medications || [],
+          issued_at: p.created_at,
+          status: p.status || 'generated'
+        }));
+
+        setPrescriptions([...(presc as any[]), ...mappedAi]);
       } catch (error) {
         console.error('Error fetching prescriptions:', error);
       } finally {
@@ -42,9 +60,12 @@ const MyPrescriptions = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
+      case 'needs_review':
         return 'bg-yellow-100 text-yellow-800';
+      case 'generated':
       case 'dispensed':
         return 'bg-green-100 text-green-800';
+      case 'rejected':
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
@@ -66,7 +87,7 @@ const MyPrescriptions = () => {
     }
   ];
 
-  const displayPrescriptions = prescriptions.length > 0 ? prescriptions : mockPrescriptions;
+  const displayPrescriptions = prescriptions;
 
   if (isLoading) {
     return (

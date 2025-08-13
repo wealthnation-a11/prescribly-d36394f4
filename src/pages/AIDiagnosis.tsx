@@ -5,12 +5,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Bot, User, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { usePageSEO } from "@/hooks/usePageSEO";
 const AIDiagnosis = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<any | null>(null);
+
+  const { toast } = useToast();
+  const { logActivity } = useActivityLogger();
+  usePageSEO({
+    title: "AI Diagnosis | Prescribly",
+    description: "AI-driven symptom analysis and safe, compliant prescriptions.",
+    canonicalPath: "/ai-diagnosis",
+  });
 
   const symptomData = location.state?.symptomData;
 
@@ -48,6 +61,7 @@ Please answer these questions so I can provide a more accurate assessment.`,
     setMessages(prev => [...prev, userMessage]);
     setInputMessage("");
     setIsLoading(true);
+    logActivity('ai_diagnosis_message_sent', 'User sent AI diagnosis response', { length: userMessage.content.length });
 
     try {
       const symptomSummary = symptomData
@@ -83,6 +97,14 @@ Please answer these questions so I can provide a more accurate assessment.`,
         data.safetyFlags.forEach((s: string) => lines.push(`- ${s}`));
       }
 
+      setAiResult(data);
+      logActivity('ai_diagnosis_completed', 'AI diagnosis completed', {
+        status: data?.status,
+        diagnosesCount: data?.diagnoses?.length || 0,
+        visitId: data?.visitId,
+        prescriptionId: data?.prescription?.id || null,
+      });
+
       const aiResponse = {
         id: messages.length + 2,
         type: 'ai',
@@ -90,6 +112,13 @@ Please answer these questions so I can provide a more accurate assessment.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiResponse]);
+
+      if (data?.status === 'prescription_generated') {
+        toast({ title: 'Prescription generated', description: 'Redirecting to your prescriptions...' });
+        setTimeout(() => navigate('/my-prescriptions'), 800);
+      } else if (data?.status === 'review_required') {
+        toast({ title: 'Doctor review required', description: 'A doctor will review this case before prescribing.' });
+      }
     } catch (err: any) {
       const aiResponse = {
         id: messages.length + 2,
@@ -189,6 +218,56 @@ Please answer these questions so I can provide a more accurate assessment.`,
           )}
         </div>
       </div>
+
+      {/* Results Panel */}
+      {aiResult && (
+        <div className="max-w-md mx-auto w-full px-4 pb-2">
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-medium">Assessment Summary</h2>
+                <Badge variant={aiResult.status === 'prescription_generated' ? 'default' : aiResult.status === 'review_required' ? 'secondary' : 'outline'}>
+                  {aiResult.status?.replace(/_/g, ' ') || 'complete'}
+                </Badge>
+              </div>
+
+              {Array.isArray(aiResult.diagnoses) && aiResult.diagnoses.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">Possible diagnoses</p>
+                  <div className="space-y-2">
+                    {aiResult.diagnoses.map((d: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between text-sm">
+                        <div>
+                          <div className="font-medium">{d.name}</div>
+                          <div className="text-xs text-muted-foreground">ICD-10: {d.icd10}</div>
+                        </div>
+                        <Badge variant="outline">{Math.round((d.confidence || 0) * 100)}%</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {Array.isArray(aiResult.safetyFlags) && aiResult.safetyFlags.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Safety notes</p>
+                  <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1">
+                    {aiResult.safetyFlags.map((s: string, i: number) => (
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {aiResult.status === 'prescription_generated' && (
+                <Button className="w-full" onClick={() => navigate('/my-prescriptions')}>
+                  View Prescription
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Action Buttons */}
       {messages.length > 2 && (
