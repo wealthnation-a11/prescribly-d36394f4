@@ -67,11 +67,11 @@ const SymptomForm = () => {
 
       toast({
         title: "Symptoms Recorded",
-        description: "Starting AI diagnosis...",
+        description: "Starting wellness assessment...",
       });
 
-      // Navigate to AI diagnosis page with form data
-      navigate('/ai-diagnosis', { 
+      // Navigate to wellness checker with form data
+      navigate('/wellness-checker', { 
         state: { 
           symptomData: formData 
         } 
@@ -248,7 +248,7 @@ const SymptomForm = () => {
                 {isSubmitting ? (
                   "Processing..."
                 ) : (
-                  "🔵 Start AI Diagnosis"
+                  "🔵 Start Wellness Check"
                 )}
               </Button>
             </form>

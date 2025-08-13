@@ -33,10 +33,10 @@ export const UserDashboard = () => {
 
   const quickActions = [
     {
-      title: "AI Diagnosis",
-      description: "Get instant AI-powered health insights based on your symptoms.",
+      title: "Wellness Checker",
+      description: "Complete health assessment with AI-powered diagnosis and prescriptions.",
       icon: Stethoscope,
-      href: "/symptom-form",
+      href: "/wellness-checker",
       variant: "primary" as const,
       color: "text-primary"
     },

@@ -40,7 +40,7 @@ const MyPrescriptions = () => {
         const mappedAi = aiPresc.map((p: any) => ({
           id: p.id,
           doctor_name: 'AI Assistant',
-          diagnosis: (p.diagnosis?.name) || 'AI Diagnosis',
+          diagnosis: (p.diagnosis?.name) || 'Wellness Assessment',
           medications: p.medications || [],
           issued_at: p.created_at,
           status: p.status || 'generated',

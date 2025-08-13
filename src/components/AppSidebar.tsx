@@ -16,7 +16,7 @@ import {
 const items = [
   { title: "Dashboard", url: "/user-dashboard", icon: Home },
   { title: "Book Appointment", url: "/book-appointment", icon: CalendarPlus },
-  { title: "AI Diagnosis", url: "/symptom-form", icon: Stethoscope },
+  { title: "Wellness Checker", url: "/wellness-checker", icon: Stethoscope },
   { title: "Prescriptions", url: "/my-prescriptions", icon: FileText },
   { title: "Chat", url: "/chat", icon: MessageCircle },
   { title: "Profile", url: "/profile", icon: User },
