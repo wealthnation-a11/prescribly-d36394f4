@@ -38,10 +38,8 @@ export const DoctorPrescriptions = () => {
   const { logActivity } = useActivityLogger();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [reviewQueue, setReviewQueue] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [reviewLoading, setReviewLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+const [loading, setLoading] = useState(true);
+const [saving, setSaving] = useState(false);
 
   // Form state
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>("");
@@ -83,20 +81,6 @@ export const DoctorPrescriptions = () => {
         setPrescriptions((presc as any) || []);
       }
 
-      // AI-generated prescriptions requiring review
-      const { data: queue, error: queueErr } = await supabase
-        .from('patient_prescriptions')
-        .select('id, patient_id, created_at, diagnosis, safety_flags, status')
-        .eq('status', 'needs_review')
-        .order('created_at', { ascending: false });
-
-      if (queueErr) {
-        console.error(queueErr);
-      } else {
-        setReviewQueue((queue as any) || []);
-      }
-
-      setReviewLoading(false);
       setLoading(false);
     };
 
@@ -149,44 +133,6 @@ export const DoctorPrescriptions = () => {
     setPrescriptions((presc as any) || []);
   };
 
-  const refreshReviewQueue = async () => {
-    setReviewLoading(true);
-    const { data: queue } = await supabase
-      .from('patient_prescriptions')
-      .select('id, patient_id, created_at, diagnosis, safety_flags, status')
-      .eq('status', 'needs_review')
-      .order('created_at', { ascending: false });
-    setReviewQueue((queue as any) || []);
-    setReviewLoading(false);
-  };
-
-  const handleApprove = async (id: string) => {
-    const { error } = await supabase
-      .from('patient_prescriptions')
-      .update({ status: 'generated' })
-      .eq('id', id);
-    if (error) {
-      toast({ title: 'Failed to approve', description: error.message, variant: 'destructive' });
-      return;
-    }
-    toast({ title: 'Prescription approved' });
-    logActivity('prescription_review_approved', 'Approved AI prescription', { prescriptionId: id });
-    await refreshReviewQueue();
-  };
-
-  const handleReject = async (id: string) => {
-    const { error } = await supabase
-      .from('patient_prescriptions')
-      .update({ status: 'rejected' })
-      .eq('id', id);
-    if (error) {
-      toast({ title: 'Failed to reject', description: error.message, variant: 'destructive' });
-      return;
-    }
-    toast({ title: 'Prescription rejected' });
-    logActivity('prescription_review_rejected', 'Rejected AI prescription', { prescriptionId: id });
-    await refreshReviewQueue();
-  };
 
   if (roleLoading) {
     return (
@@ -268,43 +214,6 @@ export const DoctorPrescriptions = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-slate-900">AI Prescriptions Requiring Review</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {reviewLoading ? (
-              <div className="text-slate-600">Loading...</div>
-            ) : reviewQueue.length === 0 ? (
-              <div className="text-slate-600">No items require review.</div>
-            ) : (
-              <div className="space-y-3">
-                {reviewQueue.map((r) => (
-                  <div key={r.id} className="flex items-start justify-between gap-3 border rounded-lg p-3">
-                    <div className="text-sm">
-                      <div className="font-medium">Patient: <span className="font-mono">{(r.patient_id || '').slice(0,8)}…</span></div>
-                      <div className="text-slate-600">Diagnosis: {r.diagnosis?.name || '—'}</div>
-                      <div className="text-slate-600">Created: {new Date(r.created_at).toLocaleString()}</div>
-                      {Array.isArray(r.safety_flags) && r.safety_flags.length > 0 && (
-                        <ul className="list-disc list-inside text-xs text-slate-600 mt-1">
-                          {r.safety_flags.map((s: string, i: number) => <li key={i}>{s}</li>)}
-                        </ul>
-                      )}
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white" onClick={() => handleApprove(r.id)}>
-                        Approve
-                      </Button>
-                      <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50" onClick={() => handleReject(r.id)}>
-                        Reject
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-white shadow-sm rounded-xl border border-gray-200">

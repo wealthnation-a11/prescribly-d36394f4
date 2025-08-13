@@ -404,6 +404,7 @@ export type Database = {
           last_name: string
           medical_history: string | null
           phone: string | null
+          pregnancy_status: boolean | null
           registration_status: string | null
           updated_at: string
           user_id: string
@@ -422,6 +423,7 @@ export type Database = {
           last_name: string
           medical_history?: string | null
           phone?: string | null
+          pregnancy_status?: boolean | null
           registration_status?: string | null
           updated_at?: string
           user_id: string
@@ -440,6 +442,7 @@ export type Database = {
           last_name?: string
           medical_history?: string | null
           phone?: string | null
+          pregnancy_status?: boolean | null
           registration_status?: string | null
           updated_at?: string
           user_id?: string

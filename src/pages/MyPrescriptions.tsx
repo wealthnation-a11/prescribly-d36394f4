@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Eye, Pill, Calendar } from "lucide-react";
+import { ArrowLeft, Eye, Pill, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -43,7 +43,8 @@ const MyPrescriptions = () => {
           diagnosis: (p.diagnosis?.name) || 'AI Diagnosis',
           medications: p.medications || [],
           issued_at: p.created_at,
-          status: p.status || 'generated'
+          status: p.status || 'generated',
+          source: 'ai'
         }));
 
         setPrescriptions([...(presc as any[]), ...mappedAi]);
@@ -188,14 +189,17 @@ const MyPrescriptions = () => {
 
                     {/* Actions */}
                     <div className="flex space-x-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download PDF
-                      </Button>
+                      {prescription.source === 'ai' ? (
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/prescriptions/print/${prescription.id}`)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View / Print
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -11,12 +11,21 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// Helpers
+// Question bank used for adaptive questioning
+const QUESTION_BANK: Array<{ id: string; text: string; options: string[] }> = [
+  { id: "fever", text: "Do you have fever or chills?", options: ["yes", "no"] },
+  { id: "cough", text: "Are you coughing?", options: ["yes", "no"] },
+  { id: "sore_throat", text: "Do you have a sore throat?", options: ["yes", "no"] },
+  { id: "breath", text: "Any shortness of breath?", options: ["yes", "no"] },
+  { id: "pain", text: "Is your pain mild or severe?", options: ["mild", "severe"] },
+  { id: "nausea", text: "Are you experiencing nausea?", options: ["yes", "no"] },
+  { id: "pregnant", text: "Are you currently pregnant?", options: ["yes", "no"] },
+];
+
+// Helpers: RxNorm
 async function getRxCuiByName(name: string): Promise<string | null> {
   try {
-    const res = await fetch(
-      `https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(name)}`
-    );
+    const res = await fetch(`https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(name)}`);
     const data = await res.json();
     return data?.idGroup?.rxnormId?.[0] ?? null;
   } catch {
@@ -24,13 +33,13 @@ async function getRxCuiByName(name: string): Promise<string | null> {
   }
 }
 
-async function checkInteractions(rxcuis: string[]): Promise<{ risky: boolean; details: any }>{
+async function checkInteractions(rxcuis: string[]): Promise<{ risky: boolean; details: string[] }>{
   try {
-    if (!rxcuis.length) return { risky: false, details: null };
+    if (!rxcuis.length) return { risky: false, details: [] };
     const res = await fetch(
       `https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${encodeURIComponent(rxcuis.join("+"))}`
     );
-    if (!res.ok) return { risky: false, details: null };
+    if (!res.ok) return { risky: false, details: [] };
     const data = await res.json();
     const groups = data?.fullInteractionTypeGroup ?? [];
     let risky = false;
@@ -40,23 +49,36 @@ async function checkInteractions(rxcuis: string[]): Promise<{ risky: boolean; de
         for (const p of t.interactionPair ?? []) {
           const sev = (p.severity || '').toLowerCase();
           const desc = p.description || '';
-          if (sev === 'high' || desc.toLowerCase().includes('contraindicated')) {
-            risky = true;
-          }
+          if (sev === 'high' || desc.toLowerCase().includes('contraindicated')) risky = true;
           findings.push(`${sev || 'unknown'}: ${desc}`);
         }
       }
     }
     return { risky, details: findings };
-  } catch (e) {
-    return { risky: false, details: null };
+  } catch {
+    return { risky: false, details: [] };
   }
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+// Math utils
+function entropy(dist: Record<string, number>): number {
+  let h = 0;
+  for (const k in dist) {
+    const p = dist[k];
+    if (p > 0) h += -p * Math.log2(p);
   }
+  return h;
+}
+
+function normalize(scores: Record<string, number>): Record<string, number> {
+  const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
+  const out: Record<string, number> = {};
+  for (const k in scores) out[k] = scores[k] / total;
+  return out;
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: req.headers.get('Authorization') || '' } },
@@ -67,180 +89,250 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Missing OPENAI_API_KEY' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { symptomText, selectedSymptoms = [], clarifyingAnswers = null } = await req.json();
+    const body = await req.json();
+    const {
+      symptomText = '',
+      selectedSymptoms = [],
+      answers = [], // [{ id: string, value: 'yes'|'no'|'mild'|'severe' }]
+      options = { threshold: 0.75, max_questions: 6 },
+      visitId = null,
+      pregnancy_status = null as null | boolean,
+    } = body || {};
+
+    const threshold = typeof options?.threshold === 'number' ? options.threshold : 0.75;
+    const maxQuestions = typeof options?.max_questions === 'number' ? options.max_questions : 6;
 
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!userId) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+    // Persist pregnancy status if provided explicitly
+    if (typeof pregnancy_status === 'boolean') {
+      await supabase.from('patients').update({ pregnancy_status }).eq('user_id', userId);
     }
 
-    // Create visit row (in_progress)
-    const { data: visit, error: visitErr } = await supabase
-      .from('patient_visits')
-      .insert({
-        patient_id: userId,
-        symptom_text: symptomText,
-        selected_symptoms: selectedSymptoms,
-        clarifying_qna: clarifyingAnswers ? [{ q: 'user_response', a: clarifyingAnswers }] : null,
-        status: 'in_progress',
-      })
-      .select()
-      .maybeSingle();
+    // Load all active protocols (scope diagnoses to those with approved medications)
+    const { data: protocols } = await supabase
+      .from('approved_medications')
+      .select('id, diagnosis_name, icd10_code, protocol, active')
+      .eq('active', true);
 
-    if (visitErr || !visit) throw visitErr || new Error('Failed to create visit');
+    const DISEASES: Array<{ name: string; icd10: string }> = (protocols || [])
+      .map((p: any) => ({ name: p.diagnosis_name, icd10: p.icd10_code }))
+      .filter((d) => d.name && d.icd10);
 
-    // Fetch patient context for safety checks
-    const { data: patient } = await supabase
-      .from('patients')
-      .select('date_of_birth, allergies, current_medications, gender')
-      .eq('user_id', userId)
-      .maybeSingle();
+    // Build messages for GPT to extract conditional probabilities and ICD mapping
+    const evidence = {
+      symptomText,
+      selectedSymptoms,
+      answers,
+      questionBank: QUESTION_BANK,
+      diseases: DISEASES.slice(0, 12), // cap for token safety
+    };
 
-    // 1) Generate differential diagnoses with ICD-10 via OpenAI
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    const gptReq = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a medical assistant. Return strictly valid JSON.' },
-          { role: 'user', content: `Given the symptoms: ${symptomText}. Selected symptoms: ${JSON.stringify(selectedSymptoms)}. Provide up to 3 differential diagnoses with fields: name, icd10, confidence (0-1), rationale, red_flags (array).` }
-        ],
+        model: 'gpt-4o',
         temperature: 0.2,
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: 'You are a medical Bayesian assistant. Return strictly valid JSON with priors and P(answer|disease) for the question bank. Keep probabilities between 0.01 and 0.99.' },
+          { role: 'user', content: `Evidence: ${JSON.stringify(evidence)}\nReturn JSON with keys: priors (Record<disease, number>), cond_probs (Record<questionId, Record<disease, Record<answer,string>>>>), icd10_map (Record<disease, string>), differential (Array<{name, confidence}>)` }
+        ]
       })
     });
 
-    if (!openaiRes.ok) {
-      throw new Error(`OpenAI error: ${await openaiRes.text()}`);
+    if (!gptReq.ok) throw new Error(`OpenAI error: ${await gptReq.text()}`);
+    const gptJson = await gptReq.json();
+    let gpt;
+    try { gpt = JSON.parse(gptJson.choices[0].message.content); } catch { gpt = {}; }
+    const priors: Record<string, number> = gpt.priors || Object.fromEntries(DISEASES.map((d) => [d.name, 1 / Math.max(1, DISEASES.length)]));
+    const cond_probs: Record<string, Record<string, Record<string, number>>> = gpt.cond_probs || {};
+    const icd10_map: Record<string, string> = gpt.icd10_map || Object.fromEntries(DISEASES.map((d) => [d.name, d.icd10]));
+
+    // Compute posteriors via naive Bayes
+    let posterior: Record<string, number> = { ...priors };
+    for (const disease of Object.keys(posterior)) {
+      let score = posterior[disease] || (1 / Math.max(1, DISEASES.length));
+      for (const a of answers) {
+        const q = a.id;
+        const v = (a.value || '').toLowerCase();
+        const cp = cond_probs?.[q]?.[disease]?.[v];
+        const p = typeof cp === 'number' ? cp : 0.5;
+        score *= Math.max(0.01, Math.min(0.99, p));
+      }
+      posterior[disease] = score;
     }
-    const openaiJson = await openaiRes.json();
-    let ai;
-    try {
-      ai = JSON.parse(openaiJson.choices[0].message.content);
-    } catch {
-      ai = { diagnoses: [] };
+    posterior = normalize(posterior);
+
+    const ranked = Object.entries(posterior)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, confidence]) => ({ name, confidence, icd10: icd10_map[name] }))
+      .slice(0, 5);
+
+    // Decide if finished or select next best question via info gain
+    const askedIds = new Set<string>(answers.map((a: any) => a.id));
+    const remaining = QUESTION_BANK.filter((q) => !askedIds.has(q.id));
+    const maxPosterior = ranked[0]?.confidence || 0;
+
+    let finished = false;
+    let next_question: { id: string; text: string; options: string[] } | null = null;
+
+    if (maxPosterior >= threshold || answers.length >= maxQuestions || remaining.length === 0) {
+      finished = true;
+    } else {
+      // Expected entropy for each remaining question
+      const baseH = entropy(Object.fromEntries(Object.entries(posterior)));
+      let bestGain = -Infinity;
+      for (const q of remaining) {
+        let expectedH = 0;
+        for (const ans of q.options) {
+          // P(ans) = sum_d P(d) * P(ans|d)
+          let pAns = 0;
+          const posteriorGivenAns: Record<string, number> = {};
+          for (const d of Object.keys(posterior)) {
+            const pda = (cond_probs?.[q.id]?.[d]?.[ans] ?? 0.5);
+            pAns += posterior[d] * pda;
+          }
+          if (pAns <= 0) continue;
+          // P(d|ans) ∝ P(d) * P(ans|d)
+          for (const d of Object.keys(posterior)) {
+            const pda = (cond_probs?.[q.id]?.[d]?.[ans] ?? 0.5);
+            posteriorGivenAns[d] = posterior[d] * pda;
+          }
+          const normPost = normalize(posteriorGivenAns);
+          expectedH += pAns * entropy(normPost);
+        }
+        const gain = baseH - expectedH;
+        if (gain > bestGain) {
+          bestGain = gain;
+          next_question = q;
+        }
+      }
     }
-    const diagnoses = ai.diagnoses || [];
-    const icdCodes = diagnoses.map((d: any) => d.icd10).filter(Boolean);
 
-    // 2) Load standing order protocols
-    const { data: protocolsByCode } = await supabase
-      .from('approved_medications')
-      .select('id, diagnosis_name, icd10_code, protocol, active')
-      .eq('active', true)
-      .in('icd10_code', icdCodes.length ? icdCodes : ['__none__']);
-
-    let protocols = protocolsByCode || [];
-
-    if ((!protocols || protocols.length === 0) && diagnoses.length) {
-      const names = diagnoses.map((d: any) => d.name);
-      const { data: byName } = await supabase
-        .from('approved_medications')
-        .select('id, diagnosis_name, icd10_code, protocol, active')
-        .eq('active', true)
-        .in('diagnosis_name', names);
-      protocols = byName || [];
+    // Get or create visit
+    let visitRow: any = null;
+    if (visitId) {
+      const { data: v } = await supabase.from('patient_visits').select('*').eq('id', visitId).maybeSingle();
+      visitRow = v;
+    }
+    if (!visitRow) {
+      const { data: v } = await supabase
+        .from('patient_visits')
+        .insert({
+          patient_id: userId,
+          symptom_text: symptomText,
+          selected_symptoms: selectedSymptoms,
+          clarifying_qna: answers,
+          status: finished ? 'completed' : 'in_progress',
+        })
+        .select()
+        .maybeSingle();
+      visitRow = v;
+    } else {
+      await supabase
+        .from('patient_visits')
+        .update({ clarifying_qna: answers, status: finished ? 'completed' : 'in_progress' })
+        .eq('id', visitRow.id);
     }
 
-    // 3) Safety checks (allergies, interactions)
+    // If not finished, return next question
+    if (!finished && next_question) {
+      return new Response(
+        JSON.stringify({
+          visitId: visitRow?.id,
+          finished: false,
+          nextQuestion: { id: next_question.id, text: next_question.text, options: next_question.options },
+          differential: ranked,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Finished: perform safety checks and generate prescription if possible
+    const { data: patient } = await supabase
+      .from('patients')
+      .select('date_of_birth, allergies, current_medications, gender, pregnancy_status')
+      .eq('user_id', userId)
+      .maybeSingle();
+
     const safetyFlags: string[] = [];
-    let chosenDiagnosis: any = null;
-    let chosenProtocol: any = null;
+    let prescriptionRecord: any = null;
 
-    for (const d of diagnoses) {
-      const match = protocols.find((p: any) => p.icd10_code === d.icd10 || (p.diagnosis_name || '').toLowerCase() === (d.name || '').toLowerCase());
-      if (!match) continue;
+    for (const ddx of ranked) {
+      const proto = (protocols || []).find((p: any) => p.icd10_code === ddx.icd10 || (p.diagnosis_name || '').toLowerCase() === ddx.name.toLowerCase());
+      if (!proto) continue;
+      const meds = Array.isArray(proto.protocol?.medications) ? proto.protocol.medications : [];
 
-      const meds = Array.isArray(match.protocol?.medications) ? match.protocol.medications : [];
-
-      // Allergy check (basic string match)
+      // Allergy check
       const allergies = (patient?.allergies || '').toLowerCase();
       const allergyHit = meds.some((m: any) => allergies && allergies.includes((m.name || '').toLowerCase()));
-      if (allergyHit) {
-        safetyFlags.push(`Allergy conflict with protocol for ${d.name}.`);
-        continue;
-      }
+      if (allergyHit) { safetyFlags.push(`Allergy conflict for ${ddx.name}`); continue; }
 
-      // RxNorm interactions between protocol meds and patient's current meds
+      // Pregnancy simple check if any med carries pregnancy contraindication field
+      const isPregnant = !!patient?.pregnancy_status;
+      const pregContra = meds.some((m: any) => {
+        const contras = (m.contraindications || []) as string[];
+        return isPregnant && contras.map((s) => (s || '').toLowerCase()).some((s) => s.includes('pregnan'));
+      });
+      if (pregContra) { safetyFlags.push(`Medication contraindicated in pregnancy for ${ddx.name}`); continue; }
+
+      // RxNorm interactions with current meds
       const currentMeds: string[] = (patient?.current_medications || '').split(',').map((s) => s.trim()).filter(Boolean);
       const protocolCUIs: string[] = [];
       for (const med of meds) {
         const cui = await getRxCuiByName(med.name || '');
         if (cui) protocolCUIs.push(cui);
       }
-
       const patientCUIs: string[] = [];
       for (const cm of currentMeds) {
         const cui = await getRxCuiByName(cm);
         if (cui) patientCUIs.push(cui);
       }
-
-      let risky = false;
       if (protocolCUIs.length && patientCUIs.length) {
-        const { risky: r, details } = await checkInteractions([...protocolCUIs, ...patientCUIs]);
-        risky = r;
-        if (risky) safetyFlags.push(`Potential drug interaction detected: ${JSON.stringify(details).slice(0, 300)}...`);
+        const { risky, details } = await checkInteractions([...protocolCUIs, ...patientCUIs]);
+        if (risky) { safetyFlags.push(`Potential drug interaction: ${details.slice(0,3).join('; ')}`); continue; }
       }
 
-      if (!risky) {
-        chosenDiagnosis = d;
-        chosenProtocol = match;
-        break;
-      }
-    }
-
-    // 4) Persist results
-    let finalStatus = 'diagnosis_complete';
-    let prescriptionRecord: any = null;
-
-    if (chosenDiagnosis && chosenProtocol) {
-      // Create patient_prescriptions
-      const medications = chosenProtocol.protocol?.medications || [];
+      // Passed safety checks: create prescription
       const { data: rx, error: rxErr } = await supabase
         .from('patient_prescriptions')
         .insert({
-          visit_id: visit.id,
+          visit_id: visitRow?.id,
           patient_id: userId,
-          medications,
-          diagnosis: chosenDiagnosis,
-          status: safetyFlags.length ? 'needs_review' : 'generated',
+          medications: meds,
+          diagnosis: { name: ddx.name, icd10: ddx.icd10, confidence: ddx.confidence },
           safety_flags: safetyFlags.length ? safetyFlags : null,
+          status: 'generated',
         })
         .select()
         .maybeSingle();
-
       if (rxErr) throw rxErr;
       prescriptionRecord = rx;
-      finalStatus = (rx?.status === 'generated') ? 'prescription_generated' : 'review_required';
-    } else {
-      finalStatus = 'review_required';
-      if (!protocols?.length) safetyFlags.push('No standing order protocol found for the top diagnoses.');
+      break;
     }
 
-    const { data: updatedVisit } = await supabase
+    await supabase
       .from('patient_visits')
       .update({
-        ai_differential: diagnoses,
+        ai_differential: ranked,
         safety_flags: safetyFlags.length ? safetyFlags : null,
-        status: finalStatus === 'review_required' ? 'review_required' : 'completed',
+        status: 'completed',
         prescription_id: prescriptionRecord?.id || null,
       })
-      .eq('id', visit.id)
-      .select()
-      .maybeSingle();
+      .eq('id', visitRow?.id || '');
 
     return new Response(
       JSON.stringify({
-        visitId: visit.id,
-        status: finalStatus,
-        diagnoses,
+        visitId: visitRow?.id,
+        finished: true,
+        diagnoses: ranked,
         safetyFlags,
         prescription: prescriptionRecord,
+        status: prescriptionRecord ? 'prescription_generated' : 'no_safe_medication',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
