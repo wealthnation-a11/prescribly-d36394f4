@@ -78,18 +78,63 @@ function normalize(scores: Record<string, number>): Record<string, number> {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { 
+      status: 200, 
+      headers: corsHeaders 
+    });
+  }
+
+  // Validate environment variables
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return new Response(JSON.stringify({ 
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Missing Supabase configuration' })
+    }), { 
+      status: 500, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    });
+  }
+
+  if (!OPENAI_API_KEY) {
+    return new Response(JSON.stringify({ 
+      statusCode: 500,
+      body: JSON.stringify({ error: 'OpenAI API service unavailable' })
+    }), { 
+      status: 500, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    });
+  }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: req.headers.get('Authorization') || '' } },
   });
 
   try {
-    if (!OPENAI_API_KEY) {
-      return new Response(JSON.stringify({ error: 'Missing OPENAI_API_KEY' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    // Validate request method
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({
+        statusCode: 405,
+        body: JSON.stringify({ error: 'Method not allowed' })
+      }), {
+        status: 405,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
-    const body = await req.json();
+    // Validate request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      return new Response(JSON.stringify({
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid JSON in request body' })
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
     const {
       symptomText = '',
       selectedSymptoms = [],
@@ -102,9 +147,17 @@ serve(async (req) => {
     const threshold = typeof options?.threshold === 'number' ? options.threshold : 0.75;
     const maxQuestions = typeof options?.max_questions === 'number' ? options.max_questions : 6;
 
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
-    if (!userId) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user?.id) {
+      return new Response(JSON.stringify({
+        statusCode: 401,
+        body: JSON.stringify({ error: 'Unauthorized - Please log in' })
+      }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
+    }
+    const userId = userData.user.id;
 
     // Persist pregnancy status if provided explicitly
     if (typeof pregnancy_status === 'boolean') {
@@ -258,12 +311,21 @@ serve(async (req) => {
     if (!finished && next_question) {
       return new Response(
         JSON.stringify({
-          visitId: visitRow?.id,
-          finished: false,
-          nextQuestion: { id: next_question.id, text: next_question.text, options: next_question.options },
-          differential: ranked,
+          statusCode: 200,
+          body: JSON.stringify({
+            message: "Next question ready",
+            data: {
+              visitId: visitRow?.id,
+              finished: false,
+              nextQuestion: { id: next_question.id, text: next_question.text, options: next_question.options },
+              differential: ranked,
+            }
+          })
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
@@ -342,19 +404,45 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        visitId: visitRow?.id,
-        finished: true,
-        diagnoses: ranked,
-        safetyFlags,
-        prescription: prescriptionRecord,
-        status: prescriptionRecord ? 'prescription_generated' : 'no_safe_medication',
+        statusCode: 200,
+        body: JSON.stringify({
+          message: "Assessment completed successfully",
+          data: {
+            visitId: visitRow?.id,
+            finished: true,
+            diagnoses: ranked,
+            safetyFlags,
+            prescription: prescriptionRecord,
+            status: prescriptionRecord ? 'prescription_generated' : 'no_safe_medication',
+          }
+        })
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     );
   } catch (error: any) {
     console.error('ai-diagnosis error', error);
-    return new Response(JSON.stringify({ error: error.message || 'Unknown error' }), {
-      status: 500,
+    
+    let statusCode = 500;
+    let errorMessage = error.message || 'Unknown error';
+    
+    // Determine appropriate status code based on error type
+    if (errorMessage.includes('insufficient_quota')) {
+      statusCode = 503; // Service Unavailable
+      errorMessage = 'AI service temporarily unavailable due to quota limits. Please try again later.';
+    } else if (errorMessage.includes('Unauthorized')) {
+      statusCode = 401;
+    } else if (errorMessage.includes('Invalid') || errorMessage.includes('required')) {
+      statusCode = 400;
+    }
+    
+    return new Response(JSON.stringify({
+      statusCode: statusCode,
+      body: JSON.stringify({ error: errorMessage })
+    }), {
+      status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
