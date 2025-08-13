@@ -56,6 +56,42 @@ export type Database = {
         }
         Relationships: []
       }
+      approved_medications: {
+        Row: {
+          active: boolean
+          created_at: string
+          diagnosis_name: string
+          icd10_code: string
+          id: string
+          last_reviewed_by: string | null
+          notes: string | null
+          protocol: Json
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          diagnosis_name: string
+          icd10_code: string
+          id?: string
+          last_reviewed_by?: string | null
+          notes?: string | null
+          protocol: Json
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          diagnosis_name?: string
+          icd10_code?: string
+          id?: string
+          last_reviewed_by?: string | null
+          notes?: string | null
+          protocol?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       call_logs: {
         Row: {
           admin_fee: number | null
@@ -266,6 +302,54 @@ export type Database = {
           sender_id?: string | null
           sender_type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      patient_visits: {
+        Row: {
+          ai_differential: Json | null
+          clarifying_qna: Json | null
+          created_at: string
+          final_diagnosis: string | null
+          icd10_code: string | null
+          id: string
+          patient_id: string
+          prescription_id: string | null
+          safety_flags: Json | null
+          selected_symptoms: string[] | null
+          status: string
+          symptom_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_differential?: Json | null
+          clarifying_qna?: Json | null
+          created_at?: string
+          final_diagnosis?: string | null
+          icd10_code?: string | null
+          id?: string
+          patient_id: string
+          prescription_id?: string | null
+          safety_flags?: Json | null
+          selected_symptoms?: string[] | null
+          status?: string
+          symptom_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_differential?: Json | null
+          clarifying_qna?: Json | null
+          created_at?: string
+          final_diagnosis?: string | null
+          icd10_code?: string | null
+          id?: string
+          patient_id?: string
+          prescription_id?: string | null
+          safety_flags?: Json | null
+          selected_symptoms?: string[] | null
+          status?: string
+          symptom_text?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
