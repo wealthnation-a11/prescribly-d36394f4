@@ -144,7 +144,22 @@ serve(async (req) => {
       })
     });
 
-    if (!gptReq.ok) throw new Error(`OpenAI error: ${await gptReq.text()}`);
+    if (!gptReq.ok) {
+      const errorText = await gptReq.text();
+      console.error('OpenAI API error:', errorText);
+      
+      // Parse error details for better handling
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error?.code === 'insufficient_quota') {
+          throw new Error('insufficient_quota: OpenAI API quota exceeded. Please try again later.');
+        }
+      } catch (parseError) {
+        // If parsing fails, use the original error
+      }
+      
+      throw new Error(`OpenAI error: ${errorText}`);
+    }
     const gptJson = await gptReq.json();
     let gpt;
     try { gpt = JSON.parse(gptJson.choices[0].message.content); } catch { gpt = {}; }

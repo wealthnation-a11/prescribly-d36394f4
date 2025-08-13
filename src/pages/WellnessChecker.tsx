@@ -110,9 +110,28 @@ const WellnessChecker = () => {
         }
       }
     } catch (e: any) {
+      let errorTitle = 'Assessment Error';
+      let errorDescription = 'Unable to process assessment at the moment';
+      
+      // Check for specific error types
+      if (e.message) {
+        if (e.message.includes('insufficient_quota') || e.message.includes('quota')) {
+          errorTitle = 'Service Temporarily Unavailable';
+          errorDescription = 'Our AI service is currently at capacity. Please try again in a few minutes or contact support if the issue persists.';
+        } else if (e.message.includes('OpenAI error')) {
+          errorTitle = 'AI Service Error';
+          errorDescription = 'There was an issue with our AI analysis service. Please try again shortly.';
+        } else if (e.message.includes('Unauthorized')) {
+          errorTitle = 'Authentication Error';
+          errorDescription = 'Please log in again to continue your assessment.';
+        } else {
+          errorDescription = e.message;
+        }
+      }
+      
       toast({ 
-        title: 'Assessment Error', 
-        description: e.message || 'Unable to process assessment at the moment', 
+        title: errorTitle, 
+        description: errorDescription, 
         variant: 'destructive' 
       });
     } finally {
