@@ -28,8 +28,8 @@ import DoctorDashboard from "./pages/DoctorDashboard";
 import SymptomForm from "./pages/SymptomForm";
 
 import WellnessChecker from "./pages/WellnessChecker";
-import MyPrescriptions from "./pages/MyPrescriptions";
-import PrescriptionPrint from "./pages/PrescriptionPrint";
+
+
 import UserProfile from "./pages/UserProfile";
 import BookAppointment from "./pages/BookAppointment";
 import Chat from "./pages/Chat";
@@ -97,16 +97,6 @@ const App = () => (
             <Route path="/wellness-checker" element={
               <ProtectedRoute requirePatient={true}>
                 <WellnessChecker />
-              </ProtectedRoute>
-            } />
-            <Route path="/my-prescriptions" element={
-              <ProtectedRoute requirePatient={true}>
-                <MyPrescriptions />
-              </ProtectedRoute>
-            } />
-            <Route path="/prescriptions/print/:id" element={
-              <ProtectedRoute requirePatient={true}>
-                <PrescriptionPrint />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

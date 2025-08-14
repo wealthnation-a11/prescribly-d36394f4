@@ -59,14 +59,6 @@ export const UserDashboard = () => {
       color: "text-primary"
     },
     {
-      title: "My Prescriptions",
-      description: "View and manage your current and past prescriptions.",
-      icon: FileText,
-      href: "/my-prescriptions",
-      variant: "outline" as const,
-      color: "text-blue-600"
-    },
-    {
       title: "Chat with Doctors",
       description: "Connect with healthcare professionals instantly.",
       icon: MessageCircle,
@@ -251,7 +243,7 @@ export const UserDashboard = () => {
     if (loading) {
       return [
         { title: "Total Consultations", loading: true, icon: Activity, color: "text-primary", href: "/book-appointment" },
-        { title: "Active Prescriptions", loading: true, icon: FileText, color: "text-blue-600", href: "/my-prescriptions" },
+        { title: "Active Prescriptions", loading: true, icon: FileText, color: "text-blue-600", href: "/wellness-checker" },
         { title: "Next Appointment", loading: true, icon: Clock, color: "text-green-600", href: "/book-appointment" }
       ];
     }
@@ -274,7 +266,7 @@ export const UserDashboard = () => {
         icon: FileText,
         trend: stats.activePrescriptions > 0 ? "Available prescriptions" : "No prescriptions found",
         color: "text-blue-600",
-        href: "/my-prescriptions",
+        href: "/wellness-checker",
         empty: stats.activePrescriptions === 0
       },
       {
