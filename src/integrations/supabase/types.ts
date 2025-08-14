@@ -750,6 +750,42 @@ export type Database = {
         }
         Relationships: []
       }
+      wellness_check_results: {
+        Row: {
+          created_at: string
+          diagnosis: string | null
+          id: string
+          instructions: string | null
+          patient_info: Json | null
+          prescription: Json | null
+          symptoms: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          instructions?: string | null
+          patient_info?: Json | null
+          prescription?: Json | null
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          instructions?: string | null
+          patient_info?: Json | null
+          prescription?: Json | null
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

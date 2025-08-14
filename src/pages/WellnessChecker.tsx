@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ const WellnessChecker = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   usePageSEO({
     title: "Wellness Checker - AI Health Assessment | Prescribly",
@@ -98,21 +100,37 @@ const WellnessChecker = () => {
         setSafetyNotes(res.safetyFlags || []);
         setPrescriptionId(res.prescription?.id || null);
         
-        // Navigate to prescription page with results
-        const prescriptionData = {
-          visitId: res.visitId,
-          diagnoses: res.diagnoses || [],
-          prescription: res.prescription,
-          safetyFlags: res.safetyFlags || [],
-          status: res.status,
-          symptoms: {
-            symptomText,
-            selectedSymptoms,
-            answers: nextAnswers,
-          }
-        };
-        
-        navigate('/prescription', { state: { prescriptionData } });
+        // Save to Supabase wellness_check_results table
+        const { error: insertError } = await supabase
+          .from('wellness_check_results')
+          .insert({
+            user_id: user?.id,
+            patient_info: {
+              name: user?.user_metadata?.full_name || 'Anonymous',
+              age: null,
+              gender: null
+            },
+            symptoms: selectedSymptoms || [],
+            diagnosis: res.diagnoses?.[0]?.name || 'No diagnosis available',
+            prescription: res.prescription ? {
+              medications: res.prescription.medications || []
+            } : {},
+            instructions: res.safetyFlags?.length > 0 
+              ? `Safety considerations: ${res.safetyFlags.join(', ')}`
+              : 'Follow general health guidelines and consult with a healthcare provider.'
+          });
+
+        if (insertError) {
+          console.error('Error saving to wellness_check_results:', insertError);
+          toast({
+            title: "Warning", 
+            description: "Results processed but not saved. You can still view them.",
+            variant: "destructive",
+          });
+        }
+
+        // Navigate to prescription page
+        navigate('/prescription');
         
         if (res.status === 'no_safe_medication') {
           toast({ 
