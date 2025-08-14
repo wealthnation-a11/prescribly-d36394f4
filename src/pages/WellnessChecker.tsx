@@ -129,8 +129,8 @@ const WellnessChecker = () => {
           });
         }
 
-        // Navigate to prescription page
-        navigate('/prescription');
+        // Navigate back to dashboard after saving results
+        navigate('/user-dashboard');
         
         if (res.status === 'no_safe_medication') {
           toast({ 
