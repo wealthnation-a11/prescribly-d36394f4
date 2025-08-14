@@ -1,25 +1,38 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, ArrowLeft, FileText, User, Pill, Calendar, Loader2 } from 'lucide-react';
+import { Download, ArrowLeft, FileText, User, Pill, Calendar, AlertTriangle } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import jsPDF from 'jspdf';
 
-interface WellnessCheckResult {
-  id: string;
-  user_id: string;
-  patient_info: any;
-  symptoms: string[];
-  diagnosis: string;
-  prescription: any;
-  instructions: string;
-  created_at: string;
+interface PrescriptionData {
+  id?: string;
+  patient_info?: {
+    name?: string;
+    age?: number;
+    gender?: string;
+    dateOfBirth?: string;
+  };
+  symptoms?: string[];
+  diagnosis?: string;
+  prescription?: {
+    medications?: Array<{
+      name: string;
+      dosage: string;
+      frequency: string;
+      duration: string;
+      instructions?: string;
+    }>;
+  };
+  instructions?: string;
+  created_at?: string;
+  safety_flags?: string[];
 }
 
 export default function Prescription() {
@@ -28,19 +41,27 @@ export default function Prescription() {
     description: "View and download your prescription results from the wellness assessment",
   });
 
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [prescriptionData, setPrescriptionData] = useState<WellnessCheckResult | null>(null);
+  const [prescriptionData, setPrescriptionData] = useState<PrescriptionData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchLatestPrescription();
-  }, [user]);
+    // First check if data was passed via navigation state
+    const stateData = location.state?.prescriptionData;
+    if (stateData) {
+      setPrescriptionData(stateData);
+      setLoading(false);
+      return;
+    }
 
-  const fetchLatestPrescription = async () => {
-    if (!user) {
-      setError("User not authenticated");
+    // If no state data, try to fetch the latest wellness check result
+    fetchLatestResult();
+  }, [location.state, user]);
+
+  const fetchLatestResult = async () => {
+    if (!user?.id) {
       setLoading(false);
       return;
     }
@@ -55,24 +76,30 @@ export default function Prescription() {
 
       if (error) {
         console.error('Error fetching prescription:', error);
-        setError("Failed to fetch prescription data");
+        setLoading(false);
         return;
       }
 
       if (data && data.length > 0) {
-        setPrescriptionData(data[0]);
-      } else {
-        setError("No prescription data available. Please complete the wellness check first.");
+        const result = data[0];
+        setPrescriptionData({
+          id: result.id,
+          patient_info: result.patient_info as any,
+          symptoms: result.symptoms,
+          diagnosis: result.diagnosis,
+          prescription: result.prescription as any,
+          instructions: result.instructions,
+          created_at: result.created_at
+        });
       }
     } catch (err) {
       console.error('Error:', err);
-      setError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
   };
 
-  const generatePDF = () => {
+  const downloadAsPDF = () => {
     if (!prescriptionData) return;
 
     try {
@@ -181,7 +208,7 @@ export default function Prescription() {
         });
       }
 
-      // Additional Instructions
+      // Instructions
       if (prescriptionData.instructions) {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -233,13 +260,13 @@ export default function Prescription() {
           <Card className="text-center">
             <CardHeader>
               <CardTitle className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <FileText className="h-6 w-6" />
                 Loading Prescription Data
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Please wait while we fetch your prescription results...
+                Please wait while we load your prescription results...
               </p>
             </CardContent>
           </Card>
@@ -248,7 +275,7 @@ export default function Prescription() {
     );
   }
 
-  if (error || !prescriptionData) {
+  if (!prescriptionData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 p-4">
         <div className="max-w-2xl mx-auto pt-20">
@@ -261,7 +288,7 @@ export default function Prescription() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                {error || "Please complete the wellness check first."}
+                Please complete the wellness check first.
               </p>
               <Button 
                 onClick={() => navigate('/wellness-checker')}
@@ -290,7 +317,7 @@ export default function Prescription() {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <Button onClick={generatePDF} className="gap-2">
+          <Button onClick={downloadAsPDF} className="gap-2">
             <Download className="h-4 w-4" />
             Download Prescription
           </Button>
@@ -417,26 +444,50 @@ export default function Prescription() {
             </Card>
           )}
 
+          {/* Safety Flags */}
+          {prescriptionData.safety_flags && prescriptionData.safety_flags.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-600">
+                  <AlertTriangle className="h-5 w-5" />
+                  Safety Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {prescriptionData.safety_flags.map((flag, index) => (
+                    <div key={index} className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-amber-800">{flag}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Assessment Date */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Assessment Date
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                {new Date(prescriptionData.created_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            </CardContent>
-          </Card>
+          {prescriptionData.created_at && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Assessment Date
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  {new Date(prescriptionData.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Disclaimer */}
           <Card className="border-dashed">
@@ -457,4 +508,3 @@ export default function Prescription() {
     </div>
   );
 }
-

@@ -129,8 +129,28 @@ const WellnessChecker = () => {
           });
         }
 
-        // Navigate back to dashboard after saving results
-        navigate('/user-dashboard');
+        // Navigate to prescription page with data
+        navigate('/prescription', {
+          state: {
+            prescriptionData: {
+              patient_info: {
+                name: user?.user_metadata?.full_name || 'Anonymous',
+                age: null,
+                gender: null
+              },
+              symptoms: selectedSymptoms || [],
+              diagnosis: res.diagnoses?.[0]?.name || 'No diagnosis available',
+              prescription: res.prescription ? {
+                medications: res.prescription.medications || []
+              } : {},
+              instructions: res.safetyFlags?.length > 0 
+                ? `Safety considerations: ${res.safetyFlags.join(', ')}`
+                : 'Follow general health guidelines and consult with a healthcare provider.',
+              safety_flags: res.safetyFlags || [],
+              created_at: new Date().toISOString()
+            }
+          }
+        });
         
         if (res.status === 'no_safe_medication') {
           toast({ 

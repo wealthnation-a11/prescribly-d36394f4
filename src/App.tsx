@@ -26,6 +26,7 @@ import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import SymptomForm from "./pages/SymptomForm";
+import Prescription from "./pages/Prescription";
 
 import WellnessChecker from "./pages/WellnessChecker";
 
@@ -117,6 +118,11 @@ const App = () => (
             <Route path="/book-appointment" element={
               <ProtectedRoute requirePatient={true}>
                 <BookAppointment />
+              </ProtectedRoute>
+            } />
+            <Route path="/prescription" element={
+              <ProtectedRoute requirePatient={true}>
+                <Prescription />
               </ProtectedRoute>
             } />
 
