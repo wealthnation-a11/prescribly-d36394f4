@@ -266,7 +266,7 @@ export const UserDashboard = () => {
         icon: FileText,
         trend: stats.activePrescriptions > 0 ? "Available prescriptions" : "No prescriptions found",
         color: "text-blue-600",
-        href: "/wellness-checker",
+        href: "/prescription",
         empty: stats.activePrescriptions === 0
       },
       {
