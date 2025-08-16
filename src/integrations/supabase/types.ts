@@ -898,6 +898,12 @@ export type Database = {
       }
     }
     Functions: {
+      get_symptom_suggestions: {
+        Args: { search_term?: string }
+        Returns: {
+          symptom: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
