@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_rate_limits: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          request_count: number | null
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          request_count?: number | null
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          request_count?: number | null
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           consultation_fee: number | null
@@ -158,6 +185,42 @@ export type Database = {
           message?: string | null
           recipient_id?: string
           sender_id?: string
+        }
+        Relationships: []
+      }
+      conditions: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          drug_recommendations: Json | null
+          id: number
+          name: string | null
+          short_description: string | null
+          symptom_counts: Json | null
+          symptoms: Json | null
+          total_case_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          drug_recommendations?: Json | null
+          id: number
+          name?: string | null
+          short_description?: string | null
+          symptom_counts?: Json | null
+          symptoms?: Json | null
+          total_case_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          drug_recommendations?: Json | null
+          id?: number
+          name?: string | null
+          short_description?: string | null
+          symptom_counts?: Json | null
+          symptoms?: Json | null
+          total_case_count?: number | null
         }
         Relationships: []
       }
@@ -786,9 +849,53 @@ export type Database = {
         }
         Relationships: []
       }
+      wellness_checks: {
+        Row: {
+          age: number | null
+          calculated_probabilities: Json
+          consent_timestamp: string
+          created_at: string
+          duration: string | null
+          entered_symptoms: string[]
+          gender: string | null
+          id: string
+          suggested_drugs: Json | null
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          calculated_probabilities: Json
+          consent_timestamp?: string
+          created_at?: string
+          duration?: string | null
+          entered_symptoms: string[]
+          gender?: string | null
+          id?: string
+          suggested_drugs?: Json | null
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          calculated_probabilities?: Json
+          consent_timestamp?: string
+          created_at?: string
+          duration?: string | null
+          entered_symptoms?: string[]
+          gender?: string | null
+          id?: string
+          suggested_drugs?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      symptom_vocab: {
+        Row: {
+          symptom: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
