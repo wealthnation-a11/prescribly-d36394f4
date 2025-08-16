@@ -21,6 +21,7 @@ interface Condition {
   short_description: string;
   symptoms: string[];
   drug_recommendations: any;
+  drug_usage?: any;
   total_case_count?: number;
 }
 
@@ -29,6 +30,7 @@ interface DiagnosisResult {
   probability: number;
   description: string;
   drug_recommendations: any;
+  drug_usage?: any;
 }
 
 serve(async (req) => {
