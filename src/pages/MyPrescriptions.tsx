@@ -293,30 +293,32 @@ const MyPrescriptions = () => {
               
               return (
                 <Card key={prescription.id} className="border-l-4 border-l-primary/50 hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-xl font-bold text-primary">
-                          {topCondition?.condition || 'Wellness Check'}
-                        </CardTitle>
-                        <CardDescription className="flex items-center gap-2 mt-2">
-                          <Calendar className="h-4 w-4" />
-                          {new Date(prescription.created_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </CardDescription>
-                      </div>
-                  <Badge variant="secondary" className="text-sm">
-                    {(Array.isArray(prescription.suggested_drugs) ? prescription.suggested_drugs : [])?.length || 0} medications
-                  </Badge>
+                  <CardContent className="p-8">
+                    {/* Date Badge */}
+                    <div className="flex justify-between items-start mb-6">
+                      <Badge variant="secondary" className="text-sm px-3 py-1">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {new Date(prescription.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </Badge>
+                      <FileText className="h-6 w-6 text-primary" />
                     </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-6">
+
+                    {/* Diagnosis Header */}
+                    <div className="mb-8">
+                      <h2 className="text-2xl font-bold text-gray-700 mb-4">
+                        Diagnosis:
+                      </h2>
+                      <h1 className="text-4xl font-bold text-black">
+                        {topCondition?.condition || 'Wellness Check'}
+                      </h1>
+                    </div>
+
                     {/* Patient Info */}
-                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg mb-8">
                       <div>
                         <p className="text-sm text-muted-foreground">Age</p>
                         <p className="font-medium">{prescription.age} years</p>
@@ -331,20 +333,33 @@ const MyPrescriptions = () => {
                       </div>
                     </div>
 
-                    {/* Medications */}
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <Pill className="h-4 w-4 text-primary" />
-                        Prescribed Medications
-                      </h4>
-                      <div className="grid gap-2">
-                        {(Array.isArray(prescription.suggested_drugs) ? prescription.suggested_drugs : [])?.map((drug: any, index: number) => (
-                          <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <p className="font-medium text-blue-900 dark:text-blue-100">
-                              {typeof drug === 'object' && drug?.drug ? drug.drug : (typeof drug === 'string' ? drug : 'Unknown medication')}
-                            </p>
-                          </div>
-                        ))}
+                    {/* Prescription Section */}
+                    <div className="space-y-6 mb-8">
+                      <h3 className="text-2xl font-bold text-gray-700">
+                        Prescription:
+                      </h3>
+                      
+                      {/* Medications */}
+                      <div className="space-y-6">
+                        {(Array.isArray(prescription.suggested_drugs) ? prescription.suggested_drugs : [])?.map((drug: any, index: number) => {
+                          const drugName = typeof drug === 'object' && drug?.drug ? drug.drug : (typeof drug === 'string' ? drug : 'Unknown medication');
+                          return (
+                            <div key={index} className="space-y-3">
+                              {/* Drug Name with Arrow */}
+                              <div className="flex items-center gap-4">
+                                <h4 className="text-2xl font-bold text-black">
+                                  {drugName}
+                                </h4>
+                                <span className="text-2xl text-gray-400">→</span>
+                              </div>
+                              
+                              {/* Usage placeholder - could be enhanced with actual usage data */}
+                              <p className="text-xl text-gray-700 leading-relaxed">
+                                Follow doctor's instructions for proper dosage
+                              </p>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 

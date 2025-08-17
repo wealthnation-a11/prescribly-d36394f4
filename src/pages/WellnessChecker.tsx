@@ -209,49 +209,58 @@ const WellnessChecker = () => {
           <div className="space-y-6 mb-8">
             {results.map((result, index) => (
               <Card key={index} className="border-l-4 border-l-primary/50 animate-fade-in">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl text-primary">Diagnosis: {result.condition}</CardTitle>
+                <CardContent className="p-8">
+                  {/* Diagnosis Header */}
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-2xl font-bold text-gray-700">
+                      Diagnosis:
+                    </h2>
                     <Badge variant="secondary" className="text-lg px-3 py-1 bg-primary/10">
                       {result.probability}% Match
                     </Badge>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Drug Recommendations */}
-                  {result.drug_recommendations && Array.isArray(result.drug_recommendations) && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-lg flex items-center gap-2 text-primary">
-                        <Pill className="h-5 w-5" />
-                        Recommended Medications
-                      </h4>
-                      <div className="grid gap-3">
-                        {result.drug_recommendations.map((drug: any, drugIndex: number) => (
-                          <div key={drugIndex} className="p-4 bg-muted/50 rounded-lg border">
-                            <p className="font-medium text-foreground">• {drug.drug}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  
+                  {/* Condition Name */}
+                  <h1 className="text-4xl font-bold text-black mb-12">
+                    {result.condition}
+                  </h1>
 
-                  {/* Usage Instructions */}
-                  {result.drug_usage && Array.isArray(result.drug_usage) && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-lg flex items-center gap-2 text-primary">
-                        <Activity className="h-5 w-5" />
-                        Usage Instructions
-                      </h4>
-                      <div className="grid gap-3">
-                        {result.drug_usage.map((usage: any, usageIndex: number) => (
-                          <div key={usageIndex} className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <p className="font-medium text-blue-900 dark:text-blue-100">{usage.drug}</p>
-                            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">{usage.usage}</p>
-                          </div>
-                        ))}
+                  {/* Prescription Section */}
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-gray-700 mb-6">
+                      Prescription:
+                    </h3>
+                    
+                    {/* Drug Recommendations */}
+                    {result.drug_recommendations && Array.isArray(result.drug_recommendations) && (
+                      <div className="space-y-6">
+                        {result.drug_recommendations.map((drug: any, drugIndex: number) => {
+                          const drugUsage = result.drug_usage && Array.isArray(result.drug_usage) 
+                            ? result.drug_usage.find((usage: any) => usage.drug === drug.drug)
+                            : null;
+                          
+                          return (
+                            <div key={drugIndex} className="space-y-4">
+                              {/* Drug Name with Arrow */}
+                              <div className="flex items-center gap-4">
+                                <h4 className="text-2xl font-bold text-black">
+                                  {drug.drug}
+                                </h4>
+                                <span className="text-2xl text-gray-400">→</span>
+                              </div>
+                              
+                              {/* Usage Instructions */}
+                              {drugUsage && (
+                                <p className="text-xl text-gray-700 leading-relaxed ml-0">
+                                  {drugUsage.usage}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
