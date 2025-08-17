@@ -95,7 +95,7 @@ serve(async (req) => {
     // Fetch all conditions from database
     const { data: conditions, error: conditionsError } = await supabase
       .from('conditions')
-      .select('id, name, short_description, symptoms, drug_recommendations, total_case_count');
+      .select('id, name, short_description, symptoms, drug_recommendations, drug_usage, total_case_count');
 
     if (conditionsError) {
       throw new Error('Failed to fetch conditions');
@@ -190,7 +190,8 @@ function calculateBayesianDiagnosis(conditions: Condition[], inputSymptoms: stri
       condition: condition.name,
       probability: Math.exp(logPosterior),
       description: condition.short_description || '',
-      drug_recommendations: condition.drug_recommendations
+      drug_recommendations: condition.drug_recommendations,
+      drug_usage: condition.drug_usage
     });
   }
   

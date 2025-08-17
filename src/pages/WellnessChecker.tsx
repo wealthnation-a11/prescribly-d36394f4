@@ -27,6 +27,7 @@ interface DiagnosisResult {
   probability: number;
   description: string;
   drug_recommendations: any;
+  drug_usage?: any;
 }
 
 const WellnessChecker = () => {
@@ -171,30 +172,47 @@ const WellnessChecker = () => {
           {/* Results */}
           <div className="space-y-6 mb-8">
             {results.map((result, index) => (
-              <Card key={index} className="border-l-4 border-l-primary/50">
-                <CardHeader>
+              <Card key={index} className="border-l-4 border-l-primary/50 animate-fade-in">
+                <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl">{result.condition}</CardTitle>
-                    <Badge variant="secondary" className="text-lg px-3 py-1">
-                      {result.probability}%
+                    <CardTitle className="text-2xl text-primary">Diagnosis: {result.condition}</CardTitle>
+                    <Badge variant="secondary" className="text-lg px-3 py-1 bg-primary/10">
+                      {result.probability}% Match
                     </Badge>
                   </div>
-                  <CardDescription className="text-base">
-                    {result.description}
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {result.drug_recommendations && (
-                    <div>
-                      <h4 className="font-medium mb-2 flex items-center gap-2">
-                        <Pill className="h-4 w-4" />
+                <CardContent className="space-y-6">
+                  {/* Drug Recommendations */}
+                  {result.drug_recommendations && Array.isArray(result.drug_recommendations) && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-lg flex items-center gap-2 text-primary">
+                        <Pill className="h-5 w-5" />
                         Recommended Medications
                       </h4>
-                      <div className="text-sm text-muted-foreground">
-                        {typeof result.drug_recommendations === 'string' 
-                          ? result.drug_recommendations
-                          : JSON.stringify(result.drug_recommendations)
-                        }
+                      <div className="grid gap-3">
+                        {result.drug_recommendations.map((drug: any, drugIndex: number) => (
+                          <div key={drugIndex} className="p-4 bg-muted/50 rounded-lg border">
+                            <p className="font-medium text-foreground">• {drug.drug}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Usage Instructions */}
+                  {result.drug_usage && Array.isArray(result.drug_usage) && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-lg flex items-center gap-2 text-primary">
+                        <Activity className="h-5 w-5" />
+                        Usage Instructions
+                      </h4>
+                      <div className="grid gap-3">
+                        {result.drug_usage.map((usage: any, usageIndex: number) => (
+                          <div key={usageIndex} className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <p className="font-medium text-blue-900 dark:text-blue-100">{usage.drug}</p>
+                            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">{usage.usage}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -204,16 +222,16 @@ const WellnessChecker = () => {
           </div>
 
           {/* Disclaimer */}
-          <Card className="border-destructive/50 bg-destructive/5">
+          <Card className="border-destructive bg-destructive/5 mb-8">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                <AlertTriangle className="h-6 w-6 text-destructive mt-0.5 flex-shrink-0" />
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-destructive">
-                    This is an AI-generated suggestion. Always consult a licensed medical professional before taking medication.
+                  <p className="text-base font-semibold text-destructive">
+                    ⚠️ This is AI-generated. Always consult a licensed medical professional before taking medication.
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Accuracy: ~80% based on Bayesian model (internal validation)
+                  <p className="text-sm text-muted-foreground">
+                    This AI analysis is for informational purposes only and should not replace professional medical advice, diagnosis, or treatment.
                   </p>
                 </div>
               </div>
@@ -221,16 +239,19 @@ const WellnessChecker = () => {
           </Card>
 
           {/* Actions */}
-          <div className="flex gap-4 mt-8">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Button 
               onClick={() => navigate('/book-appointment')}
-              className="flex-1"
+              className="flex-1 bg-primary hover:bg-primary/90"
+              size="lg"
             >
-              <ArrowRight className="h-4 w-4 mr-2" />
+              <ArrowRight className="h-5 w-5 mr-2" />
               Chat with a Doctor Now
             </Button>
             <Button 
               variant="outline" 
+              size="lg"
+              className="flex-1 sm:flex-none"
               onClick={() => {
                 setShowResults(false);
                 setResults([]);
@@ -241,7 +262,7 @@ const WellnessChecker = () => {
                 setConsent(false);
               }}
             >
-              New Check
+              New Health Check
             </Button>
           </div>
         </div>

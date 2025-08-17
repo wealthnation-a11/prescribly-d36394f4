@@ -193,6 +193,7 @@ export type Database = {
           category: string | null
           created_at: string | null
           drug_recommendations: Json | null
+          drug_usage: Json | null
           id: number
           name: string | null
           short_description: string | null
@@ -204,6 +205,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           drug_recommendations?: Json | null
+          drug_usage?: Json | null
           id: number
           name?: string | null
           short_description?: string | null
@@ -215,6 +217,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           drug_recommendations?: Json | null
+          drug_usage?: Json | null
           id?: number
           name?: string | null
           short_description?: string | null
