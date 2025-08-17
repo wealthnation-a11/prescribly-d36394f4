@@ -87,6 +87,42 @@ const WellnessChecker = () => {
     setSymptoms(symptoms.filter(s => s !== symptom));
   };
 
+  // Save to prescriptions
+  const saveToPrescriptions = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from('wellness_checks').insert({
+        user_id: user.id,
+        entered_symptoms: symptoms,
+        calculated_probabilities: results.map(r => ({
+          condition: r.condition,
+          probability: r.probability,
+          description: r.description
+        })),
+        suggested_drugs: results.flatMap(r => r.drug_recommendations || []),
+        age,
+        gender,
+        duration,
+        consent_timestamp: new Date().toISOString()
+      });
+
+      toast({
+        title: "Saved Successfully",
+        description: "Your diagnosis has been saved to My Prescriptions."
+      });
+      
+      setTimeout(() => navigate('/my-prescriptions'), 1000);
+    } catch (error: any) {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Handle diagnosis
   const handleDiagnosis = async () => {
     if (!consent) {
@@ -240,6 +276,14 @@ const WellnessChecker = () => {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4">
+            <Button 
+              onClick={saveToPrescriptions}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+              size="lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Save to My Prescriptions
+            </Button>
             <Button 
               onClick={() => navigate('/book-appointment')}
               className="flex-1 bg-primary hover:bg-primary/90"
