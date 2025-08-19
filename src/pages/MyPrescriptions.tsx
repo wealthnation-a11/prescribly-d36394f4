@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
+import type { Json } from '@/integrations/supabase/types';
 import { 
   Pill, 
   Download, 
@@ -19,16 +20,8 @@ import {
 
 interface WellnessCheck {
   id: string;
-  calculated_probabilities: Array<{
-    condition: string;
-    probability: number;
-    drugs?: Array<{
-      name: string;
-      dosage: string;
-      usage: string;
-    }>;
-  }>;
-  suggested_drugs: any[];
+  calculated_probabilities: Json;
+  suggested_drugs: Json;
   created_at: string;
 }
 
@@ -114,7 +107,7 @@ const MyPrescriptions = () => {
               <Card key={prescription.id} className="animate-fade-in">
                 <CardHeader>
                   <CardTitle className="text-xl text-primary">
-                    {prescription.calculated_probabilities[0]?.condition || 'Health Check'}
+                    {Array.isArray(prescription.calculated_probabilities) && (prescription.calculated_probabilities[0] as any)?.condition || 'Health Check'}
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
@@ -123,7 +116,7 @@ const MyPrescriptions = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {prescription.suggested_drugs?.slice(0, 3).map((drug: any, index: number) => (
+                    {Array.isArray(prescription.suggested_drugs) && prescription.suggested_drugs.slice(0, 3).map((drug: any, index: number) => (
                       <div key={index} className="text-sm">
                         <span className="font-medium">{drug.name || drug.drug}</span>
                         {drug.dosage && <Badge variant="outline" className="ml-2 text-xs">{drug.dosage}</Badge>}
