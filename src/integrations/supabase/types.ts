@@ -158,6 +158,90 @@ export type Database = {
         }
         Relationships: []
       }
+      challenges: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string
+          duration: number
+          end_date: string
+          id: string
+          points_per_day: number | null
+          start_date: string
+          title: string
+          total_points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description: string
+          duration: number
+          end_date: string
+          id?: string
+          points_per_day?: number | null
+          start_date: string
+          title: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string
+          duration?: number
+          end_date?: string
+          id?: string
+          points_per_day?: number | null
+          start_date?: string
+          title?: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      chat_sessions: {
+        Row: {
+          confidence_score: number | null
+          conversation_history: Json | null
+          created_at: string | null
+          current_question: string | null
+          diagnosis_result: Json | null
+          id: string
+          points_earned: number | null
+          session_data: Json | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          conversation_history?: Json | null
+          created_at?: string | null
+          current_question?: string | null
+          diagnosis_result?: Json | null
+          id?: string
+          points_earned?: number | null
+          session_data?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          conversation_history?: Json | null
+          created_at?: string | null
+          current_question?: string | null
+          diagnosis_result?: Json | null
+          id?: string
+          points_earned?: number | null
+          session_data?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chats: {
         Row: {
           created_at: string
@@ -816,6 +900,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_challenges: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          id: string
+          joined_at: string | null
+          points_earned: number | null
+          progress: number | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          id?: string
+          joined_at?: string | null
+          points_earned?: number | null
+          progress?: number | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          id?: string
+          joined_at?: string | null
+          points_earned?: number | null
+          progress?: number | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_points: {
+        Row: {
+          created_at: string | null
+          id: string
+          points: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          points?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          points?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       wellness_check_results: {
         Row: {
           created_at: string
@@ -901,6 +1042,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_challenge_leaderboard: {
+        Args: { challenge_uuid: string }
+        Returns: {
+          points_earned: number
+          progress: number
+          rank: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_symptom_suggestions: {
         Args: { search_term?: string }
         Returns: {
@@ -916,6 +1067,10 @@ export type Database = {
       }
       refresh_public_doctor_profile: {
         Args: { _user_id: string }
+        Returns: undefined
+      }
+      update_user_points: {
+        Args: { points_to_add: number; user_uuid: string }
         Returns: undefined
       }
     }
