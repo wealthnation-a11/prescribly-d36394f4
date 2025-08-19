@@ -2,11 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prescribly Design System - Cool Blue Medical Theme */
+/* Prescribly Design System - Brand Colors */
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    /* Prescribly Brand Colors */
+    --prescribly-primary: 199 100% 35%; /* #0077b6 */
+    --prescribly-accent: 195 77% 59%; /* #48cae4 */
+    --prescribly-background: 194 100% 91%; /* #caf0f8 */
+    --prescribly-light: 0 0% 100%; /* white */
+    
+    --background: 0 0% 100%;
     --foreground: 215 25% 15%;
 
     --card: 0 0% 100%;
@@ -15,38 +21,43 @@
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
 
-    --primary: 200 100% 55%;
+    --primary: 199 100% 35%; /* Prescribly primary #0077b6 */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 200 100% 70%;
+    --primary-glow: 195 77% 59%; /* Prescribly accent #48cae4 */
 
-    --secondary: 200 30% 95%;
-    --secondary-foreground: 215 25% 15%;
+    --secondary: 194 100% 95%; /* Light Prescribly background */
+    --secondary-foreground: 199 100% 35%;
 
-    --muted: 210 15% 95%;
+    --muted: 194 100% 95%;
     --muted-foreground: 215 15% 50%;
 
-    --accent: 200 100% 92%;
-    --accent-foreground: 200 100% 35%;
+    --accent: 195 77% 59%; /* Prescribly accent #48cae4 */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 20% 90%;
-    --input: 200 20% 90%;
-    --ring: 200 100% 55%;
+    --border: 194 50% 90%;
+    --input: 194 50% 95%;
+    --ring: 199 100% 35%;
 
-    --medical-blue: 200 100% 55%;
-    --medical-light: 200 100% 92%;
+    --medical-blue: 199 100% 35%;
+    --medical-light: 194 100% 95%;
     --trust-blue: 210 100% 45%;
     --success-green: 142 71% 45%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--trust-blue)) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--medical-light)) 100%);
-    --gradient-feature: linear-gradient(145deg, hsl(var(--accent)) 0%, hsl(var(--primary) / 0.1) 100%);
+    /* Medical Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--prescribly-light)) 0%, hsl(var(--prescribly-background)) 100%);
+    --gradient-medical: linear-gradient(135deg, hsl(var(--prescribly-background)) 0%, hsl(var(--prescribly-light)) 100%);
+    --gradient-chat-ai: linear-gradient(135deg, hsl(var(--prescribly-background)) 0%, hsl(var(--prescribly-light)) 100%);
+    --gradient-chat-user: linear-gradient(135deg, hsl(var(--prescribly-accent)) 0%, hsl(var(--prescribly-primary)) 100%);
+    --gradient-glassmorphism: linear-gradient(135deg, hsl(var(--prescribly-light) / 0.8) 0%, hsl(var(--prescribly-background) / 0.4) 100%);
     
-    --shadow-medical: 0 10px 30px -5px hsl(var(--primary) / 0.3);
-    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.4);
-    --shadow-card: 0 4px 20px hsl(var(--primary) / 0.15);
+    /* Shadows with brand colors */
+    --shadow-medical: 0 10px 30px -5px hsl(var(--prescribly-primary) / 0.2);
+    --shadow-glow: 0 0 20px hsl(var(--prescribly-accent) / 0.3);
+    --shadow-chat: 0 2px 10px hsl(var(--prescribly-primary) / 0.1);
+    --shadow-glassmorphism: 0 8px 32px hsl(var(--prescribly-primary) / 0.15);
 
     --radius: 1rem;
 
@@ -133,6 +144,46 @@
 }
 
 @layer components {
+  /* Chat Interface Components */
+  .chat-ai-bubble {
+    background: var(--gradient-chat-ai);
+    box-shadow: var(--shadow-chat);
+    border: 1px solid hsl(var(--prescribly-background) / 0.5);
+  }
+  
+  .chat-user-bubble {
+    background: var(--gradient-chat-user);
+    box-shadow: var(--shadow-chat);
+  }
+  
+  .chat-container {
+    background: var(--gradient-medical);
+    border: 1px solid hsl(var(--prescribly-background) / 0.3);
+    backdrop-filter: blur(10px);
+  }
+  
+  .glassmorphism-card {
+    background: var(--gradient-glassmorphism);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--prescribly-background) / 0.3);
+    box-shadow: var(--shadow-glassmorphism);
+  }
+  
+  .medical-background {
+    background: var(--gradient-hero);
+    position: relative;
+  }
+  
+  .medical-background::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 20%, hsl(var(--prescribly-accent) / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, hsl(var(--prescribly-primary) / 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
   .hero-gradient {
     background: var(--gradient-hero);
   }
@@ -146,11 +197,11 @@
   }
   
   .card-gradient {
-    background: var(--gradient-card);
+    background: var(--gradient-medical);
   }
   
   .feature-gradient {
-    background: var(--gradient-feature);
+    background: var(--gradient-medical);
   }
   
   .floating-animation {
@@ -278,10 +329,21 @@
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 20px hsl(var(--prescribly-accent) / 0.4);
   }
   50% {
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.8);
+    box-shadow: 0 0 40px hsl(var(--prescribly-accent) / 0.8);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -300,6 +362,15 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes typingPulse {
+  0%, 50% {
+    opacity: 0.4;
+  }
+  25%, 75% {
+    opacity: 1;
   }
 }
 
