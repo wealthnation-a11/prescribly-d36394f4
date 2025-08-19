@@ -17,7 +17,9 @@ import {
   TrendingUp,
   Clock,
   Shield,
-  Loader2
+  Loader2,
+  Brain,
+  Trophy
 } from "lucide-react";
 import { RecentActivity } from "@/components/RecentActivity";
 import ActivityLog from "@/components/ActivityLog";
@@ -59,12 +61,28 @@ export const UserDashboard = () => {
       color: "text-primary"
     },
     {
+      title: "AI Health Companion",
+      description: "Interactive AI companion with progressive diagnosis and personalized treatment.",
+      icon: Brain,
+      href: "/ai-health-companion",
+      variant: "primary" as const,
+      color: "text-purple-600"
+    },
+    {
+      title: "Health Challenges",
+      description: "Join community wellness challenges, track progress, and earn points.",
+      icon: Trophy,
+      href: "/health-challenges",
+      variant: "outline" as const,
+      color: "text-yellow-600"
+    },
+    {
       title: "Chat with Doctors",
       description: "Connect with healthcare professionals instantly.",
       icon: MessageCircle,
       href: "/chat",
       variant: "outline" as const,
-      color: "text-purple-600"
+      color: "text-green-600"
     }
   ];
 
@@ -426,7 +444,7 @@ export const UserDashboard = () => {
               {/* Quick Actions */}
               <div>
                 <h2 className="text-heading text-foreground mb-6">Quick Actions</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                   {quickActions.map((action, index) => (
                     <Card key={action.title} className="dashboard-card hover-scale fade-in-up" style={{ animationDelay: `${(index + 3) * 0.1}s` }}>
                       <CardHeader className="pb-4">
