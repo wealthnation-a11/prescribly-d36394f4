@@ -353,7 +353,7 @@ export const UserDashboard = () => {
           {/* Main Content */}
           <main className="flex-1 overflow-auto">
             {/* Welcome Banner */}
-            <div className="welcome-banner text-white p-8">
+            <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-8">
               <div className="container mx-auto relative z-10">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur">
