@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { 
@@ -12,13 +12,17 @@ import {
   Loader2,
   Bot,
   User,
-  Stethoscope,
-  Pill,
-  Activity,
   Trophy,
   CheckCircle,
-  Save
+  BarChart3,
+  Calendar
 } from 'lucide-react';
+
+interface Question {
+  id: number;
+  category: string;
+  question_text: string;
+}
 
 interface Message {
   id: string;
@@ -28,20 +32,10 @@ interface Message {
   isTyping?: boolean;
 }
 
-interface DiagnosisResult {
-  condition: string;
-  probability: number;
-  drugs: Array<{
-    name: string;
-    dosage: string;
-    usage: string;
-  }>;
-}
-
 const AIHealthCompanion = () => {
   usePageSEO({
-    title: "AI Health Companion - Prescribly",
-    description: "Interactive AI health companion with progressive diagnosis and personalized treatment recommendations.",
+    title: "Daily Health Check-in - Prescribly",
+    description: "Complete your daily health check-in with our AI companion and track your wellness journey.",
     canonicalPath: "/ai-health-companion"
   });
 
@@ -52,9 +46,8 @@ const AIHealthCompanion = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [currentSymptoms, setCurrentSymptoms] = useState<string[]>([]);
-  const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResult | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
 
@@ -66,45 +59,52 @@ const AIHealthCompanion = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize chat session
+  // Load daily questions
   useEffect(() => {
-    const initializeSession = async () => {
+    const loadDailyQuestions = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data, error } = await supabase
-          .from('chat_sessions')
-          .insert({
-            user_id: user.id,
-            status: 'active'
-          })
-          .select()
-          .single();
+        const { data, error } = await supabase.rpc('get_daily_questions_for_user', {
+          user_uuid: user.id
+        });
 
         if (error) throw error;
 
-        setSessionId(data.id);
-
-        // Initial greeting
-        const initialMessage: Message = {
-          id: '1',
-          text: "👋 Hello! I'm your AI Health Companion. I'll ask you a series of questions to understand your symptoms better.\n\nTo get started, please tell me: What's the main health concern that brought you here today?",
-          isAi: true,
-          timestamp: new Date()
-        };
-        setMessages([initialMessage]);
+        if (data && data.length > 0) {
+          setQuestions(data);
+          
+          // Initial greeting with first question
+          const initialMessage: Message = {
+            id: '1',
+            text: `👋 Good to see you! Ready for today's health check-in?\n\n${data[0].question_text}`,
+            isAi: true,
+            timestamp: new Date()
+          };
+          setMessages([initialMessage]);
+        } else {
+          // User has completed today's questions
+          const completedMessage: Message = {
+            id: '1',
+            text: "🎉 You've already completed today's health check-in! Come back tomorrow for new questions.",
+            isAi: true,
+            timestamp: new Date()
+          };
+          setMessages([completedMessage]);
+          setIsComplete(true);
+        }
       } catch (error: any) {
-        console.error('Error initializing session:', error);
+        console.error('Error loading questions:', error);
         toast({
           title: "Error",
-          description: "Failed to start AI companion session.",
+          description: "Failed to load today's health questions.",
           variant: "destructive"
         });
       }
     };
 
-    initializeSession();
+    loadDailyQuestions();
   }, []);
 
   const showTypingIndicator = () => {
@@ -123,7 +123,7 @@ const AIHealthCompanion = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!currentMessage.trim() || isLoading) return;
+    if (!currentMessage.trim() || isLoading || questions.length === 0) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -133,106 +133,73 @@ const AIHealthCompanion = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setCurrentMessage('');
     setIsLoading(true);
 
     showTypingIndicator();
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase.functions.invoke('ai-health-companion', {
-        body: {
-          message: currentMessage,
-          sessionId,
-          userId: user?.id,
-          conversationHistory: messages.map(m => ({
-            role: m.isAi ? 'assistant' : 'user',
-            content: m.text
-          })),
-          currentSymptoms
-        }
-      });
+      if (!user) throw new Error('User not authenticated');
 
-      if (error) throw error;
+      // Save the answer
+      const { error: saveError } = await supabase
+        .from('user_daily_checkins')
+        .insert({
+          user_id: user.id,
+          question_id: questions[currentQuestionIndex].id,
+          answer: currentMessage
+        });
+
+      if (saveError) throw saveError;
+
+      // Award points
+      await supabase.rpc('update_user_points', {
+        user_uuid: user.id,
+        points_to_add: 5
+      });
 
       removeTypingIndicator();
 
-      const aiResponse: Message = {
-        id: `ai-${Date.now()}`,
-        text: data.response,
-        isAi: true,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, aiResponse]);
-
-      if (data.symptoms) {
-        setCurrentSymptoms(data.symptoms);
-      }
-
-      if (data.isComplete) {
+      // Check if more questions
+      if (currentQuestionIndex + 1 < questions.length) {
+        const nextQuestion = questions[currentQuestionIndex + 1];
+        const nextMessage: Message = {
+          id: `ai-${Date.now()}`,
+          text: `Great! Next question:\n\n${nextQuestion.question_text}`,
+          isAi: true,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, nextMessage]);
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        // All questions completed
+        const totalPoints = questions.length * 5;
+        setPointsEarned(totalPoints);
+        
+        const completionMessage: Message = {
+          id: `completion-${Date.now()}`,
+          text: `🎉 Fantastic! You've completed today's health check-in and earned +${totalPoints} points!\n\nYour answers have been saved to help track your health trends over time.`,
+          isAi: true,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, completionMessage]);
         setIsComplete(true);
-        setDiagnosisResult(data.diagnosis);
-        setPointsEarned(data.pointsEarned || 0);
       }
 
+      setCurrentMessage('');
     } catch (error: any) {
-      console.error('Chat error:', error);
+      console.error('Error saving answer:', error);
       removeTypingIndicator();
       
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
-        text: "I apologize, but I'm having trouble processing your request. Please try again.",
+        text: "I'm having trouble saving your answer. Please try again.",
         isAi: true,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const savePrescription = async () => {
-    if (!diagnosisResult) return;
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to save your prescription.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const { error } = await supabase.from('wellness_checks').insert({
-        user_id: user.id,
-        entered_symptoms: currentSymptoms,
-        calculated_probabilities: [{
-          condition: diagnosisResult.condition,
-          probability: diagnosisResult.probability,
-          drugs: diagnosisResult.drugs
-        }],
-        suggested_drugs: diagnosisResult.drugs,
-        age: 25,
-        gender: 'not specified',
-        duration: 'recent'
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Prescription Saved",
-        description: "Your AI diagnosis has been saved to My Prescriptions."
-      });
-    } catch (error: any) {
-      toast({
-        title: "Save Failed",
-        description: error.message || "Failed to save prescription.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -247,13 +214,12 @@ const AIHealthCompanion = () => {
       {/* Background Medical Icons */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
         <Brain className="absolute top-20 left-10 w-16 h-16 text-primary medical-icon" />
-        <Stethoscope className="absolute top-40 right-20 w-12 h-12 text-accent medical-icon" />
-        <Activity className="absolute bottom-40 left-20 w-20 h-20 text-primary medical-icon" />
-        <Pill className="absolute top-60 right-40 w-14 h-14 text-accent medical-icon" />
+        <Calendar className="absolute top-40 right-20 w-12 h-12 text-accent medical-icon" />
+        <BarChart3 className="absolute bottom-40 left-20 w-20 h-20 text-primary medical-icon" />
         <Trophy className="absolute bottom-20 right-10 w-16 h-16 text-primary medical-icon" />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 py-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -261,12 +227,12 @@ const AIHealthCompanion = () => {
               <Brain className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-primary">AI Health Companion</h1>
-              <p className="text-lg text-primary/80 font-medium">Progressive Diagnosis & Treatment</p>
+              <h1 className="text-4xl font-bold text-primary">Daily Health Check-in</h1>
+              <p className="text-lg text-primary/80 font-medium">Track Your Wellness Journey</p>
             </div>
           </div>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Interactive AI companion that asks progressive questions to understand your symptoms and provide personalized treatment recommendations
+            Answer a few quick questions each day to build healthy habits and earn points
           </p>
 
           {/* Points Display */}
@@ -278,21 +244,22 @@ const AIHealthCompanion = () => {
           )}
         </div>
 
-        {/* Symptoms Tracker */}
-        {currentSymptoms.length > 0 && (
-          <div className="max-w-4xl mx-auto mb-6">
+        {/* Progress Indicator */}
+        {questions.length > 0 && !isComplete && (
+          <div className="max-w-2xl mx-auto mb-6">
             <Card className="glassmorphism-card border-0">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Activity className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-primary">Identified Symptoms</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-primary">Progress</span>
+                  <span className="text-sm text-muted-foreground">
+                    {currentQuestionIndex + 1} of {questions.length}
+                  </span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {currentSymptoms.map((symptom, index) => (
-                    <Badge key={index} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                      {symptom}
-                    </Badge>
-                  ))}
+                <div className="w-full bg-primary/10 rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -300,17 +267,17 @@ const AIHealthCompanion = () => {
         )}
 
         {/* Chat Container */}
-        <div className="max-w-4xl mx-auto">
-          <Card className="h-[650px] flex flex-col chat-container border-0 shadow-lg">
+        <div className="max-w-3xl mx-auto">
+          <Card className="h-[500px] flex flex-col chat-container border-0 shadow-lg">
             {/* Chat Header */}
             <div className="flex items-center gap-3 p-4 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-accent/5">
               <div className="p-2 rounded-full bg-primary/10">
                 <Bot className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-primary">AI Health Companion</h3>
+                <h3 className="font-semibold text-primary">Health Companion</h3>
                 <p className="text-xs text-muted-foreground">
-                  {isComplete ? 'Diagnosis Complete' : 'Analyzing symptoms...'}
+                  {isComplete ? 'Check-in Complete' : 'Daily Questions'}
                 </p>
               </div>
               {isComplete && (
@@ -379,7 +346,7 @@ const AIHealthCompanion = () => {
             <div className="border-t border-primary/10 p-4 bg-gradient-to-r from-white to-primary/5">
               <div className="flex gap-3">
                 <Input
-                  placeholder={isComplete ? "Diagnosis complete!" : "Describe your symptoms or answer the question..."}
+                  placeholder={isComplete ? "Come back tomorrow for more questions!" : "Type your answer..."}
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -408,17 +375,16 @@ const AIHealthCompanion = () => {
           </Card>
         </div>
 
-        {/* Action Button (shown after diagnosis) */}
-        {isComplete && diagnosisResult && (
-          <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+        {/* Action Buttons (shown after completion) */}
+        {isComplete && (
+          <div className="flex justify-center gap-4 mt-6 animate-fade-in">
             <Button 
-              onClick={savePrescription}
-              className="rounded-full w-16 h-16 bg-green-500 hover:bg-green-600 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-              size="icon"
+              onClick={() => window.location.href = '/health-trends'}
+              className="rounded-full px-6 py-3 bg-green-500 hover:bg-green-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
             >
-              <Save className="h-6 w-6" />
+              <BarChart3 className="h-5 w-5 mr-2" />
+              View Health Trends
             </Button>
-            <p className="text-xs text-center mt-2 text-muted-foreground font-medium">Save</p>
           </div>
         )}
       </div>

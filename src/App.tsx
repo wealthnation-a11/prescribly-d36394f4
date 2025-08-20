@@ -30,6 +30,7 @@ import Prescription from "./pages/Prescription";
 import WellnessChecker from "./pages/WellnessChecker";
 import AIHealthCompanion from "./pages/AIHealthCompanion";
 import HealthChallenges from "./pages/HealthChallenges";
+import HealthTrendsDashboard from "./pages/HealthTrendsDashboard";
 import MyPrescriptions from "./pages/MyPrescriptions";
 
 
@@ -112,6 +113,11 @@ const App = () => (
             <Route path="/health-challenges" element={
               <ProtectedRoute requirePatient={true}>
                 <HealthChallenges />
+              </ProtectedRoute>
+            } />
+            <Route path="/health-trends" element={
+              <ProtectedRoute requirePatient={true}>
+                <HealthTrendsDashboard />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

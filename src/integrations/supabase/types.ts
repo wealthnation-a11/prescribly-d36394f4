@@ -272,6 +272,27 @@ export type Database = {
         }
         Relationships: []
       }
+      companion_questions: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: number
+          question_text: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: number
+          question_text: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: number
+          question_text?: string
+        }
+        Relationships: []
+      }
       conditions: {
         Row: {
           category: string | null
@@ -933,6 +954,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_daily_checkins: {
+        Row: {
+          answer: string
+          created_at: string | null
+          date: string | null
+          id: number
+          question_id: number | null
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string | null
+          date?: string | null
+          id?: number
+          question_id?: number | null
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string | null
+          date?: string | null
+          id?: number
+          question_id?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_daily_checkins_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "companion_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_points: {
         Row: {
           created_at: string | null
@@ -1050,6 +1106,14 @@ export type Database = {
           rank: number
           user_id: string
           username: string
+        }[]
+      }
+      get_daily_questions_for_user: {
+        Args: { user_uuid: string }
+        Returns: {
+          category: string
+          id: number
+          question_text: string
         }[]
       }
       get_symptom_suggestions: {
