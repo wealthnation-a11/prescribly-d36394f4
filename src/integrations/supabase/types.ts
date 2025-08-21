@@ -14,21 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      aliases: {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
       api_rate_limits: {
         Row: {
           created_at: string
@@ -173,51 +158,9 @@ export type Database = {
         }
         Relationships: []
       }
-      challenge_progress: {
-        Row: {
-          challenge_id: string
-          created_at: string
-          data: Json | null
-          day_number: number
-          id: string
-          status: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          challenge_id: string
-          created_at?: string
-          data?: Json | null
-          day_number: number
-          id?: string
-          status?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          challenge_id?: string
-          created_at?: string
-          data?: Json | null
-          day_number?: number
-          id?: string
-          status?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "challenge_progress_challenge_id_fkey"
-            columns: ["challenge_id"]
-            isOneToOne: false
-            referencedRelation: "challenges"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       challenges: {
         Row: {
           active: boolean | null
-          challenge_type: string | null
           created_at: string | null
           description: string
           duration: number
@@ -231,7 +174,6 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
-          challenge_type?: string | null
           created_at?: string | null
           description: string
           duration: number
@@ -245,7 +187,6 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
-          challenge_type?: string | null
           created_at?: string | null
           description?: string
           duration?: number
