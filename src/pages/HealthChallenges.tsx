@@ -76,9 +76,14 @@ const HealthChallenges = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchChallenges();
-    fetchUserChallenges();
-    fetchUserPoints();
+    const loadData = async () => {
+      await Promise.all([
+        fetchChallenges(),
+        fetchUserChallenges(),
+        fetchUserPoints()
+      ]);
+    };
+    loadData();
   }, []);
 
   const fetchChallenges = async () => {
