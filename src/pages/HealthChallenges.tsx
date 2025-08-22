@@ -92,10 +92,17 @@ const HealthChallenges = () => {
         .from('challenges')
         .select('*')
         .eq('active', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(4);
 
       if (error) throw error;
-      setChallenges(data || []);
+      
+      // Remove duplicates based on ID
+      const uniqueChallenges = data?.filter((challenge, index, self) => 
+        index === self.findIndex(c => c.id === challenge.id)
+      ) || [];
+      
+      setChallenges(uniqueChallenges);
     } catch (error: any) {
       toast({
         title: "Error",
