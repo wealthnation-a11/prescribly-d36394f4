@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
+import { useNavigate } from 'react-router-dom';
 import { 
   Trophy,
   Users,
@@ -68,6 +69,7 @@ const HealthChallenges = () => {
   });
 
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [userChallenges, setUserChallenges] = useState<UserChallenge[]>([]);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
@@ -329,8 +331,13 @@ const HealthChallenges = () => {
             return (
               <Card key={challenge.id} className="glassmorphism-card border-0 hover:scale-105 transition-all duration-300 cursor-pointer"
                     onClick={() => {
-                      setSelectedChallenge(challenge);
-                      fetchLeaderboard(challenge.id);
+                      // Check if it's a hydration challenge to navigate to sub-page
+                      if (challenge.title.toLowerCase().includes('hydration')) {
+                        navigate('/health-challenges/hydration');
+                      } else {
+                        setSelectedChallenge(challenge);
+                        fetchLeaderboard(challenge.id);
+                      }
                     }}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
