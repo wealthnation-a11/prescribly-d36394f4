@@ -1,17 +1,20 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { UserTypeModal } from "./UserTypeModal";
+import { LanguageSelector } from "./LanguageSelector";
 
 export const Header = () => {
+  const { t } = useTranslation();
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   
   const menuItems = [
-    { name: "Home", href: "#home" },
-    { name: "Offer", href: "#offer" },
-    { name: "About", href: "#about" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "Contact", href: "#contact" }
+    { name: t("Home"), href: "#home" },
+    { name: t("Offer"), href: "#offer" },
+    { name: t("about"), href: "#about" },
+    { name: t("pricing"), href: "#pricing" },
+    { name: t("contact"), href: "#contact" }
   ];
 
   return (
@@ -34,17 +37,18 @@ export const Header = () => {
             ))}
           </nav>
 
-          {/* Action Buttons */}
+          {/* Action Buttons and Language Selector */}
           <div className="flex items-center space-x-4">
+            <LanguageSelector />
             <Button variant="outline" size="sm" asChild>
-              <a href="/login">Login</a>
+              <a href="/login">{t('login')}</a>
             </Button>
             <Button 
               variant="medical" 
               size="sm" 
               onClick={() => setShowUserTypeModal(true)}
             >
-              Register
+              {t('register')}
             </Button>
           </div>
 

@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* RTL Support */
+html[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] * {
+  text-align: inherit;
+}
+
+/* RTL-specific adjustments */
+html[dir="rtl"] .rtl\:flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .rtl\:text-right {
+  text-align: right;
+}
+
+html[dir="rtl"] .rtl\:text-left {
+  text-align: left;
+}
+
+html[dir="rtl"] .rtl\:mr-auto {
+  margin-right: auto;
+  margin-left: unset;
+}
+
+html[dir="rtl"] .rtl\:ml-auto {
+  margin-left: auto;
+  margin-right: unset;
+}
+
 /* Prescribly Design System - Brand Colors */
 
 @layer base {

@@ -1,6 +1,8 @@
 import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
+import { LanguageSelector } from "./LanguageSelector";
 import {
   Sidebar,
   SidebarContent,
@@ -13,19 +15,20 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
-  { title: "Dashboard", url: "/user-dashboard", icon: Home },
-  { title: "Book Appointment", url: "/book-appointment", icon: CalendarPlus },
-  { title: "Wellness Checker", url: "/wellness-checker", icon: Stethoscope },
-  { title: "My Prescriptions", url: "/my-prescriptions", icon: FileText },
-  { title: "Chat", url: "/chat", icon: MessageCircle },
-  { title: "Profile", url: "/profile", icon: User },
-];
-
 export function AppSidebar() {
+  const { t } = useTranslation();
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+
+  const items = [
+    { title: t("dashboard"), url: "/user-dashboard", icon: Home },
+    { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus },
+    { title: t("wellness_checker"), url: "/wellness-checker", icon: Stethoscope },
+    { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText },
+    { title: t("chat"), url: "/chat", icon: MessageCircle },
+    { title: t("profile"), url: "/profile", icon: User },
+  ];
 
   const isActive = (path: string) => currentPath === path;
   const isExpanded = items.some((i) => isActive(i.url));

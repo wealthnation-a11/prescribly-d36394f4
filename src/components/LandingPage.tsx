@@ -11,8 +11,10 @@ import { FloatingIcons } from "./FloatingIcons";
 import { Header } from "./Header";
 import heroImage from "@/assets/hero-doctor.jpg";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 export const LandingPage = () => {
+  const { t } = useTranslation();
   const features = [
     {
       icon: Bot,
@@ -100,11 +102,11 @@ export const LandingPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <h1 className="text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
-                AI Healthcare in Your{" "}
-                <span className="text-primary">Pocket</span>
+                {t('welcome_message')}{" "}
+                <span className="text-primary">{t('app_name')}</span>
               </h1>
               <p className="text-xl text-muted-foreground fade-in-up stagger-1">
-                Get instant symptom analysis, real-time doctor consultations, and AI-prescribed treatments.
+                {t('tagline')}
               </p>
               <div className="text-sm text-muted-foreground fade-in-up stagger-3">
                 ✨ Made with AI • Trusted by 50,000+ patients worldwide
@@ -128,7 +130,7 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
-              What Prescribly Offers
+              {t('features')}
             </h2>
             <p className="text-xl text-muted-foreground fade-in-up stagger-1">
               Comprehensive healthcare solutions at your fingertips
@@ -153,7 +155,7 @@ export const LandingPage = () => {
       <section id="about" className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
-            Who It's For
+            {t('about')}
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up">
@@ -211,7 +213,7 @@ export const LandingPage = () => {
       <section className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
-            What Our Users Say
+            {t('testimonials')}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
@@ -282,7 +284,7 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
-              Choose Your Plan
+              {t('pricing')}
             </h2>
             <p className="text-xl text-muted-foreground fade-in-up stagger-1">
               Flexible pricing options for individuals and organizations
@@ -335,7 +337,7 @@ export const LandingPage = () => {
                       * Extra charges are applied for doctor consultations
                     </div>
                     <Button variant="medical" className="w-full mt-6">
-                      Get Started
+                      {t('get_started')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -600,7 +602,7 @@ export const LandingPage = () => {
       <section className="py-20">
         <div className="container mx-auto px-4 max-w-4xl">
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
-            Frequently Asked Questions
+            {t('faq')}
           </h2>
           <Accordion type="single" collapsible className="space-y-4 fade-in-up">
             {faqs.map((faq, index) => (
@@ -626,8 +628,8 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-8 fade-in-up">
             <h2 className="text-4xl lg:text-5xl font-bold text-foreground">
-              Start Your Health Journey with {" "}
-              <span className="text-primary">Prescribly</span>
+              {t('get_started')}{" "}
+              <span className="text-primary">{t('app_name')}</span>
             </h2>
             <p className="text-xl text-muted-foreground">
               Join thousands of patients and doctors who trust Prescribly for better healthcare outcomes.
