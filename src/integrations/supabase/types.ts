@@ -831,6 +831,36 @@ export type Database = {
         }
         Relationships: []
       }
+      step_logs: {
+        Row: {
+          completed: boolean
+          created_at: string | null
+          date: string
+          id: number
+          steps: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string | null
+          date?: string
+          id?: never
+          steps?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string | null
+          date?: string
+          id?: never
+          steps?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           assigned_to: string | null
@@ -976,6 +1006,33 @@ export type Database = {
           created_at?: string | null
           id?: string
           metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_description: string | null
+          badge_name: string
+          created_at: string | null
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_description?: string | null
+          badge_name: string
+          created_at?: string | null
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_description?: string | null
+          badge_name?: string
+          created_at?: string | null
+          earned_at?: string | null
+          id?: string
           user_id?: string
         }
         Relationships: []

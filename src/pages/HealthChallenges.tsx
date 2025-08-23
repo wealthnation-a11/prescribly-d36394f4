@@ -331,9 +331,11 @@ const HealthChallenges = () => {
             return (
               <Card key={challenge.id} className="glassmorphism-card border-0 hover:scale-105 transition-all duration-300 cursor-pointer"
                     onClick={() => {
-                      // Check if it's a hydration challenge to navigate to sub-page
+                      // Check challenge type to navigate to appropriate sub-page
                       if (challenge.title.toLowerCase().includes('hydration')) {
                         navigate('/health-challenges/hydration');
+                      } else if (challenge.title.toLowerCase().includes('step')) {
+                        navigate('/health-challenges/steps');
                       } else {
                         setSelectedChallenge(challenge);
                         fetchLeaderboard(challenge.id);
