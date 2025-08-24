@@ -391,6 +391,30 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnostic_questions: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          difficulty_level: string | null
+          id: string
+          question_text: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string
+          question_text: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string
+          question_text?: string
+        }
+        Relationships: []
+      }
       doctor_availability: {
         Row: {
           created_at: string | null
