@@ -182,19 +182,40 @@ const WellnessChecker = () => {
         startSymptomCollection();
       }, 1000);
       
-    } else if (currentQuestion.id.startsWith('symptom_')) {
-      if (value === 'yes') {
-        const symptom = currentQuestion.text.toLowerCase().includes('pain') ? 'pain' : 
-                       currentQuestion.text.toLowerCase().includes('fever') ? 'fever' :
-                       currentQuestion.text.toLowerCase().includes('cough') ? 'cough' : 
-                       currentQuestion.text.toLowerCase().includes('headache') ? 'headache' : 'symptom';
-        setCollectedSymptoms(prev => [...prev, symptom]);
-      }
+    } else if (currentQuestion.id.startsWith('question_')) {
+      // Store the answer
+      setAnswers(prev => [...prev, value]);
       
       // Continue with more questions or proceed to diagnosis
       continueSymptomQuestions();
     }
   };
+
+  // Fetch diagnostic questions from Supabase
+  const [diagnosticQuestions, setDiagnosticQuestions] = useState<any[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<string[]>([]);
+
+  // Load diagnostic questions
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('diagnostic_questions')
+          .select('*')
+          .limit(15);
+          
+        if (error) throw error;
+        if (data) {
+          setDiagnosticQuestions(data);
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    };
+
+    fetchQuestions();
+  }, []);
 
   // Start symptom collection
   const startSymptomCollection = () => {
@@ -213,83 +234,53 @@ const WellnessChecker = () => {
       setMessages(prev => [...prev, symptomMessage]);
       
       setTimeout(() => {
-        askFirstSymptomQuestion();
+        askNextQuestion();
       }, 1000);
     }, 1500);
   };
 
-  // Ask first symptom question
-  const askFirstSymptomQuestion = () => {
+  // Ask next question from diagnostic questions
+  const askNextQuestion = () => {
+    if (currentQuestionIndex >= diagnosticQuestions.length || currentQuestionIndex >= 15) {
+      // Proceed to diagnosis if we have 7+ answers
+      if (answers.length >= 7) {
+        performDiagnosis();
+      }
+      return;
+    }
+
+    const questionData = diagnosticQuestions[currentQuestionIndex];
     const question: AdaptiveQuestion = {
-      id: 'symptom_pain',
-      text: 'Are you experiencing any pain or discomfort?',
+      id: `question_${questionData.id}`,
+      text: questionData.question_text,
       options: [
         { value: 'yes', label: 'Yes' },
         { value: 'no', label: 'No' },
-        { value: 'mild', label: 'Mild discomfort' }
+        { value: 'sometimes', label: 'Sometimes' }
       ]
     };
     setCurrentQuestion(question);
-    setCurrentStep(5);
+    setCurrentStep(5 + currentQuestionIndex);
   };
 
-  // Continue with more symptom questions
+  // Continue with more questions
   const continueSymptomQuestions = () => {
-    const nextStep = currentStep + 1;
-    setCurrentStep(nextStep);
+    const nextIndex = currentQuestionIndex + 1;
+    setCurrentQuestionIndex(nextIndex);
     
-    if (nextStep < 8) {
-      // Ask more symptom questions
-      const questions = [
-        {
-          id: 'symptom_fever',
-          text: 'Do you have a fever or feel unusually warm?',
-          options: [
-            { value: 'yes', label: 'Yes, I have fever' },
-            { value: 'no', label: 'No fever' },
-            { value: 'unsure', label: "I'm not sure" }
-          ]
-        },
-        {
-          id: 'symptom_cough',
-          text: 'Are you experiencing any coughing?',
-          options: [
-            { value: 'yes', label: 'Yes, frequent coughing' },
-            { value: 'no', label: 'No coughing' },
-            { value: 'occasional', label: 'Occasional cough' }
-          ]
-        },
-        {
-          id: 'symptom_headache',
-          text: 'Do you have a headache?',
-          options: [
-            { value: 'yes', label: 'Yes, headache' },
-            { value: 'no', label: 'No headache' },
-            { value: 'mild', label: 'Mild headache' }
-          ]
-        }
-      ];
-      
-      const questionIndex = nextStep - 6;
-      if (questionIndex < questions.length) {
-        setTimeout(() => {
-          setCurrentQuestion(questions[questionIndex]);
-        }, 1000);
-      } else {
-        // Proceed to diagnosis
-        setTimeout(() => {
-          performDiagnosis();
-        }, 1000);
-      }
-    } else {
-      // Proceed to diagnosis
+    // If we have at least 7 answers and reached question limit, or answered all questions
+    if ((answers.length >= 7 && nextIndex >= 10) || nextIndex >= diagnosticQuestions.length) {
       setTimeout(() => {
         performDiagnosis();
+      }, 1000);
+    } else {
+      setTimeout(() => {
+        askNextQuestion();
       }, 1000);
     }
   };
 
-  // Perform AI diagnosis based on collected data
+  // Perform AI diagnosis using Supabase Edge Function
   const performDiagnosis = async () => {
     setChatPhase('diagnosis');
     setCurrentStep(10);
@@ -297,62 +288,38 @@ const WellnessChecker = () => {
     showTypingIndicator();
     
     try {
-      // Fetch conditions from Supabase
-      const { data: conditions, error } = await supabase
-        .from('conditions')
-        .select('*')
-        .limit(10);
-        
-      if (error) throw error;
-
-      // Simple matching algorithm - match symptoms to conditions
-      let bestMatch = null;
-      let highestScore = 0;
-
-      if (conditions && conditions.length > 0) {
-        for (const condition of conditions) {
-          let score = 0;
-          const conditionSymptoms = Array.isArray(condition.symptoms) ? condition.symptoms as string[] : [];
-          
-          // Calculate score based on matching symptoms
-          for (const userSymptom of collectedSymptoms) {
-            if (conditionSymptoms.some((s: string) => s.toLowerCase().includes(userSymptom.toLowerCase()))) {
-              score += 25; // Each matching symptom adds 25%
-            }
-          }
-          
-          // Add base probability
-          if (score > 0) {
-            score = Math.min(score + 30, 95); // Cap at 95%
-          }
-          
-          if (score > highestScore && score >= 80) {
-            highestScore = score;
-            bestMatch = condition;
-          }
-        }
-        
-        // Fallback to first condition if no high confidence match
-        if (!bestMatch && conditions.length > 0) {
-          bestMatch = conditions[0];
-          highestScore = 75;
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Authentication required');
       }
+
+      // Call the diagnose edge function
+      const { data, error } = await supabase.functions.invoke('diagnose', {
+        body: {
+          answers,
+          age: userProfile.age || 25,
+          gender: userProfile.gender || 'not specified'
+        },
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+
+      if (error) throw error;
 
       removeTypingIndicator();
       
-      if (bestMatch && highestScore >= 80) {
-        // Create diagnosis result
+      if (data.condition) {
+        // Create diagnosis result from edge function response
         const diagnosis: DiagnosisResult = {
-          condition: bestMatch.name,
-          confidence: highestScore,
-          icd10: 'R00-R09', // Generic code for now
-          explanation: `Based on your symptoms, this condition matches ${highestScore}% of the reported cases with similar symptoms.`,
-          drugs: (bestMatch.drug_usage || []).map((drug: any) => ({
-            name: drug.drug || 'Consult your doctor',
-            dosage: 'As prescribed',
-            usage: drug.usage || 'Follow medical advice'
-          }))
+          condition: data.condition,
+          confidence: data.accuracy,
+          explanation: `Based on your answers, this condition matches ${data.accuracy}% of similar cases.`,
+          drugs: data.drug ? [{
+            name: data.drug,
+            dosage: 'As prescribed by doctor',
+            usage: 'Follow medical advice'
+          }] : []
         };
         
         setDiagnosisResult(diagnosis);
@@ -360,28 +327,26 @@ const WellnessChecker = () => {
         // Show diagnosis message
         const diagnosisMessage: ChatMessage = {
           id: `diagnosis-${Date.now()}`,
-          text: `Based on your symptoms, I've identified a potential condition. Let me show you the results.`,
+          text: `**${data.condition}** (${data.accuracy}% match)\n\n💊 **Prescribed:** ${data.drug}\n\n⚠️ Please consult a licensed doctor before starting any medication.`,
           isBot: true,
           timestamp: new Date(),
           component: 'diagnosis'
         };
         setMessages(prev => [...prev, diagnosisMessage]);
         
-        setChatPhase('complete');
-        setCurrentStep(12);
-        
-      } else {
-        // No confident diagnosis
+      } else if (data.message) {
+        // No strong match found
         const noResultMessage: ChatMessage = {
           id: `no-diagnosis-${Date.now()}`,
-          text: "I couldn't identify a specific condition with high confidence. I recommend consulting with one of our doctors for a proper evaluation.",
+          text: data.message,
           isBot: true,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, noResultMessage]);
-        setChatPhase('complete');
-        setCurrentStep(12);
       }
+      
+      setChatPhase('complete');
+      setCurrentStep(12);
       
     } catch (error) {
       console.error('Diagnosis error:', error);
