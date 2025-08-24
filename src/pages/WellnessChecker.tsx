@@ -1,38 +1,53 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
+import { useTranslation } from 'react-i18next';
 import { 
   Brain, 
-  Send, 
   AlertTriangle,
   Loader2,
-  Plus,
   ArrowRight,
   Bot,
   User,
   Stethoscope,
   Pill,
   Activity,
-  Save
+  Save,
+  Calendar,
+  FileDown,
+  Bell
 } from 'lucide-react';
+import { ProgressSteps } from '@/components/ai/ProgressSteps';
+import { AdaptiveQuestionView, type AdaptiveQuestion } from '@/components/ai/AdaptiveQuestion';
+import { DiagnosisResults, type Diagnosis } from '@/components/ai/DiagnosisResults';
 
-interface Message {
+interface ChatMessage {
   id: string;
   text: string;
-  isAi: boolean;
+  isBot: boolean;
   timestamp: Date;
   isTyping?: boolean;
+  component?: 'question' | 'diagnosis' | 'welcome';
+}
+
+interface UserProfile {
+  age?: number;
+  gender?: string;
+  location?: string;
+  medicalHistory?: string;
 }
 
 interface DiagnosisResult {
   condition: string;
-  probability: number;
+  confidence: number;
+  icd10?: string;
+  explanation: string;
   drugs: Array<{
     name: string;
     dosage: string;
@@ -41,9 +56,11 @@ interface DiagnosisResult {
 }
 
 const WellnessChecker = () => {
+  const { t } = useTranslation();
+  
   usePageSEO({
-    title: "AI Wellness Checker - Prescribly",
-    description: "Chat with our AI doctor for instant health analysis and personalized medical recommendations.",
+    title: `${t('wellness_checker')} - Prescribly`,
+    description: "Chat with our AI diagnostic assistant for instant health analysis and personalized medical recommendations.",
     canonicalPath: "/wellness-checker"
   });
 
@@ -52,12 +69,15 @@ const WellnessChecker = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Chat state
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [currentMessage, setCurrentMessage] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [chatState, setChatState] = useState<'greeting' | 'questioning' | 'diagnosis' | 'complete'>('greeting');
-  const [patientData, setPatientData] = useState<any>({});
+  const [currentStep, setCurrentStep] = useState(0);
+  const [totalSteps] = useState(12);
+  const [userProfile, setUserProfile] = useState<UserProfile>({});
+  const [currentQuestion, setCurrentQuestion] = useState<AdaptiveQuestion | null>(null);
+  const [collectedSymptoms, setCollectedSymptoms] = useState<string[]>([]);
   const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResult | null>(null);
+  const [chatPhase, setChatPhase] = useState<'welcome' | 'demographics' | 'symptoms' | 'diagnosis' | 'complete'>('welcome');
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -68,23 +88,30 @@ const WellnessChecker = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize chat
+  // Initialize chat with welcome message
   useEffect(() => {
-    const initialMessage: Message = {
-      id: '1',
-      text: "Hi! I'm Dr. AI from Prescribly. I'm here to help you understand your symptoms and provide preliminary health guidance. What seems to be bothering you today?",
-      isAi: true,
-      timestamp: new Date()
-    };
-    setMessages([initialMessage]);
+    setTimeout(() => {
+      const welcomeMessage: ChatMessage = {
+        id: '1',
+        text: "Hi 👋, I'm Prescribly. Let's check your health in a few quick steps.",
+        isBot: true,
+        timestamp: new Date(),
+        component: 'welcome'
+      };
+      setMessages([welcomeMessage]);
+      
+      setTimeout(() => {
+        startDemographicsCollection();
+      }, 1500);
+    }, 500);
   }, []);
 
-  // Simulate typing indicator
+  // Show typing indicator
   const showTypingIndicator = () => {
-    const typingMessage: Message = {
+    const typingMessage: ChatMessage = {
       id: `typing-${Date.now()}`,
       text: "...",
-      isAi: true,
+      isBot: true,
       timestamp: new Date(),
       isTyping: true
     };
@@ -95,89 +122,282 @@ const WellnessChecker = () => {
     setMessages(prev => prev.filter(msg => !msg.isTyping));
   };
 
-  // Process chat message
-  const handleSendMessage = async () => {
-    if (!currentMessage.trim() || isLoading) return;
+  // Demographics collection
+  const startDemographicsCollection = () => {
+    setChatPhase('demographics');
+    setCurrentStep(1);
+    
+    const question: AdaptiveQuestion = {
+      id: 'age',
+      text: 'First, could you tell me your age?',
+      options: [
+        { value: '18-25', label: '18-25 years' },
+        { value: '26-35', label: '26-35 years' },
+        { value: '36-50', label: '36-50 years' },
+        { value: '50+', label: '50+ years' }
+      ]
+    };
+    setCurrentQuestion(question);
+  };
 
-    const userMessage: Message = {
+  // Handle question answers
+  const handleQuestionAnswer = async (value: string) => {
+    if (!currentQuestion) return;
+
+    // Add user response message
+    const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
-      text: currentMessage,
-      isAi: false,
+      text: value,
+      isBot: false,
       timestamp: new Date()
     };
-
     setMessages(prev => [...prev, userMessage]);
-    setCurrentMessage('');
-    setIsLoading(true);
 
-    // Show typing indicator
-    showTypingIndicator();
-
-    try {
-      // Call chat diagnosis function
-      const { data, error } = await supabase.functions.invoke('ai-diagnosis', {
-        body: {
-          message: currentMessage,
-          chatHistory: messages,
-          patientData,
-          chatState
-        }
-      });
-
-      if (error) throw error;
-
-      removeTypingIndicator();
-
-      // Add AI response
-      const aiResponse: Message = {
-        id: `ai-${Date.now()}`,
-        text: data.response,
-        isAi: true,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, aiResponse]);
-
-      // Update state based on response
-      if (data.patientData) {
-        setPatientData(prev => ({ ...prev, ...data.patientData }));
-      }
-
-      if (data.diagnosis) {
-        setDiagnosisResult(data.diagnosis);
-        setChatState('complete');
-        
-        // Show diagnosis card
-        setTimeout(() => {
-          const diagnosisCard: Message = {
-            id: `diagnosis-${Date.now()}`,
-            text: `**🩺 DIAGNOSIS**\n\n**${data.diagnosis.condition}** (${data.diagnosis.probability}% match)\n\n**💊 RECOMMENDED TREATMENT:**\n${data.diagnosis.drugs.map((drug: any) => `• **${drug.name}** - ${drug.dosage}\n  ${drug.usage}`).join('\n\n')}`,
-            isAi: true,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, diagnosisCard]);
-        }, 1000);
-      } else {
-        setChatState(data.nextState || 'questioning');
-      }
-
-    } catch (error: any) {
-      console.error('Chat error:', error);
-      removeTypingIndicator();
+    // Update user profile or symptoms based on current question
+    if (currentQuestion.id === 'age') {
+      setUserProfile(prev => ({ ...prev, age: parseInt(value.split('-')[0]) }));
+      setCurrentStep(2);
       
-      const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        text: "I apologize, but I'm having trouble processing your request. Please try again.",
-        isAi: true,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+      // Ask gender next
+      setTimeout(() => {
+        const genderQuestion: AdaptiveQuestion = {
+          id: 'gender',
+          text: 'What is your gender?',
+          options: [
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
+            { value: 'other', label: 'Other' },
+            { value: 'prefer_not_to_say', label: 'Prefer not to say' }
+          ]
+        };
+        setCurrentQuestion(genderQuestion);
+      }, 1000);
+      
+    } else if (currentQuestion.id === 'gender') {
+      setUserProfile(prev => ({ ...prev, gender: value }));
+      setCurrentStep(3);
+      
+      // Start symptom collection
+      setTimeout(() => {
+        startSymptomCollection();
+      }, 1000);
+      
+    } else if (currentQuestion.id.startsWith('symptom_')) {
+      if (value === 'yes') {
+        const symptom = currentQuestion.text.toLowerCase().includes('pain') ? 'pain' : 
+                       currentQuestion.text.toLowerCase().includes('fever') ? 'fever' :
+                       currentQuestion.text.toLowerCase().includes('cough') ? 'cough' : 
+                       currentQuestion.text.toLowerCase().includes('headache') ? 'headache' : 'symptom';
+        setCollectedSymptoms(prev => [...prev, symptom]);
+      }
+      
+      // Continue with more questions or proceed to diagnosis
+      continueSymptomQuestions();
     }
   };
 
-  // Save prescription
+  // Start symptom collection
+  const startSymptomCollection = () => {
+    setChatPhase('symptoms');
+    setCurrentStep(4);
+    
+    showTypingIndicator();
+    setTimeout(() => {
+      removeTypingIndicator();
+      const symptomMessage: ChatMessage = {
+        id: `bot-${Date.now()}`,
+        text: "Now, let's talk about your symptoms. I'll ask you a few specific questions.",
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, symptomMessage]);
+      
+      setTimeout(() => {
+        askFirstSymptomQuestion();
+      }, 1000);
+    }, 1500);
+  };
+
+  // Ask first symptom question
+  const askFirstSymptomQuestion = () => {
+    const question: AdaptiveQuestion = {
+      id: 'symptom_pain',
+      text: 'Are you experiencing any pain or discomfort?',
+      options: [
+        { value: 'yes', label: 'Yes' },
+        { value: 'no', label: 'No' },
+        { value: 'mild', label: 'Mild discomfort' }
+      ]
+    };
+    setCurrentQuestion(question);
+    setCurrentStep(5);
+  };
+
+  // Continue with more symptom questions
+  const continueSymptomQuestions = () => {
+    const nextStep = currentStep + 1;
+    setCurrentStep(nextStep);
+    
+    if (nextStep < 8) {
+      // Ask more symptom questions
+      const questions = [
+        {
+          id: 'symptom_fever',
+          text: 'Do you have a fever or feel unusually warm?',
+          options: [
+            { value: 'yes', label: 'Yes, I have fever' },
+            { value: 'no', label: 'No fever' },
+            { value: 'unsure', label: "I'm not sure" }
+          ]
+        },
+        {
+          id: 'symptom_cough',
+          text: 'Are you experiencing any coughing?',
+          options: [
+            { value: 'yes', label: 'Yes, frequent coughing' },
+            { value: 'no', label: 'No coughing' },
+            { value: 'occasional', label: 'Occasional cough' }
+          ]
+        },
+        {
+          id: 'symptom_headache',
+          text: 'Do you have a headache?',
+          options: [
+            { value: 'yes', label: 'Yes, headache' },
+            { value: 'no', label: 'No headache' },
+            { value: 'mild', label: 'Mild headache' }
+          ]
+        }
+      ];
+      
+      const questionIndex = nextStep - 6;
+      if (questionIndex < questions.length) {
+        setTimeout(() => {
+          setCurrentQuestion(questions[questionIndex]);
+        }, 1000);
+      } else {
+        // Proceed to diagnosis
+        setTimeout(() => {
+          performDiagnosis();
+        }, 1000);
+      }
+    } else {
+      // Proceed to diagnosis
+      setTimeout(() => {
+        performDiagnosis();
+      }, 1000);
+    }
+  };
+
+  // Perform AI diagnosis based on collected data
+  const performDiagnosis = async () => {
+    setChatPhase('diagnosis');
+    setCurrentStep(10);
+    
+    showTypingIndicator();
+    
+    try {
+      // Fetch conditions from Supabase
+      const { data: conditions, error } = await supabase
+        .from('conditions')
+        .select('*')
+        .limit(10);
+        
+      if (error) throw error;
+
+      // Simple matching algorithm - match symptoms to conditions
+      let bestMatch = null;
+      let highestScore = 0;
+
+      if (conditions && conditions.length > 0) {
+        for (const condition of conditions) {
+          let score = 0;
+          const conditionSymptoms = Array.isArray(condition.symptoms) ? condition.symptoms as string[] : [];
+          
+          // Calculate score based on matching symptoms
+          for (const userSymptom of collectedSymptoms) {
+            if (conditionSymptoms.some((s: string) => s.toLowerCase().includes(userSymptom.toLowerCase()))) {
+              score += 25; // Each matching symptom adds 25%
+            }
+          }
+          
+          // Add base probability
+          if (score > 0) {
+            score = Math.min(score + 30, 95); // Cap at 95%
+          }
+          
+          if (score > highestScore && score >= 80) {
+            highestScore = score;
+            bestMatch = condition;
+          }
+        }
+        
+        // Fallback to first condition if no high confidence match
+        if (!bestMatch && conditions.length > 0) {
+          bestMatch = conditions[0];
+          highestScore = 75;
+        }
+      }
+
+      removeTypingIndicator();
+      
+      if (bestMatch && highestScore >= 80) {
+        // Create diagnosis result
+        const diagnosis: DiagnosisResult = {
+          condition: bestMatch.name,
+          confidence: highestScore,
+          icd10: 'R00-R09', // Generic code for now
+          explanation: `Based on your symptoms, this condition matches ${highestScore}% of the reported cases with similar symptoms.`,
+          drugs: (bestMatch.drug_usage || []).map((drug: any) => ({
+            name: drug.drug || 'Consult your doctor',
+            dosage: 'As prescribed',
+            usage: drug.usage || 'Follow medical advice'
+          }))
+        };
+        
+        setDiagnosisResult(diagnosis);
+        
+        // Show diagnosis message
+        const diagnosisMessage: ChatMessage = {
+          id: `diagnosis-${Date.now()}`,
+          text: `Based on your symptoms, I've identified a potential condition. Let me show you the results.`,
+          isBot: true,
+          timestamp: new Date(),
+          component: 'diagnosis'
+        };
+        setMessages(prev => [...prev, diagnosisMessage]);
+        
+        setChatPhase('complete');
+        setCurrentStep(12);
+        
+      } else {
+        // No confident diagnosis
+        const noResultMessage: ChatMessage = {
+          id: `no-diagnosis-${Date.now()}`,
+          text: "I couldn't identify a specific condition with high confidence. I recommend consulting with one of our doctors for a proper evaluation.",
+          isBot: true,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, noResultMessage]);
+        setChatPhase('complete');
+        setCurrentStep(12);
+      }
+      
+    } catch (error) {
+      console.error('Diagnosis error:', error);
+      removeTypingIndicator();
+      
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        text: "I'm having trouble processing your symptoms right now. Please try again or consult with a doctor directly.",
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
+
+  // Save prescription to Supabase
   const savePrescription = async () => {
     if (!diagnosisResult) return;
 
@@ -186,7 +406,7 @@ const WellnessChecker = () => {
       if (!user) {
         toast({
           title: "Authentication Required",
-          description: "Please log in to save your prescription.",
+          description: "Please log in to save your results.",
           variant: "destructive"
         });
         return;
@@ -194,242 +414,184 @@ const WellnessChecker = () => {
 
       const { error } = await supabase.from('wellness_checks').insert({
         user_id: user.id,
-        entered_symptoms: [diagnosisResult.condition],
+        entered_symptoms: collectedSymptoms,
         calculated_probabilities: [{
           condition: diagnosisResult.condition,
-          probability: diagnosisResult.probability,
-          drugs: diagnosisResult.drugs
+          probability: diagnosisResult.confidence
         }],
         suggested_drugs: diagnosisResult.drugs,
-        age: patientData.age || 25,
-        gender: patientData.gender || 'not specified',
-        duration: patientData.duration || 'not specified'
+        age: userProfile.age || 25,
+        gender: userProfile.gender || 'not specified',
+        duration: 'recent'
       });
 
       if (error) throw error;
 
       toast({
-        title: "Prescription Saved",
-        description: "Your prescription has been saved to My Prescriptions."
+        title: "Results Saved",
+        description: "Your diagnostic results have been saved successfully."
       });
       
-      setTimeout(() => navigate('/my-prescriptions'), 1000);
     } catch (error: any) {
       toast({
         title: "Save Failed",
-        description: error.message || "Failed to save prescription.",
+        description: error.message || "Failed to save results.",
         variant: "destructive"
       });
     }
   };
 
-  // Format message text with markdown-like styling
-  const formatMessageText = (text: string) => {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br/>');
-  };
-
   return (
-    <div className="min-h-screen medical-background relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background to-primary/5 relative overflow-hidden">
       {/* Background Medical Icons */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-        <Stethoscope className="absolute top-20 left-10 w-16 h-16 text-primary medical-icon" />
-        <Pill className="absolute top-40 right-20 w-12 h-12 text-accent medical-icon" />
-        <Activity className="absolute bottom-40 left-20 w-20 h-20 text-primary medical-icon" />
-        <Brain className="absolute top-60 right-40 w-14 h-14 text-accent medical-icon" />
-        <Stethoscope className="absolute bottom-20 right-10 w-16 h-16 text-primary medical-icon" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
+        <Stethoscope className="absolute top-20 left-10 w-16 h-16 text-primary animate-pulse" />
+        <Pill className="absolute top-40 right-20 w-12 h-12 text-primary animate-pulse" />
+        <Activity className="absolute bottom-40 left-20 w-20 h-20 text-primary animate-pulse" />
+        <Brain className="absolute top-60 right-40 w-14 h-14 text-primary animate-pulse" />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 py-6 relative z-10">
         {/* Header */}
-        <div className="text-center mb-8 animate-fade-in">
+        <div className="text-center mb-6 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 rounded-full bg-primary/10 border border-primary/20">
               <Stethoscope className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-primary">Prescribly</h1>
-              <p className="text-lg text-primary/80 font-medium">AI Wellness Checker</p>
+              <h1 className="text-3xl font-bold text-primary">AI Diagnostic Assistant</h1>
+              <p className="text-sm text-muted-foreground">Powered by Prescribly</p>
             </div>
           </div>
-          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Chat with our AI doctor for instant health analysis and personalized medical recommendations
-          </p>
+          
+          {/* Progress Indicator */}
+          {currentStep > 0 && (
+            <div className="max-w-md mx-auto mb-4">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                <span>Question {currentStep} of {totalSteps}</span>
+                <span>{Math.round((currentStep / totalSteps) * 100)}%</span>
+              </div>
+              <ProgressSteps current={currentStep} total={totalSteps} />
+            </div>
+          )}
         </div>
 
         {/* Chat Container */}
-        <div className="max-w-4xl mx-auto">
-          <Card className="h-[650px] flex flex-col chat-container border-0 shadow-lg">
-            {/* Chat Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-accent/5">
-              <div className="p-2 rounded-full bg-primary/10">
-                <Bot className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-primary">Dr. AI Assistant</h3>
-                <p className="text-xs text-muted-foreground">Online • Ready to help</p>
-              </div>
+        <Card className="h-[600px] flex flex-col border border-primary/10 shadow-lg overflow-hidden">
+          {/* Chat Header */}
+          <div className="flex items-center gap-3 p-4 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-primary/10">
+            <div className="p-2 rounded-full bg-primary/10">
+              <Bot className="h-5 w-5 text-primary" />
             </div>
-
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-white/50 to-primary/5">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isAi ? 'justify-start' : 'justify-end'}`}
-                  style={{
-                    animation: 'slideInUp 0.5s ease-out'
-                  }}
-                >
-                  <div className={`flex items-start gap-3 max-w-[85%] ${message.isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-                    {/* Avatar */}
-                    <div className={`p-2 rounded-full ${
-                      message.isAi 
-                        ? 'bg-primary/10 border border-primary/20' 
-                        : 'bg-accent/20 border border-accent/30'
-                    } flex-shrink-0`}>
-                      {message.isAi ? (
-                        <Bot className="h-4 w-4 text-primary" />
-                      ) : (
-                        <User className="h-4 w-4 text-accent-foreground" />
-                      )}
-                    </div>
-                    
-                    {/* Message Bubble */}
-                    <div className={`px-5 py-3 rounded-2xl shadow-md ${
-                      message.isAi 
-                        ? 'chat-ai-bubble text-foreground rounded-bl-md' 
-                        : 'chat-user-bubble text-white rounded-br-md'
-                    }`}>
-                      {message.isTyping ? (
-                        <div className="flex space-x-1 py-1">
-                          <div className="w-2 h-2 bg-primary/60 rounded-full" style={{
-                            animation: 'typingPulse 1.5s infinite'
-                          }}></div>
-                          <div className="w-2 h-2 bg-primary/60 rounded-full" style={{
-                            animation: 'typingPulse 1.5s infinite 0.2s'
-                          }}></div>
-                          <div className="w-2 h-2 bg-primary/60 rounded-full" style={{
-                            animation: 'typingPulse 1.5s infinite 0.4s'
-                          }}></div>
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-sm leading-relaxed whitespace-pre-wrap"
-                          dangerouslySetInnerHTML={{ __html: formatMessageText(message.text) }}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
+            <div>
+              <h3 className="font-semibold text-primary">AI Diagnostic Assistant</h3>
+              <p className="text-xs text-muted-foreground">Online • Ready to help</p>
             </div>
-
-            {/* Input Area */}
-            <div className="border-t border-primary/10 p-4 bg-gradient-to-r from-white to-primary/5">
-              <div className="flex gap-3">
-                <Input
-                  placeholder="Describe your symptoms or ask a health question..."
-                  value={currentMessage}
-                  onChange={(e) => setCurrentMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  disabled={isLoading}
-                  className="flex-1 rounded-full border-primary/20 focus:ring-primary/30 focus:border-primary/40"
-                />
-                <Button 
-                  onClick={handleSendMessage}
-                  disabled={isLoading || !currentMessage.trim()}
-                  size="icon"
-                  className="rounded-full w-12 h-12 bg-primary hover:bg-primary/90 shadow-lg"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Send className="h-5 w-5" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Floating Save Button */}
-        {chatState === 'complete' && diagnosisResult && (
-          <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
-            <Button 
-              onClick={savePrescription}
-              className="rounded-full w-16 h-16 bg-success-green hover:bg-success-green/90 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-              size="icon"
-            >
-              <Save className="h-6 w-6" />
-            </Button>
-            <p className="text-xs text-center mt-2 text-muted-foreground font-medium">Save</p>
           </div>
-        )}
 
-        {/* Results Card (shown after diagnosis) */}
-        {chatState === 'complete' && diagnosisResult && (
-          <div className="mt-8 max-w-4xl mx-auto animate-fade-in">
-            {/* Glassmorphism Results Card */}
-            <Card className="glassmorphism-card border-0 mb-6">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <Stethoscope className="h-8 w-8 text-primary" />
-                    <h3 className="text-2xl font-bold text-primary">Diagnosis Results</h3>
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'} animate-fade-in`}>
+                <div className={`flex items-start gap-3 max-w-[80%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
+                  {/* Avatar */}
+                  <div className={`p-2 rounded-full flex-shrink-0 ${
+                    message.isBot 
+                      ? 'bg-primary/10 border border-primary/20' 
+                      : 'bg-secondary/20 border border-secondary/30'
+                  }`}>
+                    {message.isBot ? (
+                      <Bot className="h-4 w-4 text-primary" />
+                    ) : (
+                      <User className="h-4 w-4 text-secondary-foreground" />
+                    )}
                   </div>
-                  <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl p-6 border border-primary/20">
-                    <h4 className="text-xl font-semibold text-primary mb-2">{diagnosisResult.condition}</h4>
-                    <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
-                      {diagnosisResult.probability}% Confidence
-                    </Badge>
+                  
+                  {/* Message Bubble */}
+                  <div className={`px-4 py-3 rounded-2xl shadow-sm ${
+                    message.isBot 
+                      ? 'bg-primary/5 border border-primary/10 rounded-bl-md' 
+                      : 'bg-primary text-primary-foreground rounded-br-md'
+                  }`}>
+                    {message.isTyping ? (
+                      <div className="flex space-x-1 py-1">
+                        <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" />
+                        <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                        <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed">{message.text}</p>
+                    )}
                   </div>
                 </div>
+              </div>
+            ))}
+            
+            {/* Current Question */}
+            {currentQuestion && (
+              <div className="animate-fade-in">
+                <AdaptiveQuestionView 
+                  question={currentQuestion}
+                  onAnswer={handleQuestionAnswer}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </Card>
 
-                {diagnosisResult.drugs.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-primary">
-                      <Pill className="h-5 w-5" />
-                      Recommended Treatment
-                    </div>
-                    <div className="grid gap-4">
-                      {diagnosisResult.drugs.map((drug, index) => (
-                        <div key={index} className="bg-white/50 rounded-lg p-4 border border-primary/10">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h5 className="font-semibold text-primary">{drug.name}</h5>
-                              <p className="text-sm text-muted-foreground mt-1">{drug.usage}</p>
-                            </div>
-                            <Badge variant="secondary" className="ml-3">
-                              {drug.dosage}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+        {/* Diagnosis Results */}
+        {diagnosisResult && (
+          <div className="mt-6 animate-fade-in">
+            <DiagnosisResults 
+              diagnoses={[{
+                name: diagnosisResult.condition,
+                confidence: diagnosisResult.confidence / 100,
+                icd10: diagnosisResult.icd10
+              }]}
+              safetyNotes={[diagnosisResult.explanation]}
+            />
+            
+            {/* Prescription Details */}
+            {diagnosisResult.drugs.length > 0 && (
+              <Card className="mt-4 border border-primary/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Pill className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-semibold text-primary">Recommended Treatment</h3>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <div className="space-y-3">
+                    {diagnosisResult.drugs.map((drug, index) => (
+                      <div key={index} className="bg-primary/5 rounded-lg p-4 border border-primary/10">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-primary">{drug.name}</h4>
+                            <p className="text-sm text-muted-foreground mt-1">{drug.usage}</p>
+                          </div>
+                          <Badge variant="outline" className="ml-3 border-primary/30 text-primary">
+                            {drug.dosage}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Disclaimer */}
-            <Card className="border-destructive/20 bg-destructive/5 mb-6 glassmorphism-card">
-              <CardContent className="pt-6">
+            <Card className="mt-4 border-destructive/20 bg-destructive/5">
+              <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-6 w-6 text-destructive mt-0.5 flex-shrink-0" />
-                  <div className="space-y-2">
-                    <p className="text-base font-semibold text-destructive">
-                      ⚠️ This is AI-generated. Always consult a licensed medical professional.
+                  <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-destructive mb-1">
+                      ⚠️ Only a licensed doctor can confirm this prescription.
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      This AI analysis is for informational purposes only and should not replace professional medical advice, diagnosis, or treatment.
+                    <p className="text-xs text-muted-foreground">
+                      This AI analysis is for informational purposes only and should not replace professional medical advice.
                     </p>
                   </div>
                 </div>
@@ -437,21 +599,37 @@ const WellnessChecker = () => {
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <Button 
                 onClick={() => navigate('/book-appointment')}
-                className="flex-1 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="flex-1 bg-primary hover:bg-primary/90"
                 size="lg"
               >
-                <ArrowRight className="h-5 w-5 mr-2" />
-                Consult Real Doctor
+                <ArrowRight className="h-4 w-4 mr-2" />
+                Talk to a Prescribly Doctor
               </Button>
               <Button 
                 variant="outline" 
-                size="lg"
-                className="flex-1 sm:flex-none border-primary/30 hover:bg-primary/5 transition-all duration-300"
-                onClick={() => window.location.reload()}
+                onClick={savePrescription}
+                className="flex-1 sm:flex-none border-primary/30 hover:bg-primary/5"
               >
+                <Save className="h-4 w-4 mr-2" />
+                Save Result
+              </Button>
+            </div>
+
+            {/* Additional Actions */}
+            <div className="flex flex-wrap gap-2 mt-4 justify-center">
+              <Button variant="ghost" size="sm" className="text-xs">
+                <FileDown className="h-3 w-3 mr-1" />
+                Download PDF
+              </Button>
+              <Button variant="ghost" size="sm" className="text-xs">
+                <Bell className="h-3 w-3 mr-1" />
+                Set Reminder
+              </Button>
+              <Button variant="ghost" size="sm" className="text-xs" onClick={() => window.location.reload()}>
+                <Brain className="h-3 w-3 mr-1" />
                 New Consultation
               </Button>
             </div>
