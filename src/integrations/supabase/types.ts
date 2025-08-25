@@ -14,21 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      aliases: {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
       api_rate_limits: {
         Row: {
           created_at: string
@@ -352,6 +337,41 @@ export type Database = {
         }
         Relationships: []
       }
+      condition_symptoms: {
+        Row: {
+          condition_id: number
+          created_at: string
+          id: string
+          probability: number
+          symptom_id: string
+          weight: number | null
+        }
+        Insert: {
+          condition_id: number
+          created_at?: string
+          id?: string
+          probability?: number
+          symptom_id: string
+          weight?: number | null
+        }
+        Update: {
+          condition_id?: number
+          created_at?: string
+          id?: string
+          probability?: number
+          symptom_id?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condition_symptoms_symptom_id_fkey"
+            columns: ["symptom_id"]
+            isOneToOne: false
+            referencedRelation: "symptoms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conditions: {
         Row: {
           category: string | null
@@ -388,6 +408,84 @@ export type Database = {
           symptom_counts?: Json | null
           symptoms?: Json | null
           total_case_count?: number | null
+        }
+        Relationships: []
+      }
+      conditions_aliases: {
+        Row: {
+          aliases: string | null
+          category: string | null
+          condition_id: number
+          drug_recommendations: string | null
+          id: number
+          name: string | null
+          short_description: string | null
+          symptom_counts: number | null
+          symptoms: string | null
+          total_cases: number | null
+        }
+        Insert: {
+          aliases?: string | null
+          category?: string | null
+          condition_id: number
+          drug_recommendations?: string | null
+          id?: number
+          name?: string | null
+          short_description?: string | null
+          symptom_counts?: number | null
+          symptoms?: string | null
+          total_cases?: number | null
+        }
+        Update: {
+          aliases?: string | null
+          category?: string | null
+          condition_id?: number
+          drug_recommendations?: string | null
+          id?: number
+          name?: string | null
+          short_description?: string | null
+          symptom_counts?: number | null
+          symptoms?: string | null
+          total_cases?: number | null
+        }
+        Relationships: []
+      }
+      conditions_merged: {
+        Row: {
+          alias_id: number | null
+          aliases: string | null
+          condition_category: string | null
+          condition_id: number | null
+          condition_name: string | null
+          drug_recommendations: string | null
+          short_description: string | null
+          symptom_counts: number | null
+          symptoms: string | null
+          total_cases: number | null
+        }
+        Insert: {
+          alias_id?: number | null
+          aliases?: string | null
+          condition_category?: string | null
+          condition_id?: number | null
+          condition_name?: string | null
+          drug_recommendations?: string | null
+          short_description?: string | null
+          symptom_counts?: number | null
+          symptoms?: string | null
+          total_cases?: number | null
+        }
+        Update: {
+          alias_id?: number | null
+          aliases?: string | null
+          condition_category?: string | null
+          condition_id?: number | null
+          condition_name?: string | null
+          drug_recommendations?: string | null
+          short_description?: string | null
+          symptom_counts?: number | null
+          symptoms?: string | null
+          total_cases?: number | null
         }
         Relationships: []
       }
@@ -957,6 +1055,33 @@ export type Database = {
         }
         Relationships: []
       }
+      symptoms: {
+        Row: {
+          aliases: string[] | null
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          severity_weight: number | null
+        }
+        Insert: {
+          aliases?: string[] | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          severity_weight?: number | null
+        }
+        Update: {
+          aliases?: string[] | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          severity_weight?: number | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1128,6 +1253,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_history: {
+        Row: {
+          bayesian_results: Json | null
+          confirmed_by_doctor: boolean | null
+          confirmed_condition: string | null
+          created_at: string
+          id: string
+          session_id: string
+          symptoms_parsed: string[] | null
+          symptoms_reported: string[] | null
+          updated_at: string
+          user_demographics: Json | null
+          user_id: string
+        }
+        Insert: {
+          bayesian_results?: Json | null
+          confirmed_by_doctor?: boolean | null
+          confirmed_condition?: string | null
+          created_at?: string
+          id?: string
+          session_id: string
+          symptoms_parsed?: string[] | null
+          symptoms_reported?: string[] | null
+          updated_at?: string
+          user_demographics?: Json | null
+          user_id: string
+        }
+        Update: {
+          bayesian_results?: Json | null
+          confirmed_by_doctor?: boolean | null
+          confirmed_condition?: string | null
+          created_at?: string
+          id?: string
+          session_id?: string
+          symptoms_parsed?: string[] | null
+          symptoms_reported?: string[] | null
+          updated_at?: string
+          user_demographics?: Json | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_hydration_log: {
         Row: {

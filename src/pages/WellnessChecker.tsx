@@ -21,11 +21,14 @@ import {
   Save,
   Calendar,
   FileDown,
-  Bell
+  Bell,
+  Sparkles,
+  MessageCircle
 } from 'lucide-react';
 import { ProgressSteps } from '@/components/ai/ProgressSteps';
 import { AdaptiveQuestionView, type AdaptiveQuestion } from '@/components/ai/AdaptiveQuestion';
-import { DiagnosisResults, type Diagnosis } from '@/components/ai/DiagnosisResults';
+import { BayesianResults } from '@/components/wellness/BayesianResults';
+import { SymptomInput } from '@/components/wellness/SymptomInput';
 
 interface ChatMessage {
   id: string;
@@ -43,16 +46,23 @@ interface UserProfile {
   medicalHistory?: string;
 }
 
-interface DiagnosisResult {
+interface BayesianResult {
   condition: string;
+  conditionId: number;
+  probability: number;
   confidence: number;
-  icd10?: string;
   explanation: string;
-  drugs: Array<{
-    name: string;
-    dosage: string;
-    usage: string;
-  }>;
+  symptoms: string[];
+  drugRecommendations: any[];
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+}
+
+interface DiagnosisSession {
+  sessionId: string;
+  results: BayesianResult[];
+  needsMoreInfo: boolean;
+  nextQuestion?: AdaptiveQuestion;
+  totalSymptoms: number;
 }
 
 const WellnessChecker = () => {
@@ -68,16 +78,18 @@ const WellnessChecker = () => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Chat state
+  // Enhanced state for Bayesian diagnosis
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [totalSteps] = useState(12);
+  const [totalSteps] = useState(8);
   const [userProfile, setUserProfile] = useState<UserProfile>({});
   const [currentQuestion, setCurrentQuestion] = useState<AdaptiveQuestion | null>(null);
   const [collectedSymptoms, setCollectedSymptoms] = useState<string[]>([]);
-  const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResult | null>(null);
+  const [diagnosisSession, setDiagnosisSession] = useState<DiagnosisSession | null>(null);
   const [chatPhase, setChatPhase] = useState<'welcome' | 'demographics' | 'symptoms' | 'diagnosis' | 'complete'>('welcome');
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const [freeTextMode, setFreeTextMode] = useState(false);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -88,12 +100,12 @@ const WellnessChecker = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize chat with welcome message
+  // Initialize enhanced chat with welcome message
   useEffect(() => {
     setTimeout(() => {
       const welcomeMessage: ChatMessage = {
         id: '1',
-        text: "Hi 👋, I'm Prescribly. Let's check your health in a few quick steps.",
+        text: "Hi 👋, I'm Prescribly's Advanced Diagnostic Assistant. I use Bayesian analysis to understand your symptoms better.",
         isBot: true,
         timestamp: new Date(),
         component: 'welcome'
@@ -101,10 +113,31 @@ const WellnessChecker = () => {
       setMessages([welcomeMessage]);
       
       setTimeout(() => {
-        startDemographicsCollection();
+        const optionMessage: ChatMessage = {
+          id: '2',
+          text: "How would you like to describe your symptoms?",
+          isBot: true,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, optionMessage]);
+        showSymptomInputOptions();
       }, 1500);
     }, 500);
   }, []);
+
+  // Show input method options
+  const showSymptomInputOptions = () => {
+    const question: AdaptiveQuestion = {
+      id: 'input_method',
+      text: 'Choose your preferred way to describe symptoms:',
+      options: [
+        { value: 'freetext', label: '💬 Describe freely (recommended)' },
+        { value: 'guided', label: '🎯 Guided questions' },
+        { value: 'quick', label: '⚡ Quick symptom picker' }
+      ]
+    };
+    setCurrentQuestion(question);
+  };
 
   // Show typing indicator
   const showTypingIndicator = () => {
@@ -140,7 +173,34 @@ const WellnessChecker = () => {
     setCurrentQuestion(question);
   };
 
-  // Handle question answers
+  const askGenderQuestion = () => {
+    setTimeout(() => {
+      const genderQuestion: AdaptiveQuestion = {
+        id: 'gender',
+        text: 'What is your gender?',
+        options: [
+          { value: 'male', label: 'Male' },
+          { value: 'female', label: 'Female' },
+          { value: 'other', label: 'Other' },
+          { value: 'prefer_not_to_say', label: 'Prefer not to say' }
+        ]
+      };
+      setCurrentQuestion(genderQuestion);
+    }, 1000);
+  };
+
+  const startQuickSymptomCollection = () => {
+    setChatPhase('symptoms');
+    const message: ChatMessage = {
+      id: `bot-${Date.now()}`,
+      text: "Select your symptoms from the quick picker below:",
+      isBot: true,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, message]);
+  };
+
+  // Enhanced question handling with Bayesian logic
   const handleQuestionAnswer = async (value: string) => {
     if (!currentQuestion) return;
 
@@ -153,41 +213,102 @@ const WellnessChecker = () => {
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Update user profile or symptoms based on current question
-    if (currentQuestion.id === 'age') {
+    if (currentQuestion.id === 'input_method') {
+      setCurrentQuestion(null);
+      setCurrentStep(1);
+      
+      if (value === 'freetext') {
+        setFreeTextMode(true);
+        startFreeTextCollection();
+      } else if (value === 'guided') {
+        startDemographicsCollection();
+      } else {
+        startQuickSymptomCollection();
+      }
+    } else if (currentQuestion.id === 'age') {
       setUserProfile(prev => ({ ...prev, age: parseInt(value.split('-')[0]) }));
       setCurrentStep(2);
-      
-      // Ask gender next
-      setTimeout(() => {
-        const genderQuestion: AdaptiveQuestion = {
-          id: 'gender',
-          text: 'What is your gender?',
-          options: [
-            { value: 'male', label: 'Male' },
-            { value: 'female', label: 'Female' },
-            { value: 'other', label: 'Other' },
-            { value: 'prefer_not_to_say', label: 'Prefer not to say' }
-          ]
-        };
-        setCurrentQuestion(genderQuestion);
-      }, 1000);
-      
+      askGenderQuestion();
     } else if (currentQuestion.id === 'gender') {
       setUserProfile(prev => ({ ...prev, gender: value }));
       setCurrentStep(3);
-      
-      // Start symptom collection
-      setTimeout(() => {
+      if (freeTextMode) {
+        startFreeTextCollection();
+      } else {
         startSymptomCollection();
-      }, 1000);
-      
+      }
     } else if (currentQuestion.id.startsWith('question_')) {
-      // Store the answer
+      // Store the answer and continue with adaptive questioning
       setAnswers(prev => [...prev, value]);
-      
-      // Continue with more questions or proceed to diagnosis
       continueSymptomQuestions();
+    }
+  };
+
+  // Start free text symptom collection
+  const startFreeTextCollection = () => {
+    setChatPhase('symptoms');
+    const message: ChatMessage = {
+      id: `bot-${Date.now()}`,
+      text: "Please describe all your symptoms in detail. I'll use advanced NLP to understand and analyze them.",
+      isBot: true,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, message]);
+  };
+
+  // Handle free text symptom input
+  const handleSymptomSubmit = async (freeText: string, quickSymptoms: string[]) => {
+    setIsLoading(true);
+    
+    try {
+      // Call Bayesian diagnosis
+      const { data, error } = await supabase.functions.invoke('bayesian-diagnosis', {
+        body: {
+          freeTextInput: freeText,
+          symptoms: quickSymptoms.map(s => ({ text: s, confidence: 0.9 })),
+          demographics: userProfile,
+          sessionId
+        }
+      });
+
+      if (error) throw error;
+
+      setDiagnosisSession(data);
+      
+      if (data.needsMoreInfo && data.nextQuestion) {
+        // Ask follow-up question
+        setCurrentQuestion(data.nextQuestion);
+        const followUpMessage: ChatMessage = {
+          id: `bot-${Date.now()}`,
+          text: "I need a bit more information to improve accuracy:",
+          isBot: true,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, followUpMessage]);
+      } else {
+        // Show results
+        setChatPhase('diagnosis');
+        const resultsMessage: ChatMessage = {
+          id: `bot-${Date.now()}`,
+          text: "Analysis complete! Here are your results based on Bayesian probability:",
+          isBot: true,
+          timestamp: new Date(),
+          component: 'diagnosis'
+        };
+        setMessages(prev => [...prev, resultsMessage]);
+      }
+      
+    } catch (error: any) {
+      console.error('Diagnosis error:', error);
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        text: "I'm having trouble processing your symptoms. Please try again or consult with a doctor directly.",
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -310,24 +431,34 @@ const WellnessChecker = () => {
       removeTypingIndicator();
       
       if (data.condition) {
-        // Create diagnosis result from edge function response
-        const diagnosis: DiagnosisResult = {
+        // Create Bayesian result from edge function response
+        const bayesianResult: BayesianResult = {
           condition: data.condition,
+          conditionId: 0,
+          probability: data.accuracy,
           confidence: data.accuracy,
           explanation: `Based on your answers, this condition matches ${data.accuracy}% of similar cases.`,
-          drugs: data.drug ? [{
-            name: data.drug,
+          symptoms: answers,
+          drugRecommendations: data.drug ? [{
+            drug: data.drug,
             dosage: 'As prescribed by doctor',
             usage: 'Follow medical advice'
-          }] : []
+          }] : [],
+          riskLevel: data.accuracy > 90 ? 'high' : data.accuracy > 70 ? 'medium' : 'low'
         };
         
-        setDiagnosisResult(diagnosis);
+        setDiagnosisSession({
+          sessionId,
+          results: [bayesianResult],
+          needsMoreInfo: false,
+          totalSymptoms: answers.length
+        });
         
         // Show diagnosis message
+        setChatPhase('diagnosis');
         const diagnosisMessage: ChatMessage = {
           id: `diagnosis-${Date.now()}`,
-          text: `**${data.condition}** (${data.accuracy}% match)\n\n💊 **Prescribed:** ${data.drug}\n\n⚠️ Please consult a licensed doctor before starting any medication.`,
+          text: `Analysis complete! Here are your Bayesian results:`,
           isBot: true,
           timestamp: new Date(),
           component: 'diagnosis'
@@ -346,7 +477,7 @@ const WellnessChecker = () => {
       }
       
       setChatPhase('complete');
-      setCurrentStep(12);
+      setCurrentStep(8);
       
     } catch (error) {
       console.error('Diagnosis error:', error);
@@ -362,9 +493,9 @@ const WellnessChecker = () => {
     }
   };
 
-  // Save prescription to Supabase
-  const savePrescription = async () => {
-    if (!diagnosisResult) return;
+  // Save Bayesian results to Supabase
+  const saveResults = async () => {
+    if (!diagnosisSession) return;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -379,12 +510,12 @@ const WellnessChecker = () => {
 
       const { error } = await supabase.from('wellness_checks').insert({
         user_id: user.id,
-        entered_symptoms: collectedSymptoms,
-        calculated_probabilities: [{
-          condition: diagnosisResult.condition,
-          probability: diagnosisResult.confidence
-        }],
-        suggested_drugs: diagnosisResult.drugs,
+        entered_symptoms: diagnosisSession.results[0]?.symptoms || [],
+        calculated_probabilities: diagnosisSession.results.map(r => ({
+          condition: r.condition,
+          probability: r.probability
+        })),
+        suggested_drugs: diagnosisSession.results[0]?.drugRecommendations || [],
         age: userProfile.age || 25,
         gender: userProfile.gender || 'not specified',
         duration: 'recent'
@@ -394,7 +525,7 @@ const WellnessChecker = () => {
 
       toast({
         title: "Results Saved",
-        description: "Your diagnostic results have been saved successfully."
+        description: "Your Bayesian diagnostic results have been saved successfully."
       });
       
     } catch (error: any) {
@@ -404,6 +535,10 @@ const WellnessChecker = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleBookConsultation = () => {
+    navigate('/book-appointment');
   };
 
   return (
@@ -417,23 +552,28 @@ const WellnessChecker = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 relative z-10">
-        {/* Header */}
+        {/* Enhanced Header */}
         <div className="text-center mb-6 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 rounded-full bg-primary/10 border border-primary/20">
-              <Stethoscope className="h-8 w-8 text-primary" />
+            <div className="p-3 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 border border-primary/20">
+              <div className="relative">
+                <Brain className="h-8 w-8 text-primary" />
+                <Sparkles className="h-3 w-3 text-primary/80 absolute -top-1 -right-1 animate-pulse" />
+              </div>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-primary">AI Diagnostic Assistant</h1>
-              <p className="text-sm text-muted-foreground">Powered by Prescribly</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                Bayesian AI Diagnostics
+              </h1>
+              <p className="text-sm text-muted-foreground">Advanced probability-based health analysis</p>
             </div>
           </div>
           
-          {/* Progress Indicator */}
+          {/* Enhanced Progress Indicator */}
           {currentStep > 0 && (
             <div className="max-w-md mx-auto mb-4">
               <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-                <span>Question {currentStep} of {totalSteps}</span>
+                <span>Step {currentStep} of {totalSteps}</span>
                 <span>{Math.round((currentStep / totalSteps) * 100)}%</span>
               </div>
               <ProgressSteps current={currentStep} total={totalSteps} />
@@ -443,14 +583,20 @@ const WellnessChecker = () => {
 
         {/* Chat Container */}
         <Card className="h-[600px] flex flex-col border border-primary/10 shadow-lg overflow-hidden">
-          {/* Chat Header */}
+          {/* Enhanced Chat Header */}
           <div className="flex items-center gap-3 p-4 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-primary/10">
-            <div className="p-2 rounded-full bg-primary/10">
-              <Bot className="h-5 w-5 text-primary" />
+            <div className="p-2 rounded-full bg-primary/10 border border-primary/20">
+              <div className="relative">
+                <Bot className="h-5 w-5 text-primary" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              </div>
             </div>
             <div>
-              <h3 className="font-semibold text-primary">AI Diagnostic Assistant</h3>
-              <p className="text-xs text-muted-foreground">Online • Ready to help</p>
+              <h3 className="font-semibold text-primary flex items-center gap-2">
+                Bayesian AI Assistant
+                <Badge variant="secondary" className="text-xs">BETA</Badge>
+              </h3>
+              <p className="text-xs text-muted-foreground">Advanced diagnostic reasoning • Online</p>
             </div>
           </div>
 
@@ -505,99 +651,70 @@ const WellnessChecker = () => {
             
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Free Text Input for Symptoms */}
+          {freeTextMode && chatPhase === 'symptoms' && !diagnosisSession && (
+            <div className="p-4 border-t border-primary/10">
+              <SymptomInput 
+                onSymptomSubmit={handleSymptomSubmit}
+                isLoading={isLoading}
+              />
+            </div>
+          )}
         </Card>
 
-        {/* Diagnosis Results */}
-        {diagnosisResult && (
+        {/* Enhanced Bayesian Results */}
+        {diagnosisSession?.results && (
           <div className="mt-6 animate-fade-in">
-            <DiagnosisResults 
-              diagnoses={[{
-                name: diagnosisResult.condition,
-                confidence: diagnosisResult.confidence / 100,
-                icd10: diagnosisResult.icd10
-              }]}
-              safetyNotes={[diagnosisResult.explanation]}
+            <BayesianResults 
+              results={diagnosisSession.results}
+              onBookConsultation={handleBookConsultation}
+              onSaveResults={saveResults}
             />
-            
-            {/* Prescription Details */}
-            {diagnosisResult.drugs.length > 0 && (
-              <Card className="mt-4 border border-primary/10">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Pill className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold text-primary">Recommended Treatment</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {diagnosisResult.drugs.map((drug, index) => (
-                      <div key={index} className="bg-primary/5 rounded-lg p-4 border border-primary/10">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-primary">{drug.name}</h4>
-                            <p className="text-sm text-muted-foreground mt-1">{drug.usage}</p>
-                          </div>
-                          <Badge variant="outline" className="ml-3 border-primary/30 text-primary">
-                            {drug.dosage}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+          </div>
+        )}
 
-            {/* Disclaimer */}
-            <Card className="mt-4 border-destructive/20 bg-destructive/5">
+        {/* Enhanced Analytics Display */}
+        {diagnosisSession?.needsMoreInfo && diagnosisSession.nextQuestion && (
+          <div className="mt-6 animate-fade-in">
+            <Card className="border-blue-200 bg-blue-50/50">
               <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-destructive mb-1">
-                      ⚠️ Only a licensed doctor can confirm this prescription.
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      This AI analysis is for informational purposes only and should not replace professional medical advice.
-                    </p>
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageCircle className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">
+                    Improving Analysis Accuracy
+                  </span>
+                </div>
+                <p className="text-sm text-blue-700 mb-3">
+                  I can provide a more accurate diagnosis with additional information:
+                </p>
+                <AdaptiveQuestionView 
+                  question={diagnosisSession.nextQuestion}
+                  onAnswer={handleQuestionAnswer}
+                  disabled={isLoading}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
+        {/* Learning & Feedback Section */}
+        {chatPhase === 'complete' && diagnosisSession && (
+          <div className="mt-6 animate-fade-in">
+            <Card className="border-primary/20">
+              <CardContent className="p-4">
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center gap-2">
+                    <Brain className="h-5 w-5 text-primary" />
+                    <span className="font-medium text-primary">Continuous Learning</span>
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    This diagnosis used advanced Bayesian inference with {diagnosisSession.totalSymptoms} symptoms 
+                    and thousands of medical cases to provide the most accurate assessment.
+                  </p>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-6">
-              <Button 
-                onClick={() => navigate('/book-appointment')}
-                className="flex-1 bg-primary hover:bg-primary/90"
-                size="lg"
-              >
-                <ArrowRight className="h-4 w-4 mr-2" />
-                Talk to a Prescribly Doctor
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={savePrescription}
-                className="flex-1 sm:flex-none border-primary/30 hover:bg-primary/5"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Result
-              </Button>
-            </div>
-
-            {/* Additional Actions */}
-            <div className="flex flex-wrap gap-2 mt-4 justify-center">
-              <Button variant="ghost" size="sm" className="text-xs">
-                <FileDown className="h-3 w-3 mr-1" />
-                Download PDF
-              </Button>
-              <Button variant="ghost" size="sm" className="text-xs">
-                <Bell className="h-3 w-3 mr-1" />
-                Set Reminder
-              </Button>
-              <Button variant="ghost" size="sm" className="text-xs" onClick={() => window.location.reload()}>
-                <Brain className="h-3 w-3 mr-1" />
-                New Consultation
-              </Button>
-            </div>
           </div>
         )}
       </div>
