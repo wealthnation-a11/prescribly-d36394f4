@@ -337,6 +337,35 @@ export type Database = {
         }
         Relationships: []
       }
+      condition_aliases: {
+        Row: {
+          alias: string
+          condition_id: number | null
+          created_at: string | null
+          id: number
+        }
+        Insert: {
+          alias: string
+          condition_id?: number | null
+          created_at?: string | null
+          id?: number
+        }
+        Update: {
+          alias?: string
+          condition_id?: number | null
+          created_at?: string | null
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condition_aliases_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       condition_symptoms: {
         Row: {
           condition_id: number
@@ -376,10 +405,13 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string | null
+          description: string | null
           drug_recommendations: Json | null
           drug_usage: Json | null
           id: number
+          is_rare: boolean | null
           name: string | null
+          prevalence: number | null
           short_description: string | null
           symptom_counts: Json | null
           symptoms: Json | null
@@ -388,10 +420,13 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string | null
+          description?: string | null
           drug_recommendations?: Json | null
           drug_usage?: Json | null
           id: number
+          is_rare?: boolean | null
           name?: string | null
+          prevalence?: number | null
           short_description?: string | null
           symptom_counts?: Json | null
           symptoms?: Json | null
@@ -400,10 +435,13 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string | null
+          description?: string | null
           drug_recommendations?: Json | null
           drug_usage?: Json | null
           id?: number
+          is_rare?: boolean | null
           name?: string | null
+          prevalence?: number | null
           short_description?: string | null
           symptom_counts?: Json | null
           symptoms?: Json | null
@@ -602,6 +640,41 @@ export type Database = {
           years_of_experience?: number | null
         }
         Relationships: []
+      }
+      drug_recommendations: {
+        Row: {
+          condition_id: number | null
+          created_at: string | null
+          dosage: string | null
+          drug_name: string
+          id: number
+          notes: string | null
+        }
+        Insert: {
+          condition_id?: number | null
+          created_at?: string | null
+          dosage?: string | null
+          drug_name: string
+          id?: number
+          notes?: string | null
+        }
+        Update: {
+          condition_id?: number | null
+          created_at?: string | null
+          dosage?: string | null
+          drug_name?: string
+          id?: number
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drug_recommendations_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exchange_rates: {
         Row: {
@@ -1060,6 +1133,7 @@ export type Database = {
           aliases: string[] | null
           category: string | null
           created_at: string
+          description: string | null
           id: string
           name: string
           severity_weight: number | null
@@ -1068,6 +1142,7 @@ export type Database = {
           aliases?: string[] | null
           category?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           name: string
           severity_weight?: number | null
@@ -1076,6 +1151,7 @@ export type Database = {
           aliases?: string[] | null
           category?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           name?: string
           severity_weight?: number | null
