@@ -289,27 +289,36 @@ export type Database = {
       chats: {
         Row: {
           created_at: string
+          encrypted_message: string | null
+          encryption_version: number | null
           file_type: string | null
           file_url: string | null
           id: string
+          key_exchange_data: Json | null
           message: string | null
           recipient_id: string
           sender_id: string
         }
         Insert: {
           created_at?: string
+          encrypted_message?: string | null
+          encryption_version?: number | null
           file_type?: string | null
           file_url?: string | null
           id?: string
+          key_exchange_data?: Json | null
           message?: string | null
           recipient_id: string
           sender_id: string
         }
         Update: {
           created_at?: string
+          encrypted_message?: string | null
+          encryption_version?: number | null
           file_type?: string | null
           file_url?: string | null
           id?: string
+          key_exchange_data?: Json | null
           message?: string | null
           recipient_id?: string
           sender_id?: string
@@ -336,6 +345,35 @@ export type Database = {
           question_text?: string
         }
         Relationships: []
+      }
+      condition_aliases: {
+        Row: {
+          alias: string
+          condition_id: number | null
+          created_at: string | null
+          id: number
+        }
+        Insert: {
+          alias: string
+          condition_id?: number | null
+          created_at?: string | null
+          id?: number
+        }
+        Update: {
+          alias?: string
+          condition_id?: number | null
+          created_at?: string | null
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condition_aliases_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       condition_symptoms: {
         Row: {
@@ -376,10 +414,13 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string | null
+          description: string | null
           drug_recommendations: Json | null
           drug_usage: Json | null
           id: number
+          is_rare: boolean | null
           name: string | null
+          prevalence: number | null
           short_description: string | null
           symptom_counts: Json | null
           symptoms: Json | null
@@ -388,10 +429,13 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string | null
+          description?: string | null
           drug_recommendations?: Json | null
           drug_usage?: Json | null
           id: number
+          is_rare?: boolean | null
           name?: string | null
+          prevalence?: number | null
           short_description?: string | null
           symptom_counts?: Json | null
           symptoms?: Json | null
@@ -400,10 +444,13 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string | null
+          description?: string | null
           drug_recommendations?: Json | null
           drug_usage?: Json | null
           id?: number
+          is_rare?: boolean | null
           name?: string | null
+          prevalence?: number | null
           short_description?: string | null
           symptom_counts?: Json | null
           symptoms?: Json | null
@@ -603,6 +650,71 @@ export type Database = {
         }
         Relationships: []
       }
+      drug_recommendations: {
+        Row: {
+          condition_id: number | null
+          created_at: string | null
+          dosage: string | null
+          drug_name: string
+          id: number
+          notes: string | null
+        }
+        Insert: {
+          condition_id?: number | null
+          created_at?: string | null
+          dosage?: string | null
+          drug_name: string
+          id?: number
+          notes?: string | null
+        }
+        Update: {
+          condition_id?: number | null
+          created_at?: string | null
+          dosage?: string | null
+          drug_name?: string
+          id?: number
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drug_recommendations_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      encrypted_message_audit: {
+        Row: {
+          action: string
+          encrypted_at: string | null
+          encryption_version: number | null
+          id: string
+          record_id: string
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          encrypted_at?: string | null
+          encryption_version?: number | null
+          id?: string
+          record_id: string
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          encrypted_at?: string | null
+          encryption_version?: number | null
+          id?: string
+          record_id?: string
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       exchange_rates: {
         Row: {
           created_at: string
@@ -631,7 +743,10 @@ export type Database = {
         Row: {
           conversation_id: string
           created_at: string
+          encrypted_message_text: string | null
+          encryption_version: number | null
           id: string
+          key_exchange_data: Json | null
           message_text: string
           sender_id: string | null
           sender_type: string
@@ -640,7 +755,10 @@ export type Database = {
         Insert: {
           conversation_id: string
           created_at?: string
+          encrypted_message_text?: string | null
+          encryption_version?: number | null
           id?: string
+          key_exchange_data?: Json | null
           message_text: string
           sender_id?: string | null
           sender_type: string
@@ -649,7 +767,10 @@ export type Database = {
         Update: {
           conversation_id?: string
           created_at?: string
+          encrypted_message_text?: string | null
+          encryption_version?: number | null
           id?: string
+          key_exchange_data?: Json | null
           message_text?: string
           sender_id?: string | null
           sender_type?: string
@@ -1060,6 +1181,7 @@ export type Database = {
           aliases: string[] | null
           category: string | null
           created_at: string
+          description: string | null
           id: string
           name: string
           severity_weight: number | null
@@ -1068,6 +1190,7 @@ export type Database = {
           aliases?: string[] | null
           category?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           name: string
           severity_weight?: number | null
@@ -1076,6 +1199,7 @@ export type Database = {
           aliases?: string[] | null
           category?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           name?: string
           severity_weight?: number | null
@@ -1253,6 +1377,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_encryption_keys: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          key_version: number | null
+          public_key: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_version?: number | null
+          public_key: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_version?: number | null
+          public_key?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_history: {
         Row: {
@@ -1470,6 +1624,10 @@ export type Database = {
       update_user_points: {
         Args: { points_to_add: number; user_uuid: string }
         Returns: undefined
+      }
+      validate_encrypted_content: {
+        Args: { content: string }
+        Returns: boolean
       }
     }
     Enums: {
