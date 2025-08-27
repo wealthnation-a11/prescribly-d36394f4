@@ -105,7 +105,7 @@ const WellnessChecker = () => {
     setTimeout(() => {
       const welcomeMessage: ChatMessage = {
         id: '1',
-        text: "Hi 👋, I'm Prescribly's Advanced Diagnostic Assistant. I use Bayesian analysis to understand your symptoms better.",
+        text: "Hi 👋, I'm Prescribly's Advanced Diagnostic Assistant. Speak to our AI to understand your symptoms better.",
         isBot: true,
         timestamp: new Date(),
         component: 'welcome'
@@ -563,7 +563,7 @@ const WellnessChecker = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                Bayesian AI Diagnostics
+                Prescribly AI Diagnostics
               </h1>
               <p className="text-sm text-muted-foreground">Advanced probability-based health analysis</p>
             </div>
@@ -593,7 +593,7 @@ const WellnessChecker = () => {
             </div>
             <div>
               <h3 className="font-semibold text-primary flex items-center gap-2">
-                Bayesian AI Assistant
+                Prescribly AI Assistant
                 <Badge variant="secondary" className="text-xs">BETA</Badge>
               </h3>
               <p className="text-xs text-muted-foreground">Advanced diagnostic reasoning • Online</p>
