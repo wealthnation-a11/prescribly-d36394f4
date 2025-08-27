@@ -27,9 +27,10 @@ import {
   ArrowLeft,
   Calendar
 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
+import { useEncryption } from '@/hooks/useEncryption';
 
 interface Doctor {
   id: string;
@@ -47,6 +48,9 @@ interface ChatMessage {
   sender_id: string;
   recipient_id: string;
   message?: string | null;
+  encrypted_message?: string | null;
+  encryption_version?: number | null;
+  key_exchange_data?: any | null;
   file_url?: string | null;
   file_type?: 'image' | 'pdf' | 'docx' | 'audio' | null;
   created_at: string;
@@ -65,6 +69,13 @@ export default function Chat() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { logMessageSent } = useActivityLogger();
+  const { 
+    isInitialized, 
+    encryptMessage, 
+    decryptMessage, 
+    isEncrypted, 
+    fetchMultiplePublicKeys 
+  } = useEncryption();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -185,14 +196,35 @@ export default function Chat() {
 
       if (error) throw error;
 
-      const formattedMessages: ChatMessage[] = data?.map(msg => ({
-        ...msg,
-        file_type: msg.file_type as 'image' | 'pdf' | 'docx' | 'audio' | null,
-        sender_name: msg.sender_id === user?.id ? 'You' : selectedDoctor?.first_name || 'Doctor',
-        sender_avatar: msg.sender_id === user?.id ? user?.user_metadata?.avatar_url : selectedDoctor?.avatar_url
-      })) || [];
+      const formattedMessages: ChatMessage[] = await Promise.all(
+        (data || []).map(async (msg) => {
+          let displayMessage = msg.message;
+          
+          // Try to decrypt if message is encrypted
+          if (msg.encrypted_message && isEncrypted(msg.encrypted_message)) {
+            try {
+              displayMessage = await decryptMessage(msg.encrypted_message);
+            } catch (error) {
+              console.error('Failed to decrypt message:', error);
+              displayMessage = '[Encrypted message]';
+            }
+          }
+
+          return {
+            ...msg,
+            message: displayMessage,
+            file_type: msg.file_type as 'image' | 'pdf' | 'docx' | 'audio' | null,
+            sender_name: msg.sender_id === user?.id ? 'You' : selectedDoctor?.first_name || 'Doctor',
+            sender_avatar: msg.sender_id === user?.id ? user?.user_metadata?.avatar_url : selectedDoctor?.avatar_url
+          };
+        })
+      );
 
       setMessages(formattedMessages);
+      
+      // Fetch public keys for all participants for future messages
+      const participantIds = Array.from(new Set([doctorId, user?.id].filter(Boolean))) as string[];
+      await fetchMultiplePublicKeys(participantIds);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -213,17 +245,38 @@ export default function Chat() {
         },
         (payload) => {
           const newMessage = payload.new as ChatMessage;
-          newMessage.sender_name = newMessage.sender_id === user.id ? 'You' : selectedDoctor?.first_name || 'Doctor';
-          newMessage.sender_avatar = newMessage.sender_id === user.id ? user?.user_metadata?.avatar_url : selectedDoctor?.avatar_url;
           
-          setMessages(prev => [...prev, newMessage]);
-          
-          if (newMessage.sender_id !== user.id) {
-            toast({
-              title: 'New Message',
-              description: `Message from Dr. ${selectedDoctor?.first_name}`,
-            });
-          }
+          // Decrypt incoming message if needed
+          const handleIncomingMessage = async () => {
+            let displayMessage = newMessage.message;
+            
+            if (newMessage.encrypted_message && isEncrypted(newMessage.encrypted_message)) {
+              try {
+                displayMessage = await decryptMessage(newMessage.encrypted_message);
+              } catch (error) {
+                console.error('Failed to decrypt incoming message:', error);
+                displayMessage = '[Encrypted message]';
+              }
+            }
+
+            const processedMessage = {
+              ...newMessage,
+              message: displayMessage,
+              sender_name: newMessage.sender_id === user.id ? 'You' : selectedDoctor?.first_name || 'Doctor',
+              sender_avatar: newMessage.sender_id === user.id ? user?.user_metadata?.avatar_url : selectedDoctor?.avatar_url
+            };
+
+            setMessages(prev => [...prev, processedMessage]);
+            
+            if (newMessage.sender_id !== user.id) {
+              toast({
+                title: 'New Message',
+                description: `Message from Dr. ${selectedDoctor?.first_name}`,
+              });
+            }
+          };
+
+          handleIncomingMessage();
         }
       )
       .subscribe();
@@ -240,14 +293,36 @@ export default function Chat() {
     setIsTyping(true);
 
     try {
+      const messageText = messageContent || newMessage.trim();
+      let encryptedMessage = null;
+      let plainMessage = null;
+
+      // Try to encrypt the message if encryption is available
+      if (messageText && isInitialized) {
+        try {
+          encryptedMessage = await encryptMessage(messageText, selectedDoctor.user_id);
+          if (!encryptedMessage) {
+            // Fallback to plaintext if encryption fails
+            plainMessage = messageText;
+          }
+        } catch (error) {
+          console.warn('Encryption failed, sending as plaintext:', error);
+          plainMessage = messageText;
+        }
+      } else {
+        plainMessage = messageText;
+      }
+
       const { error } = await supabase
         .from('chats')
         .insert({
           sender_id: user.id,
           recipient_id: selectedDoctor.user_id,
-          message: messageContent || newMessage.trim() || undefined,
+          message: plainMessage || undefined,
+          encrypted_message: encryptedMessage || undefined,
           file_url: fileUrl,
-          file_type: fileType as any
+          file_type: fileType as any,
+          encryption_version: encryptedMessage ? 1 : undefined
         });
 
       if (error) throw error;
@@ -484,7 +559,19 @@ export default function Chat() {
               )}
             </div>
           ) : (
-            <p className="body-medium">{message.message}</p>
+            <div className="space-y-1">
+              <p className="body-medium">{message.message}</p>
+              {isInitialized && (
+                <div className="flex items-center gap-1 opacity-60">
+                  <div className={`w-2 h-2 rounded-full ${
+                    message.encrypted_message ? 'bg-green-400' : 'bg-yellow-400'
+                  }`} />
+                  <span className="text-xs">
+                    {message.encrypted_message ? 'Encrypted' : 'Unencrypted'}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
           <p className={`body-small mt-1 ${
             isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'

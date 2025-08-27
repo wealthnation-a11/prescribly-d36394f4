@@ -24,7 +24,8 @@ import {
   Pause,
   Calendar,
 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { useEncryption } from '@/hooks/useEncryption';
 
 interface PatientProfile {
   user_id: string;
@@ -39,6 +40,9 @@ interface ChatMessage {
   sender_id: string;
   recipient_id: string;
   message?: string | null;
+  encrypted_message?: string | null;
+  encryption_version?: number | null;
+  key_exchange_data?: any | null;
   file_url?: string | null;
   file_type?: "image" | "pdf" | "docx" | "audio" | null;
   created_at: string;
@@ -47,6 +51,13 @@ interface ChatMessage {
 export const DoctorMessages = () => {
   const { user } = useAuth();
   const { logMessageSent } = useActivityLogger();
+  const { 
+    isInitialized, 
+    encryptMessage, 
+    decryptMessage, 
+    isEncrypted, 
+    fetchMultiplePublicKeys 
+  } = useEncryption();
 
   const [patients, setPatients] = useState<PatientProfile[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<PatientProfile | null>(null);
@@ -168,7 +179,34 @@ export const DoctorMessages = () => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setMessages((data || []) as ChatMessage[]);
+
+      const formattedMessages: ChatMessage[] = await Promise.all(
+        (data || []).map(async (msg) => {
+          let displayMessage = msg.message;
+          
+          // Try to decrypt if message is encrypted
+          if (msg.encrypted_message && isEncrypted(msg.encrypted_message)) {
+            try {
+              displayMessage = await decryptMessage(msg.encrypted_message);
+            } catch (error) {
+              console.error('Failed to decrypt message:', error);
+              displayMessage = '[Encrypted message]';
+            }
+          }
+
+          return {
+            ...msg,
+            message: displayMessage,
+            file_type: msg.file_type as "image" | "pdf" | "docx" | "audio" | null
+          };
+        })
+      );
+
+      setMessages(formattedMessages);
+      
+      // Fetch public keys for all participants for future messages
+      const participantIds = Array.from(new Set([patientUserId, user?.id].filter(Boolean))) as string[];
+      await fetchMultiplePublicKeys(participantIds);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
@@ -188,11 +226,33 @@ export const DoctorMessages = () => {
           filter: `or(and(sender_id.eq.${user.id},recipient_id.eq.${patientUserId}),and(sender_id.eq.${patientUserId},recipient_id.eq.${user.id}))`,
         },
         (payload) => {
-          const newMsg = payload.new as ChatMessage;
-          setMessages((prev) => [...prev, newMsg]);
-          if (newMsg.sender_id !== user.id) {
-            toast({ title: "New Message", description: "Message from patient" });
-          }
+          const handleIncomingMessage = async () => {
+            const newMsg = payload.new as ChatMessage;
+            let displayMessage = newMsg.message;
+            
+            // Try to decrypt if message is encrypted
+            if (newMsg.encrypted_message && isEncrypted(newMsg.encrypted_message)) {
+              try {
+                displayMessage = await decryptMessage(newMsg.encrypted_message);
+              } catch (error) {
+                console.error('Failed to decrypt incoming message:', error);
+                displayMessage = '[Encrypted message]';
+              }
+            }
+
+            const processedMessage = {
+              ...newMsg,
+              message: displayMessage
+            };
+
+            setMessages((prev) => [...prev, processedMessage]);
+            
+            if (newMsg.sender_id !== user.id) {
+              toast({ title: "New Message", description: "Message from patient" });
+            }
+          };
+
+          handleIncomingMessage();
         }
       )
       .subscribe();
@@ -212,13 +272,36 @@ export const DoctorMessages = () => {
     setIsLoading(true);
     setIsTyping(true);
     try {
+      const messageText = messageContent || newMessage.trim();
+      let encryptedMessage = null;
+      let plainMessage = null;
+
+      // Try to encrypt the message if encryption is available
+      if (messageText && isInitialized) {
+        try {
+          encryptedMessage = await encryptMessage(messageText, selectedPatient.user_id);
+          if (!encryptedMessage) {
+            // Fallback to plaintext if encryption fails
+            plainMessage = messageText;
+          }
+        } catch (error) {
+          console.warn('Encryption failed, sending as plaintext:', error);
+          plainMessage = messageText;
+        }
+      } else {
+        plainMessage = messageText;
+      }
+
       const { error } = await supabase.from("chats").insert({
         sender_id: user.id,
         recipient_id: selectedPatient.user_id,
-        message: messageContent || newMessage.trim() || undefined,
+        message: plainMessage || undefined,
+        encrypted_message: encryptedMessage || undefined,
         file_url: fileUrl,
         file_type: fileType as any,
+        encryption_version: encryptedMessage ? 1 : undefined
       });
+      
       if (error) throw error;
       
       // Log the message activity
@@ -365,7 +448,19 @@ export const DoctorMessages = () => {
               {m.message && <p className="text-sm">{m.message}</p>}
             </div>
           ) : (
-            <p className="text-sm">{m.message}</p>
+            <div className="space-y-1">
+              <p className="text-sm">{m.message}</p>
+              {isInitialized && (
+                <div className="flex items-center gap-1 opacity-60">
+                  <div className={`w-2 h-2 rounded-full ${
+                    m.encrypted_message ? 'bg-green-400' : 'bg-yellow-400'
+                  }`} />
+                  <span className="text-xs">
+                    {m.encrypted_message ? 'Encrypted' : 'Unencrypted'}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
           <p className={`text-xs mt-1 ${isOwn ? "text-white/70" : "text-slate-500"}`}>{formatTime(m.created_at)}</p>
         </div>
