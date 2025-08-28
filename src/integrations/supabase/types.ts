@@ -1074,36 +1074,6 @@ export type Database = {
         }
         Relationships: []
       }
-      step_logs: {
-        Row: {
-          completed: boolean
-          created_at: string | null
-          date: string
-          id: number
-          steps: number
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          completed?: boolean
-          created_at?: string | null
-          date?: string
-          id?: never
-          steps?: number
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          completed?: boolean
-          created_at?: string | null
-          date?: string
-          id?: never
-          steps?: number
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       support_tickets: {
         Row: {
           assigned_to: string | null
@@ -1255,6 +1225,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_achievements: {
+        Row: {
+          badge_description: string | null
+          badge_name: string
+          badge_type: string
+          created_at: string
+          date_awarded: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_description?: string | null
+          badge_name: string
+          badge_type: string
+          created_at?: string
+          date_awarded?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_description?: string | null
+          badge_name?: string
+          badge_type?: string
+          created_at?: string
+          date_awarded?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_activities: {
         Row: {
@@ -1501,6 +1501,93 @@ export type Database = {
         }
         Relationships: []
       }
+      user_routes: {
+        Row: {
+          activity_id: string | null
+          activity_type: string
+          avg_pace_min_per_km: number | null
+          calories_burned: number | null
+          created_at: string
+          duration_minutes: number
+          end_time: string | null
+          id: string
+          route_data: Json | null
+          start_time: string
+          steps_during_activity: number | null
+          total_distance_km: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_id?: string | null
+          activity_type?: string
+          avg_pace_min_per_km?: number | null
+          calories_burned?: number | null
+          created_at?: string
+          duration_minutes?: number
+          end_time?: string | null
+          id?: string
+          route_data?: Json | null
+          start_time?: string
+          steps_during_activity?: number | null
+          total_distance_km?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string | null
+          activity_type?: string
+          avg_pace_min_per_km?: number | null
+          calories_burned?: number | null
+          created_at?: string
+          duration_minutes?: number
+          end_time?: string | null
+          id?: string
+          route_data?: Json | null
+          start_time?: string
+          steps_during_activity?: number | null
+          total_distance_km?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_steps: {
+        Row: {
+          calories_burned: number | null
+          created_at: string
+          date: string
+          distance_km: number | null
+          goal_reached: boolean
+          id: string
+          step_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories_burned?: number | null
+          created_at?: string
+          date?: string
+          distance_km?: number | null
+          goal_reached?: boolean
+          id?: string
+          step_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories_burned?: number | null
+          created_at?: string
+          date?: string
+          distance_km?: number | null
+          goal_reached?: boolean
+          id?: string
+          step_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wellness_check_results: {
         Row: {
           created_at: string
@@ -1586,6 +1673,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_and_award_step_achievements: {
+        Args: { user_uuid: string }
+        Returns: undefined
+      }
       get_challenge_leaderboard: {
         Args: { challenge_uuid: string }
         Returns: {

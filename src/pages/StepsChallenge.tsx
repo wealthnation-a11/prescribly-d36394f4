@@ -2,25 +2,24 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Plus, Trophy, Footprints } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Activity, Map, Trophy, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import PedometerDisplay from "@/components/PedometerDisplay";
+import GPSTracker from "@/components/GPSTracker";
+import ActivityHistory from "@/components/ActivityHistory";
+import AchievementDisplay from "@/components/AchievementDisplay";
+import MotionSensor from "@/components/MotionSensor";
 
-interface StepLog {
-  id: number;
-  date: string;
-  steps: number;
-  completed: boolean;
-}
-
-interface Badge {
+interface UserSteps {
   id: string;
-  badge_name: string;
-  badge_description: string;
-  earned_at: string;
+  date: string;
+  step_count: number;
+  calories_burned: number;
+  distance_km: number;
+  goal_reached: boolean;
 }
 
 export default function StepsChallenge() {
@@ -28,17 +27,16 @@ export default function StepsChallenge() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [todaySteps, setTodaySteps] = useState(0);
-  const [weeklyLogs, setWeeklyLogs] = useState<StepLog[]>([]);
-  const [badges, setBadges] = useState<Badge[]>([]);
+  const [todayData, setTodayData] = useState<UserSteps | null>(null);
+  const [weeklyStreak, setWeeklyStreak] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [motionActive, setMotionActive] = useState(false);
 
   const DAILY_GOAL = 5000;
-  const progressPercentage = Math.min((todaySteps / DAILY_GOAL) * 100, 100);
 
   useEffect(() => {
     if (user) {
       fetchStepData();
-      fetchBadges();
     }
   }, [user]);
 
@@ -47,13 +45,10 @@ export default function StepsChallenge() {
 
     try {
       const today = new Date().toISOString().split('T')[0];
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 6);
-      const weekAgoStr = weekAgo.toISOString().split('T')[0];
 
-      // Get today's steps
+      // Get or create today's step data
       const { data: todayLog, error: todayError } = await supabase
-        .from('step_logs')
+        .from('user_steps')
         .select('*')
         .eq('user_id', user.id)
         .eq('date', today)
@@ -64,36 +59,30 @@ export default function StepsChallenge() {
       }
 
       if (todayLog) {
-        setTodaySteps(todayLog.steps);
+        setTodayData(todayLog);
+        setTodaySteps(todayLog.step_count);
       } else {
         // Create today's log if it doesn't exist
         const { data: newLog, error: createError } = await supabase
-          .from('step_logs')
+          .from('user_steps')
           .insert({
             user_id: user.id,
             date: today,
-            steps: 0,
-            completed: false
+            step_count: 0,
+            calories_burned: 0,
+            distance_km: 0,
+            goal_reached: false
           })
           .select()
           .single();
 
         if (createError) throw createError;
+        setTodayData(newLog);
         setTodaySteps(0);
       }
 
-      // Get weekly logs for streak display
-      const { data: weekLogs, error: weekError } = await supabase
-        .from('step_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('date', weekAgoStr)
-        .lte('date', today)
-        .order('date', { ascending: true });
-
-      if (weekError) throw weekError;
-
-      setWeeklyLogs(weekLogs || []);
+      // Calculate current streak
+      await calculateStreak();
     } catch (error) {
       console.error('Error fetching step data:', error);
       toast({
@@ -106,53 +95,81 @@ export default function StepsChallenge() {
     }
   };
 
-  const fetchBadges = async () => {
+  const calculateStreak = async () => {
     if (!user) return;
 
     try {
-      const { data: userBadges, error } = await supabase
-        .from('user_badges')
-        .select('*')
+      const { data: steps, error } = await supabase
+        .from('user_steps')
+        .select('date, goal_reached')
         .eq('user_id', user.id)
-        .eq('badge_name', 'Step Master');
+        .order('date', { ascending: false });
 
       if (error) throw error;
-      setBadges(userBadges || []);
+
+      let streak = 0;
+      for (const step of steps || []) {
+        if (step.goal_reached) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      setWeeklyStreak(streak);
     } catch (error) {
-      console.error('Error fetching badges:', error);
+      console.error('Error calculating streak:', error);
     }
   };
 
-  const addSteps = async (stepCount: number) => {
-    if (!user) return;
+  const handleStepDetected = async () => {
+    const newStepCount = todaySteps + 1;
+    await updateStepCount(newStepCount);
+  };
+
+  const updateStepCount = async (stepCount: number) => {
+    if (!user || !todayData) return;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const newStepCount = todaySteps + stepCount;
-      const isCompleted = newStepCount >= DAILY_GOAL;
+      const goalReached = stepCount >= DAILY_GOAL;
+      const distance = stepCount * 0.0008; // Rough conversion: 1 step ≈ 0.8m
+      const calories = stepCount * 0.04; // Rough conversion: 1 step ≈ 0.04 calories
 
       const { error } = await supabase
-        .from('step_logs')
+        .from('user_steps')
         .update({
-          steps: newStepCount,
-          completed: isCompleted
+          step_count: stepCount,
+          calories_burned: calories,
+          distance_km: distance,
+          goal_reached: goalReached
         })
-        .eq('user_id', user.id)
-        .eq('date', today);
+        .eq('id', todayData.id);
 
       if (error) throw error;
 
-      setTodaySteps(newStepCount);
-      
-      if (isCompleted && todaySteps < DAILY_GOAL) {
+      setTodaySteps(stepCount);
+      setTodayData(prev => prev ? {
+        ...prev,
+        step_count: stepCount,
+        calories_burned: calories,
+        distance_km: distance,
+        goal_reached: goalReached
+      } : null);
+
+      // Check for goal achievement
+      if (goalReached && todaySteps < DAILY_GOAL) {
         toast({
           title: "Goal Achieved! 🎉",
           description: "You've reached your daily step goal!",
         });
+
+        // Award achievements
+        await supabase.rpc('check_and_award_step_achievements', {
+          user_uuid: user.id
+        });
       }
 
-      // Refresh weekly data to update streak
-      fetchStepData();
+      // Recalculate streak
+      await calculateStreak();
     } catch (error) {
       console.error('Error updating steps:', error);
       toast({
@@ -163,19 +180,8 @@ export default function StepsChallenge() {
     }
   };
 
-  const getStreakCount = () => {
-    let streak = 0;
-    const sortedLogs = [...weeklyLogs].reverse(); // Most recent first
-    
-    for (const log of sortedLogs) {
-      if (log.completed) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-    
-    return streak;
+  const handleActivityComplete = () => {
+    fetchStepData(); // Refresh data after GPS activity
   };
 
   if (loading) {
@@ -183,9 +189,9 @@ export default function StepsChallenge() {
       <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-pulse">
-            <Footprints className="h-12 w-12 mx-auto mb-4 text-primary" />
+            <Activity className="h-12 w-12 mx-auto mb-4 text-primary" />
           </div>
-          <p className="text-muted-foreground">Loading your step progress...</p>
+          <p className="text-muted-foreground">Loading your activity tracker...</p>
         </div>
       </div>
     );
@@ -193,7 +199,7 @@ export default function StepsChallenge() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background">
-      <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button
@@ -205,156 +211,126 @@ export default function StepsChallenge() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Step Challenge</h1>
-            <p className="text-sm text-muted-foreground">Walk 5,000 steps daily</p>
+            <h1 className="text-2xl font-bold text-foreground">Walk 5,000 Steps Daily</h1>
+            <p className="text-sm text-muted-foreground">Pedometer + GPS Activity Tracker</p>
           </div>
         </div>
 
-        {/* Daily Progress Ring */}
-        <Card className="mb-6 border-primary/20 bg-card/50 backdrop-blur-sm">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="relative w-48 h-48">
-                <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    className="text-muted/20"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeDasharray={`${progressPercentage * 2.51} 251`}
-                    className="transition-all duration-300 ease-out"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <Footprints className="h-8 w-8 text-primary mb-2" />
-                  <div className="text-3xl font-bold text-foreground">{todaySteps.toLocaleString()}</div>
-                  <div className="text-sm text-muted-foreground">/ {DAILY_GOAL.toLocaleString()}</div>
-                  <div className="text-lg font-semibold text-primary mt-1">{Math.round(progressPercentage)}%</div>
-                </div>
-              </div>
+        {/* Motion Sensor Integration */}
+        <MotionSensor 
+          onStepDetected={handleStepDetected}
+          isActive={motionActive}
+        />
 
-              <div className="grid grid-cols-3 gap-2 w-full">
-                <Button
-                  onClick={() => addSteps(100)}
-                  className="bg-primary hover:bg-primary/90"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  100
-                </Button>
-                <Button
-                  onClick={() => addSteps(500)}
-                  className="bg-primary hover:bg-primary/90"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  500
-                </Button>
-                <Button
-                  onClick={() => addSteps(1000)}
-                  className="bg-primary hover:bg-primary/90"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  1K
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tabs for different features */}
+        <Tabs defaultValue="pedometer" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="pedometer" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Steps</span>
+            </TabsTrigger>
+            <TabsTrigger value="gps" className="flex items-center gap-2">
+              <Map className="h-4 w-4" />
+              <span className="hidden sm:inline">GPS</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              <span className="hidden sm:inline">Awards</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">History</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* 7-Day Streak Tracker */}
-        <Card className="mb-6 border-primary/20 bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-amber-500" />
-              7-Day Streak
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Current Streak</span>
-                <span className="text-2xl font-bold text-primary">{getStreakCount()}/7</span>
-              </div>
-              
-              <Progress value={(getStreakCount() / 7) * 100} className="h-3" />
-              
-              <div className="grid grid-cols-7 gap-1">
-                {Array.from({ length: 7 }, (_, index) => {
-                  const dayLog = weeklyLogs[index];
-                  const isCompleted = dayLog?.completed || false;
-                  
-                  return (
-                    <div
-                      key={index}
-                      className={`aspect-square rounded-lg border-2 flex items-center justify-center text-xs transition-colors ${
-                        isCompleted
-                          ? "bg-primary border-primary text-primary-foreground"
-                          : "bg-muted border-muted-foreground/20 text-muted-foreground"
-                      }`}
-                    >
-                      <Footprints className="h-3 w-3" />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Pedometer Tab */}
+          <TabsContent value="pedometer" className="space-y-6">
+            <PedometerDisplay
+              steps={todaySteps}
+              goal={DAILY_GOAL}
+              calories={todayData?.calories_burned || 0}
+              distance={todayData?.distance_km || 0}
+            />
 
-        {/* Badges Section */}
-        {badges.length > 0 && (
-          <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-amber-500" />
-                Your Badges
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {badges.map((badge) => (
-                  <div key={badge.id} className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 flex items-center justify-center">
-                      <Trophy className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-foreground">{badge.badge_name}</div>
-                      <div className="text-sm text-muted-foreground">{badge.badge_description}</div>
-                    </div>
+            {/* Motion Detection Toggle */}
+            <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-foreground">Auto Step Detection</h3>
+                    <p className="text-sm text-muted-foreground">Use motion sensors to track steps automatically</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                  <Button
+                    onClick={() => setMotionActive(!motionActive)}
+                    variant={motionActive ? "default" : "outline"}
+                    size="sm"
+                  >
+                    {motionActive ? "ON" : "OFF"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-        {getStreakCount() === 7 && badges.length === 0 && (
-          <Card className="border-amber-500/20 bg-amber-50 dark:bg-amber-950/10">
-            <CardContent className="pt-6 text-center">
-              <Trophy className="h-12 w-12 mx-auto mb-4 text-amber-500" />
-              <h3 className="text-lg font-semibold text-amber-700 dark:text-amber-300 mb-2">
-                Streak Complete!
-              </h3>
-              <p className="text-sm text-amber-600 dark:text-amber-400">
-                Your Step Master badge will be awarded at midnight!
-              </p>
-            </CardContent>
-          </Card>
-        )}
+            {/* Quick Add Steps */}
+            <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Manual Step Entry</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-3">
+                  <Button
+                    onClick={() => updateStepCount(todaySteps + 100)}
+                    variant="outline"
+                    className="h-16"
+                  >
+                    <div className="text-center">
+                      <div className="text-lg font-bold">+100</div>
+                      <div className="text-xs">Steps</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => updateStepCount(todaySteps + 500)}
+                    variant="outline"
+                    className="h-16"
+                  >
+                    <div className="text-center">
+                      <div className="text-lg font-bold">+500</div>
+                      <div className="text-xs">Steps</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => updateStepCount(todaySteps + 1000)}
+                    variant="outline"
+                    className="h-16"
+                  >
+                    <div className="text-center">
+                      <div className="text-lg font-bold">+1K</div>
+                      <div className="text-xs">Steps</div>
+                    </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* GPS Tracking Tab */}
+          <TabsContent value="gps" className="space-y-6">
+            <GPSTracker onActivityComplete={handleActivityComplete} />
+          </TabsContent>
+
+          {/* Achievements Tab */}
+          <TabsContent value="achievements" className="space-y-6">
+            <AchievementDisplay 
+              currentStreak={weeklyStreak}
+              todayGoalReached={todayData?.goal_reached || false}
+            />
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-6">
+            <ActivityHistory />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
