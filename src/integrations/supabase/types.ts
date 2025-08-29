@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          payload: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          payload?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       api_rate_limits: {
         Row: {
           created_at: string
@@ -1410,45 +1434,41 @@ export type Database = {
       }
       user_history: {
         Row: {
-          bayesian_results: Json | null
-          confirmed_by_doctor: boolean | null
-          confirmed_condition: string | null
-          created_at: string
+          confirmed_condition: number | null
+          created_at: string | null
           id: string
-          session_id: string
-          symptoms_parsed: string[] | null
-          symptoms_reported: string[] | null
-          updated_at: string
-          user_demographics: Json | null
-          user_id: string
+          input_text: string | null
+          parsed_symptoms: Json | null
+          suggested_conditions: Json | null
+          user_id: string | null
         }
         Insert: {
-          bayesian_results?: Json | null
-          confirmed_by_doctor?: boolean | null
-          confirmed_condition?: string | null
-          created_at?: string
+          confirmed_condition?: number | null
+          created_at?: string | null
           id?: string
-          session_id: string
-          symptoms_parsed?: string[] | null
-          symptoms_reported?: string[] | null
-          updated_at?: string
-          user_demographics?: Json | null
-          user_id: string
+          input_text?: string | null
+          parsed_symptoms?: Json | null
+          suggested_conditions?: Json | null
+          user_id?: string | null
         }
         Update: {
-          bayesian_results?: Json | null
-          confirmed_by_doctor?: boolean | null
-          confirmed_condition?: string | null
-          created_at?: string
+          confirmed_condition?: number | null
+          created_at?: string | null
           id?: string
-          session_id?: string
-          symptoms_parsed?: string[] | null
-          symptoms_reported?: string[] | null
-          updated_at?: string
-          user_demographics?: Json | null
-          user_id?: string
+          input_text?: string | null
+          parsed_symptoms?: Json | null
+          suggested_conditions?: Json | null
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_history_confirmed_condition_fkey"
+            columns: ["confirmed_condition"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_hydration_log: {
         Row: {
