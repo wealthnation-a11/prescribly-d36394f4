@@ -232,6 +232,9 @@ const WellnessChecker = () => {
     } else if (currentQuestion.id === 'gender') {
       setUserProfile(prev => ({ ...prev, gender: value }));
       setCurrentStep(3);
+      // Clear the current question before proceeding
+      setCurrentQuestion(null);
+      
       if (freeTextMode) {
         startFreeTextCollection();
       } else {
@@ -240,6 +243,8 @@ const WellnessChecker = () => {
     } else if (currentQuestion.id.startsWith('question_')) {
       // Store the answer and continue with adaptive questioning
       setAnswers(prev => [...prev, value]);
+      // Clear the current question before continuing
+      setCurrentQuestion(null);
       continueSymptomQuestions();
     }
   };
@@ -300,13 +305,21 @@ const WellnessChecker = () => {
       
     } catch (error: any) {
       console.error('Diagnosis error:', error);
-      const errorMessage: ChatMessage = {
-        id: `error-${Date.now()}`,
-        text: "I'm having trouble processing your symptoms. Please try again or consult with a doctor directly.",
+      // Instead of showing error, redirect to guided questions
+      const redirectMessage: ChatMessage = {
+        id: `redirect-${Date.now()}`,
+        text: "Let me try a different approach. I'll ask you some specific questions to better understand your symptoms.",
         isBot: true,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, redirectMessage]);
+      
+      // Start guided questions after demographics if not already collected
+      if (!userProfile.age || !userProfile.gender) {
+        setTimeout(() => startDemographicsCollection(), 1000);
+      } else {
+        setTimeout(() => startSymptomCollection(), 1000);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -371,17 +384,22 @@ const WellnessChecker = () => {
     }
 
     const questionData = diagnosticQuestions[currentQuestionIndex];
-    const question: AdaptiveQuestion = {
-      id: `question_${questionData.id}`,
-      text: questionData.question_text,
-      options: [
-        { value: 'yes', label: 'Yes' },
-        { value: 'no', label: 'No' },
-        { value: 'sometimes', label: 'Sometimes' }
-      ]
-    };
-    setCurrentQuestion(question);
-    setCurrentStep(5 + currentQuestionIndex);
+    if (questionData) {
+      const question: AdaptiveQuestion = {
+        id: `question_${questionData.id}`,
+        text: questionData.question_text,
+        options: [
+          { value: 'yes', label: 'Yes' },
+          { value: 'no', label: 'No' },
+          { value: 'sometimes', label: 'Sometimes' }
+        ]
+      };
+      setCurrentQuestion(question);
+      setCurrentStep(5 + currentQuestionIndex);
+    } else {
+      // No questions available, proceed to diagnosis
+      performDiagnosis();
+    }
   };
 
   // Continue with more questions

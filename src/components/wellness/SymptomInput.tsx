@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Send, 
   Mic, 
@@ -27,12 +28,42 @@ export const SymptomInput: React.FC<SymptomInputProps> = ({
   const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Common symptoms for quick selection
-  const commonSymptoms = [
+  // Symptoms fetched from Supabase
+  const [availableSymptoms, setAvailableSymptoms] = useState<string[]>([]);
+  
+  // Default symptoms as fallback
+  const defaultSymptoms = [
     'Headache', 'Fever', 'Fatigue', 'Cough', 'Nausea', 
     'Dizziness', 'Chest pain', 'Abdominal pain', 'Joint pain', 
     'Shortness of breath', 'Sore throat', 'Back pain'
   ];
+
+  // Fetch symptoms from Supabase
+  useEffect(() => {
+    const fetchSymptoms = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('symptoms')
+          .select('name')
+          .limit(20);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setAvailableSymptoms(data.map(symptom => symptom.name));
+        } else {
+          setAvailableSymptoms(defaultSymptoms);
+        }
+      } catch (error) {
+        console.error('Error fetching symptoms:', error);
+        setAvailableSymptoms(defaultSymptoms);
+      }
+    };
+
+    fetchSymptoms();
+  }, []);
+
+  const symptomsToShow = availableSymptoms.length > 0 ? availableSymptoms : defaultSymptoms;
 
   const handleSubmit = () => {
     if (!input.trim() && selectedSymptoms.length === 0) return;
@@ -143,7 +174,7 @@ export const SymptomInput: React.FC<SymptomInputProps> = ({
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {commonSymptoms.map((symptom) => (
+              {symptomsToShow.map((symptom) => (
                 <Badge
                   key={symptom}
                   variant={selectedSymptoms.includes(symptom) ? "default" : "outline"}
