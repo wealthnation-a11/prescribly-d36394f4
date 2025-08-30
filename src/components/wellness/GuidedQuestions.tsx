@@ -39,21 +39,33 @@ const questions: Question[] = [
     options: ['Male', 'Female', 'Other', 'Prefer not to say']
   },
   {
-    id: 'main_symptom',
-    type: 'text',
-    question: 'What is your main symptom or concern?'
-  },
-  {
     id: 'duration',
     type: 'select',
-    question: 'How long have you been experiencing this?',
-    options: ['Less than 1 day', '1-3 days', '3-7 days', '1-2 weeks', 'More than 2 weeks']
+    question: 'How long have you been experiencing your symptoms?',
+    options: ['Hours', 'Days', 'Weeks', 'Months']
   },
   {
     id: 'severity',
     type: 'select',
-    question: 'How would you rate the severity?',
+    question: 'How would you rate the severity of your symptoms?',
     options: ['Mild', 'Moderate', 'Severe', 'Very severe']
+  },
+  {
+    id: 'location',
+    type: 'select',
+    question: 'Where are you experiencing symptoms?',
+    options: ['Head/Face', 'Chest', 'Stomach/Abdomen', 'Arms/Legs', 'Whole body', 'Other']
+  },
+  {
+    id: 'risk_factors',
+    type: 'select',
+    question: 'Do any of these apply to you?',
+    options: ['Recent travel', 'Chronic illness', 'Taking medications', 'Smoker', 'Pregnant', 'None of these']
+  },
+  {
+    id: 'main_symptom',
+    type: 'text',
+    question: 'Please describe your main symptom in detail'
   }
 ];
 

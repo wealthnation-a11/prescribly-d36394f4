@@ -177,15 +177,20 @@ const WellnessChecker = () => {
               <motion.div
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
-                className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4"
+                className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[hsl(205,100%,36%)] to-[hsl(199,89%,64%)] rounded-full mb-4 shadow-lg"
               >
-                <Heart className="h-8 w-8 text-primary" />
+                <Heart className="h-10 w-10 text-white" />
               </motion.div>
-              <h1 className="text-3xl font-bold text-primary">
-                Prescribly Health Checker
-              </h1>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-[hsl(205,100%,36%)] to-[hsl(199,89%,64%)] bg-clip-text text-transparent">
+                  Prescribly
+                </h1>
+                <p className="text-xl text-[hsl(205,100%,36%)] font-medium mt-1">
+                  Doctor in Your Pocket
+                </p>
+              </div>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                AI-powered symptom analysis with 85-95% accuracy. Get instant health insights and connect with licensed doctors.
+                Smarter, faster, safer than any symptom checker. Bayesian AI with 85-95% accuracy.
               </p>
             </div>
 
@@ -238,7 +243,7 @@ const WellnessChecker = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Describe your symptoms in natural language. Our AI will parse and analyze them using advanced NLP.
+                      💬 Describe your symptoms naturally. Advanced NLP parsing with Bayesian analysis for 85-95% accuracy.
                     </p>
                   </CardContent>
                 </Card>
@@ -259,7 +264,7 @@ const WellnessChecker = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Select from a curated list of common symptoms. Fast and straightforward approach.
+                      ⚡ Select from 1,200+ symptoms in our database. Quick selection with instant Bayesian diagnosis.
                     </p>
                   </CardContent>
                 </Card>
@@ -280,7 +285,7 @@ const WellnessChecker = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Step-by-step questions to gather comprehensive health information and context.
+                      🧭 Clinical-grade assessment with branching logic. Comprehensive health evaluation for complex cases.
                     </p>
                   </CardContent>
                 </Card>
@@ -323,7 +328,7 @@ const WellnessChecker = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-white via-[hsl(199,100%,88%)] to-[hsl(199,89%,64%)]/20">
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <Button 

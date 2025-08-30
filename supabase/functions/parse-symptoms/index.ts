@@ -61,8 +61,7 @@ serve(async (req) => {
     // Get condition aliases for fuzzy matching
     const { data: aliases, error: aliasesError } = await supabase
       .from('condition_aliases')
-      .select('alias, condition_id')
-      .join('conditions', 'conditions.id', 'condition_aliases.condition_id');
+      .select('alias, condition_id');
 
     console.log('Found symptoms:', symptoms?.length || 0);
 
