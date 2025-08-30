@@ -35,8 +35,7 @@ interface DiagnosisData {
 const WellnessChecker = () => {
   usePageSEO({
     title: 'AI Health Checker - Prescribly | Instant Symptom Analysis',
-    description: 'Get AI-powered health insights in seconds. Describe symptoms, receive Bayesian diagnosis with 85-95% accuracy, and connect with licensed doctors.',
-    keywords: 'AI health checker, symptom analysis, medical diagnosis, Bayesian AI, health assessment'
+    description: 'Get AI-powered health insights in seconds. Describe symptoms, receive Bayesian diagnosis with 85-95% accuracy, and connect with licensed doctors.'
   });
 
   const { t, currentLanguage } = useLanguage();
