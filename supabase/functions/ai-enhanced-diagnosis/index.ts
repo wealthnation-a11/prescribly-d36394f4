@@ -25,10 +25,22 @@ interface DiagnosisResult {
       dosage: string;
       notes?: string;
     }>;
+    urgencyLevel?: string;
+    recommendations?: string;
   };
   question?: string;
   matches?: any[];
   message?: string;
+}
+
+interface ConditionMatch {
+  id: number;
+  name: string;
+  description: string;
+  prevalence: number;
+  matchScore: number;
+  confidence: number;
+  is_rare: boolean;
 }
 
 serve(async (req) => {
@@ -72,70 +84,143 @@ serve(async (req) => {
     }
 
     const symptomIds = parsedSymptoms.symptoms?.map((s: any) => s.id) || [];
+    const userSymptoms = symptoms.toLowerCase().split(/[,\s]+/).filter(s => s.length > 2);
     
-    // 2. Get Bayesian diagnosis
-    const { data: diagnosisData, error: diagnosisError } = await supabase.functions.invoke('diagnose', {
-      body: { symptomIds, age, gender }
-    });
+    // 2. Get Bayesian diagnosis AND direct condition matching
+    const [bayesianResult, conditionsResult] = await Promise.all([
+      supabase.functions.invoke('diagnose', { body: { symptomIds, age, gender } }),
+      supabase.from('conditions').select('id, name, description, prevalence, is_rare').limit(50)
+    ]);
 
-    if (diagnosisError) {
-      console.error('Error getting diagnosis:', diagnosisError);
-      return new Response(
-        JSON.stringify({ status: 'error', message: 'Failed to get diagnosis' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
+    if (bayesianResult.error) {
+      console.error('Error getting Bayesian diagnosis:', bayesianResult.error);
     }
 
-    const topConditions = diagnosisData.top || [];
-    const topCondition = topConditions[0];
+    if (conditionsResult.error) {
+      console.error('Error fetching conditions:', conditionsResult.error);
+    }
 
-    if (!topCondition || topCondition.probability < 60) {
-      // Need more information - trigger guided questioning
-      const { data: questions } = await supabase
-        .from('diagnostic_questions')
-        .select('question_text')
-        .limit(1);
+    // 3. Hybrid scoring: Combine Bayesian + direct matching
+    const bayesianConditions = bayesianResult.data?.top || [];
+    const allConditions = conditionsResult.data || [];
+    
+    // Create hybrid matches with enhanced confidence scoring
+    const hybridMatches: ConditionMatch[] = allConditions.map(condition => {
+      // Find Bayesian score for this condition
+      const bayesianMatch = bayesianConditions.find(b => b.condition_id === condition.id);
+      const bayesianScore = bayesianMatch?.probability || 0;
+      
+      // Calculate direct text matching score
+      const conditionTerms = [
+        condition.name.toLowerCase(),
+        ...(condition.description?.toLowerCase().split(/\s+/) || [])
+      ];
+      
+      const matchScore = userSymptoms.filter(symptom => 
+        conditionTerms.some(term => 
+          term.includes(symptom) || symptom.includes(term)
+        )
+      ).length;
+      
+      // Hybrid confidence: weighted combination of Bayesian + text matching + prevalence
+      const textMatchWeight = matchScore > 0 ? (matchScore / userSymptoms.length) * 30 : 0;
+      const prevalenceWeight = (condition.prevalence || 0.1) * 10;
+      const confidence = Math.min(95, bayesianScore * 0.7 + textMatchWeight + prevalenceWeight);
+      
+      return {
+        id: condition.id,
+        name: condition.name,
+        description: condition.description,
+        prevalence: condition.prevalence || 0.1,
+        matchScore,
+        confidence,
+        is_rare: condition.is_rare || false
+      };
+    }).sort((a, b) => b.confidence - a.confidence);
+
+    const topMatches = hybridMatches.slice(0, 3);
+    const topCondition = topMatches[0];
+
+    // 4. Intelligent guided questioning based on confidence thresholds
+    if (!topCondition || topCondition.confidence < 70) {
+      // Generate context-aware questions based on top matches
+      let guidedQuestion = 'Can you describe your symptoms in more detail?';
+      
+      if (topMatches.length > 0) {
+        const topConditionName = topMatches[0].name;
+        const relatedSymptoms = await getRelatedSymptoms(supabase, topMatches[0].id);
+        
+        if (relatedSymptoms.length > 0) {
+          const symptomList = relatedSymptoms.slice(0, 3).join(', ');
+          guidedQuestion = `Based on your symptoms, you might have ${topConditionName}. Are you also experiencing: ${symptomList}?`;
+        }
+      }
 
       return new Response(
         JSON.stringify({
           status: 'guided',
-          question: questions?.[0]?.question_text || 'Can you describe your symptoms in more detail?',
-          matches: topConditions
+          question: guidedQuestion,
+          matches: topMatches.map(m => ({
+            name: m.name,
+            confidence: m.confidence,
+            description: m.description
+          }))
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // 3. Get drug recommendation
-    const { data: drugRec, error: drugError } = await supabase.functions.invoke('recommend-drug', {
-      body: { condition_id: topCondition.condition_id }
-    });
+    // 5. Get multiple drug recommendations for top conditions
+    const drugPromises = topMatches.slice(0, 3).map(condition => 
+      supabase.from('drug_recommendations')
+        .select('drug_name, dosage, notes')
+        .eq('condition_id', condition.id)
+        .limit(2)
+    );
+    
+    const drugResults = await Promise.all(drugPromises);
+    const availableDrugs = drugResults.flatMap((result, index) => 
+      (result.data || []).map(drug => ({
+        ...drug,
+        condition_name: topMatches[index].name,
+        condition_id: topMatches[index].id
+      }))
+    );
 
-    if (drugError) {
-      console.error('Error getting drug recommendation:', drugError);
-    }
+    // 6. Enhanced AI validation with comprehensive analysis
+    const aiPrompt = `You are Prescribly's AI Diagnostic Assistant. Analyze this medical case comprehensively:
 
-    // 4. AI validation and enhancement
-    const aiPrompt = `You are Prescribly's AI Diagnostic Assistant. Analyze this medical case:
+PATIENT PROFILE:
+- Symptoms: ${symptoms}
+- Age: ${age || 'Not specified'}
+- Gender: ${gender || 'Not specified'}
+${additionalContext ? `- Additional context: ${additionalContext}` : ''}
 
-User symptoms: ${symptoms}
-${additionalContext ? `Additional context: ${additionalContext}` : ''}
-${age ? `Age: ${age}` : ''}
-${gender ? `Gender: ${gender}` : ''}
+DIAGNOSTIC ANALYSIS:
+Top 3 Potential Conditions:
+${topMatches.map((match, i) => 
+  `${i + 1}. ${match.name} (${match.confidence.toFixed(1)}% confidence)
+     Description: ${match.description}
+     Prevalence: ${(match.prevalence * 100).toFixed(2)}%
+     Rare condition: ${match.is_rare ? 'Yes' : 'No'}`
+).join('\n')}
 
-Top diagnosis: ${topCondition.name} (${topCondition.probability.toFixed(1)}% confidence)
-Description: ${topCondition.description}
-${drugRec ? `Recommended drug: ${drugRec.drug_name} - ${drugRec.dosage}` : ''}
+AVAILABLE MEDICATIONS:
+${availableDrugs.map(drug => 
+  `- ${drug.drug_name} (${drug.dosage}) for ${drug.condition_name}
+    Notes: ${drug.notes || 'Standard treatment'}`
+).join('\n')}
 
-Validate this diagnosis and provide a refined assessment. Return ONLY valid JSON:
+TASK: Validate the diagnosis and provide comprehensive medical guidance. Return ONLY valid JSON:
 {
-  "condition": "<validated condition name>",
-  "confidence": <confidence percentage as number>,
+  "condition": "<most likely condition name>",
+  "confidence": <final confidence percentage (1-95)>,
   "prescription": [
-    {"drug": "<drug name>", "dosage": "<dosage>", "notes": "<important notes>"}
+    {"drug": "<safest, most appropriate drug>", "dosage": "<dosage>", "notes": "<critical safety notes>"}
   ],
   "urgencyLevel": "<low|medium|high|critical>",
-  "recommendations": "<brief care recommendations>"
+  "recommendations": "<comprehensive care recommendations>",
+  "redFlags": "<any concerning symptoms that require immediate attention>"
 }`;
 
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -165,34 +250,48 @@ Validate this diagnosis and provide a refined assessment. Return ONLY valid JSON
       aiResult = JSON.parse(aiData.choices[0].message.content);
     } catch (e) {
       console.error('Failed to parse AI response:', e);
-      // Fallback to basic result
+      // Fallback to hybrid result
       aiResult = {
         condition: topCondition.name,
-        confidence: topCondition.probability,
-        prescription: drugRec ? [{ 
-          drug: drugRec.drug_name, 
-          dosage: drugRec.dosage, 
-          notes: drugRec.notes 
-        }] : [],
-        urgencyLevel: diagnosisData.rareFlag ? 'high' : 'medium',
-        recommendations: 'Consult with a healthcare professional for proper evaluation.'
+        confidence: topCondition.confidence,
+        prescription: availableDrugs.slice(0, 1).map(drug => ({ 
+          drug: drug.drug_name, 
+          dosage: drug.dosage, 
+          notes: drug.notes || 'Consult doctor before use'
+        })),
+        urgencyLevel: topCondition.is_rare || topCondition.confidence > 80 ? 'high' : 'medium',
+        recommendations: 'Based on hybrid analysis. Consult healthcare professional for confirmation.',
+        redFlags: topCondition.is_rare ? 'Potential rare condition detected' : 'Standard follow-up recommended'
       };
     }
 
-    // 5. Save to history if user is logged in
+    // 7. Enhanced history tracking with detailed analysis
     if (userId) {
-      const { error: historyError } = await supabase.functions.invoke('log-history', {
-        body: {
-          user_id: userId,
-          input_text: symptoms,
-          parsed_symptoms: parsedSymptoms.symptoms,
-          suggested_conditions: topConditions,
-          confirmed_condition: aiResult.condition
+      const historyData = {
+        user_id: userId,
+        input_text: symptoms,
+        parsed_symptoms: parsedSymptoms.symptoms || [],
+        suggested_conditions: topMatches.map(m => ({
+          name: m.name,
+          confidence: m.confidence,
+          match_score: m.matchScore
+        })),
+        confirmed_condition: aiResult.condition,
+        analysis_metadata: {
+          hybrid_scoring: true,
+          ai_enhanced: true,
+          confidence_threshold_met: topCondition.confidence >= 70,
+          drugs_considered: availableDrugs.length,
+          urgency_level: aiResult.urgencyLevel
         }
+      };
+
+      const { error: historyError } = await supabase.functions.invoke('log-history', {
+        body: historyData
       });
 
       if (historyError) {
-        console.error('Error saving history:', historyError);
+        console.error('Error saving enhanced history:', historyError);
       }
     }
 
@@ -209,11 +308,11 @@ Validate this diagnosis and provide a refined assessment. Return ONLY valid JSON
     );
 
   } catch (error) {
-    console.error('Error in ai-enhanced-diagnosis:', error);
+    console.error('Error in hybrid diagnosis system:', error);
     return new Response(
       JSON.stringify({ 
         status: 'error', 
-        message: 'Diagnosis failed. Please try again or consult a healthcare professional.' 
+        message: 'Hybrid diagnosis failed. Please try again or consult a healthcare professional.' 
       }),
       { 
         status: 500,
@@ -222,3 +321,23 @@ Validate this diagnosis and provide a refined assessment. Return ONLY valid JSON
     );
   }
 });
+
+// Helper function to get related symptoms for guided questioning
+async function getRelatedSymptoms(supabase: any, conditionId: number): Promise<string[]> {
+  try {
+    const { data } = await supabase
+      .from('condition_symptoms')
+      .select(`
+        symptoms:symptom_id (
+          name
+        )
+      `)
+      .eq('condition_id', conditionId)
+      .limit(5);
+    
+    return data?.map((item: any) => item.symptoms?.name).filter(Boolean) || [];
+  } catch (error) {
+    console.error('Error fetching related symptoms:', error);
+    return [];
+  }
+}
