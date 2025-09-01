@@ -7,10 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ParsedSymptom {
-  id: string;
+interface ParsedCondition {
+  id: number;
   name: string;
-  score: number;
+  alias: string;
+  confidence: number;
 }
 
 serve(async (req) => {
@@ -24,126 +25,99 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { text, locale = 'en' } = await req.json();
+    const { text, locale } = await req.json();
     
-    if (!text || typeof text !== 'string') {
+    if (!text) {
       return new Response(
-        JSON.stringify({ symptoms: [], tokens: [] }),
+        JSON.stringify({ matched_conditions: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Processing text:', text);
+    console.log('Parsing symptoms from text:', text);
 
-    // Normalize text: lowercase, remove extra spaces, basic cleanup
-    const normalizedText = text
-      .toLowerCase()
+    // Normalize input text
+    const normalizedText = text.toLowerCase()
       .replace(/[^\w\s]/g, ' ')
-      .replace(/\s+/g, ' ')
       .trim();
+    
+    const tokens = normalizedText.split(/\s+/);
 
-    const tokens = normalizedText.split(' ').filter(token => token.length > 2);
-    console.log('Tokens:', tokens);
+    // Fetch conditions and aliases
+    const { data: conditionsAliases, error: aliasError } = await supabase
+      .from('conditions_aliases')
+      .select('*');
 
-    // Get all symptoms from database
-    const { data: symptoms, error: symptomsError } = await supabase
-      .from('symptoms')
-      .select('id, name, aliases');
-
-    if (symptomsError) {
-      console.error('Error fetching symptoms:', symptomsError);
+    if (aliasError) {
+      console.error('Error fetching condition aliases:', aliasError);
       return new Response(
-        JSON.stringify({ symptoms: [], tokens }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Database error' }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
-    // Get condition aliases for fuzzy matching
-    const { data: aliases, error: aliasesError } = await supabase
-      .from('condition_aliases')
-      .select('alias, condition_id');
-
-    console.log('Found symptoms:', symptoms?.length || 0);
-
-    // Fuzzy match symptoms
-    const matchedSymptoms: ParsedSymptom[] = [];
-    const processedSymptoms = new Set<string>();
-
-    // Direct name matching
-    symptoms?.forEach(symptom => {
-      if (processedSymptoms.has(symptom.id)) return;
+    const matchedConditions: ParsedCondition[] = [];
+    
+    // Fuzzy matching against aliases
+    conditionsAliases.forEach((conditionAlias: any) => {
+      const alias = conditionAlias.aliases?.toLowerCase();
+      const symptoms = conditionAlias.symptoms?.toLowerCase() || '';
       
-      const symptomName = symptom.name.toLowerCase();
+      let score = 0;
       
-      // Check if symptom name appears in text
-      if (normalizedText.includes(symptomName)) {
-        matchedSymptoms.push({
-          id: symptom.id,
-          name: symptom.name,
-          score: 1.0
+      // Direct alias match
+      if (alias && normalizedText.includes(alias)) {
+        score += 50;
+      }
+      
+      // Symptom keywords match
+      tokens.forEach((token) => {
+        if (alias?.includes(token) && token.length > 2) {
+          score += 20;
+        }
+        if (symptoms.includes(token) && token.length > 2) {
+          score += 15;
+        }
+      });
+      
+      // Partial word match
+      tokens.forEach((token) => {
+        if (token.length > 3) {
+          if (alias?.includes(token.substring(0, token.length - 1))) {
+            score += 10;
+          }
+        }
+      });
+
+      if (score > 0) {
+        matchedConditions.push({
+          id: conditionAlias.condition_id,
+          name: conditionAlias.name,
+          alias: conditionAlias.aliases,
+          confidence: Math.min(95, score)
         });
-        processedSymptoms.add(symptom.id);
-        return;
-      }
-
-      // Check aliases
-      if (symptom.aliases && Array.isArray(symptom.aliases)) {
-        for (const alias of symptom.aliases) {
-          if (normalizedText.includes(alias.toLowerCase())) {
-            matchedSymptoms.push({
-              id: symptom.id,
-              name: symptom.name,
-              score: 0.8
-            });
-            processedSymptoms.add(symptom.id);
-            break;
-          }
-        }
-      }
-
-      // Partial word matching
-      if (!processedSymptoms.has(symptom.id)) {
-        const words = symptomName.split(' ');
-        const matchedWords = words.filter(word => 
-          tokens.some(token => token.includes(word) || word.includes(token))
-        );
-        
-        if (matchedWords.length > 0) {
-          const score = matchedWords.length / words.length * 0.6;
-          if (score > 0.3) {
-            matchedSymptoms.push({
-              id: symptom.id,
-              name: symptom.name,
-              score
-            });
-            processedSymptoms.add(symptom.id);
-          }
-        }
       }
     });
 
-    // Sort by score and limit results
-    matchedSymptoms.sort((a, b) => b.score - a.score);
-    const topSymptoms = matchedSymptoms.slice(0, 10);
+    // Sort by confidence and return top 10
+    const sortedMatches = matchedConditions
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 10);
 
-    console.log('Matched symptoms:', topSymptoms);
+    console.log('Found matches:', sortedMatches.length);
 
     return new Response(
-      JSON.stringify({
-        symptoms: topSymptoms,
-        tokens
-      }),
+      JSON.stringify({ matched_conditions: sortedMatches }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in parse-symptoms:', error);
     return new Response(
-      JSON.stringify({ 
-        symptoms: [], 
-        tokens: [],
-        error: 'Processing failed' 
-      }),
+      JSON.stringify({ error: 'Internal server error' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
