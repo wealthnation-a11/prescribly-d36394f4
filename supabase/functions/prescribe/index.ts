@@ -18,59 +18,150 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { condition_id } = await req.json();
+    const { condition_id, user_profile } = await req.json();
     
     if (!condition_id) {
       return new Response(
-        JSON.stringify(null),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          prescribeAllowed: false, 
+          message: 'Condition ID is required' 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
     console.log('Getting prescription for condition:', condition_id);
 
-    // Get drug recommendations from conditions table
-    const { data: condition, error } = await supabase
+    // Get condition details first
+    const { data: condition, error: condError } = await supabase
       .from('conditions')
-      .select('drug_recommendations, drug_usage')
+      .select('*')
       .eq('id', condition_id)
       .single();
 
-    if (error) {
-      console.error('Error fetching condition:', error);
+    if (condError || !condition) {
       return new Response(
-        JSON.stringify(null),
+        JSON.stringify({
+          prescribeAllowed: false,
+          message: 'Condition not found'
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Extract first drug recommendation
-    let prescription = null;
-    
-    if (condition?.drug_recommendations && condition.drug_recommendations.length > 0) {
-      const firstDrug = condition.drug_recommendations[0];
-      const drugUsage = condition?.drug_usage?.find((usage: any) => 
-        usage.drug === firstDrug.drug
-      );
+    // Get drug recommendations
+    const { data: recommendations } = await supabase
+      .from('drug_recommendations')
+      .select('*')
+      .eq('condition_id', condition_id)
+      .limit(1);
 
-      prescription = {
-        drug_name: firstDrug.drug,
-        dosage: drugUsage?.usage || 'As directed by physician',
-        notes: 'Always consult with a healthcare provider before taking any medication.'
+    let drugInfo = null;
+
+    // Try drug_recommendations table first
+    if (recommendations && recommendations.length > 0) {
+      drugInfo = recommendations[0];
+    } 
+    // Fallback to conditions table drug_recommendations field
+    else if (condition.drug_recommendations) {
+      const drugData = typeof condition.drug_recommendations === 'string' ? 
+        JSON.parse(condition.drug_recommendations) : condition.drug_recommendations;
+      
+      drugInfo = {
+        drug_name: drugData.drug_name || drugData.name,
+        dosage: drugData.dosage,
+        notes: drugData.notes,
+        is_prescription: drugData.is_prescription || false
       };
     }
-    
-    console.log('Prescription recommendation:', prescription);
 
+    // No drug information available
+    if (!drugInfo || !drugInfo.drug_name) {
+      return new Response(
+        JSON.stringify({
+          prescribeAllowed: false,
+          message: 'No medication recommendation available for this condition',
+          drug_name: 'Consult Healthcare Provider',
+          dosage: 'As prescribed',
+          notes: 'Please consult with a licensed healthcare provider for appropriate treatment options.'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Safety checks if user profile provided
+    if (user_profile) {
+      // Pregnancy check
+      if (user_profile.pregnant && drugInfo.drug_name) {
+        const drugName = drugInfo.drug_name.toLowerCase();
+        // Simple pregnancy safety check (expand this list as needed)
+        const pregnancyUnsafe = ['aspirin', 'ibuprofen', 'warfarin', 'ace inhibitor'];
+        if (pregnancyUnsafe.some(unsafe => drugName.includes(unsafe))) {
+          return new Response(
+            JSON.stringify({
+              prescribeAllowed: false,
+              message: 'This medication may not be safe during pregnancy. Please consult your doctor.',
+              requiresConsultation: true
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      // Age restrictions
+      if (user_profile.age) {        
+        const age = parseInt(user_profile.age);
+        if (age < 18 && drugInfo.drug_name.toLowerCase().includes('aspirin')) {
+          return new Response(
+            JSON.stringify({
+              prescribeAllowed: false,
+              message: 'This medication is not recommended for individuals under 18. Please consult a healthcare provider.',
+              requiresConsultation: true
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+    }
+
+    // Check if prescription medication
+    if (drugInfo.is_prescription) {
+      return new Response(
+        JSON.stringify({
+          prescribeAllowed: false,
+          requireClinicianApproval: true,
+          drug_name: drugInfo.drug_name,
+          dosage: drugInfo.dosage || 'As prescribed by physician',
+          notes: drugInfo.notes || 'This medication requires a prescription from a licensed healthcare provider.',
+          message: 'Prescription medication requires healthcare provider approval'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // OTC medication - allow with disclaimer
     return new Response(
-      JSON.stringify(prescription),
+      JSON.stringify({
+        prescribeAllowed: true,
+        drug_name: drugInfo.drug_name,
+        dosage: drugInfo.dosage || 'Follow package instructions',
+        notes: drugInfo.notes || 'This is an over-the-counter medication. Please read all labels and consult a pharmacist or healthcare provider if you have questions.',
+        isOTC: true
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in prescribe:', error);
+    console.error('Error in prescribe function:', error);
     return new Response(
-      JSON.stringify(null),
+      JSON.stringify({ 
+        prescribeAllowed: false,
+        error: 'Internal server error',
+        message: 'Unable to process prescription request. Please try again or consult a healthcare provider.'
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

@@ -1,65 +1,25 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  MessageCircle, 
-  Zap, 
-  Compass, 
-  Heart,
-  Shield,
-  Globe,
-  ArrowLeft,
-  Stethoscope,
-  Mic,
-  Send,
-  User,
-  Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Save
-} from 'lucide-react';
-import { LanguageSelector } from '@/components/LanguageSelector';
-import { useLanguage } from '@/hooks/useLanguage';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageSEO } from '@/hooks/usePageSEO';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-type FlowStep = 'entry' | 'free-text' | 'quick-picker' | 'guided' | 'results';
-
-interface DiagnosisResult {
-  condition_id: number;
-  name: string;
-  description: string;
-  probability: number;
-}
-
-interface PrescriptionResult {
-  drug_name: string;
-  dosage: string;
-  notes: string;
-}
+import EnhancedWellnessChecker from './EnhancedWellnessChecker';
 
 const WellnessChecker = () => {
+  const navigate = useNavigate();
+  
   usePageSEO({
-    title: 'Prescribly | Wellness Checker - Your Personal AI Doctor',
-    description: 'AI-powered health diagnosis with prescription recommendations. Describe symptoms naturally and get instant medical insights with 85-95% accuracy.'
+    title: 'Prescribly | Enhanced Wellness Checker - AI Doctor with 1,200+ Conditions',
+    description: 'Advanced AI health diagnosis using 1,200+ medical conditions database. Bayesian analysis with 85-95% accuracy. Get instant symptoms analysis and treatment recommendations.'
   });
 
-  const { t } = useLanguage();
-  const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<FlowStep>('entry');
-  const [consentGiven, setConsentGiven] = useState(false);
-  const [symptoms, setSymptoms] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [diagnosis, setDiagnosis] = useState<DiagnosisResult[]>([]);
-  const [prescription, setPrescription] = useState<PrescriptionResult | null>(null);
+  // Redirect to enhanced version
+  React.useEffect(() => {
+    navigate('/enhanced-wellness-checker', { replace: true });
+  }, [navigate]);
+
+  return <EnhancedWellnessChecker />;
+};
+
+export default WellnessChecker;
 
   const handleEntryChoice = (choice: FlowStep) => {
     if (!consentGiven) {

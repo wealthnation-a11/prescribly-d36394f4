@@ -8,10 +8,11 @@ const corsHeaders = {
 };
 
 interface ParsedCondition {
-  id: number;
+  condition_id: number;
   name: string;
   alias: string;
   confidence: number;
+  source: string;
 }
 
 serve(async (req) => {
@@ -25,11 +26,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { text, locale } = await req.json();
+    const { text, locale, session_id } = await req.json();
     
     if (!text) {
       return new Response(
-        JSON.stringify({ matched_conditions: [] }),
+        JSON.stringify({ matched_conditions: [], confidence: 0, route: 'guided' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -41,76 +42,127 @@ serve(async (req) => {
       .replace(/[^\w\s]/g, ' ')
       .trim();
     
-    const tokens = normalizedText.split(/\s+/);
+    const tokens = normalizedText.split(/\s+/).filter(t => t.length > 2);
 
-    // Fetch conditions and aliases
-    const { data: conditionsAliases, error: aliasError } = await supabase
+    // 1) Direct condition name matches
+    const { data: directConditions } = await supabase
+      .from('conditions')
+      .select('id, name')
+      .or(tokens.map(token => `name.ilike.%${token}%`).join(','))
+      .limit(20);
+
+    // 2) Alias matches with fuzzy search
+    const { data: aliasMatches } = await supabase
       .from('conditions_aliases')
-      .select('*');
-
-    if (aliasError) {
-      console.error('Error fetching condition aliases:', aliasError);
-      return new Response(
-        JSON.stringify({ error: 'Database error' }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+      .select('condition_id, aliases')
+      .or(tokens.map(token => `aliases.ilike.%${token}%`).join(','))
+      .limit(20);
 
     const matchedConditions: ParsedCondition[] = [];
     
-    // Fuzzy matching against aliases
-    conditionsAliases.forEach((conditionAlias: any) => {
-      const alias = conditionAlias.aliases?.toLowerCase();
-      const symptoms = conditionAlias.symptoms?.toLowerCase() || '';
-      
-      let score = 0;
-      
-      // Direct alias match
-      if (alias && normalizedText.includes(alias)) {
-        score += 50;
-      }
-      
-      // Symptom keywords match
-      tokens.forEach((token) => {
-        if (alias?.includes(token) && token.length > 2) {
-          score += 20;
+    // Process direct condition matches
+    if (directConditions) {
+      for (const condition of directConditions) {
+        let score = 0;
+        const conditionName = condition.name.toLowerCase();
+        
+        // Exact name match
+        if (normalizedText.includes(conditionName)) {
+          score += 80;
         }
-        if (symptoms.includes(token) && token.length > 2) {
-          score += 15;
-        }
-      });
-      
-      // Partial word match
-      tokens.forEach((token) => {
-        if (token.length > 3) {
-          if (alias?.includes(token.substring(0, token.length - 1))) {
-            score += 10;
+        
+        // Token matches
+        tokens.forEach(token => {
+          if (conditionName.includes(token)) {
+            score += 30;
           }
-        }
-      });
-
-      if (score > 0) {
-        matchedConditions.push({
-          id: conditionAlias.condition_id,
-          name: conditionAlias.name,
-          alias: conditionAlias.aliases,
-          confidence: Math.min(95, score)
         });
+
+        if (score > 0) {
+          matchedConditions.push({
+            condition_id: condition.id,
+            name: condition.name,
+            alias: condition.name,
+            confidence: Math.min(95, score),
+            source: 'direct'
+          });
+        }
       }
-    });
+    }
 
-    // Sort by confidence and return top 10
-    const sortedMatches = matchedConditions
-      .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 10);
+    // Process alias matches
+    if (aliasMatches) {
+      for (const alias of aliasMatches) {
+        let score = 0;
+        const aliasText = alias.aliases?.toLowerCase() || '';
+        
+        // Direct alias match
+        if (normalizedText.includes(aliasText)) {
+          score += 70;
+        }
+        
+        // Token matches
+        tokens.forEach(token => {
+          if (aliasText.includes(token) && token.length > 2) {
+            score += 25;
+          }
+        });
+        
+        // Partial matches
+        tokens.forEach(token => {
+          if (token.length > 3 && aliasText.includes(token.substring(0, token.length - 1))) {
+            score += 15;
+          }
+        });
 
-    console.log('Found matches:', sortedMatches.length);
+        if (score > 0) {
+          // Get condition name
+          const { data: conditionData } = await supabase
+            .from('conditions')
+            .select('name')
+            .eq('id', alias.condition_id)
+            .single();
+
+          matchedConditions.push({
+            condition_id: alias.condition_id,
+            name: conditionData?.name || 'Unknown',
+            alias: alias.aliases,
+            confidence: Math.min(95, score),
+            source: 'alias'
+          });
+        }
+      }
+    }
+
+    // Remove duplicates and sort by confidence
+    const uniqueMatches = Array.from(
+      new Map(matchedConditions.map(item => [item.condition_id, item])).values()
+    ).sort((a, b) => b.confidence - a.confidence).slice(0, 10);
+
+    // Calculate overall confidence and routing
+    const overallConfidence = uniqueMatches.length > 0 ? 
+      Math.min(0.95, 0.4 + Math.min(0.5, uniqueMatches.length * 0.05)) : 0;
+    
+    const route = overallConfidence > 0.45 ? 'diagnose' : 'guided';
+
+    // Save session if provided
+    if (session_id) {
+      await supabase.from('user_sessions').upsert({
+        id: session_id,
+        path: 'freeText',
+        payload: { text, candidates: uniqueMatches, confidence: overallConfidence },
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    console.log(`Found ${uniqueMatches.length} matches with confidence ${overallConfidence.toFixed(2)}`);
 
     return new Response(
-      JSON.stringify({ matched_conditions: sortedMatches }),
+      JSON.stringify({ 
+        matched_conditions: uniqueMatches, 
+        confidence: overallConfidence,
+        route: route
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
