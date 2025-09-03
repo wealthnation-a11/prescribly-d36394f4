@@ -1402,6 +1402,42 @@ export type Database = {
           },
         ]
       }
+      user_diagnosis_history: {
+        Row: {
+          created_at: string | null
+          diagnosis: string | null
+          dosage: string | null
+          drug: string | null
+          id: string
+          instructions: string | null
+          precautions: string | null
+          symptoms: string[] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          diagnosis?: string | null
+          dosage?: string | null
+          drug?: string | null
+          id?: string
+          instructions?: string | null
+          precautions?: string | null
+          symptoms?: string[] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          diagnosis?: string | null
+          dosage?: string | null
+          drug?: string | null
+          id?: string
+          instructions?: string | null
+          precautions?: string | null
+          symptoms?: string[] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_encryption_keys: {
         Row: {
           created_at: string | null
@@ -1726,6 +1762,23 @@ export type Database = {
       check_and_award_step_achievements: {
         Args: { user_uuid: string }
         Returns: undefined
+      }
+      diagnose_with_context: {
+        Args: {
+          age: number
+          duration: number
+          gender: string
+          severity: number
+          symptoms: string[]
+        }
+        Returns: {
+          condition: string
+          confidence: number
+          dosage: string
+          drug: string
+          instructions: string
+          precautions: string
+        }[]
       }
       get_challenge_leaderboard: {
         Args: { challenge_uuid: string }
