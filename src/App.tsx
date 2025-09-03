@@ -28,6 +28,7 @@ import DoctorDashboard from "./pages/DoctorDashboard";
 import SymptomForm from "./pages/SymptomForm";
 import Prescription from "./pages/Prescription";
 import WellnessChecker from "./pages/WellnessChecker";
+import EnhancedWellnessChecker from "./pages/EnhancedWellnessChecker";
 import AIHealthCompanion from "./pages/AIHealthCompanion";
 import HealthChallenges from "./pages/HealthChallenges";
 import HydrationChallenge from "./pages/HydrationChallenge";
@@ -105,6 +106,11 @@ const App = () => (
             <Route path="/wellness-checker" element={
               <ProtectedRoute requirePatient={true}>
                 <WellnessChecker />
+              </ProtectedRoute>
+            } />
+            <Route path="/enhanced-wellness-checker" element={
+              <ProtectedRoute requirePatient={true}>
+                <EnhancedWellnessChecker />
               </ProtectedRoute>
             } />
             <Route path="/ai-health-companion" element={
