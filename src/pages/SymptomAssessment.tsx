@@ -679,124 +679,329 @@ const SymptomAssessment = () => {
   const renderResults = () => {
     if (results.length === 0) {
       return (
-        <Card className="max-w-2xl mx-auto text-center">
-          <CardContent className="py-8">
-            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Clear Diagnosis</h3>
-            <p className="text-muted-foreground mb-4">
-              We couldn't find a clear match for your symptoms. This could indicate a rare condition or complex case.
-            </p>
-            <Button onClick={() => setMode('selection')}>
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-2xl mx-auto"
+        >
+          <Card className="text-center border-dashed border-2 border-muted-foreground/20">
+            <CardContent className="py-12">
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="inline-block"
+              >
+                <AlertTriangle className="h-16 w-16 text-yellow-500 mx-auto mb-6" />
+              </motion.div>
+              <h3 className="text-2xl font-bold mb-3">No Clear Diagnosis Found</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                We couldn't find a clear match for your symptoms. This could indicate a rare condition, 
+                complex case, or the need for more specific information.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => setMode('guided')} className="gap-2">
+                  <Navigation className="h-4 w-4" />
+                  Try Guided Questions
+                </Button>
+                <Button variant="outline" onClick={() => setMode('selection')} className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Start Over
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       );
     }
 
     const topResult = results[0];
-    const otherResults = results.slice(1);
+    const otherResults = results.slice(1, 3); // Show top 3 total
+    const isUrgent = topResult.probability > 0.8 || topResult.name.toLowerCase().includes('emergency') || 
+                     topResult.name.toLowerCase().includes('urgent') || topResult.name.toLowerCase().includes('severe');
 
     return (
-      <div className="space-y-6 max-w-4xl mx-auto">
-        {/* Top Condition Card */}
-        <Card className="border-primary/50 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl text-primary">{topResult.name}</CardTitle>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-primary">
-                  {Math.round(topResult.probability * 100)}%
-                </div>
-                <div className="text-sm text-muted-foreground">Confidence</div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-8 max-w-5xl mx-auto"
+      >
+        {/* Urgent Alert Banner */}
+        {isUrgent && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 p-4 rounded-lg"
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-red-500 rounded-full p-2 animate-pulse">
+                <AlertTriangle className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-red-800">High Confidence Match Detected</h4>
+                <p className="text-red-700 text-sm">
+                  Consider consulting a healthcare professional for proper evaluation.
+                </p>
               </div>
             </div>
-            <Progress value={topResult.probability * 100} className="w-full" />
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
-            <p className="text-muted-foreground">{topResult.description}</p>
-            
-            <div className="bg-background/50 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-green-600">
-                <Pill className="h-5 w-5" />
-                <span className="font-semibold">Recommended Treatment</span>
-              </div>
-              <div className="grid md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <Label className="text-xs text-muted-foreground">MEDICATION</Label>
-                  <p className="font-medium">{topResult.drug_name}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">DOSAGE</Label>
-                  <p className="font-medium">{topResult.dosage}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">INSTRUCTIONS</Label>
-                  <p className="font-medium">{topResult.notes}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium text-yellow-800 mb-1">Medical Disclaimer</p>
-                  <p className="text-yellow-700">
-                    This is an AI-generated assessment and is not a medical diagnosis. 
-                    Always consult with a qualified healthcare professional before starting any treatment.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button onClick={() => saveToHistory(topResult)} className="gap-2">
-                <Save className="h-4 w-4" />
-                Save to History
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <User className="h-4 w-4" />
-                Consult a Doctor
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Other Suggested Conditions */}
-        {otherResults.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Other Possible Conditions</h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              {otherResults.map((result, index) => (
-                <Card key={result.condition_id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold">{result.name}</h4>
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {Math.round(result.probability * 100)}%
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {result.description}
-                    </p>
-                    <div className="text-xs text-muted-foreground">
-                      <span className="font-medium">Treatment:</span> {result.drug_name}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          </motion.div>
         )}
 
-        <div className="text-center">
-          <Button variant="outline" onClick={() => setMode('selection')} className="gap-2">
+        {/* Top Condition - Hero Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className={`relative overflow-hidden shadow-xl ${isUrgent ? 'border-red-200 ring-2 ring-red-100' : 'border-primary/30'}`}>
+            {/* Background Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+            
+            <CardHeader className="relative">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`p-2 rounded-full ${isUrgent ? 'bg-red-100' : 'bg-primary/10'}`}>
+                      <Stethoscope className={`h-6 w-6 ${isUrgent ? 'text-red-600' : 'text-primary'}`} />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl lg:text-3xl font-bold">
+                        {topResult.name}
+                      </CardTitle>
+                      {isUrgent && (
+                        <Badge variant="destructive" className="mt-1">
+                          High Priority
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Probability Display */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-muted-foreground">Confidence Level</span>
+                      <span className={`text-2xl font-bold ${isUrgent ? 'text-red-600' : 'text-primary'}`}>
+                        {Math.round(topResult.probability * 100)}%
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <Progress 
+                        value={topResult.probability * 100} 
+                        className={`h-3 ${isUrgent ? '[&>div]:bg-red-500' : ''}`} 
+                      />
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${topResult.probability * 100}%` }}
+                        transition={{ duration: 1, delay: 0.3 }}
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary/20 to-accent/20 rounded-full"
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Low</span>
+                      <span>Moderate</span>
+                      <span>High</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="relative space-y-6">
+              {/* Description */}
+              <div className="bg-background/80 backdrop-blur-sm rounded-lg p-4 border">
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-primary" />
+                  About This Condition
+                </h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  {topResult.description || "A medical condition that matches your reported symptoms."}
+                </p>
+              </div>
+
+              {/* Treatment Recommendation */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-5 border border-green-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-green-500 rounded-full p-2">
+                    <Pill className="h-5 w-5 text-white" />
+                  </div>
+                  <h4 className="font-bold text-green-800">Recommended Treatment</h4>
+                </div>
+                
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="bg-white/70 rounded-lg p-3 border border-green-100">
+                    <Label className="text-xs font-semibold text-green-700 uppercase tracking-wide">
+                      Medication
+                    </Label>
+                    <p className="font-bold text-green-900 mt-1">
+                      {topResult.drug_name || 'Consult healthcare provider'}
+                    </p>
+                  </div>
+                  <div className="bg-white/70 rounded-lg p-3 border border-green-100">
+                    <Label className="text-xs font-semibold text-green-700 uppercase tracking-wide">
+                      Dosage
+                    </Label>
+                    <p className="font-bold text-green-900 mt-1">
+                      {topResult.dosage || 'As prescribed'}
+                    </p>
+                  </div>
+                  <div className="bg-white/70 rounded-lg p-3 border border-green-100">
+                    <Label className="text-xs font-semibold text-green-700 uppercase tracking-wide">
+                      Instructions
+                    </Label>
+                    <p className="font-bold text-green-900 mt-1 text-sm">
+                      {topResult.notes || 'Follow medical advice'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button 
+                  onClick={() => saveToHistory(topResult)} 
+                  className="flex-1 gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                >
+                  <Save className="h-4 w-4" />
+                  Save to My History
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1 gap-2 border-green-200 text-green-700 hover:bg-green-50"
+                >
+                  <User className="h-4 w-4" />
+                  Consult a Doctor
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="gap-2"
+                  onClick={() => {
+                    // Save current state for "Continue Later"
+                    if (user) {
+                      localStorage.setItem(`assessment_${user.id}`, JSON.stringify({
+                        results,
+                        parsedSymptoms,
+                        timestamp: Date.now()
+                      }));
+                    }
+                    setMode('selection');
+                  }}
+                >
+                  <Clock className="h-4 w-4" />
+                  Continue Later
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Other Possible Conditions */}
+        {otherResults.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent flex-1" />
+              <h3 className="text-lg font-semibold text-muted-foreground px-4">
+                Other Possible Conditions
+              </h3>
+              <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent flex-1" />
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              {otherResults.map((result, index) => (
+                <motion.div
+                  key={result.condition_id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + index * 0.1 }}
+                >
+                  <Card className="hover:shadow-lg transition-all duration-300 hover:border-primary/40 group">
+                    <CardContent className="p-5">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-bold text-lg group-hover:text-primary transition-colors">
+                          {result.name}
+                        </h4>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-primary">
+                            {Math.round(result.probability * 100)}%
+                          </div>
+                          <div className="text-xs text-muted-foreground">match</div>
+                        </div>
+                      </div>
+                      
+                      <Progress 
+                        value={result.probability * 100} 
+                        className="mb-3 h-2"
+                      />
+                      
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
+                        {result.description || "Additional condition that may match your symptoms."}
+                      </p>
+                      
+                      <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Pill className="h-3 w-3 text-green-600" />
+                          <span className="font-medium">Treatment:</span>
+                          <span className="text-muted-foreground">{result.drug_name}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground ml-5">
+                          {result.dosage} • {result.notes}
+                        </div>
+                      </div>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full mt-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => saveToHistory(result)}
+                      >
+                        View Details
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Medical Disclaimer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-6"
+        >
+          <div className="flex items-start gap-4">
+            <div className="bg-yellow-500 rounded-full p-2 flex-shrink-0">
+              <AlertTriangle className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h4 className="font-bold text-yellow-800 mb-2">Important Medical Disclaimer</h4>
+              <p className="text-yellow-700 text-sm leading-relaxed">
+                This AI assessment is for informational purposes only and is not a substitute for professional 
+                medical advice, diagnosis, or treatment. Always seek the advice of your physician or other 
+                qualified health provider with any questions you may have regarding a medical condition.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Navigation */}
+        <div className="flex justify-center pt-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setMode('selection')} 
+            className="gap-2 px-8"
+          >
             <ArrowLeft className="h-4 w-4" />
             New Assessment
           </Button>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
