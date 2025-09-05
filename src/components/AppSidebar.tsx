@@ -24,7 +24,7 @@ export function AppSidebar() {
   const items = [
     { title: t("dashboard"), url: "/user-dashboard", icon: Home },
     { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus },
-    { title: t("wellness_checker"), url: "/wellness-checker", icon: Stethoscope },
+    { title: "Symptom Assessment", url: "/symptom-assessment", icon: Stethoscope },
     { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText },
     { title: t("chat"), url: "/chat", icon: MessageCircle },
     { title: t("profile"), url: "/profile", icon: User },

@@ -23,7 +23,10 @@ serve(async (req) => {
       input_text, 
       parsed_symptoms, 
       suggested_conditions, 
-      confirmed_condition 
+      confirmed_condition,
+      drug,
+      dosage,
+      notes
     } = await req.json();
     
     if (!user_id) {
@@ -38,15 +41,18 @@ serve(async (req) => {
 
     console.log('Logging history for user:', user_id);
 
-    // Insert into user_history
+    // Insert into user_diagnosis_history
     const { data, error } = await supabase
-      .from('user_history')
+      .from('user_diagnosis_history')
       .insert({
         user_id,
         input_text,
         parsed_symptoms,
         suggested_conditions,
-        confirmed_condition
+        confirmed_condition,
+        drug,
+        dosage,
+        notes
       })
       .select()
       .single();

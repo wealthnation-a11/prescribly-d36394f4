@@ -7,12 +7,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ParsedCondition {
-  condition_id: number;
+interface ParsedSymptom {
+  id: string;
   name: string;
-  alias: string;
-  confidence: number;
-  source: string;
+  score: number;
 }
 
 serve(async (req) => {
@@ -26,150 +24,131 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { text, locale, session_id } = await req.json();
+    const { text, locale = 'en' } = await req.json();
     
     if (!text) {
       return new Response(
-        JSON.stringify({ matched_conditions: [], confidence: 0, route: 'guided' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Text input required' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
-    console.log('Parsing symptoms from text:', text);
+    console.log('Parsing symptoms for text:', text);
 
     // Normalize input text
-    const normalizedText = text.toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
-      .trim();
+    const normalizedText = text.toLowerCase().trim();
+    const tokens = normalizedText.split(/\s+/);
     
-    const tokens = normalizedText.split(/\s+/).filter(t => t.length > 2);
+    const parsedSymptoms: ParsedSymptom[] = [];
 
-    // 1) Direct condition name matches
-    const { data: directConditions } = await supabase
-      .from('conditions')
-      .select('id, name')
-      .or(tokens.map(token => `name.ilike.%${token}%`).join(','))
-      .limit(20);
+    // Direct symptom matching
+    const { data: symptoms, error: symptomsError } = await supabase
+      .from('symptoms')
+      .select('id, name, description')
+      .limit(100);
 
-    // 2) Alias matches with fuzzy search
-    const { data: aliasMatches } = await supabase
-      .from('conditions_aliases')
-      .select('condition_id, aliases')
-      .or(tokens.map(token => `aliases.ilike.%${token}%`).join(','))
-      .limit(20);
+    if (symptomsError) {
+      console.error('Error fetching symptoms:', symptomsError);
+      throw symptomsError;
+    }
 
-    const matchedConditions: ParsedCondition[] = [];
-    
-    // Process direct condition matches
-    if (directConditions) {
-      for (const condition of directConditions) {
-        let score = 0;
-        const conditionName = condition.name.toLowerCase();
+    // Match symptoms by name and aliases
+    for (const symptom of symptoms || []) {
+      const symptomName = symptom.name.toLowerCase();
+      let score = 0;
+
+      // Exact match
+      if (normalizedText.includes(symptomName)) {
+        score = 1.0;
+      } else {
+        // Fuzzy matching - check for partial matches
+        const symptomTokens = symptomName.split(/\s+/);
+        let matchCount = 0;
         
-        // Exact name match
-        if (normalizedText.includes(conditionName)) {
-          score += 80;
+        for (const token of tokens) {
+          for (const symptomToken of symptomTokens) {
+            if (token.includes(symptomToken) || symptomToken.includes(token)) {
+              matchCount++;
+              break;
+            }
+          }
         }
         
-        // Token matches
-        tokens.forEach(token => {
-          if (conditionName.includes(token)) {
-            score += 30;
-          }
-        });
+        if (matchCount > 0) {
+          score = matchCount / Math.max(tokens.length, symptomTokens.length);
+        }
+      }
 
-        if (score > 0) {
-          matchedConditions.push({
-            condition_id: condition.id,
-            name: condition.name,
-            alias: condition.name,
-            confidence: Math.min(95, score),
-            source: 'direct'
-          });
+      if (score > 0.3) { // Threshold for relevance
+        parsedSymptoms.push({
+          id: symptom.id,
+          name: symptom.name,
+          score: Math.round(score * 100) / 100
+        });
+      }
+    }
+
+    // Check condition aliases for additional matches
+    const { data: aliases, error: aliasError } = await supabase
+      .from('condition_aliases')
+      .select('id, condition_id, alias')
+      .limit(200);
+
+    if (!aliasError && aliases) {
+      for (const alias of aliases) {
+        const aliasName = alias.alias.toLowerCase();
+        let score = 0;
+
+        if (normalizedText.includes(aliasName)) {
+          score = 0.8; // High score for condition alias matches
+          
+          // Find related symptoms for this condition
+          const { data: conditionSymptoms } = await supabase
+            .from('condition_symptoms')
+            .select('symptom_id, symptoms(id, name)')
+            .eq('condition_id', alias.condition_id)
+            .limit(3);
+
+          if (conditionSymptoms) {
+            for (const cs of conditionSymptoms) {
+              if (cs.symptoms) {
+                const existingIndex = parsedSymptoms.findIndex(ps => ps.id === cs.symptoms.id);
+                if (existingIndex === -1) {
+                  parsedSymptoms.push({
+                    id: cs.symptoms.id,
+                    name: cs.symptoms.name,
+                    score: score * 0.7 // Slightly lower score for inferred symptoms
+                  });
+                } else {
+                  // Boost existing symptom score
+                  parsedSymptoms[existingIndex].score = Math.min(1.0, parsedSymptoms[existingIndex].score + 0.2);
+                }
+              }
+            }
+          }
         }
       }
     }
 
-    // Process alias matches
-    if (aliasMatches) {
-      for (const alias of aliasMatches) {
-        let score = 0;
-        const aliasText = alias.aliases?.toLowerCase() || '';
-        
-        // Direct alias match
-        if (normalizedText.includes(aliasText)) {
-          score += 70;
-        }
-        
-        // Token matches
-        tokens.forEach(token => {
-          if (aliasText.includes(token) && token.length > 2) {
-            score += 25;
-          }
-        });
-        
-        // Partial matches
-        tokens.forEach(token => {
-          if (token.length > 3 && aliasText.includes(token.substring(0, token.length - 1))) {
-            score += 15;
-          }
-        });
+    // Sort by score and remove duplicates
+    const uniqueSymptoms = parsedSymptoms
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10); // Return top 10 symptoms
 
-        if (score > 0) {
-          // Get condition name
-          const { data: conditionData } = await supabase
-            .from('conditions')
-            .select('name')
-            .eq('id', alias.condition_id)
-            .single();
-
-          matchedConditions.push({
-            condition_id: alias.condition_id,
-            name: conditionData?.name || 'Unknown',
-            alias: alias.aliases,
-            confidence: Math.min(95, score),
-            source: 'alias'
-          });
-        }
-      }
-    }
-
-    // Remove duplicates and sort by confidence
-    const uniqueMatches = Array.from(
-      new Map(matchedConditions.map(item => [item.condition_id, item])).values()
-    ).sort((a, b) => b.confidence - a.confidence).slice(0, 10);
-
-    // Calculate overall confidence and routing
-    const overallConfidence = uniqueMatches.length > 0 ? 
-      Math.min(0.95, 0.4 + Math.min(0.5, uniqueMatches.length * 0.05)) : 0;
-    
-    const route = overallConfidence > 0.45 ? 'diagnose' : 'guided';
-
-    // Save session if provided
-    if (session_id) {
-      await supabase.from('user_sessions').upsert({
-        id: session_id,
-        path: 'freeText',
-        payload: { text, candidates: uniqueMatches, confidence: overallConfidence },
-        updated_at: new Date().toISOString()
-      });
-    }
-
-    console.log(`Found ${uniqueMatches.length} matches with confidence ${overallConfidence.toFixed(2)}`);
+    console.log(`Found ${uniqueSymptoms.length} symptoms for input: ${text}`);
 
     return new Response(
-      JSON.stringify({ 
-        matched_conditions: uniqueMatches, 
-        confidence: overallConfidence,
-        route: route
-      }),
+      JSON.stringify({ symptoms: uniqueSymptoms }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in parse-symptoms:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Processing failed', symptoms: [] }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
