@@ -518,17 +518,45 @@ export default function BookAppointment() {
                             <SelectValue placeholder="Choose a time slot" />
                           </SelectTrigger>
                           <SelectContent className="bg-background">
-                            {timeSlots.map((time) => (
-                              <SelectItem key={time} value={time}>
-                                <div className="flex items-center gap-2">
-                                  <Clock className="h-4 w-4" />
-                                  {time}
-                                </div>
-                              </SelectItem>
-                            ))}
+                            {selectedDoctor && selectedDate ? (
+                              getAvailableTimeSlotsForDay(selectedDate.toLocaleDateString('en-US', { weekday: 'long' }))
+                                .length > 0 ? (
+                                getAvailableTimeSlotsForDay(selectedDate.toLocaleDateString('en-US', { weekday: 'long' }))
+                                  .map((slot) => (
+                                    <SelectItem key={slot.start} value={slot.start}>
+                                      <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        {slot.start} - {slot.end}
+                                      </div>
+                                    </SelectItem>
+                                  ))
+                              ) : (
+                                timeSlots.map((time) => (
+                                  <SelectItem key={time} value={time}>
+                                    <div className="flex items-center gap-2">
+                                      <Clock className="h-4 w-4" />
+                                      {time}
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              )
+                            ) : (
+                              timeSlots.map((time) => (
+                                <SelectItem key={time} value={time} disabled={!selectedDoctor || !selectedDate}>
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    {time}
+                                  </div>
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
+                      
+                      {selectedDoctor && selectedDate && getAvailableTimeSlotsForDay(selectedDate.toLocaleDateString('en-US', { weekday: 'long' })).length === 0 && (
+                        <p className="text-sm text-orange-600">Doctor is not available on this day. Please select another date.</p>
+                      )}
 
                       {/* Reason for Appointment */}
                       <div className="space-y-2">

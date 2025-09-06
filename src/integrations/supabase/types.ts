@@ -1763,6 +1763,18 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: undefined
       }
+      diagnose_with_bayesian: {
+        Args: { age?: number; gender?: string; symptom_names: string[] }
+        Returns: {
+          condition_id: string
+          description: string
+          dosage: string
+          drug_name: string
+          name: string
+          notes: string
+          probability: number
+        }[]
+      }
       diagnose_with_context: {
         Args: {
           age: number

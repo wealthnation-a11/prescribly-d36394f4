@@ -59,10 +59,10 @@ export const UserDashboard = () => {
 
   const quickActions = [
     {
-      title: "Wellness Checker",
+      title: "Symptom Assessment",
       description: "Complete health assessment with AI-powered diagnosis and prescriptions.",
       icon: Stethoscope,
-      href: "/wellness-checker",
+      href: "/symptom-assessment",
       variant: "primary" as const,
       color: "text-primary"
     },
@@ -341,7 +341,7 @@ export const UserDashboard = () => {
         icon: FileText,
         trend: stats.activePrescriptions > 0 ? "Available prescriptions" : "No prescriptions found",
         color: "text-blue-600",
-        href: "/prescription",
+        href: "/my-prescriptions",
         empty: stats.activePrescriptions === 0
       },
       {
