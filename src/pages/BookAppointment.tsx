@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import { formatNGNAsUSD } from '@/utils/currency';
+import { useDoctorAvailability } from '@/hooks/useDoctorAvailability';
 import ActivityLog from '@/components/ActivityLog';
 
 interface Doctor {
@@ -75,6 +76,9 @@ export default function BookAppointment() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
+  
+  // Get doctor availability
+  const { isTimeSlotAvailable, getAvailableTimeSlotsForDay } = useDoctorAvailability(selectedDoctor);
 
   useEffect(() => {
     if (!user) {

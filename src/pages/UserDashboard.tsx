@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
+import { useRealtimePrescriptions } from "@/hooks/useRealtimePrescriptions";
 
 interface DashboardStats {
   totalConsultations: number;
@@ -43,6 +45,10 @@ interface DashboardStats {
 export const UserDashboard = () => {
   const { user, userProfile } = useAuth();
   const { role } = useUserRole();
+  
+  // Real-time subscriptions
+  useRealtimeAppointments('patient');
+  useRealtimePrescriptions('patient');
   const [stats, setStats] = useState<DashboardStats>({
     totalConsultations: 0,
     activePrescriptions: 0,
@@ -104,14 +110,15 @@ export const UserDashboard = () => {
     return count || 0;
   };
 
-  // Fetch Active Prescriptions  
+  // Fetch Active Prescriptions from the correct table
   const fetchActivePrescriptions = async () => {
     if (!user?.id) return 0;
 
     const { count, error } = await supabase
-      .from('wellness_check_results')
+      .from('prescriptions')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
+      .eq('patient_id', user.id)
+      .eq('status', 'pending');
 
     if (error) {
       console.error('Error fetching prescriptions:', error);
@@ -193,14 +200,15 @@ export const UserDashboard = () => {
     }
   };
 
-  // Set up real-time subscription for appointments
+  // Set up comprehensive real-time subscriptions
   useEffect(() => {
     if (!user?.id) return;
 
     loadDashboardData();
 
-    const channel = supabase
-      .channel('appointments-realtime')
+    // Subscribe to appointment changes
+    const appointmentsChannel = supabase
+      .channel('user-appointments-realtime')
       .on(
         'postgres_changes',
         { 
@@ -211,7 +219,8 @@ export const UserDashboard = () => {
         },
         (payload) => {
           console.log('Appointment change detected:', payload);
-          // Re-fetch appointments data
+          
+          // Re-fetch next appointment
           fetchNextAppointment().then(nextAppointment => {
             setStats(prev => ({ ...prev, nextAppointment }));
           });
@@ -222,12 +231,60 @@ export const UserDashboard = () => {
               setStats(prev => ({ ...prev, totalConsultations }));
             });
           }
+          
+          // Show notification for status changes
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const appointment = payload.new as any;
+            if (appointment.status === 'approved') {
+              toast({
+                title: "Appointment Approved",
+                description: "Your appointment has been approved! You can now chat with the doctor.",
+              });
+            } else if (appointment.status === 'cancelled') {
+              toast({
+                title: "Appointment Cancelled",
+                description: "Your appointment has been cancelled by the doctor.",
+                variant: "destructive",
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to prescription changes
+    const prescriptionsChannel = supabase
+      .channel('user-prescriptions-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'prescriptions',
+          filter: `patient_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Prescription change detected:', payload);
+          
+          // Re-fetch prescriptions count
+          fetchActivePrescriptions().then(activePrescriptions => {
+            setStats(prev => ({ ...prev, activePrescriptions }));
+          });
+          
+          // Show notification for new prescriptions
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "New Prescription",
+              description: "A new prescription has been issued by your doctor.",
+            });
+          }
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(prescriptionsChannel);
     };
   }, [user?.id]);
 

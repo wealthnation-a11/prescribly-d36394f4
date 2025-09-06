@@ -99,6 +99,25 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
+  // Check if user has appointments with doctors before allowing chat
+  const checkAppointmentAccess = async (doctorId: string) => {
+    if (!user?.id) return false;
+    
+    const { data: appointments, error } = await supabase
+      .from('appointments')
+      .select('id, status')
+      .eq('patient_id', user.id)
+      .eq('doctor_id', doctorId)
+      .in('status', ['approved', 'completed']);
+    
+    if (error) {
+      console.error('Error checking appointment access:', error);
+      return false;
+    }
+    
+    return (appointments && appointments.length > 0);
+  };
+
   useEffect(() => {
     if (user) {
       fetchConversations();

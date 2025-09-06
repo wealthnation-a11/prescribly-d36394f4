@@ -18,11 +18,20 @@ import {
   Mail
 } from 'lucide-react';
 
-interface WellnessCheck {
+interface Prescription {
   id: string;
-  calculated_probabilities: Json;
-  suggested_drugs: Json;
+  diagnosis: string | null;
+  instructions: string | null;
+  medications: Json;
+  status: string;
+  issued_at: string;
   created_at: string;
+  doctors?: {
+    profiles?: {
+      first_name: string;
+      last_name: string;
+    };
+  };
 }
 
 const MyPrescriptions = () => {
@@ -34,7 +43,7 @@ const MyPrescriptions = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [prescriptions, setPrescriptions] = useState<WellnessCheck[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,13 +56,41 @@ const MyPrescriptions = () => {
         }
 
         const { data, error } = await supabase
-          .from('wellness_checks')
-          .select('*')
-          .eq('user_id', user.id)
+          .from('prescriptions')
+          .select(`
+            id,
+            diagnosis,
+            instructions,
+            medications,
+            status,
+            issued_at,
+            created_at,
+            doctor_id
+          `)
+          .eq('patient_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setPrescriptions(data || []);
+        
+        // Fetch doctor profiles separately
+        const prescriptionsWithDoctors = await Promise.all(
+          (data || []).map(async (prescription) => {
+            const { data: doctorProfile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('user_id', prescription.doctor_id)
+              .single();
+            
+            return {
+              ...prescription,
+              doctors: {
+                profiles: doctorProfile
+              }
+            };
+          })
+        );
+        
+        setPrescriptions(prescriptionsWithDoctors);
       } catch (error: any) {
         toast({
           title: "Error",
@@ -96,37 +133,58 @@ const MyPrescriptions = () => {
           <div className="text-center py-16">
             <Pill className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-semibold mb-2">No Prescriptions Yet</h2>
-            <p className="text-muted-foreground mb-6">Start a consultation to get your first prescription.</p>
-            <Button onClick={() => navigate('/wellness-checker')} size="lg">
-              Start Consultation
+            <p className="text-muted-foreground mb-6">Book an appointment with a doctor to get your first prescription.</p>
+            <Button onClick={() => navigate('/book-appointment')} size="lg">
+              Book Appointment
             </Button>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {prescriptions.map((prescription) => (
-              <Card key={prescription.id} className="animate-fade-in">
-                <CardHeader>
-                  <CardTitle className="text-xl text-primary">
-                    {Array.isArray(prescription.calculated_probabilities) && (prescription.calculated_probabilities[0] as any)?.condition || 'Health Check'}
-                  </CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(prescription.created_at).toLocaleDateString()}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {Array.isArray(prescription.suggested_drugs) && prescription.suggested_drugs.slice(0, 3).map((drug: any, index: number) => (
-                      <div key={index} className="text-sm">
-                        <span className="font-medium">{drug.name || drug.drug}</span>
-                        {drug.dosage && <Badge variant="outline" className="ml-2 text-xs">{drug.dosage}</Badge>}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {prescriptions.map((prescription) => (
+                <Card key={prescription.id} className="animate-fade-in">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-primary">
+                      {prescription.diagnosis || 'Medical Prescription'}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(prescription.issued_at).toLocaleDateString()}
+                    </div>
+                    {prescription.doctors?.profiles && (
+                      <p className="text-sm text-muted-foreground">
+                        By Dr. {prescription.doctors.profiles.first_name} {prescription.doctors.profiles.last_name}
+                      </p>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <Badge variant={prescription.status === 'active' ? 'default' : 'secondary'}>
+                          {prescription.status}
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm">Medications:</h4>
+                        {Array.isArray(prescription.medications) && prescription.medications.slice(0, 3).map((drug: any, index: number) => (
+                          <div key={index} className="text-sm bg-gray-50 p-2 rounded">
+                            <span className="font-medium">{drug.name || drug.drug}</span>
+                            {drug.dosage && <Badge variant="outline" className="ml-2 text-xs">{drug.dosage}</Badge>}
+                          </div>
+                        ))}
+                      </div>
+                      {prescription.instructions && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-1">Instructions:</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {prescription.instructions}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
         )}
       </div>
     </div>

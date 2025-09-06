@@ -11,12 +11,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatUSD } from "@/utils/currency";
 import ActivityLog from "@/components/ActivityLog";
+import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
+import { useRealtimePrescriptions } from "@/hooks/useRealtimePrescriptions";
 
 
 export const DoctorDashboard = () => {
   const { user } = useAuth();
   const { role, isDoctor, loading: roleLoading } = useUserRole();
   const { earnings, loading: earningsLoading } = useDoctorEarnings();
+  
+  // Real-time subscriptions
+  useRealtimeAppointments('doctor');
+  useRealtimePrescriptions('doctor');
 
   // Fetch today's appointments count
   const { data: todayAppointments = [], isLoading: appointmentsLoading } = useQuery({
