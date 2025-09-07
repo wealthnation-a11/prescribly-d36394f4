@@ -1,92 +1,87 @@
-import { Activity, Calendar, MessageCircle, FileUp, CreditCard } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { useUserActivities } from "@/hooks/useUserActivities";
-import { formatTimeAgo } from "@/utils/timeFormat";
-import { Skeleton } from "@/components/ui/skeleton";
+import React from 'react';
+import { 
+  Calendar, 
+  MessageSquare, 
+  Pill, 
+  User, 
+  Clock,
+  Activity
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { useRecentActivities, RecentActivity as RecentActivityType } from '@/hooks/useRecentActivities';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const getActivityIcon = (activityType: string) => {
-  switch (activityType) {
+const getActivityIcon = (type: RecentActivityType['type']) => {
+  switch (type) {
     case 'appointment':
       return Calendar;
+    case 'prescription':
+      return Pill;
     case 'chat':
-      return MessageCircle;
-    case 'file_upload':
-      return FileUp;
-    case 'payment':
-      return CreditCard;
+      return MessageSquare;
+    case 'profile_update':
+      return User;
+    case 'availability_update':
+      return Clock;
     default:
       return Activity;
   }
 };
 
-const getActivityColor = (activityType: string) => {
-  switch (activityType) {
+const getActivityColor = (type: RecentActivityType['type']) => {
+  switch (type) {
     case 'appointment':
-      return 'text-green-600';
+      return 'text-blue-500';
+    case 'prescription':
+      return 'text-green-500';
     case 'chat':
-      return 'text-purple-600';
-    case 'file_upload':
-      return 'text-blue-600';
-    case 'payment':
-      return 'text-orange-600';
+      return 'text-purple-500';
+    case 'profile_update':
+      return 'text-orange-500';
+    case 'availability_update':
+      return 'text-yellow-500';
     default:
-      return 'text-muted-foreground';
+      return 'text-gray-500';
   }
 };
 
-export const RecentActivity = () => {
-  const { activities, loading, error } = useUserActivities(5);
+const ActivityItem = ({ activity }: { activity: RecentActivityType }) => {
+  const Icon = getActivityIcon(activity.type);
+  const iconColor = getActivityColor(activity.type);
+  
+  return (
+    <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+      <div className={`flex-shrink-0 p-2 rounded-full bg-background ${iconColor}`}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground">
+          {activity.details}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {format(new Date(activity.timestamp), 'dd/MM/yyyy, hh:mm a')}
+        </p>
+      </div>
+    </div>
+  );
+};
 
-  if (loading) {
-    return (
-      <Card className="dashboard-card">
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+const RecentActivity = () => {
+  const { activities, loading, error } = useRecentActivities(10);
 
   if (error) {
     return (
-      <Card className="dashboard-card">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Activity className="w-12 h-12 text-destructive/50 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Activity</h3>
-              <p className="text-content text-muted-foreground">
-                Unable to load recent activities. Please try again later.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (activities.length === 0) {
-    return (
-      <Card className="dashboard-card">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Activity className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Recent Activity</h3>
-              <p className="text-content text-muted-foreground">
-                Start using our services to see your activity here
-              </p>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">
+              Failed to load recent activities
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -94,31 +89,48 @@ export const RecentActivity = () => {
   }
 
   return (
-    <Card className="dashboard-card">
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          {activities.map((activity) => {
-            const Icon = getActivityIcon(activity.activity_type);
-            const color = getActivityColor(activity.activity_type);
-            
-            return (
-              <div key={activity.id} className="flex items-center gap-4 p-3 rounded-lg border border-border/50 hover:border-border transition-colors">
-                <div className={`w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center`}>
-                  <Icon className={`w-5 h-5 ${color}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-content text-foreground font-medium truncate">
-                    {activity.activity_description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatTimeAgo(activity.created_at)}
-                  </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <Activity className="h-5 w-5" />
+          Recent Activity
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-start space-x-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="text-center py-8">
+            <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">
+              No recent activity
+            </p>
+          </div>
+        ) : (
+          <ScrollArea className="h-80">
+            <div className="space-y-1">
+              {activities.map((activity) => (
+                <ActivityItem
+                  key={activity.activity_id}
+                  activity={activity}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
 };
+
+export default RecentActivity;

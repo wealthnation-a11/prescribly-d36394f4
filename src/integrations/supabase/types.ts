@@ -1098,6 +1098,39 @@ export type Database = {
         }
         Relationships: []
       }
+      recent_activities: {
+        Row: {
+          activity_id: string
+          created_at: string
+          details: string
+          doctor_id: string | null
+          related_id: string | null
+          timestamp: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          activity_id?: string
+          created_at?: string
+          details: string
+          doctor_id?: string | null
+          related_id?: string | null
+          timestamp?: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          details?: string
+          doctor_id?: string | null
+          related_id?: string | null
+          timestamp?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           assigned_to: string | null

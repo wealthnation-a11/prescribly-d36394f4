@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useEnhancedActivityLogger } from '@/hooks/useEnhancedActivityLogger';
 
 export interface PrescriptionUpdate {
   id: string;
@@ -17,6 +18,7 @@ export interface PrescriptionUpdate {
 export const useRealtimePrescriptions = (role: 'doctor' | 'patient') => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const enhancedLogger = useEnhancedActivityLogger();
   const [prescriptions, setPrescriptions] = useState<PrescriptionUpdate[]>([]);
 
   useEffect(() => {
@@ -43,11 +45,13 @@ export const useRealtimePrescriptions = (role: 'doctor' | 'patient') => {
                 title: "New Prescription",
                 description: "A new prescription has been issued by your doctor.",
               });
+              enhancedLogger.logActivity('prescription', 'New prescription received from doctor', prescription.id);
             } else if (role === 'doctor') {
               toast({
                 title: "Prescription Created",
                 description: "Prescription has been successfully created and sent to patient.",
               });
+              enhancedLogger.logActivity('prescription', 'Prescription issued to patient', prescription.id);
             }
           } else if (payload.eventType === 'UPDATE' && prescription) {
             if (role === 'patient' && prescription.status === 'active') {

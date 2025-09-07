@@ -13,6 +13,7 @@ import { formatUSD } from "@/utils/currency";
 import ActivityLog from "@/components/ActivityLog";
 import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
 import { useRealtimePrescriptions } from "@/hooks/useRealtimePrescriptions";
+import RecentActivity from "@/components/RecentActivity";
 
 
 export const DoctorDashboard = () => {
@@ -347,8 +348,16 @@ export const DoctorDashboard = () => {
             
             {/* Recent Activity Section */}
             <div className="mt-8 max-w-7xl mx-auto">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-              <ActivityLog limit={8} showTitle={false} className="backdrop-blur-sm bg-white/80 border-0 shadow-lg" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
+                  <RecentActivity />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Activity Log</h2>
+                  <ActivityLog limit={5} showTitle={false} className="backdrop-blur-sm bg-white/80 border-0 shadow-lg" />
+                </div>
+              </div>
             </div>
           </main>
         </div>
