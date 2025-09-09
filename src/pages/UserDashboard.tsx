@@ -22,7 +22,7 @@ import {
   Trophy
 } from "lucide-react";
 import RecentActivity from "@/components/RecentActivity";
-import ActivityLog from "@/components/ActivityLog";
+
 import { 
   SidebarProvider, 
   SidebarTrigger,
@@ -538,8 +538,8 @@ export const UserDashboard = () => {
                    <RecentActivity />
                  </div>
                  <div className="lg:col-span-1">
-                   <h2 className="text-heading text-foreground mb-6">Activity Log</h2>
-                   <ActivityLog limit={5} showTitle={false} />
+                    <h2 className="text-heading text-foreground mb-6">Recent Activity</h2>
+                    <RecentActivity />
                  </div>
                </div>
             </div>

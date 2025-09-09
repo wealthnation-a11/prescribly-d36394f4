@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useActivityLogger } from '@/hooks/useActivityLogger';
+import { useEnhancedActivityLogger } from '@/hooks/useEnhancedActivityLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,7 +68,7 @@ interface Conversation {
 export default function Chat() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { logMessageSent } = useActivityLogger();
+  const { logMessageSent } = useEnhancedActivityLogger();
   const { 
     isInitialized, 
     encryptMessage, 
@@ -348,10 +348,9 @@ export default function Chat() {
 
       // Log the message activity
       if (selectedDoctor) {
-        const messageType = fileType ? 'file' : 'text';
         logMessageSent(
           `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`,
-          messageType as 'text' | 'file' | 'voice'
+          true
         );
       }
 
@@ -407,7 +406,7 @@ export default function Chat() {
       if (selectedDoctor) {
         logMessageSent(
           `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`,
-          'file'
+          true
         );
       }
       
@@ -459,7 +458,7 @@ export default function Chat() {
           if (selectedDoctor) {
             logMessageSent(
               `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`,
-              'voice'
+              true
             );
           }
           

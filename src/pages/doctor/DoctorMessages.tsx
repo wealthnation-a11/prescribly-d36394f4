@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { useEnhancedActivityLogger } from "@/hooks/useEnhancedActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ interface ChatMessage {
 
 export const DoctorMessages = () => {
   const { user } = useAuth();
-  const { logMessageSent } = useActivityLogger();
+  const { logMessageSent } = useEnhancedActivityLogger();
   const { 
     isInitialized, 
     encryptMessage, 
@@ -306,10 +306,9 @@ export const DoctorMessages = () => {
       
       // Log the message activity
       if (selectedPatient) {
-        const messageType = fileType ? 'file' : 'text';
         logMessageSent(
           `${selectedPatient.first_name || 'Patient'} ${selectedPatient.last_name || ''}`.trim(),
-          messageType as 'text' | 'file' | 'voice'
+          false
         );
       }
       

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useActivityLogger } from '@/hooks/useActivityLogger';
+import { useEnhancedActivityLogger } from '@/hooks/useEnhancedActivityLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import { formatNGNAsUSD } from '@/utils/currency';
 import { useDoctorAvailability } from '@/hooks/useDoctorAvailability';
-import ActivityLog from '@/components/ActivityLog';
+
 
 interface Doctor {
   user_id: string;
@@ -62,7 +62,7 @@ const timeSlots = [
 
 export default function BookAppointment() {
   const { user } = useAuth();
-  const { logAppointmentBooked } = useActivityLogger();
+  const { logAppointmentBooked } = useEnhancedActivityLogger();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { exchangeRate } = useExchangeRate();
@@ -273,7 +273,8 @@ export default function BookAppointment() {
       if (selectedDoctorData) {
         logAppointmentBooked(
           `${selectedDoctorData.profiles.first_name} ${selectedDoctorData.profiles.last_name}`,
-          format(selectedDate!, 'PPP') + ' at ' + selectedTime
+          format(selectedDate!, 'PPP') + ' at ' + selectedTime,
+          data[0].id
         );
       }
 

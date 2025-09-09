@@ -5,7 +5,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DoctorLayout } from "@/components/DoctorLayout";
-import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { useEnhancedActivityLogger } from "@/hooks/useEnhancedActivityLogger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -35,7 +35,7 @@ export const DoctorPrescriptions = () => {
   const { user } = useAuth();
   const { role, isDoctor, loading: roleLoading } = useUserRole();
   const { toast } = useToast();
-  const { logActivity } = useActivityLogger();
+  const { logActivity } = useEnhancedActivityLogger();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
 const [loading, setLoading] = useState(true);

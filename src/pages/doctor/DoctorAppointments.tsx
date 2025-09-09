@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Users, CheckCircle, User, CalendarDays, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { useEnhancedActivityLogger } from "@/hooks/useEnhancedActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +14,7 @@ export const DoctorAppointments = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { logAppointmentApproved, logAppointmentCompleted, logActivity } = useActivityLogger();
+  const { logAppointmentApproved, logAppointmentCompleted, logAppointmentRejected } = useEnhancedActivityLogger();
 
   // Fetch today's appointments for the doctor
   const { data: appointments = [], isLoading } = useQuery({
@@ -84,7 +84,8 @@ export const DoctorAppointments = () => {
       if (appointment?.patient) {
         logAppointmentCompleted(
           `${appointment.patient.first_name} ${appointment.patient.last_name}`,
-          format(new Date(appointment.scheduled_time), 'PPP')
+          format(new Date(appointment.scheduled_time), 'PPP'),
+          appointmentId
         );
       }
       
@@ -118,7 +119,8 @@ export const DoctorAppointments = () => {
       if (appointment?.patient) {
         logAppointmentApproved(
           `${appointment.patient.first_name} ${appointment.patient.last_name}`,
-          format(new Date(appointment.scheduled_time), 'PPP')
+          format(new Date(appointment.scheduled_time), 'PPP'),
+          appointmentId
         );
       }
       
@@ -150,13 +152,10 @@ export const DoctorAppointments = () => {
     onSuccess: (_, appointmentId) => {
       const appointment = appointments.find(apt => apt.id === appointmentId);
       if (appointment?.patient) {
-        logActivity(
-          'appointment_declined',
-          `Declined appointment with ${appointment.patient.first_name} ${appointment.patient.last_name}`,
-          { 
-            patientName: `${appointment.patient.first_name} ${appointment.patient.last_name}`,
-            appointmentDate: format(new Date(appointment.scheduled_time), 'PPP')
-          }
+        logAppointmentRejected(
+          `${appointment.patient.first_name} ${appointment.patient.last_name}`,
+          format(new Date(appointment.scheduled_time), 'PPP'),
+          appointmentId
         );
       }
       

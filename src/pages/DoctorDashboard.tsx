@@ -10,7 +10,7 @@ import { DoctorSidebar } from "@/components/DoctorSidebar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatUSD } from "@/utils/currency";
-import ActivityLog from "@/components/ActivityLog";
+
 import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
 import { useRealtimePrescriptions } from "@/hooks/useRealtimePrescriptions";
 import RecentActivity from "@/components/RecentActivity";
@@ -354,8 +354,8 @@ export const DoctorDashboard = () => {
                   <RecentActivity />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Activity Log</h2>
-                  <ActivityLog limit={5} showTitle={false} className="backdrop-blur-sm bg-white/80 border-0 shadow-lg" />
+                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
+                  <RecentActivity />
                 </div>
               </div>
             </div>
