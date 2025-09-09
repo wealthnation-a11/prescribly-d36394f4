@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
   Stethoscope, 
-  FileText, 
   Calendar, 
   MessageCircle, 
   User, 
@@ -31,11 +30,9 @@ import {
 import { AppSidebar } from "@/components/AppSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
-import { useRealtimePrescriptions } from "@/hooks/useRealtimePrescriptions";
 
 interface DashboardStats {
   totalConsultations: number;
-  activePrescriptions: number;
   nextAppointment: {
     doctorName?: string;
     appointmentDate?: string;
@@ -48,10 +45,8 @@ export const UserDashboard = () => {
   
   // Real-time subscriptions
   useRealtimeAppointments('patient');
-  useRealtimePrescriptions('patient');
   const [stats, setStats] = useState<DashboardStats>({
     totalConsultations: 0,
-    activePrescriptions: 0,
     nextAppointment: null
   });
   const [loading, setLoading] = useState(true);
@@ -96,24 +91,6 @@ export const UserDashboard = () => {
 
     if (error) {
       console.error('Error fetching consultations:', error);
-      return 0;
-    }
-
-    return count || 0;
-  };
-
-  // Fetch Active Prescriptions from the correct table
-  const fetchActivePrescriptions = async () => {
-    if (!user?.id) return 0;
-
-    const { count, error } = await supabase
-      .from('prescriptions')
-      .select('*', { count: 'exact', head: true })
-      .eq('patient_id', user.id)
-      .eq('status', 'pending');
-
-    if (error) {
-      console.error('Error fetching prescriptions:', error);
       return 0;
     }
 
@@ -168,15 +145,13 @@ export const UserDashboard = () => {
       setLoading(true);
       setError(null);
 
-      const [consultations, prescriptions, nextAppointment] = await Promise.all([
+      const [consultations, nextAppointment] = await Promise.all([
         fetchTotalConsultations(),
-        fetchActivePrescriptions(),
         fetchNextAppointment()
       ]);
 
       setStats({
         totalConsultations: consultations,
-        activePrescriptions: prescriptions,
         nextAppointment
       });
     } catch (err) {
@@ -244,39 +219,8 @@ export const UserDashboard = () => {
       )
       .subscribe();
 
-    // Subscribe to prescription changes
-    const prescriptionsChannel = supabase
-      .channel('user-prescriptions-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'prescriptions',
-          filter: `patient_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Prescription change detected:', payload);
-          
-          // Re-fetch prescriptions count
-          fetchActivePrescriptions().then(activePrescriptions => {
-            setStats(prev => ({ ...prev, activePrescriptions }));
-          });
-          
-          // Show notification for new prescriptions
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "New Prescription",
-              description: "A new prescription has been issued by your doctor.",
-            });
-          }
-        }
-      )
-      .subscribe();
-
     return () => {
       supabase.removeChannel(appointmentsChannel);
-      supabase.removeChannel(prescriptionsChannel);
     };
   }, [user?.id]);
 
@@ -310,7 +254,6 @@ export const UserDashboard = () => {
     if (loading) {
       return [
         { title: "Total Consultations", loading: true, icon: Activity, color: "text-primary", href: "/book-appointment" },
-        { title: "Active Prescriptions", loading: true, icon: FileText, color: "text-blue-600", href: "/wellness-checker" },
         { title: "Next Appointment", loading: true, icon: Clock, color: "text-green-600", href: "/book-appointment" }
       ];
     }
@@ -326,15 +269,6 @@ export const UserDashboard = () => {
         color: "text-primary",
         href: "/book-appointment",
         empty: stats.totalConsultations === 0
-      },
-      {
-        title: "Active Prescriptions",
-        value: stats.activePrescriptions.toString(),
-        icon: FileText,
-        trend: stats.activePrescriptions > 0 ? "Available prescriptions" : "No prescriptions found",
-        color: "text-blue-600",
-        href: "/my-prescriptions",
-        empty: stats.activePrescriptions === 0
       },
       {
         title: "Next Appointment",
@@ -422,7 +356,7 @@ export const UserDashboard = () => {
 
             <div className="container mx-auto p-6 space-y-8">
               {/* Stats Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {statsCards.map((stat, index) => (
                   <Card 
                     key={stat.title} 
