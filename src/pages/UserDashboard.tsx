@@ -59,14 +59,6 @@ export const UserDashboard = () => {
 
   const quickActions = [
     {
-      title: "Symptom Assessment",
-      description: "Complete health assessment with AI-powered diagnosis and prescriptions.",
-      icon: Stethoscope,
-      href: "/symptom-assessment",
-      variant: "primary" as const,
-      color: "text-primary"
-    },
-    {
       title: "AI Health Companion",
       description: "Interactive AI companion with progressive diagnosis and personalized treatment.",
       icon: Brain,
@@ -536,10 +528,6 @@ export const UserDashboard = () => {
                  <div className="lg:col-span-2">
                    <h2 className="text-heading text-foreground mb-6">Recent Activity</h2>
                    <RecentActivity />
-                 </div>
-                 <div className="lg:col-span-1">
-                    <h2 className="text-heading text-foreground mb-6">Recent Activity</h2>
-                    <RecentActivity />
                  </div>
                </div>
             </div>

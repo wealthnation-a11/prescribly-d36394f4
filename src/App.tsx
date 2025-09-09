@@ -25,7 +25,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
-import SymptomForm from "./pages/SymptomForm";
 import Prescription from "./pages/Prescription";
 
 import AIHealthCompanion from "./pages/AIHealthCompanion";
@@ -97,11 +96,6 @@ const App = () => (
             } />
 
             {/* Patient-specific Routes */}
-            <Route path="/symptom-form" element={
-              <ProtectedRoute requirePatient={true}>
-                <SymptomForm />
-              </ProtectedRoute>
-            } />
             <Route path="/ai-health-companion" element={
               <ProtectedRoute requirePatient={true}>
                 <AIHealthCompanion />
