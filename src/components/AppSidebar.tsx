@@ -23,6 +23,7 @@ export function AppSidebar() {
 
   const items = [
     { title: t("dashboard"), url: "/user-dashboard", icon: Home },
+    { title: "System Assessment", url: "/system-assessment", icon: Stethoscope },
     { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus },
     { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText },
     { title: t("chat"), url: "/chat", icon: MessageCircle },

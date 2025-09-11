@@ -4,7 +4,7 @@ import { useDoctorEarnings } from "@/hooks/useDoctorEarnings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, Navigate } from "react-router-dom";
-import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp } from "lucide-react";
+import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Brain } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DoctorSidebar } from "@/components/DoctorSidebar";
 import { useQuery } from "@tanstack/react-query";
@@ -321,8 +321,32 @@ export const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
+              {/* AI Diagnoses */}
+              <Card className="backdrop-blur-sm bg-purple-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-3 text-slate-900">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Brain className="w-5 h-5 text-purple-600" />
+                    </div>
+                    AI Diagnoses
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <p className="text-2xl font-bold text-slate-900">0</p>
+                    <p className="text-sm text-slate-600">pending review</p>
+                  </div>
+                  <p className="text-slate-600 mb-4 text-sm">
+                    Review AI-assisted patient diagnoses.
+                  </p>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/doctor/ai-diagnoses">Review Cases</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Earnings */}
-              <Card className="backdrop-blur-sm bg-teal-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 md:col-span-2 xl:col-span-1">
+              <Card className="backdrop-blur-sm bg-teal-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
                     <div className="p-2 bg-teal-100 rounded-lg">

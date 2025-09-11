@@ -33,6 +33,8 @@ import HydrationChallenge from "./pages/HydrationChallenge";
 import StepsChallenge from "./pages/StepsChallenge";
 import HealthTrendsDashboard from "./pages/HealthTrendsDashboard";
 import MyPrescriptions from "./pages/MyPrescriptions";
+import { SystemAssessment } from "./pages/SystemAssessment";
+import DoctorAIDiagnoses from "./pages/doctor/DoctorAIDiagnoses";
 
 
 
@@ -99,6 +101,11 @@ const App = () => (
             <Route path="/ai-health-companion" element={
               <ProtectedRoute requirePatient={true}>
                 <AIHealthCompanion />
+              </ProtectedRoute>
+            } />
+            <Route path="/system-assessment" element={
+              <ProtectedRoute requirePatient={true}>
+                <SystemAssessment />
               </ProtectedRoute>
             } />
             <Route path="/health-challenges" element={
@@ -191,6 +198,11 @@ const App = () => (
             <Route path="/doctor/earnings" element={
               <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorEarnings />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/ai-diagnoses" element={
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
+                <DoctorAIDiagnoses />
               </ProtectedRoute>
             } />
             

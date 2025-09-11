@@ -349,238 +349,48 @@ export type Database = {
         }
         Relationships: []
       }
-      companion_questions: {
+      diagnosis_sessions: {
         Row: {
-          category: string
-          created_at: string | null
-          id: number
-          question_text: string
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          id?: number
-          question_text: string
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          id?: number
-          question_text?: string
-        }
-        Relationships: []
-      }
-      condition_aliases: {
-        Row: {
-          alias: string
-          condition_id: number | null
-          created_at: string | null
-          id: number
-        }
-        Insert: {
-          alias: string
-          condition_id?: number | null
-          created_at?: string | null
-          id?: number
-        }
-        Update: {
-          alias?: string
-          condition_id?: number | null
-          created_at?: string | null
-          id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "condition_aliases_condition_id_fkey"
-            columns: ["condition_id"]
-            isOneToOne: false
-            referencedRelation: "conditions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      condition_symptoms: {
-        Row: {
-          condition_id: number
+          ai_diagnoses: Json | null
           created_at: string
+          doctor_id: string | null
+          doctor_notes: string | null
+          doctor_review_status: string | null
+          final_prescription_id: string | null
           id: string
-          probability: number
-          symptom_id: string
-          weight: number | null
+          patient_id: string
+          selected_symptoms: Json | null
+          suggested_drugs: Json | null
+          symptoms_text: string | null
+          updated_at: string
         }
         Insert: {
-          condition_id: number
+          ai_diagnoses?: Json | null
           created_at?: string
+          doctor_id?: string | null
+          doctor_notes?: string | null
+          doctor_review_status?: string | null
+          final_prescription_id?: string | null
           id?: string
-          probability?: number
-          symptom_id: string
-          weight?: number | null
+          patient_id: string
+          selected_symptoms?: Json | null
+          suggested_drugs?: Json | null
+          symptoms_text?: string | null
+          updated_at?: string
         }
         Update: {
-          condition_id?: number
+          ai_diagnoses?: Json | null
           created_at?: string
+          doctor_id?: string | null
+          doctor_notes?: string | null
+          doctor_review_status?: string | null
+          final_prescription_id?: string | null
           id?: string
-          probability?: number
-          symptom_id?: string
-          weight?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "condition_symptoms_symptom_id_fkey"
-            columns: ["symptom_id"]
-            isOneToOne: false
-            referencedRelation: "symptoms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conditions: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          description: string | null
-          drug_recommendations: Json | null
-          drug_usage: Json | null
-          id: number
-          is_rare: boolean | null
-          name: string | null
-          prevalence: number | null
-          short_description: string | null
-          symptom_counts: Json | null
-          symptoms: Json | null
-          total_case_count: number | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          drug_recommendations?: Json | null
-          drug_usage?: Json | null
-          id: number
-          is_rare?: boolean | null
-          name?: string | null
-          prevalence?: number | null
-          short_description?: string | null
-          symptom_counts?: Json | null
-          symptoms?: Json | null
-          total_case_count?: number | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          drug_recommendations?: Json | null
-          drug_usage?: Json | null
-          id?: number
-          is_rare?: boolean | null
-          name?: string | null
-          prevalence?: number | null
-          short_description?: string | null
-          symptom_counts?: Json | null
-          symptoms?: Json | null
-          total_case_count?: number | null
-        }
-        Relationships: []
-      }
-      conditions_aliases: {
-        Row: {
-          aliases: string | null
-          category: string | null
-          condition_id: number
-          drug_recommendations: string | null
-          id: number
-          name: string | null
-          short_description: string | null
-          symptom_counts: number | null
-          symptoms: string | null
-          total_cases: number | null
-        }
-        Insert: {
-          aliases?: string | null
-          category?: string | null
-          condition_id: number
-          drug_recommendations?: string | null
-          id?: number
-          name?: string | null
-          short_description?: string | null
-          symptom_counts?: number | null
-          symptoms?: string | null
-          total_cases?: number | null
-        }
-        Update: {
-          aliases?: string | null
-          category?: string | null
-          condition_id?: number
-          drug_recommendations?: string | null
-          id?: number
-          name?: string | null
-          short_description?: string | null
-          symptom_counts?: number | null
-          symptoms?: string | null
-          total_cases?: number | null
-        }
-        Relationships: []
-      }
-      conditions_merged: {
-        Row: {
-          alias_id: number | null
-          aliases: string | null
-          condition_category: string | null
-          condition_id: number | null
-          condition_name: string | null
-          drug_recommendations: string | null
-          short_description: string | null
-          symptom_counts: number | null
-          symptoms: string | null
-          total_cases: number | null
-        }
-        Insert: {
-          alias_id?: number | null
-          aliases?: string | null
-          condition_category?: string | null
-          condition_id?: number | null
-          condition_name?: string | null
-          drug_recommendations?: string | null
-          short_description?: string | null
-          symptom_counts?: number | null
-          symptoms?: string | null
-          total_cases?: number | null
-        }
-        Update: {
-          alias_id?: number | null
-          aliases?: string | null
-          condition_category?: string | null
-          condition_id?: number | null
-          condition_name?: string | null
-          drug_recommendations?: string | null
-          short_description?: string | null
-          symptom_counts?: number | null
-          symptoms?: string | null
-          total_cases?: number | null
-        }
-        Relationships: []
-      }
-      diagnostic_questions: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          difficulty_level: string | null
-          id: string
-          question_text: string
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          difficulty_level?: string | null
-          id?: string
-          question_text: string
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          difficulty_level?: string | null
-          id?: string
-          question_text?: string
+          patient_id?: string
+          selected_symptoms?: Json | null
+          suggested_drugs?: Json | null
+          symptoms_text?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -673,41 +483,6 @@ export type Database = {
           years_of_experience?: number | null
         }
         Relationships: []
-      }
-      drug_recommendations: {
-        Row: {
-          condition_id: number | null
-          created_at: string | null
-          dosage: string | null
-          drug_name: string
-          id: number
-          notes: string | null
-        }
-        Insert: {
-          condition_id?: number | null
-          created_at?: string | null
-          dosage?: string | null
-          drug_name: string
-          id?: number
-          notes?: string | null
-        }
-        Update: {
-          condition_id?: number | null
-          created_at?: string | null
-          dosage?: string | null
-          drug_name?: string
-          id?: number
-          notes?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "drug_recommendations_condition_id_fkey"
-            columns: ["condition_id"]
-            isOneToOne: false
-            referencedRelation: "conditions"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       encrypted_message_audit: {
         Row: {
@@ -1425,15 +1200,7 @@ export type Database = {
           question_id?: number | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_daily_checkins_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "companion_questions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_diagnosis_history: {
         Row: {
@@ -1529,15 +1296,7 @@ export type Database = {
           suggested_conditions?: Json | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_history_confirmed_condition_fkey"
-            columns: ["confirmed_condition"]
-            isOneToOne: false
-            referencedRelation: "conditions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_hydration_log: {
         Row: {
@@ -1784,12 +1543,7 @@ export type Database = {
       }
     }
     Views: {
-      symptom_vocab: {
-        Row: {
-          symptom: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_and_award_step_achievements: {
