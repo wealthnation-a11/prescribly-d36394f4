@@ -74,11 +74,7 @@ const HealthTrendsDashboard = () => {
 
       const { data, error } = await supabase
         .from('user_daily_checkins')
-        .select(`
-          date,
-          answer,
-          companion_questions(category, question_text)
-        `)
+        .select('date, answer, question_id')
         .eq('user_id', user.id)
         .gte('date', startDate.toISOString().split('T')[0])
         .order('date', { ascending: true });
@@ -87,9 +83,9 @@ const HealthTrendsDashboard = () => {
 
       const formattedData = data?.map(item => ({
         date: item.date,
-        category: item.companion_questions?.category || 'unknown',
+        category: getCategoryFromQuestionId(item.question_id),
         answer: item.answer,
-        question_text: item.companion_questions?.question_text || ''
+        question_text: getQuestionText(item.question_id)
       })) || [];
 
       setCheckinData(formattedData);
@@ -150,6 +146,42 @@ const HealthTrendsDashboard = () => {
     }
 
     setStreak(currentStreak);
+  };
+
+  // Helper functions to categorize questions based on ID patterns
+  const getCategoryFromQuestionId = (questionId: number | null): string => {
+    if (!questionId) return 'general';
+    
+    // Map question IDs to categories (these can be adjusted based on actual data)
+    if (questionId <= 2) return 'sleep';
+    if (questionId <= 4) return 'hydration';
+    if (questionId <= 6) return 'exercise';
+    if (questionId <= 8) return 'nutrition';
+    if (questionId <= 10) return 'stress';
+    if (questionId <= 12) return 'mental_health';
+    return 'outdoor';
+  };
+
+  const getQuestionText = (questionId: number | null): string => {
+    if (!questionId) return 'Daily check-in';
+    
+    // Map question IDs to question text (these can be adjusted based on actual data)
+    const questionMap: Record<number, string> = {
+      1: 'How many hours did you sleep?',
+      2: 'How would you rate your sleep quality?',
+      3: 'How many glasses of water did you drink?',
+      4: 'Did you stay hydrated today?',
+      5: 'Did you exercise today?',
+      6: 'How many minutes did you exercise?',
+      7: 'Did you eat healthy meals?',
+      8: 'How many servings of vegetables did you have?',
+      9: 'Did you feel stressed today?',
+      10: 'How would you rate your stress level?',
+      11: 'How is your mood today?',
+      12: 'Did you practice mindfulness?',
+    };
+    
+    return questionMap[questionId] || 'Daily wellness check-in';
   };
 
   const getSleepTrends = () => {
