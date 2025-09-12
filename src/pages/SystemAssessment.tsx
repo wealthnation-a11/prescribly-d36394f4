@@ -985,7 +985,7 @@ export const SystemAssessment = () => {
               Always consult with a qualified healthcare provider for proper medical evaluation.
             </AlertDescription>
           </Alert>
-         </motion.div>
+        </motion.div>
       </div>
     </div>
   );
