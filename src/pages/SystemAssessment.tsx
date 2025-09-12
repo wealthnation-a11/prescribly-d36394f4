@@ -686,9 +686,22 @@ export const SystemAssessment = () => {
           >
             <Card className="max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <RotateCcw className="h-5 w-5 text-primary" />
-                  Continue Previous Session
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <RotateCcw className="h-5 w-5 text-primary" />
+                    Continue Previous Session
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      setShowRestorePrompt(false);
+                      clearSession();
+                    }}
+                    className="h-6 w-6 p-0 hover:bg-secondary"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </CardTitle>
                 <p className="text-muted-foreground text-sm">
                   We found incomplete assessments from your previous sessions. Choose one to continue:
