@@ -1,570 +1,458 @@
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Brain, Clock, AlertTriangle, BookOpenCheck, CalendarPlus, Save, AlertCircle, Shield } from "lucide-react";
-import { SecurityCompliantForm } from "@/components/SecurityCompliantForm";
-import { usePageSEO } from "@/hooks/usePageSEO";
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useSecureDiagnosis } from '@/hooks/useSecureDiagnosis';
+import { usePageSEO } from '@/hooks/usePageSEO';
+import { SmartSymptomInput } from '@/components/wellness/SmartSymptomInput';
+import { DiagnosisResults } from '@/components/wellness/DiagnosisResults';
+import { DoctorReviewPanel } from '@/components/wellness/DoctorReviewPanel';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Brain, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface Diagnosis {
-  condition_id: string;
-  condition_name: string;
-  probability: number;
-  explanation: string;
-  severity: string;
-  confidence: string;
-}
-
-interface DiagnosisResults {
-  success: boolean;
-  emergency: boolean;
-  alert_message?: string;
-  diagnoses: Diagnosis[];
-  session_id: string;
-}
-
-interface DrugRecommendation {
-  drug_name: string;
-  rxnorm_id?: string;
-  form: string;
-  strength: string;
-  dosage: string;
-  warnings: string[];
-  category: string;
-  first_line: boolean;
-  notes?: string;
-}
-
-interface SymptomOption {
-  id: string;
-  name: string;
-  category: string;
-}
-
-const commonSymptoms: SymptomOption[] = [
-  { id: "1", name: "Fever", category: "General" },
-  { id: "2", name: "Headache", category: "Neurological" },
-  { id: "3", name: "Cough", category: "Respiratory" },
-  { id: "4", name: "Sore throat", category: "Respiratory" },
-  { id: "5", name: "Nausea", category: "Gastrointestinal" },
-  { id: "6", name: "Fatigue", category: "General" },
-  { id: "7", name: "Dizziness", category: "Neurological" },
-  { id: "8", name: "Joint pain", category: "Musculoskeletal" },
+const STEPS = [
+  { id: 1, title: 'Enter Symptoms', description: 'Tell us what you\'re experiencing' },
+  { id: 2, title: 'Clarifying Questions', description: 'Help us understand better' },
+  { id: 3, title: 'AI Analysis', description: 'Get probable conditions' },
+  { id: 4, title: 'Recommendations', description: 'View suggested treatments' },
+  { id: 5, title: 'Book Doctor', description: 'Connect with healthcare professionals' }
 ];
 
 export const SystemAssessment = () => {
   usePageSEO({
-    title: "AI Health Assessment - Get Instant Symptom Analysis | PrescriblyAI",
-    description: "Get instant AI-powered health assessments with our advanced diagnostic system. Analyze symptoms, get preliminary diagnoses, and connect with qualified doctors for professional care."
+    title: "Advanced AI Health Assessment - Smart Diagnostic Assistant | PrescriblyAI",
+    description: "Experience our advanced diagnostic assistant with smart symptom input, AI analysis, drug recommendations, and instant doctor booking. Get professional healthcare guidance in minutes."
   });
 
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { role } = useUserRole();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [showSecureForm, setShowSecureForm] = useState(false);
-  
-  // Form state
-  const [freeTextSymptoms, setFreeTextSymptoms] = useState("");
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
-  const [results, setResults] = useState<DiagnosisResults | null>(null);
-  const [drugRecommendations, setDrugRecommendations] = useState<DrugRecommendation[]>([]);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { loading, submitDiagnosis, lastDiagnosisId } = useSecureDiagnosis();
 
-  const handleSymptomToggle = (symptomId: string) => {
-    setSelectedSymptoms(prev => 
-      prev.includes(symptomId)
-        ? prev.filter(id => id !== symptomId)
-        : [...prev, symptomId]
+  const [currentStep, setCurrentStep] = useState(1);
+  const [symptoms, setSymptoms] = useState<string[]>([]);
+  const [diagnosisResults, setDiagnosisResults] = useState<any>(null);
+  const [clarifyingAnswers, setClarifyingAnswers] = useState<Record<string, string>>({});
+
+  // Doctor view
+  if (role === 'doctor') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-primary/5 p-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center justify-center gap-3">
+              <Brain className="w-10 h-10 text-primary" />
+              Doctor Review Dashboard
+            </h1>
+            <p className="text-muted-foreground text-lg">Review and approve AI diagnostic recommendations</p>
+          </div>
+          <DoctorReviewPanel userRole={role || ''} />
+        </div>
+      </div>
     );
-  };
+  }
 
-  const handleDiagnosis = async () => {
-    if (!user?.id) return;
+  const handleSymptomSubmit = async (submittedSymptoms: string[]) => {
+    setSymptoms(submittedSymptoms);
     
-    setLoading(true);
-    try {
-      // Get symptom names for the API call
-      const symptomNames = selectedSymptoms.map(id => 
-        commonSymptoms.find(s => s.id === id)?.name
-      ).filter(Boolean) as string[];
+    const result = await submitDiagnosis({
+      symptoms: submittedSymptoms,
+      severity: 3,
+      duration: '2-3 days',
+      age: 30,
+      gender: 'unknown'
+    });
 
-      // Combine symptoms
-      let allSymptoms = freeTextSymptoms.trim();
-      if (symptomNames.length > 0) {
-        allSymptoms = allSymptoms ? `${allSymptoms}, ${symptomNames.join(', ')}` : symptomNames.join(', ');
-      }
-
-      // Call enhanced diagnosis API
-      const { data, error } = await supabase.functions.invoke('diagnose-symptoms', {
-        body: { 
-          symptoms: allSymptoms,
-          demographicInfo: {
-            age: 30, // You could collect this from user profile
-            gender: "unknown" // You could collect this from user profile
-          }
+    if (result.success) {
+      if (result.emergency) {
+        // Handle emergency case
+        setDiagnosisResults(result);
+        setCurrentStep(3); // Skip to results
+      } else if (result.diagnosis) {
+        setDiagnosisResults(result);
+        // Check if we need clarifying questions
+        const needsClarification = submittedSymptoms.some(symptom => 
+          symptom.toLowerCase().includes('fever') || 
+          symptom.toLowerCase().includes('headache')
+        );
+        
+        if (needsClarification) {
+          setCurrentStep(2); // Go to clarifying questions
+        } else {
+          setCurrentStep(3); // Skip to diagnosis results
         }
-      });
-
-      if (error) throw error;
-
-      setResults(data);
-      
-      // Fetch drug recommendations for top diagnosis if not emergency
-      if (!data.emergency && data.diagnoses && data.diagnoses.length > 0) {
-        fetchDrugRecommendations(data.diagnoses[0].condition_id);
       }
-
-      // Create audit log for diagnosis generation
-      try {
-        await supabase.functions.invoke('create-audit-log', {
-          body: {
-            diagnosis_id: data.session_id || 'temp_' + Date.now(),
-            actor_id: user.id,
-            action: 'diagnosis_generated',
-            details: {
-              symptom_count: selectedSymptoms.length + (freeTextSymptoms.trim() ? 1 : 0),
-              diagnosis_count: data.diagnoses?.length || 0,
-              emergency_detected: data.emergency || false,
-              ai_model: 'bayesian_inference'
-            }
-          }
-        });
-      } catch (auditError) {
-        console.error('Error creating audit log:', auditError);
-      }
-
-      setStep(3);
-      
-    } catch (error) {
-      console.error('Diagnosis error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get diagnosis. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchDrugRecommendations = async (conditionId: string) => {
-    try {
-      // Use the drug-recommendations function with the condition ID in the URL path
-      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/drug-recommendations/${conditionId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (response.ok) {
-        const drugData = await response.json();
-        if (drugData.success && drugData.recommendations) {
-          setDrugRecommendations(drugData.recommendations);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching drug recommendations:', error);
-    }
-  };
-
-  const handleSaveReport = async () => {
-    if (!user || !results) return;
-
-    setSaving(true);
-    try {
-      // Save to diagnosis sessions using the v2 table
-      const { data, error } = await supabase
-        .from('diagnosis_sessions_v2')
-        .insert({
-          user_id: user.id,
-          symptoms: selectedSymptoms.concat(freeTextSymptoms ? [freeTextSymptoms] : []) as any,
-          conditions: results.diagnoses as any,
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Create audit log
-      try {
-        await supabase.functions.invoke('create-audit-log', {
-          body: {
-            diagnosis_id: data.id,
-            actor_id: user.id,
-            action: 'report_saved',
-            details: {
-              symptom_count: selectedSymptoms.length + (freeTextSymptoms.trim() ? 1 : 0),
-              diagnosis_count: results.diagnoses.length,
-              has_emergency_alert: results.emergency || false
-            }
-          }
-        });
-      } catch (auditError) {
-        console.error('Error creating audit log:', auditError);
-      }
-
-      toast({
-        title: "Report Saved",
-        description: "Your diagnosis report has been saved successfully.",
-      });
-
-      // Update the session ID for potential booking
-      setSessionId(data.id);
-      
-    } catch (error) {
-      console.error('Error saving report:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save report. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+  const handleClarifyingQuestions = () => {
+    // Process clarifying answers and move to results
+    setCurrentStep(3);
   };
 
   const handleBookDoctor = () => {
-    // Navigate to booking with diagnosis data
-    const diagnosisSession = {
-      id: sessionId,
-      symptoms: selectedSymptoms.concat(freeTextSymptoms ? [freeTextSymptoms] : []),
-      conditions: results?.diagnoses || [],
-      suggested_drugs: drugRecommendations
-    };
-    
-    navigate('/book-appointment', { 
-      state: { diagnosisSession } 
+    navigate('/book-appointment', {
+      state: { 
+        sessionId: lastDiagnosisId,
+        symptoms,
+        diagnosisResults 
+      }
     });
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="container mx-auto max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
-            <Brain className="w-8 h-8 text-blue-600" />
-            AI Health Assessment System
-          </h1>
-          <p className="text-slate-600">Enterprise-grade security meets advanced AI diagnostics</p>
-        </div>
+  const handleNextStep = () => {
+    if (currentStep < 5) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
 
-        {/* Security Mode Toggle */}
-        <div className="flex justify-center gap-4 mb-8">
-          <Button 
-            onClick={() => setShowSecureForm(false)}
-            variant={!showSecureForm ? "default" : "outline"}
-          >
-            Basic Assessment
-          </Button>
-          <Button 
-            onClick={() => setShowSecureForm(true)}
-            variant={showSecureForm ? "default" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <Shield className="h-4 w-4" />
-            Secure Assessment (Recommended)
-          </Button>
-        </div>
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
-        {showSecureForm ? (
-          <SecurityCompliantForm />
-        ) : (
-          <>
-            {/* Progress Steps */}
-            <div className="flex items-center justify-center mb-8">
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>1</div>
-                <div className={`w-16 h-1 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>2</div>
-                <div className={`w-16 h-1 ${step >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>3</div>
-              </div>
-            </div>
+  const progressPercentage = (currentStep / STEPS.length) * 100;
 
-        {/* Step 1: Symptom Selection */}
-        {step === 1 && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Tell us about your symptoms</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Free text input */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Describe your symptoms</label>
-                <Textarea
-                  placeholder="Please describe what you're experiencing in detail..."
-                  value={freeTextSymptoms}
-                  onChange={(e) => setFreeTextSymptoms(e.target.value)}
-                  rows={4}
-                />
-              </div>
+  const renderClarifyingQuestions = () => {
+    const questions = [];
+    
+    if (symptoms.some(s => s.toLowerCase().includes('fever'))) {
+      questions.push({
+        id: 'fever_duration',
+        question: 'How long have you had the fever?',
+        options: ['Less than 24 hours', '1-2 days', '3-5 days', 'More than a week']
+      });
+    }
+    
+    if (symptoms.some(s => s.toLowerCase().includes('headache'))) {
+      questions.push({
+        id: 'headache_intensity',
+        question: 'How would you rate your headache intensity?',
+        options: ['Mild', 'Moderate', 'Severe', 'Unbearable']
+      });
+    }
 
-              {/* Common symptoms selection */}
-              <div>
-                <label className="block text-sm font-medium mb-3">Select any symptoms you're experiencing</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {commonSymptoms.map((symptom) => (
-                    <div key={symptom.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={symptom.id}
-                        checked={selectedSymptoms.includes(symptom.id)}
-                        onCheckedChange={() => handleSymptomToggle(symptom.id)}
-                      />
-                      <label
-                        htmlFor={symptom.id}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {symptom.name}
-                      </label>
-                    </div>
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              Clarifying Questions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {questions.map((q) => (
+              <div key={q.id} className="space-y-3">
+                <h4 className="font-medium">{q.question}</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {q.options.map((option) => (
+                    <Button
+                      key={option}
+                      variant={clarifyingAnswers[q.id] === option ? "default" : "outline"}
+                      onClick={() => setClarifyingAnswers(prev => ({ ...prev, [q.id]: option }))}
+                      className="text-left justify-start"
+                    >
+                      {option}
+                    </Button>
                   ))}
                 </div>
               </div>
+            ))}
+            
+            <Button 
+              onClick={handleClarifyingQuestions}
+              className="w-full mt-6"
+              disabled={questions.some(q => !clarifyingAnswers[q.id])}
+            >
+              Continue to Analysis
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  };
 
-              <Button 
-                onClick={() => setStep(2)} 
-                className="w-full"
-                disabled={!freeTextSymptoms.trim() && selectedSymptoms.length === 0}
-              >
-                Continue to Assessment
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background to-primary/5 p-4">
+      <div className="container mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <motion.h1 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl font-bold text-foreground mb-2 flex items-center justify-center gap-3"
+          >
+            <Brain className="w-10 h-10 text-primary" />
+            Advanced Diagnostic Assistant
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-muted-foreground text-lg"
+          >
+            Smart symptom analysis with AI-powered recommendations
+          </motion.p>
+        </div>
 
-        {/* Step 2: Review & Process */}
-        {step === 2 && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Review your symptoms</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {freeTextSymptoms && (
-                <div>
-                  <h4 className="font-medium mb-2">Description:</h4>
-                  <p className="text-slate-600 bg-gray-50 p-3 rounded">{freeTextSymptoms}</p>
-                </div>
-              )}
-
-              {selectedSymptoms.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-2">Selected symptoms:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedSymptoms.map(id => {
-                      const symptom = commonSymptoms.find(s => s.id === id);
-                      return symptom ? (
-                        <Badge key={id} variant="secondary">{symptom.name}</Badge>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(1)}>
-                  Back to Edit
-                </Button>
-                <Button 
-                  onClick={handleDiagnosis} 
-                  className="flex-1"
-                  disabled={loading}
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-foreground">
+              Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1]?.title}
+            </h2>
+            <div className="text-sm text-muted-foreground">
+              {Math.round(progressPercentage)}% Complete
+            </div>
+          </div>
+          <Progress value={progressPercentage} className="h-2" />
+          
+          {/* Step Indicators */}
+          <div className="flex justify-between mt-4">
+            {STEPS.map((step) => (
+              <div key={step.id} className="flex flex-col items-center flex-1">
+                <div 
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                    currentStep >= step.id 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}
                 >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
-                      Processing...
-                    </div>
-                  ) : (
-                    <>Get AI Assessment</>
-                  )}
-                </Button>
+                  {step.id}
+                </div>
+                <div className="text-xs text-center mt-1 max-w-20">
+                  <div className="font-medium">{step.title}</div>
+                  <div className="text-muted-foreground">{step.description}</div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ))}
+          </div>
+        </div>
 
-        {/* Step 3: Results */}
-        {step === 3 && results && (
-          <div className="space-y-6">
-            {/* Emergency Alert */}
-            {results.emergency && results.alert_message && (
-              <Card className="border-red-500 bg-red-50">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-6 h-6 text-red-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h3 className="font-semibold text-red-800 mb-2">Emergency Alert</h3>
-                      <p className="text-red-700">{results.alert_message}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+        {/* Step Content */}
+        <AnimatePresence mode="wait">
+          {/* Step 1: Symptom Input */}
+          {currentStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SmartSymptomInput
+                onSymptomSubmit={handleSymptomSubmit}
+                isLoading={loading}
+              />
+            </motion.div>
+          )}
 
-            {/* AI Diagnoses */}
-            {!results.emergency && (
+          {/* Step 2: Clarifying Questions */}
+          {currentStep === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderClarifyingQuestions()}
+            </motion.div>
+          )}
+
+          {/* Step 3: Diagnosis Results */}
+          {currentStep === 3 && diagnosisResults && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+            >
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Brain className="w-5 h-5" />
-                    AI Assessment Results
+                    <Brain className="h-5 w-5 text-primary" />
+                    AI Diagnosis Results
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {results.diagnoses && results.diagnoses.length > 0 ? (
+                  {diagnosisResults?.diagnosis ? (
                     <div className="space-y-4">
-                      {results.diagnoses.map((diagnosis, index) => (
+                      {diagnosisResults.diagnosis.map((condition: any, index: number) => (
                         <div key={index} className="border rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium">{diagnosis.condition_name}</h4>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline">
-                                {(diagnosis.probability * 100).toFixed(1)}% match
-                              </Badge>
-                              <Badge variant={diagnosis.severity === 'high' ? 'destructive' : diagnosis.severity === 'moderate' ? 'default' : 'secondary'}>
-                                {diagnosis.severity}
-                              </Badge>
-                            </div>
+                            <h4 className="font-medium">{condition.condition}</h4>
+                            <Badge variant="outline">
+                              {Math.round(condition.probability * 100)}% match
+                            </Badge>
                           </div>
-                          <p className="text-sm text-slate-600 mb-2">{diagnosis.explanation}</p>
-                          <div className="text-xs text-slate-500">
-                            Confidence: {diagnosis.confidence}
-                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">{condition.explanation}</p>
+                          <Progress value={condition.probability * 100} className="h-2" />
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-slate-500">No diagnoses available.</p>
+                    <p className="text-muted-foreground">No diagnosis results available.</p>
                   )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Drug Recommendations */}
-            {!results.emergency && drugRecommendations.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Suggested Medications
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {drugRecommendations.map((drug, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{drug.drug_name}</h4>
-                          <div className="flex items-center gap-2">
-                            {drug.first_line && (
-                              <Badge variant="default">First Line</Badge>
-                            )}
-                            <Badge variant="secondary">{drug.category}</Badge>
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-sm">
-                          <p><span className="font-medium">Form:</span> {drug.form}</p>
-                          <p><span className="font-medium">Strength:</span> {drug.strength}</p>
-                          <p><span className="font-medium">Dosage:</span> {drug.dosage}</p>
-                          {drug.warnings && drug.warnings.length > 0 && (
-                            <div>
-                              <span className="font-medium">Warnings:</span>
-                              <ul className="list-disc list-inside mt-1 text-xs text-slate-600">
-                                {drug.warnings.map((warning, i) => (
-                                  <li key={i}>{warning}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          {drug.notes && (
-                            <p className="text-slate-500 text-xs">{drug.notes}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {/* Disclaimer */}
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
-                      <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-yellow-800">For doctor review only</p>
-                        <p className="text-sm text-yellow-700">
-                          These suggestions require professional medical review before use.
-                        </p>
-                      </div>
-                    </div>
+                  
+                  <div className="flex gap-3 mt-6">
+                    <Button variant="outline" onClick={handlePreviousStep}>
+                      Previous
+                    </Button>
+                    <Button onClick={handleNextStep} className="flex-1">
+                      Continue
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            )}
+            </motion.div>
+          )}
 
-            {/* Action Buttons */}
-            {!results.emergency && (
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  onClick={handleBookDoctor}
-                  className="flex-1"
-                >
-                  <CalendarPlus className="w-4 h-4 mr-2" />
-                  Book Doctor Consultation
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={handleSaveReport}
-                  disabled={saving || !!sessionId}
-                >
-                  {sessionId ? (
-                    <>
-                      <BookOpenCheck className="w-4 h-4 mr-2" />
-                      Report Saved
-                    </>
-                  ) : saving ? (
-                    <>
-                      <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Report
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
+          {/* Step 4: Recommendations */}
+          {currentStep === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-primary" />
+                    Treatment Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Based on your diagnosis, here are our recommended next steps:
+                  </p>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">Immediate Care</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Rest, stay hydrated, and monitor your symptoms.
+                      </p>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">Professional Consultation</h4>
+                      <p className="text-sm text-muted-foreground">
+                        We recommend booking an appointment with a qualified doctor for proper treatment.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 mt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={handlePreviousStep}
+                      className="flex items-center gap-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <Button onClick={handleNextStep} className="flex-1">
+                      Continue to Booking
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
-            {/* Navigation */}
-            <div className="text-center">
+          {/* Step 5: Book Doctor */}
+          {currentStep === 5 && (
+            <motion.div
+              key="step5"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-primary" />
+                    Connect with a Doctor
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-6">
+                    Your diagnostic session is complete. Book an appointment with a qualified healthcare professional 
+                    to discuss your results and get personalized treatment.
+                  </p>
+                  
+                  <div className="bg-primary/5 rounded-lg p-4 mb-6">
+                    <h4 className="font-medium mb-2">What you'll get:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Professional medical consultation</li>
+                      <li>• Review of your AI assessment</li>
+                      <li>• Personalized treatment plan</li>
+                      <li>• Prescription if needed</li>
+                      <li>• Follow-up recommendations</li>
+                    </ul>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={handlePreviousStep}
+                      className="flex items-center gap-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <Button onClick={handleBookDoctor} className="flex-1">
+                      Book Doctor Appointment
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Navigation Footer */}
+        {currentStep > 1 && currentStep < 5 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-between mt-8"
+          >
+            <Button 
+              variant="outline" 
+              onClick={handlePreviousStep}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous Step
+            </Button>
+            
+            {currentStep < 4 && (
               <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setStep(1);
-                  setResults(null);
-                  setDrugRecommendations([]);
-                  setSelectedSymptoms([]);
-                  setFreeTextSymptoms("");
-                  setSessionId(null);
-                }}
+                onClick={handleNextStep}
+                className="flex items-center gap-2"
+                disabled={currentStep === 1 && symptoms.length === 0}
               >
-                Start New Assessment
+                Next Step
+                <ChevronRight className="h-4 w-4" />
               </Button>
-            </div>
-          </div>
-        )}
-          </>
+            )}
+          </motion.div>
         )}
       </div>
     </div>
