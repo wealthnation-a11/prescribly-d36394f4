@@ -275,10 +275,11 @@ export const SystemAssessment = () => {
     await runDiagnosis(symptoms);
   };
 
-  const fetchDrugRecommendations = async (conditionName: string) => {
-    if (drugRecommendations[conditionName]) return;
+  const fetchDrugRecommendations = async (conditionName: string, conditionId?: string) => {
+    const key = conditionId || conditionName;
+    if (drugRecommendations[key]) return;
 
-    setLoadingDrugs(prev => ({ ...prev, [conditionName]: true }));
+    setLoadingDrugs(prev => ({ ...prev, [key]: true }));
     
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -287,41 +288,40 @@ export const SystemAssessment = () => {
         return;
       }
 
-      // Mock drug recommendations for demo
-      const mockDrugs = {
-        [conditionName]: [
-          {
-            name: "Paracetamol",
-            rxnorm_code: "161",
-            form: "Tablet",
-            strength: "500mg",
-            dosage: "Take 1-2 tablets every 4-6 hours",
-            frequency: "Every 4-6 hours",
-            duration: "As needed",
-            warnings: "Do not exceed 8 tablets in 24 hours. Avoid alcohol."
-          },
-          {
-            name: "Ibuprofen",
-            rxnorm_code: "5640",
-            form: "Tablet",
-            strength: "200mg",
-            dosage: "Take 1-2 tablets every 6-8 hours",
-            frequency: "Every 6-8 hours",
-            duration: "As needed",
-            warnings: "Take with food. May cause stomach irritation."
-          }
-        ]
-      };
+      // Use the recommend-drug edge function with condition ID
+      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/recommend-drug/${conditionId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-      setDrugRecommendations(prev => ({ ...prev, ...mockDrugs }));
-      toast.success('Drug recommendations loaded successfully!');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.recommendations && data.recommendations.length > 0) {
+          setDrugRecommendations(prev => ({ 
+            ...prev, 
+            [key]: data.recommendations 
+          }));
+          toast.success('Drug recommendations loaded successfully!');
+        } else {
+          // Handle case where no drugs are available
+          setDrugRecommendations(prev => ({ 
+            ...prev, 
+            [key]: [] 
+          }));
+          toast.info(data.message || 'No drug recommendations available for this condition.');
+        }
+      } else {
+        throw new Error('Failed to fetch drug recommendations');
+      }
     } catch (error) {
       console.error('Failed to fetch drug recommendations:', error);
       toast.error('Failed to fetch drug recommendations');
     } finally {
-      setLoadingDrugs(prev => ({ ...prev, [conditionName]: false }));
+      setLoadingDrugs(prev => ({ ...prev, [key]: false }));
     }
-  };
 
   const saveDiagnosis = async () => {
     if (!sessionId || !diagnosisResults) return;
@@ -807,11 +807,11 @@ export const SystemAssessment = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => fetchDrugRecommendations(condition.name)}
-                                  disabled={loadingDrugs[condition.name]}
+                                  onClick={() => fetchDrugRecommendations(condition.condition_name, condition.condition_id)}
+                                  disabled={loadingDrugs[condition.condition_id]}
                                 >
                                   <Pill className="h-4 w-4 mr-2" />
-                                  {loadingDrugs[condition.name] ? 'Loading...' : 'See Drugs'}
+                                  {loadingDrugs[condition.condition_id] ? 'Loading...' : 'See Drugs'}
                                 </Button>
                               </div>
                             </div>

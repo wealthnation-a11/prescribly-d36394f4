@@ -31,72 +31,6 @@ const EMERGENCY_PATTERNS = [
   }
 ];
 
-// Mock condition database with Bayesian priors
-const CONDITIONS_DB = [
-  {
-    id: 'c1',
-    name: 'Common Cold',
-    base_probability: 0.15, // 15% prevalence in general population
-    symptoms: {
-      'runny nose': 0.9,
-      'sore throat': 0.8,
-      'cough': 0.7,
-      'mild fever': 0.6,
-      'fatigue': 0.5,
-      'headache': 0.4
-    }
-  },
-  {
-    id: 'c2',
-    name: 'Seasonal Allergies',
-    base_probability: 0.08,
-    symptoms: {
-      'runny nose': 0.95,
-      'sneezing': 0.9,
-      'itchy eyes': 0.85,
-      'nasal congestion': 0.8,
-      'watery eyes': 0.7,
-      'throat irritation': 0.4
-    }
-  },
-  {
-    id: 'c3',
-    name: 'Acute Sinusitis',
-    base_probability: 0.05,
-    symptoms: {
-      'facial pressure': 0.9,
-      'nasal congestion': 0.85,
-      'thick nasal discharge': 0.8,
-      'reduced smell': 0.7,
-      'headache': 0.6,
-      'tooth pain': 0.4
-    }
-  },
-  {
-    id: 'c4',
-    name: 'Migraine',
-    base_probability: 0.12,
-    symptoms: {
-      'severe headache': 0.95,
-      'nausea': 0.8,
-      'light sensitivity': 0.75,
-      'sound sensitivity': 0.7,
-      'visual aura': 0.3
-    }
-  },
-  {
-    id: 'c5',
-    name: 'Tension Headache',
-    base_probability: 0.20,
-    symptoms: {
-      'headache': 0.9,
-      'neck tension': 0.7,
-      'scalp tenderness': 0.5,
-      'fatigue': 0.4
-    }
-  }
-];
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -132,8 +66,20 @@ serve(async (req) => {
       );
     }
 
-    // Run Bayesian inference
-    const diagnoses = runBayesianInference(normalizedSymptoms, demographicInfo);
+    // Get all conditions from the database
+    const { data: dbConditions, error: conditionsError } = await supabase
+      .from('conditions')
+      .select('*');
+
+    if (conditionsError) {
+      console.error('Error fetching conditions:', conditionsError);
+      throw new Error('Failed to fetch conditions from database');
+    }
+
+    console.log(`Found ${dbConditions?.length || 0} conditions in database`);
+
+    // Run diagnosis matching against database conditions
+    const diagnoses = runDiagnosisMatching(normalizedSymptoms, dbConditions || [], demographicInfo);
     
     // Get top 3 diagnoses
     const topDiagnoses = diagnoses
@@ -156,7 +102,7 @@ serve(async (req) => {
       processed_at: new Date().toISOString(),
       input_symptoms: normalizedSymptoms,
       demographic_info: demographicInfo,
-      total_conditions_evaluated: CONDITIONS_DB.length
+      total_conditions_evaluated: dbConditions?.length || 0
     };
 
     return new Response(
@@ -224,54 +170,65 @@ function checkEmergencyPatterns(symptoms) {
   return null;
 }
 
-// Simple Bayesian inference implementation
-function runBayesianInference(symptoms, demographicInfo) {
+// Diagnosis matching against database conditions
+function runDiagnosisMatching(symptoms, dbConditions, demographicInfo) {
   const results = [];
   
-  for (const condition of CONDITIONS_DB) {
-    // Calculate likelihood P(symptoms|condition)
-    let likelihood = 1.0;
-    let evidenceCount = 0;
+  for (const condition of dbConditions) {
+    // Parse common symptoms from the condition (stored as JSONB)
+    const conditionSymptoms = condition.common_symptoms || [];
+    
+    // Calculate match score based on symptom overlap
+    let matchScore = 0;
+    let totalPossibleMatches = Math.max(symptoms.length, 1);
     
     for (const symptom of symptoms) {
-      // Find matching symptom in condition's symptom profile
-      const matchingSymptom = Object.keys(condition.symptoms).find(condSymptom =>
-        symptom.includes(condSymptom) || condSymptom.includes(symptom)
+      // Check if symptom matches any in the condition's symptom list
+      const hasMatch = conditionSymptoms.some(condSymptom => 
+        symptom.toLowerCase().includes(condSymptom.toLowerCase()) ||
+        condSymptom.toLowerCase().includes(symptom.toLowerCase())
       );
       
-      if (matchingSymptom) {
-        likelihood *= condition.symptoms[matchingSymptom];
-        evidenceCount++;
-      } else {
-        // Penalty for symptoms not associated with condition
-        likelihood *= 0.1;
+      if (hasMatch) {
+        matchScore += 1;
       }
     }
     
-    // Apply demographic adjustments (simplified)
-    let priorProbability = condition.base_probability;
+    // Calculate base probability based on match ratio and severity
+    let probability = (matchScore / totalPossibleMatches) * 0.7; // Base match score
+    
+    // Add base prevalence factor
+    const severityBonus = (condition.severity_level || 1) * 0.05;
+    probability += severityBonus;
+    
+    // Ensure minimum probability for any condition with at least one match
+    if (matchScore > 0 && probability < 0.1) {
+      probability = 0.1;
+    }
+    
+    // Apply demographic adjustments
     if (demographicInfo?.age) {
-      // Age-based adjustments (simplified)
-      if (condition.name === 'Migraine' && demographicInfo.age > 20 && demographicInfo.age < 50) {
-        priorProbability *= 1.5; // Higher prevalence in this age group
+      // Simple age-based adjustments
+      if (condition.name.toLowerCase().includes('migraine') && 
+          demographicInfo.age >= 20 && demographicInfo.age <= 50) {
+        probability *= 1.3;
       }
-      if (condition.name === 'Common Cold' && demographicInfo.age < 10) {
-        priorProbability *= 2.0; // Higher in children
+      if (condition.name.toLowerCase().includes('cold') && demographicInfo.age < 18) {
+        probability *= 1.2;
       }
     }
-    
-    // Bayesian calculation: P(condition|symptoms) ∝ P(symptoms|condition) * P(condition)
-    const posteriorProbability = likelihood * priorProbability;
     
     results.push({
-      ...condition,
-      probability: posteriorProbability,
-      evidence_count: evidenceCount,
-      likelihood: likelihood
+      id: condition.id,
+      name: condition.name,
+      description: condition.description,
+      probability: Math.min(probability, 1.0), // Cap at 1.0
+      match_score: matchScore,
+      severity_level: condition.severity_level
     });
   }
   
-  // Normalize probabilities
+  // Normalize probabilities so they sum to 1
   const totalProbability = results.reduce((sum, result) => sum + result.probability, 0);
   if (totalProbability > 0) {
     results.forEach(result => {
@@ -284,18 +241,13 @@ function runBayesianInference(symptoms, demographicInfo) {
 
 // Generate explanation for diagnosis
 function generateExplanation(diagnosis, symptoms) {
-  const matchingSymptoms = symptoms.filter(symptom =>
-    Object.keys(diagnosis.symptoms).some(condSymptom =>
-      symptom.includes(condSymptom) || condSymptom.includes(symptom)
-    )
-  );
+  const matchingCount = diagnosis.match_score || 0;
   
-  if (matchingSymptoms.length === 0) {
+  if (matchingCount === 0) {
     return `Based on general symptom patterns, ${diagnosis.name} is being considered.`;
   }
   
-  const symptomList = matchingSymptoms.slice(0, 3).join(', ');
-  return `Based on symptoms including ${symptomList}, this suggests ${diagnosis.name}. The probability is calculated using symptom matching and population prevalence data.`;
+  return `Based on symptoms including ${symptoms.slice(0, 3).join(', ')}, this suggests ${diagnosis.name}. The probability is calculated using symptom matching and population prevalence data.`;
 }
 
 // Determine severity level

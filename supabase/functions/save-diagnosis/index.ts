@@ -37,7 +37,7 @@ serve(async (req) => {
       );
     }
 
-    const { sessionId, userId, conditions } = await req.json();
+    const { sessionId, diagnosis, symptoms } = await req.json();
 
     // Input validation
     if (!sessionId) {
@@ -47,66 +47,55 @@ serve(async (req) => {
       );
     }
 
-    if (!conditions || !Array.isArray(conditions)) {
+    if (!diagnosis) {
       return new Response(
-        JSON.stringify({ error: 'Conditions array is required' }),
+        JSON.stringify({ error: 'Diagnosis data is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Verify the session belongs to the authenticated user
-    const { data: session, error: sessionError } = await supabase
-      .from('diagnosis_sessions')
+    console.log('Saving diagnosis for session:', sessionId);
+
+    // Create or update diagnosis session in diagnosis_sessions_v2 table
+    const { data: existingSession, error: fetchError } = await supabase
+      .from('diagnosis_sessions_v2')
       .select('*')
       .eq('id', sessionId)
-      .eq('patient_id', user.id)
+      .eq('user_id', user.id)
       .single();
 
-    if (sessionError || !session) {
-      return new Response(
-        JSON.stringify({ error: 'Diagnosis session not found or access denied' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let saveError;
+    if (existingSession) {
+      // Update existing session
+      const { error: updateError } = await supabase
+        .from('diagnosis_sessions_v2')
+        .update({
+          symptoms: symptoms || [],
+          conditions: diagnosis?.diagnosis || diagnosis || [],
+          status: 'completed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
+      saveError = updateError;
+    } else {
+      // Create new session
+      const { error: insertError } = await supabase
+        .from('diagnosis_sessions_v2')
+        .insert({
+          id: sessionId,
+          user_id: user.id,
+          symptoms: symptoms || [],
+          conditions: diagnosis?.diagnosis || diagnosis || [],
+          status: 'completed',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      saveError = insertError;
     }
 
-    // Validate and sanitize conditions
-    const sanitizedConditions = conditions
-      .slice(0, 10) // Limit to 10 conditions max
-      .map(condition => {
-        if (typeof condition !== 'object' || !condition.name || typeof condition.probability !== 'number') {
-          return null;
-        }
-        
-        return {
-          name: String(condition.name).trim().substring(0, 200),
-          probability: Math.max(0, Math.min(1, parseFloat(condition.probability.toFixed(3)))),
-          explanation: condition.explanation ? String(condition.explanation).trim().substring(0, 500) : undefined
-        };
-      })
-      .filter(condition => condition !== null);
-
-    if (sanitizedConditions.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'At least one valid condition is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Saving diagnosis for session:', sessionId, 'conditions:', sanitizedConditions);
-
-    // Update the diagnosis session with conditions and set status to completed
-    const { error: updateError } = await supabase
-      .from('diagnosis_sessions')
-      .update({
-        ai_diagnoses: sanitizedConditions,
-        doctor_review_status: 'completed',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', sessionId)
-      .eq('patient_id', user.id);
-
-    if (updateError) {
-      console.error('Error updating diagnosis session:', updateError);
+    if (saveError) {
+      console.error('Error saving diagnosis session:', saveError);
       return new Response(
         JSON.stringify({ error: 'Failed to save diagnosis' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -119,10 +108,10 @@ serve(async (req) => {
         body: {
           diagnosis_id: sessionId,
           actor_id: user.id,
-          action: 'diagnosis_completed',
+          action: 'diagnosis_saved',
           details: {
-            conditions_count: sanitizedConditions.length,
-            highest_probability: Math.max(...sanitizedConditions.map(c => c.probability)),
+            symptoms_count: symptoms?.length || 0,
+            conditions_count: (diagnosis?.diagnosis || diagnosis || []).length,
             timestamp: new Date().toISOString()
           }
         }
@@ -132,13 +121,13 @@ serve(async (req) => {
       // Don't fail the main operation
     }
 
-    // Create notification for diagnosis completion
+    // Create notification for diagnosis save
     try {
       await supabase.functions.invoke('create-notification', {
         body: {
           user_id: user.id,
-          title: 'Diagnosis Completed',
-          message: `Your diagnosis has been saved with ${sanitizedConditions.length} potential condition(s). A doctor will review your case shortly.`,
+          title: 'Diagnosis Saved',
+          message: `Your diagnosis has been saved successfully. You can review it in your dashboard.`,
           type: 'diagnosis_saved',
           diagnosis_session_id: sessionId
         }
@@ -152,7 +141,8 @@ serve(async (req) => {
       JSON.stringify({
         message: 'Diagnosis saved successfully',
         sessionId: sessionId,
-        conditionsCount: sanitizedConditions.length,
+        symptomsCount: symptoms?.length || 0,
+        conditionsCount: (diagnosis?.diagnosis || diagnosis || []).length,
         status: 'completed',
         timestamp: new Date().toISOString()
       }),

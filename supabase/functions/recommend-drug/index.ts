@@ -18,66 +18,87 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Extract conditionId from URL path
+    // Extract condition ID from URL path
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/');
     const conditionId = pathParts[pathParts.length - 1];
-    
-    if (!conditionId) {
+
+    console.log('Getting drug recommendations for condition ID:', conditionId);
+
+    if (!conditionId || conditionId === 'recommend-drug') {
       return new Response(
-        JSON.stringify({ error: 'Condition ID is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: false, 
+          error: 'Condition ID is required',
+          recommendations: []
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
-    console.log('Getting drug recommendation for condition:', conditionId);
-
-    // First try to get the condition name
-    const { data: condition, error: conditionError } = await supabase
-      .from('conditions')
-      .select('name')
-      .eq('id', conditionId)
-      .single();
-
-    if (conditionError) {
-      console.error('Error fetching condition:', conditionError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid condition ID' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Try to get drugs from condition_drug_map
-    const { data: drugs, error: drugsError } = await supabase
+    // Get drug recommendations from condition_drug_map table
+    const { data: drugMappings, error: drugError } = await supabase
       .from('condition_drug_map')
-      .select('drug_name, dosage, duration, frequency, rxnorm_code')
-      .eq('condition_id', conditionId)
-      .limit(5);
+      .select('*')
+      .eq('condition_id', conditionId);
 
-    let response;
-
-    if (drugsError || !drugs || drugs.length === 0) {
-      console.log('No drugs found in database for condition:', conditionId);
-      response = {
-        message: "No drugs available, please consult a doctor."
-      };
-    } else {
-      // Format existing drugs according to specification
-      const drugRecommendations = drugs.map(drug => ({
-        drug_name: drug.drug_name,
-        rxnorm_id: drug.rxnorm_code || generateMockRxNormId(),
-        form: "tablet", // Default form - could be enhanced with actual data
-        strength: extractStrength(drug.drug_name),
-        dosage: drug.dosage || "As prescribed",
-        warnings: generateWarnings(drug.drug_name)
-      }));
-      
-      response = {
-        drugs: drugRecommendations
-      };
+    if (drugError) {
+      console.error('Error fetching drug mappings:', drugError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Failed to fetch drug recommendations',
+          recommendations: []
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    console.log('Drug recommendations:', response);
+    console.log(`Found ${drugMappings?.length || 0} drug mappings for condition ${conditionId}`);
+
+    // If no drugs found in database, return appropriate message
+    if (!drugMappings || drugMappings.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          condition_id: conditionId,
+          recommendations: [],
+          message: "No drugs available, please consult a doctor.",
+          total_found: 0,
+          retrieved_at: new Date().toISOString()
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Format drug recommendations from database
+    const recommendations = drugMappings.map(drug => ({
+      drug_name: drug.drug_name,
+      rxnorm_id: drug.rxnorm_code || 'N/A',
+      form: inferDrugForm(drug.drug_name),
+      strength: drug.dosage || 'As prescribed',
+      dosage: drug.dosage || 'Follow healthcare provider instructions',
+      frequency: drug.frequency || 'As directed',
+      duration: drug.duration || 'As prescribed',
+      warnings: generateWarnings(drug.drug_name),
+      notes: drug.notes || null,
+      source: 'database'
+    }));
+
+    const response = {
+      success: true,
+      condition_id: conditionId,
+      recommendations: recommendations,
+      total_found: recommendations.length,
+      disclaimer: 'AI-generated recommendations. Always consult healthcare provider before taking any medication.',
+      retrieved_at: new Date().toISOString()
+    };
 
     return new Response(
       JSON.stringify(response),
@@ -85,89 +106,70 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in recommend-drug:', error);
+    console.error('Error in recommend-drug function:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'Internal server error',
-        message: 'Failed to fetch drug recommendations'
+        success: false, 
+        error: error.message,
+        recommendations: []
       }),
-      { 
+      {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
 });
 
-function generateMockDrugs(conditionName: string) {
-  const mockDrugs = {
-    "Malaria": [
-      {
-        name: "Artemether-Lumefantrine",
-        rxnormId: "847259",
-        form: "Tablet",
-        strength: "20mg/120mg",
-        dosage: "Twice daily for 3 days",
-        warnings: "Avoid in pregnancy unless prescribed by doctor. Complete full course."
-      }
-    ],
-    "Typhoid": [
-      {
-        name: "Ciprofloxacin",
-        rxnormId: "2551",
-        form: "Tablet",
-        strength: "500mg",
-        dosage: "Twice daily for 7-10 days",
-        warnings: "Avoid dairy products. Take with plenty of water."
-      }
-    ],
-    "Common Cold": [
-      {
-        name: "Paracetamol",
-        rxnormId: "161",
-        form: "Tablet",
-        strength: "500mg",
-        dosage: "Every 6 hours as needed",
-        warnings: "Do not exceed 4g daily. Avoid with liver disease."
-      }
-    ]
-  };
-
-  return mockDrugs[conditionName] || [
-    {
-      name: "Generic Treatment",
-      rxnormId: "000000",
-      form: "Tablet",
-      strength: "As appropriate",
-      dosage: "As prescribed by healthcare provider",
-      warnings: "Consult healthcare provider for proper treatment."
-    }
-  ];
-}
-
-function generateMockRxNormId(): string {
-  return Math.floor(Math.random() * 900000 + 100000).toString();
-}
-
-function extractStrength(drugName: string): string {
-  // Simple pattern matching for common strength formats
-  const strengthMatch = drugName.match(/(\d+(?:\.\d+)?)\s*(?:mg|g|mcg|ml)/i);
-  return strengthMatch ? strengthMatch[0] : "Standard strength";
-}
-
-function generateWarnings(drugName: string): string {
-  const commonWarnings = [
-    "Consult healthcare provider before use.",
-    "Complete the full course as prescribed.",
-    "May cause drowsiness.",
-    "Take with food to reduce stomach upset.",
-    "Avoid alcohol during treatment."
-  ];
+// Helper function to infer drug form from name
+function inferDrugForm(drugName: string): string {
+  const lowerName = drugName.toLowerCase();
   
-  // Return a random warning or drug-specific one
-  if (drugName.toLowerCase().includes('artemether')) {
-    return "Avoid in pregnancy unless prescribed by doctor. Complete full course.";
+  if (lowerName.includes('spray') || lowerName.includes('nasal')) return 'Nasal Spray';
+  if (lowerName.includes('syrup') || lowerName.includes('liquid')) return 'Syrup';
+  if (lowerName.includes('cream') || lowerName.includes('ointment')) return 'Topical Cream';
+  if (lowerName.includes('gel')) return 'Topical Gel';
+  if (lowerName.includes('capsule')) return 'Capsule';
+  if (lowerName.includes('injection') || lowerName.includes('injectable')) return 'Injection';
+  if (lowerName.includes('patch')) return 'Patch';
+  
+  return 'Tablet'; // Default form
+}
+
+// Helper function to generate warnings based on drug name
+function generateWarnings(drugName: string): string[] {
+  const lowerName = drugName.toLowerCase();
+  const warnings = ['Consult healthcare provider before use'];
+  
+  if (lowerName.includes('acetaminophen') || lowerName.includes('paracetamol')) {
+    warnings.push('Do not exceed recommended dose');
+    warnings.push('Avoid alcohol consumption');
+    warnings.push('Risk of liver damage with overdose');
   }
   
-  return commonWarnings[Math.floor(Math.random() * commonWarnings.length)];
+  if (lowerName.includes('ibuprofen') || lowerName.includes('naproxen')) {
+    warnings.push('Take with food to reduce stomach irritation');
+    warnings.push('May increase risk of cardiovascular events');
+    warnings.push('Avoid if you have kidney problems');
+  }
+  
+  if (lowerName.includes('aspirin')) {
+    warnings.push('Take with food');
+    warnings.push('May increase bleeding risk');
+    warnings.push('Not recommended for children under 16');
+  }
+  
+  if (lowerName.includes('antibiotic') || lowerName.includes('amoxicillin') || lowerName.includes('azithromycin')) {
+    warnings.push('Complete the full course as prescribed');
+    warnings.push('May cause digestive upset');
+    warnings.push('Inform doctor of any allergies');
+  }
+  
+  if (lowerName.includes('steroid') || lowerName.includes('prednisone')) {
+    warnings.push('Do not stop suddenly');
+    warnings.push('May suppress immune system');
+    warnings.push('Monitor blood sugar levels');
+  }
+  
+  return warnings;
 }
