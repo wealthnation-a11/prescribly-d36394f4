@@ -143,6 +143,41 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json | null
+          diagnosis_id: string
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json | null
+          diagnosis_id: string
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json | null
+          diagnosis_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_audit_diagnosis"
+            columns: ["diagnosis_id"]
+            isOneToOne: false
+            referencedRelation: "diagnosis_sessions_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_logs: {
         Row: {
           admin_fee: number | null
@@ -349,6 +384,36 @@ export type Database = {
         }
         Relationships: []
       }
+      condition_drug_map: {
+        Row: {
+          condition_id: string
+          created_at: string
+          drug_name: string
+          first_line: boolean
+          id: string
+          notes: string | null
+          rxnorm_id: string | null
+        }
+        Insert: {
+          condition_id: string
+          created_at?: string
+          drug_name: string
+          first_line?: boolean
+          id?: string
+          notes?: string | null
+          rxnorm_id?: string | null
+        }
+        Update: {
+          condition_id?: string
+          created_at?: string
+          drug_name?: string
+          first_line?: boolean
+          id?: string
+          notes?: string | null
+          rxnorm_id?: string | null
+        }
+        Relationships: []
+      }
       diagnosis_sessions: {
         Row: {
           ai_diagnoses: Json | null
@@ -391,6 +456,36 @@ export type Database = {
           suggested_drugs?: Json | null
           symptoms_text?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      diagnosis_sessions_v2: {
+        Row: {
+          conditions: Json
+          created_at: string
+          id: string
+          status: string
+          symptoms: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conditions?: Json
+          created_at?: string
+          id?: string
+          status?: string
+          symptoms?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conditions?: Json
+          created_at?: string
+          id?: string
+          status?: string
+          symptoms?: Json
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -764,6 +859,44 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions_v2: {
+        Row: {
+          created_at: string
+          diagnosis_id: string
+          doctor_id: string
+          drugs: Json
+          id: string
+          patient_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis_id: string
+          doctor_id: string
+          drugs?: Json
+          id?: string
+          patient_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis_id?: string
+          doctor_id?: string
+          drugs?: Json
+          id?: string
+          patient_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_prescriptions_diagnosis"
+            columns: ["diagnosis_id"]
+            isOneToOne: false
+            referencedRelation: "diagnosis_sessions_v2"
             referencedColumns: ["id"]
           },
         ]
