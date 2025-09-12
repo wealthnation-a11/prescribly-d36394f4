@@ -770,7 +770,7 @@ export const SystemAssessment = () => {
                           <Player
                             play
                             loop
-                            src={HEARTBEAT_URL}
+                            path={HEARTBEAT_URL}
                             style={{ height: '24px', width: '24px' }}
                           />
                         </div>
