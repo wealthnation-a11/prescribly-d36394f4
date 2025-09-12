@@ -938,7 +938,6 @@ export const SystemAssessment = () => {
             </Card>
           )}
         </motion.div>
-        </motion.div>
 
         {/* Navigation */}
         <motion.div
