@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSecureDiagnosis } from '@/hooks/useSecureDiagnosis';
 import { usePageSEO } from '@/hooks/usePageSEO';
+import { useSessionManager } from '@/hooks/useSessionManager';
 import { SmartSymptomInput } from '@/components/wellness/SmartSymptomInput';
 import { DiagnosisResults } from '@/components/wellness/DiagnosisResults';
 import { DoctorReviewPanel } from '@/components/wellness/DoctorReviewPanel';
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Brain, Shield, ChevronLeft, ChevronRight, Pill, Download, Share, Mail } from 'lucide-react';
+import { Brain, Shield, ChevronLeft, ChevronRight, Pill, Download, Share, Mail, RotateCcw, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import jsPDF from 'jspdf';
@@ -36,16 +37,80 @@ export const SystemAssessment = () => {
   const { role } = useUserRole();
   const navigate = useNavigate();
   const { loading, submitDiagnosis, lastDiagnosisId } = useSecureDiagnosis();
-
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [diagnosisResults, setDiagnosisResults] = useState<any>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<Record<string, string>>({});
   const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+  const [savedSessionData, setSavedSessionData] = useState<any>(null);
+
+  const { 
+    saveSession, 
+    checkForExistingSession, 
+    clearSession, 
+    setupAutoSave,
+    isRestoring 
+  } = useSessionManager('system-assessment');
+
+  // Auto-save session when state changes
+  const getCurrentState = () => ({
+    currentStep,
+    symptoms,
+    diagnosisResults,
+    clarifyingAnswers,
+    drugRecommendations,
+    path: 'system-assessment'
+  });
+
+  // Save session when important state changes
+  useEffect(() => {
+    if (currentStep > 1 && user) {
+      const timeoutId = setTimeout(() => {
+        saveSession(getCurrentState());
+      }, 1000); // Debounce saves
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [currentStep, symptoms, diagnosisResults, clarifyingAnswers, drugRecommendations, saveSession, user]);
+
+  // Setup auto-save on page unload
+  useEffect(() => {
+    return setupAutoSave(getCurrentState);
+  }, [setupAutoSave]);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const sessionData = await checkForExistingSession();
+      if (sessionData && sessionData.currentStep > 1) {
+        setSavedSessionData(sessionData);
+        setShowRestorePrompt(true);
+      }
+    };
+
+    if (user && currentStep === 1) {
+      checkSession();
+    }
+  }, [user, checkForExistingSession]);
+
+  // Restore session data
+  const restoreSession = () => {
+    if (savedSessionData) {
+      setCurrentStep(savedSessionData.currentStep || 1);
+      setSymptoms(savedSessionData.symptoms || []);
+      setDiagnosisResults(savedSessionData.diagnosisResults || null);
+      setClarifyingAnswers(savedSessionData.clarifyingAnswers || {});
+      setDrugRecommendations(savedSessionData.drugRecommendations || []);
+      setShowRestorePrompt(false);
+      toast.success('Session restored successfully!');
+    }
+  };
 
   // Fetch user profile
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchUserProfile = async () => {
       if (user) {
         const { data } = await supabase
@@ -473,6 +538,55 @@ export const SystemAssessment = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-primary/5 p-4">
       <div className="container mx-auto max-w-6xl">
+        {/* Session Restore Prompt */}
+        {showRestorePrompt && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          >
+            <Card className="max-w-md mx-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RotateCcw className="h-5 w-5 text-primary" />
+                  Continue Previous Session
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  We found an incomplete assessment from your previous session. Would you like to continue where you left off?
+                </p>
+                {savedSessionData && (
+                  <div className="bg-secondary/20 rounded-lg p-3 mb-4 text-sm">
+                    <p><strong>Step:</strong> {savedSessionData.currentStep} of 5</p>
+                    <p><strong>Symptoms:</strong> {savedSessionData.symptoms?.length || 0} entered</p>
+                    <p><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowRestorePrompt(false);
+                      clearSession();
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Start Fresh
+                  </Button>
+                  <Button
+                    onClick={restoreSession}
+                    className="flex-1 flex items-center gap-2"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Continue Session
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
         {/* Header */}
         <div className="text-center mb-8">
           <motion.h1 
