@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+
+// Import Lottie animations
+import heartbeatPulse from '@/assets/animations/heartbeat-pulse.json';
+import medicalScan from '@/assets/animations/medical-scan.json';
+import successCheck from '@/assets/animations/success-check.json';
+import pillsAnimation from '@/assets/animations/pills-animation.json';
+import doctorConsultation from '@/assets/animations/doctor-consultation.json';
 import { useUserRole } from '@/hooks/useUserRole';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useSessionManager } from '@/hooks/useSessionManager';
@@ -12,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Loader2, Brain, Shield, ChevronLeft, ChevronRight, Pill, Download, Share, Mail, RotateCcw, X, AlertTriangle, Clock, Bookmark } from 'lucide-react';
+import Player from 'react-lottie-player';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import jsPDF from 'jspdf';
@@ -47,6 +55,7 @@ export const SystemAssessment = () => {
   const [loadingDrugs, setLoadingDrugs] = useState<Record<string, boolean>>({});
   const [diagnosisHistory, setDiagnosisHistory] = useState<any[]>([]);
   const [savedDiagnosis, setSavedDiagnosis] = useState<string | null>(null);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   const { 
     saveSession, 

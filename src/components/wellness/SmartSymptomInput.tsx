@@ -11,9 +11,15 @@ import {
   Plus,
   X,
   Sparkles,
-  Search
+  Search,
+  Brain
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Player from 'react-lottie-player';
+
+// Import Lottie animations
+import heartbeatPulse from '@/assets/animations/heartbeat-pulse.json';
+import medicalScan from '@/assets/animations/medical-scan.json';
 
 interface SmartSymptomInputProps {
   onSymptomSubmit: (symptoms: string[]) => void;
@@ -293,6 +299,29 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
         </motion.div>
       )}
 
+      {/* Ready for Analysis Animation - Show when no symptoms */}
+      {selectedSymptoms.length === 0 && !freeTextInput.trim() && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-8"
+        >
+          <div className="mx-auto mb-4 w-24 h-24 flex items-center justify-center">
+            <Player
+              play
+              loop
+              animationData={heartbeatPulse}
+              style={{ height: '96px', width: '96px' }}
+              className="opacity-60"
+            />
+          </div>
+          <h3 className="text-lg font-medium text-muted-foreground mb-2">Ready for Analysis</h3>
+          <p className="text-sm text-muted-foreground">
+            Start by describing your symptoms or selecting from common conditions above
+          </p>
+        </motion.div>
+      )}
+
       {/* Submit Button */}
       <Button 
         onClick={handleSubmit}
@@ -302,7 +331,12 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
       >
         {isLoading ? (
           <div className="flex items-center gap-2">
-            <div className="animate-spin w-5 h-5 border-2 border-current border-t-transparent rounded-full"></div>
+            <Player
+              play
+              loop
+              animationData={medicalScan}
+              style={{ height: '20px', width: '20px' }}
+            />
             Analyzing Symptoms...
           </div>
         ) : (
