@@ -35,6 +35,7 @@ import StepsChallenge from "./pages/StepsChallenge";
 import HealthTrendsDashboard from "./pages/HealthTrendsDashboard";
 import MyPrescriptions from "./pages/MyPrescriptions";
 import { SystemAssessment } from "./pages/SystemAssessment";
+import { AdvancedSystemAssessment } from "./pages/AdvancedSystemAssessment";
 import DoctorAIDiagnoses from "./pages/doctor/DoctorAIDiagnoses";
 
 
@@ -107,6 +108,11 @@ const App = () => (
             <Route path="/system-assessment" element={
               <ProtectedRoute requirePatient={true}>
                 <SystemAssessment />
+              </ProtectedRoute>
+            } />
+            <Route path="/advanced-assessment" element={
+              <ProtectedRoute requirePatient={true}>
+                <AdvancedSystemAssessment />
               </ProtectedRoute>
             } />
             <Route path="/health-challenges" element={
