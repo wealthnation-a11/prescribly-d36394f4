@@ -21,7 +21,13 @@ verify_jwt = false
 [functions.save-diagnosis]
 verify_jwt = true
 
+[functions.recommend-drug]
+verify_jwt = true
+
 [functions.doctor-actions]
+verify_jwt = true
+
+[functions.doctor-diagnosis-actions]
 verify_jwt = true
 
 [functions.secure-doctor-actions]

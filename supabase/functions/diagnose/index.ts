@@ -7,18 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface DiagnosisResult {
-  condition_id: number;
-  name: string;
-  description: string;
-  probability: number;
-  is_rare: boolean;
-  explain: {
-    positives: string[];
-    negatives: string[];
-  };
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -30,158 +18,82 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { matchedConditions, symptomIds, age, gender, session_id } = await req.json();
-    
-    if (!matchedConditions || matchedConditions.length === 0) {
+    // Authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ results: [] }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Diagnosing conditions:', matchedConditions);
-
-    // Build evidence from multiple sources
-    const evidence: string[] = [];
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
-    // Extract evidence from matched conditions
-    for (const match of matchedConditions) {
-      if (match.name) evidence.push(match.name.toLowerCase());
-      if (match.alias) evidence.push(match.alias.toLowerCase());
-    }
-    
-    // Add symptom IDs if provided
-    if (Array.isArray(symptomIds)) {
-      evidence.push(...symptomIds.map(String));
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log('Evidence terms:', evidence);
+    const { symptoms } = await req.json();
 
-    // Get condition IDs to analyze
-    const conditionIds = matchedConditions.map((c: any) => c.condition_id || c.id);
+    // Input validation
+    if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Symptoms array is required and cannot be empty' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Fetch candidate conditions
+    // Sanitize symptoms
+    const sanitizedSymptoms = symptoms
+      .slice(0, 10)
+      .map(symptom => String(symptom).trim().substring(0, 300))
+      .filter(symptom => symptom.length > 0);
+
+    console.log('Processing symptoms:', sanitizedSymptoms);
+
+    // Create diagnosis session
+    const { data: sessionData, error: sessionError } = await supabase
+      .from('diagnosis_sessions')
+      .insert({
+        patient_id: user.id,
+        symptoms_text: sanitizedSymptoms.join(', '),
+        selected_symptoms: sanitizedSymptoms,
+        doctor_review_status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (sessionError) {
+      console.error('Error creating diagnosis session:', sessionError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to create diagnosis session' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Simulate AI diagnostic engine by matching symptoms to conditions
     const { data: conditions, error: conditionsError } = await supabase
       .from('conditions')
       .select('*')
-      .in('id', conditionIds)
-      .limit(50);
+      .limit(20);
 
     if (conditionsError) {
       console.error('Error fetching conditions:', conditionsError);
-      return new Response(
-        JSON.stringify({ error: 'Database error' }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
     }
 
-    // Bayesian-style scoring
-    const diagnoses: DiagnosisResult[] = [];
+    // Generate mock diagnosis results
+    const results = generateMockDiagnosis(sanitizedSymptoms, conditions || []);
 
-    if (conditions) {
-      for (const condition of conditions) {
-        // Find matching input condition
-        const matchedCondition = matchedConditions.find((c: any) => 
-          (c.condition_id || c.id) === condition.id
-        );
-        
-        if (!matchedCondition) continue;
-
-        // Start with prior probability (prevalence)
-        let prior = condition.prevalence || 0.001; // Default low prior
-        if (condition.is_rare) prior *= 0.5; // Reduce rare condition priors
-
-        // Calculate likelihood based on evidence
-        let likelihood = (matchedCondition.confidence || 50) / 100;
-        
-        // Boost likelihood for exact name matches
-        if (matchedCondition.source === 'direct') {
-          likelihood *= 1.3;
-        }
-
-        // Demographic adjustments
-        if (age) {
-          const ageNum = parseInt(age);
-          // Age-specific condition adjustments
-          if (ageNum > 65 && condition.category?.includes('geriatric')) {
-            likelihood *= 1.2;
-          }
-          if (ageNum < 18 && condition.category?.includes('pediatric')) {
-            likelihood *= 1.3;
-          }
-          if (ageNum >= 18 && ageNum <= 65 && condition.category?.includes('adult')) {
-            likelihood *= 1.1;
-          }
-        }
-
-        if (gender) {
-          // Gender-specific adjustments
-          const conditionName = condition.name.toLowerCase();
-          if (gender === 'female' && (conditionName.includes('pregnancy') || conditionName.includes('menstrual'))) {
-            likelihood *= 1.4;
-          }
-          if (gender === 'male' && conditionName.includes('prostate')) {
-            likelihood *= 1.4;
-          }
-        }
-
-        // Calculate posterior probability using simplified Bayes
-        // P(condition|symptoms) ∝ P(symptoms|condition) × P(condition)
-        const rawScore = likelihood * prior;
-        
-        // Normalize to percentage (0-100)
-        const probability = Math.min(95, Math.max(1, rawScore * 1000));
-
-        diagnoses.push({
-          condition_id: condition.id,
-          name: condition.name || 'Unknown Condition',
-          description: condition.description || condition.short_description || '',
-          probability: Math.round(probability),
-          is_rare: condition.is_rare || false,
-          explain: {
-            positives: evidence.slice(0, 5), // Limit explanation terms
-            negatives: []
-          }
-        });
-      }
-    }
-
-    // Sort by probability and normalize
-    const sortedDiagnoses = diagnoses
-      .sort((a, b) => b.probability - a.probability)
-      .slice(0, 10);
-
-    // Ensure probabilities sum to reasonable total (softmax-like normalization)
-    if (sortedDiagnoses.length > 0) {
-      const totalProb = sortedDiagnoses.reduce((sum, d) => sum + d.probability, 0);
-      if (totalProb > 100) {
-        const factor = 100 / totalProb;
-        sortedDiagnoses.forEach(d => {
-          d.probability = Math.max(1, Math.round(d.probability * factor));
-        });
-      }
-    }
-
-    // Save to session if provided
-    if (session_id) {
-      await supabase.from('user_sessions').upsert({
-        id: session_id,
-        path: 'results',
-        payload: { evidence, results: sortedDiagnoses.slice(0, 5) },
-        updated_at: new Date().toISOString()
-      });
-    }
-
-    console.log('Generated diagnoses:', sortedDiagnoses.slice(0, 5));
+    console.log('Generated diagnosis results:', results);
 
     return new Response(
-      JSON.stringify({ 
-        results: sortedDiagnoses, 
-        timestamp: Date.now(),
-        evidence_count: evidence.length 
+      JSON.stringify({
+        sessionId: sessionData.id,
+        results: results
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -189,11 +101,83 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in diagnose function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
+      JSON.stringify({ 
+        error: 'Internal server error',
+        message: 'An unexpected error occurred. Please try again later.'
+      }),
+      {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
 });
+
+function generateMockDiagnosis(symptoms: string[], conditions: any[]) {
+  // Mock diagnostic logic - in real implementation this would use AI/ML
+  const mockConditions = [
+    { name: "Malaria", baseProb: 0.8, keywords: ["fever", "headache", "chills", "sweating", "nausea"] },
+    { name: "Typhoid", baseProb: 0.7, keywords: ["fever", "headache", "weakness", "abdominal", "loss of appetite"] },
+    { name: "Common Cold", baseProb: 0.6, keywords: ["cough", "runny nose", "sneezing", "sore throat", "congestion"] },
+    { name: "Flu", baseProb: 0.65, keywords: ["fever", "body aches", "fatigue", "cough", "headache"] },
+    { name: "Gastroenteritis", baseProb: 0.55, keywords: ["nausea", "vomiting", "diarrhea", "abdominal pain", "cramping"] },
+    { name: "Migraine", baseProb: 0.7, keywords: ["headache", "nausea", "sensitivity to light", "visual disturbance"] },
+    { name: "Hypertension", baseProb: 0.4, keywords: ["headache", "dizziness", "chest pain", "shortness of breath"] }
+  ];
+
+  const symptomText = symptoms.join(' ').toLowerCase();
+  
+  // Calculate probability scores based on keyword matching
+  const scoredConditions = mockConditions.map(condition => {
+    let score = condition.baseProb * 0.3; // Base probability
+    let matchCount = 0;
+    
+    condition.keywords.forEach(keyword => {
+      if (symptomText.includes(keyword.toLowerCase())) {
+        matchCount++;
+        score += 0.15; // Add points for each keyword match
+      }
+    });
+    
+    // Add some randomness to make it more realistic
+    score += (Math.random() - 0.5) * 0.2;
+    
+    // Ensure probability is between 0 and 1
+    score = Math.min(Math.max(score, 0.1), 0.95);
+    
+    return {
+      condition: condition.name,
+      probability: parseFloat(score.toFixed(2)),
+      explanation: generateExplanation(condition.name, matchCount, symptoms)
+    };
+  });
+
+  // Sort by probability and return top 3
+  return scoredConditions
+    .sort((a, b) => b.probability - a.probability)
+    .slice(0, 3);
+}
+
+function generateExplanation(condition: string, matchCount: number, symptoms: string[]): string {
+  const explanations = {
+    "Malaria": "Symptoms align with malaria, especially fever and associated symptoms.",
+    "Typhoid": "Possible due to fever and systemic symptoms presentation.",
+    "Common Cold": "Overlap of respiratory and mild systemic symptoms.",
+    "Flu": "Systemic symptoms suggest possible influenza infection.",
+    "Gastroenteritis": "Gastrointestinal symptoms indicate possible stomach infection.",
+    "Migraine": "Headache pattern and associated symptoms suggest migraine.",
+    "Hypertension": "Symptoms may be related to elevated blood pressure."
+  };
+
+  let explanation = explanations[condition] || `Symptoms partially match ${condition} pattern.`;
+  
+  if (matchCount > 2) {
+    explanation += " Strong symptom correlation detected.";
+  } else if (matchCount > 0) {
+    explanation += " Some relevant symptoms present.";
+  } else {
+    explanation += " Based on general symptom presentation.";
+  }
+  
+  return explanation;
+}
