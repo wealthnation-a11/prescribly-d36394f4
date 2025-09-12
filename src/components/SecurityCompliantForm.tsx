@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Shield, Lock, UserCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSecureDiagnosis } from "@/hooks/useSecureDiagnosis";
+import { ValidationIndicator } from "./ValidationIndicator";
 import { EmergencyWarning } from "./EmergencyWarning";
 import { toast } from "sonner";
 
@@ -114,12 +115,24 @@ export const SecurityCompliantForm = () => {
         <CardContent className="space-y-4">
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
             <p className="text-green-800 font-medium">
-              Your diagnosis has been processed securely and is now pending doctor review.
+              Your diagnosis has been processed securely with AI validation and is now pending doctor review.
             </p>
             <p className="text-sm text-green-700 mt-2">
               Session ID: {diagnosisResult.sessionId}
             </p>
+            {diagnosisResult.performance && (
+              <div className="text-xs text-green-600 mt-1">
+                Processing time: {diagnosisResult.performance.totalLatency}ms
+              </div>
+            )}
           </div>
+
+          {diagnosisResult.validation && (
+            <ValidationIndicator 
+              validation={diagnosisResult.validation}
+              className="mb-4"
+            />
+          )}
           
           {diagnosisResult.diagnosis?.conditions && (
             <div className="space-y-2">

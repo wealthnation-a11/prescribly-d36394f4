@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 
 interface HealthData {
+  timestamp: string;
   overall_status: string;
   system_health: any;
   metrics: {

@@ -26,6 +26,7 @@ import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Prescription from "./pages/Prescription";
+import SystemHealth from "./pages/admin/SystemHealth";
 
 import AIHealthCompanion from "./pages/AIHealthCompanion";
 import HealthChallenges from "./pages/HealthChallenges";
@@ -203,6 +204,13 @@ const App = () => (
             <Route path="/doctor/ai-diagnoses" element={
               <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorAIDiagnoses />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin Routes */}
+            <Route path="/admin/system-health" element={
+              <ProtectedRoute requireAdmin={true}>
+                <SystemHealth />
               </ProtectedRoute>
             } />
             

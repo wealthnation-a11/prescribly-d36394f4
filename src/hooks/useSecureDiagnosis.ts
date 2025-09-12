@@ -16,6 +16,8 @@ interface DiagnosisResponse {
   success: boolean;
   sessionId?: string;
   diagnosis?: any;
+  validation?: any;
+  performance?: any;
   emergency?: boolean;
   message?: string;
   warning?: string;
@@ -51,30 +53,34 @@ export const useSecureDiagnosis = () => {
         return { success: false, error: 'No symptoms provided' };
       }
 
-      // Call the secure diagnosis function
-      const { data, error } = await supabase.functions.invoke('diagnose-symptoms-secure', {
-        body: request,
+      // Call the enhanced diagnosis function with validation
+      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/diagnose-with-validation`, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.session.access_token}`,
+          'Authorization': `Bearer ${session.session.access_token}`,
+          'Content-Type': 'application/json'
         },
+        body: JSON.stringify(request)
       });
 
-      if (error) {
-        console.error('Diagnosis error:', error);
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Diagnosis error:', data);
         
         // Handle specific error types
-        if (error.message?.includes('Rate limit')) {
+        if (data.error?.includes('Rate limit')) {
           toast.error('You have made too many requests. Please wait before trying again.');
           return { success: false, error: 'Rate limit exceeded' };
         }
         
-        if (error.message?.includes('Authentication')) {
+        if (data.error?.includes('Authentication')) {
           toast.error('Please log in again to continue');
           return { success: false, error: 'Authentication failed' };
         }
 
-        toast.error('Failed to process diagnosis. Please try again.');
-        return { success: false, error: error.message || 'Unknown error' };
+        toast.error(data.error || 'Failed to process diagnosis. Please try again.');
+        return { success: false, error: data.error || 'Unknown error' };
       }
 
       if (data?.emergency) {
@@ -93,11 +99,24 @@ export const useSecureDiagnosis = () => {
 
       if (data?.success && data?.sessionId) {
         setLastDiagnosisId(data.sessionId);
-        toast.success('Diagnosis completed successfully');
+        
+        // Show appropriate message based on validation
+        if (data.validation?.passed) {
+          if (data.validation.recommendedAction === 'proceed_with_ai_recommendation') {
+            toast.success('High-confidence diagnosis completed successfully');
+          } else {
+            toast.success('Diagnosis completed - Doctor review recommended');
+          }
+        } else {
+          toast.warning('Low confidence diagnosis - Please consult a doctor directly');
+        }
+        
         return {
           success: true,
           sessionId: data.sessionId,
           diagnosis: data.diagnosis,
+          validation: data.validation,
+          performance: data.performance,
           emergency: false
         };
       }

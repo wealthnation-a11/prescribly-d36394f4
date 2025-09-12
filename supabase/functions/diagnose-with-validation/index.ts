@@ -174,9 +174,9 @@ serve(async (req) => {
       confidence_threshold: confidenceThreshold
     });
 
-    const validation = validationResult[0];
-    const passedValidation = validation.passed_validation;
-    const recommendedAction = validation.recommended_action;
+    const validationData = validationResult[0];
+    const passedValidation = validationData.passed_validation;
+    const recommendedAction = validationData.recommended_action;
 
     // Create diagnosis session
     const { data: sessionData, error: sessionError } = await supabase
@@ -210,8 +210,8 @@ serve(async (req) => {
         diagnosis_session_id: sessionData.id,
         ai_model: 'gpt-5-2025-08-07',
         conditions_analyzed: conditions,
-        highest_confidence: validation.highest_confidence,
-        average_confidence: validation.average_confidence,
+        highest_confidence: validationData.highest_confidence,
+        average_confidence: validationData.average_confidence,
         confidence_threshold: confidenceThreshold,
         passed_threshold: passedValidation,
         override_reason: !passedValidation ? 'Below confidence threshold' : null
@@ -257,7 +257,7 @@ serve(async (req) => {
           actor_id: user.id,
           action: 'ai_diagnosis_with_validation',
           details: {
-            confidence_validation: validation,
+            confidence_validation: validationData,
             ai_model: 'gpt-5-2025-08-07',
             performance: {
               total_latency_ms: totalLatency,
@@ -278,12 +278,12 @@ serve(async (req) => {
         validation: {
           passed: passedValidation,
           confidence: {
-            highest: validation.highest_confidence,
-            average: validation.average_confidence,
+            highest: validationData.highest_confidence,
+            average: validationData.average_confidence,
             threshold: confidenceThreshold
           },
           recommendedAction: recommendedAction,
-          details: validation.validation_details
+          details: validationData.validation_details
         },
         performance: {
           totalLatency: totalLatency,

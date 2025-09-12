@@ -452,31 +452,16 @@ export type Database = {
       }
       condition_drug_map: {
         Row: {
-          condition_id: string
           created_at: string
-          drug_name: string
-          first_line: boolean
-          id: string
-          notes: string | null
-          rxnorm_id: string | null
+          id: number
         }
         Insert: {
-          condition_id: string
           created_at?: string
-          drug_name: string
-          first_line?: boolean
-          id?: string
-          notes?: string | null
-          rxnorm_id?: string | null
+          id?: number
         }
         Update: {
-          condition_id?: string
           created_at?: string
-          drug_name?: string
-          first_line?: boolean
-          id?: string
-          notes?: string | null
-          rxnorm_id?: string | null
+          id?: number
         }
         Relationships: []
       }
