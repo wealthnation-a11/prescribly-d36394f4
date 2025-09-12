@@ -59,6 +59,21 @@ export const SystemAssessment = () => {
   const handleSymptomSubmit = async (submittedSymptoms: string[]) => {
     setSymptoms(submittedSymptoms);
     
+    // Check if we need clarifying questions BEFORE running diagnosis
+    const needsClarification = submittedSymptoms.some(symptom => 
+      symptom.toLowerCase().includes('fever') || 
+      symptom.toLowerCase().includes('headache') ||
+      symptom.toLowerCase().includes('pain') ||
+      symptom.toLowerCase().includes('cough') ||
+      symptom.toLowerCase().includes('nausea')
+    );
+    
+    if (needsClarification) {
+      setCurrentStep(2); // Go to clarifying questions first
+      return;
+    }
+
+    // If no clarifying questions needed, proceed directly to diagnosis
     const result = await submitDiagnosis({
       symptoms: submittedSymptoms,
       severity: 3,
@@ -71,20 +86,10 @@ export const SystemAssessment = () => {
       if (result.emergency) {
         // Handle emergency case
         setDiagnosisResults(result);
-        setCurrentStep(3); // Skip to results
+        setCurrentStep(3); // Go to results
       } else if (result.diagnosis) {
         setDiagnosisResults(result);
-        // Check if we need clarifying questions
-        const needsClarification = submittedSymptoms.some(symptom => 
-          symptom.toLowerCase().includes('fever') || 
-          symptom.toLowerCase().includes('headache')
-        );
-        
-        if (needsClarification) {
-          setCurrentStep(2); // Go to clarifying questions
-        } else {
-          setCurrentStep(3); // Skip to diagnosis results
-        }
+        setCurrentStep(3); // Go to results
       }
     }
   };

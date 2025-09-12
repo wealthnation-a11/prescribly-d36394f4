@@ -37,23 +37,67 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
   const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Common symptoms with categories
+  // Common symptoms with categories - expanded list
   const commonSymptoms = [
+    // General symptoms
     { id: '1', name: 'Fever', category: 'General' },
+    { id: '6', name: 'Fatigue', category: 'General' },    
+    { id: '16', name: 'Chills', category: 'General' },
+    { id: '17', name: 'Weakness', category: 'General' },
+    { id: '18', name: 'Loss of appetite', category: 'General' },
+    
+    // Neurological symptoms
     { id: '2', name: 'Headache', category: 'Neurological' },
+    { id: '7', name: 'Dizziness', category: 'Neurological' },
+    { id: '19', name: 'Confusion', category: 'Neurological' },
+    { id: '20', name: 'Memory problems', category: 'Neurological' },
+    { id: '21', name: 'Seizures', category: 'Neurological' },
+    
+    // Respiratory symptoms
     { id: '3', name: 'Cough', category: 'Respiratory' },
     { id: '4', name: 'Sore throat', category: 'Respiratory' },
-    { id: '5', name: 'Nausea', category: 'Gastrointestinal' },
-    { id: '6', name: 'Fatigue', category: 'General' },
-    { id: '7', name: 'Dizziness', category: 'Neurological' },
-    { id: '8', name: 'Joint pain', category: 'Musculoskeletal' },
-    { id: '9', name: 'Chest pain', category: 'Cardiovascular' },
-    { id: '10', name: 'Abdominal pain', category: 'Gastrointestinal' },
     { id: '11', name: 'Shortness of breath', category: 'Respiratory' },
-    { id: '12', name: 'Back pain', category: 'Musculoskeletal' },
+    { id: '22', name: 'Runny nose', category: 'Respiratory' },
+    { id: '23', name: 'Congestion', category: 'Respiratory' },
+    { id: '24', name: 'Wheezing', category: 'Respiratory' },
+    
+    // Gastrointestinal symptoms
+    { id: '5', name: 'Nausea', category: 'Gastrointestinal' },
+    { id: '10', name: 'Abdominal pain', category: 'Gastrointestinal' },
     { id: '13', name: 'Vomiting', category: 'Gastrointestinal' },
     { id: '14', name: 'Diarrhea', category: 'Gastrointestinal' },
+    { id: '25', name: 'Constipation', category: 'Gastrointestinal' },
+    { id: '26', name: 'Heartburn', category: 'Gastrointestinal' },
+    
+    // Musculoskeletal symptoms
+    { id: '8', name: 'Joint pain', category: 'Musculoskeletal' },
+    { id: '12', name: 'Back pain', category: 'Musculoskeletal' },
+    { id: '27', name: 'Muscle pain', category: 'Musculoskeletal' },
+    { id: '28', name: 'Neck pain', category: 'Musculoskeletal' },
+    { id: '29', name: 'Stiffness', category: 'Musculoskeletal' },
+    
+    // Cardiovascular symptoms
+    { id: '9', name: 'Chest pain', category: 'Cardiovascular' },
+    { id: '30', name: 'Palpitations', category: 'Cardiovascular' },
+    { id: '31', name: 'Irregular heartbeat', category: 'Cardiovascular' },
+    { id: '32', name: 'Swelling in legs', category: 'Cardiovascular' },
+    
+    // Dermatological symptoms
     { id: '15', name: 'Rash', category: 'Dermatological' },
+    { id: '33', name: 'Itching', category: 'Dermatological' },
+    { id: '34', name: 'Skin redness', category: 'Dermatological' },
+    { id: '35', name: 'Dry skin', category: 'Dermatological' },
+    
+    // Eye/Ear symptoms
+    { id: '36', name: 'Blurred vision', category: 'Eye/Ear' },
+    { id: '37', name: 'Eye pain', category: 'Eye/Ear' },
+    { id: '38', name: 'Ear pain', category: 'Eye/Ear' },
+    { id: '39', name: 'Hearing loss', category: 'Eye/Ear' },
+    
+    // Urinary symptoms
+    { id: '40', name: 'Frequent urination', category: 'Urinary' },
+    { id: '41', name: 'Painful urination', category: 'Urinary' },
+    { id: '42', name: 'Blood in urine', category: 'Urinary' },
   ];
 
   // Filter suggestions based on search query
@@ -65,7 +109,11 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
       );
       setSuggestions(filtered);
     } else {
-      setSuggestions([]);
+      // Show all symptoms organized by category when no search query
+      const unselected = commonSymptoms.filter(symptom => 
+        !selectedSymptoms.includes(symptom.name)
+      );
+      setSuggestions(unselected);
     }
   }, [searchQuery, selectedSymptoms]);
 
@@ -219,16 +267,22 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
               Quick Add Common Symptoms
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               {Object.entries(groupedSymptoms).map(([category, symptoms]) => (
-                <div key={category} className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
-                  <div className="flex flex-wrap gap-2">
+                <div key={category} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-px bg-border flex-1" />
+                    <h4 className="text-sm font-semibold text-foreground px-3 py-1 bg-secondary/50 rounded-full">
+                      {category}
+                    </h4>
+                    <div className="h-px bg-border flex-1" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {symptoms.map((symptom) => (
                       <Badge
                         key={symptom.id}
                         variant={selectedSymptoms.includes(symptom.name) ? "default" : "outline"}
-                        className="cursor-pointer hover:bg-primary/10 transition-colors"
+                        className="cursor-pointer hover:bg-primary/10 transition-all duration-200 justify-center py-2 px-3 text-center"
                         onClick={() => toggleSymptom(symptom.name)}
                       >
                         {symptom.name}
