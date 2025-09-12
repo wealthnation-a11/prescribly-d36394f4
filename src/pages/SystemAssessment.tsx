@@ -793,7 +793,7 @@ export const SystemAssessment = () => {
                                 <Badge variant={
                                   condition.confidence > 0.7 ? 'destructive' : 
                                   condition.confidence > 0.4 ? 'default' : 'secondary'
-                                }>
+                                 }>
                                   {Math.round(condition.confidence * 100)}%
                                 </Badge>
                               </div>
@@ -985,8 +985,10 @@ export const SystemAssessment = () => {
               Always consult with a qualified healthcare provider for proper medical evaluation.
             </AlertDescription>
           </Alert>
-        </motion.div>
+         </motion.div>
       </div>
     </div>
   );
 };
+
+export default SystemAssessment;
