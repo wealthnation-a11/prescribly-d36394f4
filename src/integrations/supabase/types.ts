@@ -452,31 +452,69 @@ export type Database = {
       }
       condition_drug_map: {
         Row: {
+          condition_id: string | null
           created_at: string
+          dosage: string | null
+          drug_name: string
+          duration: string | null
+          frequency: string | null
           id: number
+          rxnorm_code: string | null
         }
         Insert: {
+          condition_id?: string | null
           created_at?: string
+          dosage?: string | null
+          drug_name: string
+          duration?: string | null
+          frequency?: string | null
           id?: number
+          rxnorm_code?: string | null
         }
         Update: {
+          condition_id?: string | null
           created_at?: string
+          dosage?: string | null
+          drug_name?: string
+          duration?: string | null
+          frequency?: string | null
           id?: number
+          rxnorm_code?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "condition_drug_map_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conditions: {
         Row: {
-          created_at: string
-          id: number
+          common_symptoms: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          severity_level: number | null
         }
         Insert: {
-          created_at?: string
-          id?: number
+          common_symptoms?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          severity_level?: number | null
         }
         Update: {
-          created_at?: string
-          id?: number
+          common_symptoms?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          severity_level?: number | null
         }
         Relationships: []
       }
