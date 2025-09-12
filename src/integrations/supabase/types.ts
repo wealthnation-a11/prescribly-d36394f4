@@ -170,7 +170,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_audit_diagnosis"
+            foreignKeyName: "fk_audit_logs_diagnosis"
             columns: ["diagnosis_id"]
             isOneToOne: false
             referencedRelation: "diagnosis_sessions_v2"
@@ -893,7 +893,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_prescriptions_diagnosis"
+            foreignKeyName: "fk_prescriptions_v2_diagnosis"
             columns: ["diagnosis_id"]
             isOneToOne: false
             referencedRelation: "diagnosis_sessions_v2"
