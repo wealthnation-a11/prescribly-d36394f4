@@ -619,6 +619,18 @@ export const SystemAssessment = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-primary/5 p-4">
       <div className="container mx-auto max-w-6xl">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/dashboard')} 
+            className="gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Go to Dashboard
+          </Button>
+        </div>
+
         {/* Session Restore Prompt */}
         {showRestorePrompt && (
           <motion.div
