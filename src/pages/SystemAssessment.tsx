@@ -989,6 +989,7 @@ export const SystemAssessment = () => {
       </div>
     </div>
   );
+  );
 };
 
 export default SystemAssessment;
