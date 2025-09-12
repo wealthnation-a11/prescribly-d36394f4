@@ -1,10 +1,14 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// RxNorm API base URL (for future integration)
+const RXNORM_API_BASE = 'https://rxnav.nlm.nih.gov/REST';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,77 +16,66 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const url = new URL(req.url);
     const conditionId = url.pathname.split('/').pop();
     
     console.log('Getting drug recommendations for condition:', conditionId);
 
-    // Mock drug recommendations based on condition
-    const mockRecommendations: Record<string, any[]> = {
-      'c1': [ // Common Cold
-        {
-          drug_name: 'Acetaminophen',
-          strength: '500mg',
-          form: 'Tablet',
-          dosage: '1-2 tablets every 4-6 hours',
-          warnings: ['Do not exceed 3000mg per day', 'Avoid alcohol'],
-          category: 'Pain Reliever'
-        },
-        {
-          drug_name: 'Dextromethorphan',
-          strength: '15mg',
-          form: 'Syrup',
-          dosage: '15ml every 4 hours',
-          warnings: ['May cause drowsiness', 'Not for children under 6'],
-          category: 'Cough Suppressant'
-        }
-      ],
-      'c2': [ // Seasonal Allergies
-        {
-          drug_name: 'Loratadine',
-          strength: '10mg',
-          form: 'Tablet',
-          dosage: '1 tablet daily',
-          warnings: ['May cause drowsiness in some people', 'Take with water'],
-          category: 'Antihistamine'
-        },
-        {
-          drug_name: 'Fluticasone',
-          strength: '50mcg',
-          form: 'Nasal Spray',
-          dosage: '2 sprays per nostril daily',
-          warnings: ['Shake before use', 'Prime before first use'],
-          category: 'Nasal Corticosteroid'
-        }
-      ],
-      'c3': [ // Acute Sinusitis
-        {
-          drug_name: 'Pseudoephedrine',
-          strength: '30mg',
-          form: 'Tablet',
-          dosage: '1 tablet every 4-6 hours',
-          warnings: ['May increase blood pressure', 'Avoid before bedtime'],
-          category: 'Decongestant'
-        },
-        {
-          drug_name: 'Ibuprofen',
-          strength: '200mg',
-          form: 'Tablet',
-          dosage: '1-2 tablets every 6-8 hours',
-          warnings: ['Take with food', 'May cause stomach upset'],
-          category: 'Anti-inflammatory'
-        }
-      ]
-    };
+    // First, try to get recommendations from our condition_drug_map table
+    const { data: dbRecommendations, error: dbError } = await supabase
+      .from('condition_drug_map')
+      .select('*')
+      .eq('condition_id', conditionId)
+      .order('first_line', { ascending: false }); // First-line treatments first
 
-    const recommendations = mockRecommendations[conditionId || ''] || [];
+    let recommendations = [];
 
-    // In the future, this would call RxNorm API or query condition_drug_map table
+    if (dbError) {
+      console.error('Database error:', dbError);
+    } else if (dbRecommendations && dbRecommendations.length > 0) {
+      // Format database results
+      recommendations = dbRecommendations.map(drug => ({
+        drug_name: drug.drug_name,
+        rxnorm_id: drug.rxnorm_id,
+        form: inferDrugForm(drug.drug_name),
+        strength: inferDrugStrength(drug.drug_name),
+        dosage: generateDosage(drug.drug_name),
+        warnings: generateWarnings(drug.drug_name),
+        category: inferDrugCategory(drug.drug_name),
+        first_line: drug.first_line,
+        notes: drug.notes,
+        source: 'database'
+      }));
+      
+      console.log(`Found ${recommendations.length} recommendations in database`);
+    }
+
+    // If no database results, use mock RxNorm-style data
+    if (recommendations.length === 0) {
+      console.log('No database results, using mock data');
+      recommendations = await getMockRxNormRecommendations(conditionId);
+    }
+
+    // Add additional drug information and safety checks
+    const enhancedRecommendations = recommendations.map(drug => ({
+      ...drug,
+      safety_rating: getSafetyRating(drug.drug_name),
+      contraindications: getContraindications(drug.drug_name),
+      pregnancy_category: getPregnancyCategory(drug.drug_name)
+    }));
+
     const response = {
       success: true,
       condition_id: conditionId,
-      recommendations: recommendations,
-      disclaimer: 'For doctor review only. Do not self-medicate.',
+      recommendations: enhancedRecommendations,
+      total_found: enhancedRecommendations.length,
+      source: enhancedRecommendations.length > 0 ? enhancedRecommendations[0].source : 'none',
+      disclaimer: 'For doctor review only. Do not self-medicate. Always consult healthcare provider.',
       retrieved_at: new Date().toISOString()
     };
 
@@ -106,3 +99,220 @@ serve(async (req) => {
     );
   }
 });
+
+// Mock RxNorm API responses for different conditions
+async function getMockRxNormRecommendations(conditionId) {
+  const mockData: Record<string, any[]> = {
+    'c1': [ // Common Cold
+      {
+        drug_name: 'Acetaminophen',
+        rxnorm_id: '161',
+        form: 'Tablet',
+        strength: '500mg',
+        dosage: '500-1000mg every 4-6 hours, max 3000mg/day',
+        warnings: ['Hepatotoxicity with overdose', 'Avoid alcohol'],
+        category: 'Analgesic/Antipyretic',
+        first_line: true,
+        source: 'rxnorm_mock'
+      },
+      {
+        drug_name: 'Dextromethorphan',
+        rxnorm_id: '3008',
+        form: 'Syrup',
+        strength: '15mg/5ml',
+        dosage: '15-30mg every 4 hours, max 120mg/day',
+        warnings: ['May cause drowsiness', 'Avoid with MAOIs'],
+        category: 'Antitussive',
+        first_line: false,
+        source: 'rxnorm_mock'
+      }
+    ],
+    'c2': [ // Seasonal Allergies
+      {
+        drug_name: 'Loratadine',
+        rxnorm_id: '6188',
+        form: 'Tablet',
+        strength: '10mg',
+        dosage: '10mg once daily',
+        warnings: ['Minimal sedation', 'Adjust dose in liver impairment'],
+        category: 'H1 Antihistamine',
+        first_line: true,
+        source: 'rxnorm_mock'
+      },
+      {
+        drug_name: 'Fluticasone Propionate',
+        rxnorm_id: '18631',
+        form: 'Nasal Spray',
+        strength: '50mcg/spray',
+        dosage: '2 sprays each nostril daily',
+        warnings: ['Local irritation possible', 'Prime before use'],
+        category: 'Intranasal Corticosteroid',
+        first_line: true,
+        source: 'rxnorm_mock'
+      }
+    ],
+    'c3': [ // Acute Sinusitis
+      {
+        drug_name: 'Pseudoephedrine',
+        rxnorm_id: '8745',
+        form: 'Tablet',
+        strength: '30mg',
+        dosage: '30-60mg every 4-6 hours, max 240mg/day',
+        warnings: ['Hypertension', 'Insomnia', 'Behind-counter purchase'],
+        category: 'Decongestant',
+        first_line: true,
+        source: 'rxnorm_mock'
+      },
+      {
+        drug_name: 'Amoxicillin',
+        rxnorm_id: '723',
+        form: 'Capsule',
+        strength: '500mg',
+        dosage: '500mg every 8 hours for 7-10 days',
+        warnings: ['Penicillin allergy', 'GI upset', 'Prescription required'],
+        category: 'Antibiotic',
+        first_line: false,
+        notes: 'For suspected bacterial infection only',
+        source: 'rxnorm_mock'
+      }
+    ],
+    'c4': [ // Migraine
+      {
+        drug_name: 'Sumatriptan',
+        rxnorm_id: '37801',
+        form: 'Tablet',
+        strength: '50mg',
+        dosage: '50-100mg at onset, max 200mg/day',
+        warnings: ['Cardiovascular disease', 'Medication overuse headache'],
+        category: 'Triptan',
+        first_line: true,
+        source: 'rxnorm_mock'
+      }
+    ],
+    'c5': [ // Tension Headache
+      {
+        drug_name: 'Ibuprofen',
+        rxnorm_id: '5640',
+        form: 'Tablet',
+        strength: '200mg',
+        dosage: '200-400mg every 4-6 hours, max 1200mg/day',
+        warnings: ['GI bleeding', 'Kidney impairment', 'Take with food'],
+        category: 'NSAID',
+        first_line: true,
+        source: 'rxnorm_mock'
+      }
+    ]
+  };
+
+  return mockData[conditionId] || [];
+}
+
+// Helper functions to infer drug properties
+function inferDrugForm(drugName) {
+  const forms = {
+    'spray': 'Nasal Spray',
+    'syrup': 'Syrup',
+    'cream': 'Topical Cream',
+    'gel': 'Topical Gel'
+  };
+  
+  const lowerName = drugName.toLowerCase();
+  for (const [key, form] of Object.entries(forms)) {
+    if (lowerName.includes(key)) return form;
+  }
+  return 'Tablet'; // Default
+}
+
+function inferDrugStrength(drugName) {
+  // Common strengths for known drugs
+  const strengths = {
+    'acetaminophen': '500mg',
+    'ibuprofen': '200mg',
+    'loratadine': '10mg',
+    'pseudoephedrine': '30mg',
+    'fluticasone': '50mcg/spray',
+    'amoxicillin': '500mg'
+  };
+  
+  const lowerName = drugName.toLowerCase();
+  return strengths[lowerName] || 'Various';
+}
+
+function generateDosage(drugName) {
+  const dosages = {
+    'acetaminophen': '500-1000mg every 4-6 hours (max 3000mg/day)',
+    'ibuprofen': '200-400mg every 6-8 hours (max 1200mg/day)',
+    'loratadine': '10mg once daily',
+    'pseudoephedrine': '30-60mg every 4-6 hours (max 240mg/day)',
+    'fluticasone': '2 sprays per nostril daily',
+    'amoxicillin': '500mg every 8 hours for 7-10 days'
+  };
+  
+  return dosages[drugName.toLowerCase()] || 'As directed by healthcare provider';
+}
+
+function generateWarnings(drugName) {
+  const warnings = {
+    'acetaminophen': ['Liver damage with overdose', 'Avoid alcohol', 'Max 3000mg/day'],
+    'ibuprofen': ['GI bleeding risk', 'Kidney impairment', 'Take with food'],
+    'loratadine': ['Minimal drowsiness', 'Reduce dose in liver disease'],
+    'pseudoephedrine': ['May increase blood pressure', 'Can cause insomnia'],
+    'fluticasone': ['Prime before first use', 'May cause nasal irritation'],
+    'amoxicillin': ['Penicillin allergy', 'May cause diarrhea', 'Complete full course']
+  };
+  
+  return warnings[drugName.toLowerCase()] || ['Consult healthcare provider'];
+}
+
+function inferDrugCategory(drugName) {
+  const categories = {
+    'acetaminophen': 'Analgesic/Antipyretic',
+    'ibuprofen': 'NSAID',
+    'loratadine': 'Antihistamine',
+    'pseudoephedrine': 'Decongestant',
+    'fluticasone': 'Nasal Corticosteroid',
+    'amoxicillin': 'Antibiotic'
+  };
+  
+  return categories[drugName.toLowerCase()] || 'Medication';
+}
+
+function getSafetyRating(drugName) {
+  // Simple safety rating system
+  const safetyRatings = {
+    'acetaminophen': 'High',
+    'ibuprofen': 'Moderate',
+    'loratadine': 'High',
+    'pseudoephedrine': 'Moderate',
+    'fluticasone': 'High',
+    'amoxicillin': 'Moderate'
+  };
+  
+  return safetyRatings[drugName.toLowerCase()] || 'Consult Provider';
+}
+
+function getContraindications(drugName) {
+  const contraindications = {
+    'acetaminophen': ['Severe liver disease'],
+    'ibuprofen': ['Active GI bleeding', 'Severe kidney disease'],
+    'loratadine': ['Severe liver impairment'],
+    'pseudoephedrine': ['Severe hypertension', 'MAO inhibitor use'],
+    'fluticasone': ['Nasal septal ulcers'],
+    'amoxicillin': ['Penicillin allergy']
+  };
+  
+  return contraindications[drugName.toLowerCase()] || [];
+}
+
+function getPregnancyCategory(drugName) {
+  const pregnancyCategories = {
+    'acetaminophen': 'B',
+    'ibuprofen': 'C (D in 3rd trimester)',
+    'loratadine': 'B',
+    'pseudoephedrine': 'C',
+    'fluticasone': 'C',
+    'amoxicillin': 'B'
+  };
+  
+  return pregnancyCategories[drugName.toLowerCase()] || 'Consult Provider';
+}
