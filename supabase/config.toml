@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.diagnose-symptoms]
 verify_jwt = false
 
+[functions.diagnose-symptoms-secure]
+verify_jwt = true
+
 [functions.drug-recommendations]
 verify_jwt = false
 
@@ -16,6 +19,9 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.doctor-actions]
+verify_jwt = true
+
+[functions.secure-doctor-actions]
 verify_jwt = true
 
 [functions.create-notification]

@@ -65,6 +65,33 @@ export type Database = {
         }
         Relationships: []
       }
+      api_rate_limits_enhanced: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          request_count: number
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          request_count?: number
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          request_count?: number
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           consultation_fee: number | null
@@ -463,6 +490,9 @@ export type Database = {
         Row: {
           conditions: Json
           created_at: string
+          encrypted_conditions: string | null
+          encrypted_symptoms: string | null
+          encryption_key_id: string | null
           id: string
           status: string
           symptoms: Json
@@ -472,6 +502,9 @@ export type Database = {
         Insert: {
           conditions?: Json
           created_at?: string
+          encrypted_conditions?: string | null
+          encrypted_symptoms?: string | null
+          encryption_key_id?: string | null
           id?: string
           status?: string
           symptoms?: Json
@@ -481,6 +514,9 @@ export type Database = {
         Update: {
           conditions?: Json
           created_at?: string
+          encrypted_conditions?: string | null
+          encrypted_symptoms?: string | null
+          encryption_key_id?: string | null
           id?: string
           status?: string
           symptoms?: Json
@@ -579,6 +615,45 @@ export type Database = {
         }
         Relationships: []
       }
+      emergency_flags: {
+        Row: {
+          action_required: string
+          created_at: string
+          description: string
+          diagnosis_session_id: string
+          flag_type: string
+          flagged_by: string
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity_level: number
+        }
+        Insert: {
+          action_required: string
+          created_at?: string
+          description: string
+          diagnosis_session_id: string
+          flag_type: string
+          flagged_by: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity_level: number
+        }
+        Update: {
+          action_required?: string
+          created_at?: string
+          description?: string
+          diagnosis_session_id?: string
+          flag_type?: string
+          flagged_by?: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity_level?: number
+        }
+        Relationships: []
+      }
       encrypted_message_audit: {
         Row: {
           action: string
@@ -606,6 +681,30 @@ export type Database = {
           record_id?: string
           table_name?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      encryption_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key_version: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_version?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_version?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -916,6 +1015,8 @@ export type Database = {
           diagnosis_id: string
           doctor_id: string
           drugs: Json
+          encrypted_drugs: string | null
+          encryption_key_id: string | null
           id: string
           patient_id: string
           status: string
@@ -925,6 +1026,8 @@ export type Database = {
           diagnosis_id: string
           doctor_id: string
           drugs?: Json
+          encrypted_drugs?: string | null
+          encryption_key_id?: string | null
           id?: string
           patient_id: string
           status?: string
@@ -934,6 +1037,8 @@ export type Database = {
           diagnosis_id?: string
           doctor_id?: string
           drugs?: Json
+          encrypted_drugs?: string | null
+          encryption_key_id?: string | null
           id?: string
           patient_id?: string
           status?: string
@@ -1082,6 +1187,51 @@ export type Database = {
           related_id?: string | null
           timestamp?: string
           type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_audit: {
+        Row: {
+          created_at: string
+          endpoint: string
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          request_method: string | null
+          request_payload: Json | null
+          response_status: number | null
+          risk_level: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          request_method?: string | null
+          request_payload?: Json | null
+          response_status?: number | null
+          risk_level?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          request_method?: string | null
+          request_payload?: Json | null
+          response_status?: number | null
+          risk_level?: string | null
+          session_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -1730,6 +1880,23 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: undefined
       }
+      check_emergency_symptoms: {
+        Args: { symptoms: string[] }
+        Returns: {
+          flags: string[]
+          is_emergency: boolean
+          severity: number
+        }[]
+      }
+      check_rate_limit: {
+        Args: {
+          endpoint_name: string
+          max_requests?: number
+          user_uuid: string
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       diagnose_with_bayesian: {
         Args: { age?: number; gender?: string; symptom_names: string[] }
         Returns: {
@@ -1813,6 +1980,10 @@ export type Database = {
       refresh_public_doctor_profile: {
         Args: { _user_id: string }
         Returns: undefined
+      }
+      sanitize_input: {
+        Args: { input_text: string }
+        Returns: string
       }
       set_limit: {
         Args: { "": number }

@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Brain, Clock, AlertTriangle, BookOpenCheck, CalendarPlus, Save, AlertCircle } from "lucide-react";
+import { Brain, Clock, AlertTriangle, BookOpenCheck, CalendarPlus, Save, AlertCircle, Shield } from "lucide-react";
+import { SecurityCompliantForm } from "@/components/SecurityCompliantForm";
+import { usePageSEO } from "@/hooks/usePageSEO";
 
 interface Diagnosis {
   condition_id: string;
@@ -57,11 +59,17 @@ const commonSymptoms: SymptomOption[] = [
 ];
 
 export const SystemAssessment = () => {
+  usePageSEO({
+    title: "AI Health Assessment - Get Instant Symptom Analysis | PrescriblyAI",
+    description: "Get instant AI-powered health assessments with our advanced diagnostic system. Analyze symptoms, get preliminary diagnoses, and connect with qualified doctors for professional care."
+  });
+
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showSecureForm, setShowSecureForm] = useState(false);
   
   // Form state
   const [freeTextSymptoms, setFreeTextSymptoms] = useState("");
@@ -246,21 +254,43 @@ export const SystemAssessment = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
             <Brain className="w-8 h-8 text-blue-600" />
-            System Assessment
+            AI Health Assessment System
           </h1>
-          <p className="text-slate-600">AI-powered health assessment and recommendations</p>
+          <p className="text-slate-600">Enterprise-grade security meets advanced AI diagnostics</p>
         </div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>1</div>
-            <div className={`w-16 h-1 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>2</div>
-            <div className={`w-16 h-1 ${step >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>3</div>
-          </div>
+        {/* Security Mode Toggle */}
+        <div className="flex justify-center gap-4 mb-8">
+          <Button 
+            onClick={() => setShowSecureForm(false)}
+            variant={!showSecureForm ? "default" : "outline"}
+          >
+            Basic Assessment
+          </Button>
+          <Button 
+            onClick={() => setShowSecureForm(true)}
+            variant={showSecureForm ? "default" : "outline"}
+            className="flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Secure Assessment (Recommended)
+          </Button>
         </div>
+
+        {showSecureForm ? (
+          <SecurityCompliantForm />
+        ) : (
+          <>
+            {/* Progress Steps */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>1</div>
+                <div className={`w-16 h-1 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>2</div>
+                <div className={`w-16 h-1 ${step >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>3</div>
+              </div>
+            </div>
 
         {/* Step 1: Symptom Selection */}
         {step === 1 && (
@@ -533,6 +563,8 @@ export const SystemAssessment = () => {
               </Button>
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>
