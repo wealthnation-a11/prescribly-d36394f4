@@ -82,28 +82,65 @@ export const SystemAssessment = () => {
     return setupAutoSave(getCurrentState);
   }, [setupAutoSave]);
 
-  // Check for existing session on mount
+  // Fetch multiple sessions for user to choose from
+  const fetchAvailableSessions = async () => {
+    if (!user) return [];
+
+    try {
+      const { data: sessions } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('path', 'system-assessment')
+        .order('updated_at', { ascending: false })
+        .limit(10);
+
+      if (sessions) {
+        // Filter sessions that have meaningful progress (step > 1)
+        const validSessions = sessions.filter(session => 
+          session.payload && 
+          typeof session.payload === 'object' &&
+          'currentStep' in session.payload &&
+          (session.payload as any).currentStep > 1 &&
+          // Only show sessions from last 30 days
+          Date.now() - new Date(session.updated_at).getTime() <= 30 * 24 * 60 * 60 * 1000
+        );
+        
+        return validSessions.map(session => ({
+          ...(session.payload as any),
+          sessionId: session.id,
+          updatedAt: session.updated_at
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+    }
+    
+    return [];
+  };
+
+  // Check for existing sessions on mount
   useEffect(() => {
-    const checkSession = async () => {
-      const sessionData = await checkForExistingSession();
-      if (sessionData && sessionData.currentStep > 1) {
-        setSavedSessionData(sessionData);
+    const checkSessions = async () => {
+      const sessions = await fetchAvailableSessions();
+      if (sessions.length > 0) {
+        setSavedSessionData(sessions);
         setShowRestorePrompt(true);
       }
     };
 
     if (user && currentStep === 1) {
-      checkSession();
+      checkSessions();
     }
-  }, [user, checkForExistingSession]);
+  }, [user]);
 
   // Restore session data
-  const restoreSession = () => {
-    if (savedSessionData) {
-      setCurrentStep(savedSessionData.currentStep || 1);
-      setSymptoms(savedSessionData.symptoms || []);
-      setDiagnosisResults(savedSessionData.diagnosisResults || null);
-      setClarifyingAnswers(savedSessionData.clarifyingAnswers || {});
+  const restoreSession = (sessionData: any) => {
+    if (sessionData) {
+      setCurrentStep(sessionData.currentStep || 1);
+      setSymptoms(sessionData.symptoms || []);
+      setDiagnosisResults(sessionData.diagnosisResults || null);
+      setClarifyingAnswers(sessionData.clarifyingAnswers || {});
       setDrugRecommendations({}); // Reset to empty object
       setShowRestorePrompt(false);
       toast.success('Session restored successfully!');
@@ -638,25 +675,66 @@ export const SystemAssessment = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
           >
-            <Card className="max-w-md mx-4">
+            <Card className="max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <RotateCcw className="h-5 w-5 text-primary" />
                   Continue Previous Session
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  We found an incomplete assessment from your previous session. Would you like to continue where you left off?
+                <p className="text-muted-foreground text-sm">
+                  We found incomplete assessments from your previous sessions. Choose one to continue:
                 </p>
-                {savedSessionData && (
-                  <div className="bg-secondary/20 rounded-lg p-3 mb-4 text-sm">
-                    <p><strong>Step:</strong> {savedSessionData.currentStep} of 5</p>
-                    <p><strong>Symptoms:</strong> {savedSessionData.symptoms?.length || 0} entered</p>
-                    <p><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
-                  </div>
-                )}
-                <div className="flex gap-2">
+              </CardHeader>
+              <CardContent className="overflow-y-auto">
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {Array.isArray(savedSessionData) && savedSessionData.map((session, index) => (
+                    <motion.div
+                      key={session.sessionId || index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="border border-border rounded-lg p-4 hover:bg-secondary/20 transition-colors cursor-pointer"
+                      onClick={() => restoreSession(session)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs">
+                              Step {session.currentStep} of 4
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(session.updatedAt).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <p>
+                              <span className="font-medium">Symptoms:</span> {session.symptoms?.length || 0} entered
+                              {session.symptoms?.length > 0 && (
+                                <span className="text-muted-foreground ml-1">
+                                  ({session.symptoms.slice(0, 3).join(', ')}{session.symptoms.length > 3 ? '...' : ''})
+                                </span>
+                              )}
+                            </p>
+                            {session.diagnosisResults && (
+                              <p>
+                                <span className="font-medium">Diagnosis:</span> 
+                                <span className="text-green-600 ml-1">Completed</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2 mt-6 pt-4 border-t border-border">
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -666,14 +744,7 @@ export const SystemAssessment = () => {
                     className="flex items-center gap-2"
                   >
                     <X className="h-4 w-4" />
-                    Start Fresh
-                  </Button>
-                  <Button
-                    onClick={restoreSession}
-                    className="flex-1 flex items-center gap-2"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Continue Session
+                    Start Fresh Assessment
                   </Button>
                 </div>
               </CardContent>
