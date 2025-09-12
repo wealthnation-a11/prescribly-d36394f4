@@ -12,42 +12,42 @@ interface CallTypeModalProps {
 export function CallTypeModal({ isOpen, onClose, onSelectType, doctorName }: CallTypeModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md animate-scale-in">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             Start Call with {doctorName || 'Doctor'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-base">
             Choose your preferred call type to begin the consultation.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex flex-col gap-3 mt-4">
+        <div className="flex flex-col gap-4 mt-6">
           <Button
             onClick={() => onSelectType('video')}
             variant="outline"
-            className="h-16 justify-start gap-4 text-left hover:bg-primary/5"
+            className="h-20 justify-start gap-4 text-left hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 hover-scale"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-              <Video className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary/10 to-primary/20 border border-primary/20">
+              <Video className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <div className="font-medium">Video Call</div>
-              <div className="text-sm text-muted-foreground">See and talk to your doctor</div>
+              <div className="font-semibold text-lg">Video Call</div>
+              <div className="text-sm text-muted-foreground">Face-to-face consultation with video</div>
             </div>
           </Button>
           
           <Button
             onClick={() => onSelectType('voice')}
             variant="outline"
-            className="h-16 justify-start gap-4 text-left hover:bg-primary/5"
+            className="h-20 justify-start gap-4 text-left hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 hover-scale"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-              <Phone className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary/10 to-primary/20 border border-primary/20">
+              <Phone className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <div className="font-medium">Voice Call</div>
-              <div className="text-sm text-muted-foreground">Audio-only consultation</div>
+              <div className="font-semibold text-lg">Voice Call</div>
+              <div className="text-sm text-muted-foreground">Audio-only consultation call</div>
             </div>
           </Button>
         </div>
@@ -55,7 +55,7 @@ export function CallTypeModal({ isOpen, onClose, onSelectType, doctorName }: Cal
         <Button
           onClick={onClose}
           variant="ghost"
-          className="mt-4"
+          className="mt-6 hover:bg-slate-100"
         >
           Cancel
         </Button>

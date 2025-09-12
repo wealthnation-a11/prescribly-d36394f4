@@ -498,6 +498,35 @@ export const UserDashboard = () => {
               </div>
 
               {/* Appointments */}
+              <div>
+                <h2 className="text-heading text-foreground mb-6">Your Appointments</h2>
+                {appointments.length === 0 ? (
+                  <Card className="dashboard-card">
+                    <CardContent className="p-8 text-center">
+                      <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No appointments yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Book your first consultation with our expert doctors
+                      </p>
+                      <Button asChild>
+                        <Link to="/book-appointment">Book Appointment</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {appointments.map((appointment, index) => (
+                      <div 
+                        key={appointment.id} 
+                        className="fade-in-up" 
+                        style={{ animationDelay: `${(index + 5) * 0.1}s` }}
+                      >
+                        <AppointmentCard appointment={appointment} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               {appointments.length > 0 && (
                 <div>
                   <h2 className="text-heading text-foreground mb-6">Your Appointments</h2>

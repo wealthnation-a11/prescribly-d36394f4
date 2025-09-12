@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, CheckCircle, User, CalendarDays, X } from "lucide-react";
+import { Calendar, Clock, Users, CheckCircle, User, CalendarDays, X, Video } from "lucide-react";
+import { DoctorAppointmentCard } from "@/components/DoctorAppointmentCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEnhancedActivityLogger } from "@/hooks/useEnhancedActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
@@ -350,21 +351,26 @@ export const DoctorAppointments = () => {
                           )}
                           
                           {appointment.status === 'approved' && (
-                            <Button
-                              size="sm"
-                              onClick={() => markCompletedMutation.mutate(appointment.id)}
-                              disabled={markCompletedMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                            >
-                              {markCompletedMutation.isPending ? (
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  Complete
-                                </>
-                              )}
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => markCompletedMutation.mutate(appointment.id)}
+                                disabled={markCompletedMutation.isPending}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                {markCompletedMutation.isPending ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    Complete
+                                  </>
+                                )}
+                              </Button>
+                              
+                              {/* Start Call Button for Doctor */}
+                              <DoctorAppointmentCard appointment={appointment} />
+                            </>
                           )}
                           
                           <Button size="sm" variant="outline" className="border-teal-300 text-teal-600 hover:bg-teal-50">

@@ -8,11 +8,14 @@ import { format } from "date-fns";
 import { CallTypeModal } from "@/components/CallTypeModal";
 import { CallInterface } from "@/components/CallInterface";
 import { useCallSession } from "@/hooks/useCallSession";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface AppointmentCardProps {
   appointment: {
     id: string;
     doctor_id: string;
+    patient_id?: string;
     scheduled_time: string;
     status: string;
     duration_minutes?: number;
@@ -26,18 +29,36 @@ interface AppointmentCardProps {
         avatar_url?: string;
       };
     };
+    patient?: {
+      first_name: string;
+      last_name: string;
+      avatar_url?: string;
+    };
   };
 }
 
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const [showCallModal, setShowCallModal] = useState(false);
   const { activeCall, startCall, endCall } = useCallSession();
+  const { user } = useAuth();
+  const { isDoctor } = useUserRole();
   
-  const doctorName = appointment.doctors?.profiles 
-    ? `Dr. ${appointment.doctors.profiles.first_name} ${appointment.doctors.profiles.last_name}`
-    : 'Doctor';
+  // Determine if user is doctor or patient for this appointment
+  const isUserDoctor = isDoctor || user?.id === appointment.doctor_id;
   
-  const doctorAvatar = appointment.doctors?.profiles?.avatar_url;
+  // Get the other party's details (doctor for patient, patient for doctor)
+  const otherPartyName = isUserDoctor 
+    ? appointment.patient 
+      ? `${appointment.patient.first_name} ${appointment.patient.last_name}`
+      : 'Patient'
+    : appointment.doctors?.profiles 
+      ? `Dr. ${appointment.doctors.profiles.first_name} ${appointment.doctors.profiles.last_name}`
+      : 'Doctor';
+  
+  const otherPartyAvatar = isUserDoctor 
+    ? appointment.patient?.avatar_url
+    : appointment.doctors?.profiles?.avatar_url;
+    
   const specialization = appointment.doctors?.specialization || 'General Medicine';
   
   const appointmentDate = new Date(appointment.scheduled_time);
@@ -47,7 +68,10 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
 
   const handleStartCall = async (callType: 'voice' | 'video') => {
     try {
-      await startCall(appointment.id, appointment.doctor_id, callType);
+      const patientId = isUserDoctor ? (appointment.patient_id || '') : user?.id || '';
+      const doctorId = isUserDoctor ? user?.id || '' : appointment.doctor_id;
+      
+      await startCall(appointment.id, doctorId, callType);
       setShowCallModal(false);
     } catch (error) {
       // Error is handled in the hook
@@ -75,8 +99,8 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
       <CallInterface
         callSession={activeCall}
         onEndCall={endCall}
-        doctorName={doctorName}
-        doctorAvatar={doctorAvatar}
+        doctorName={otherPartyName}
+        doctorAvatar={otherPartyAvatar}
       />
     );
   }
@@ -88,12 +112,14 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="w-12 h-12">
-                <AvatarImage src={doctorAvatar} />
-                <AvatarFallback>{doctorName.split(' ').map(n => n.charAt(0)).join('')}</AvatarFallback>
+                <AvatarImage src={otherPartyAvatar} />
+                <AvatarFallback>{otherPartyName.split(' ').map(n => n.charAt(0)).join('')}</AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-lg">{doctorName}</CardTitle>
-                <p className="text-sm text-muted-foreground">{specialization}</p>
+                <CardTitle className="text-lg">{otherPartyName}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {isUserDoctor ? 'Patient' : specialization}
+                </p>
               </div>
             </div>
             <Badge className={getStatusColor(appointment.status)}>
@@ -144,7 +170,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
         isOpen={showCallModal}
         onClose={() => setShowCallModal(false)}
         onSelectType={handleStartCall}
-        doctorName={doctorName}
+        doctorName={otherPartyName}
       />
     </>
   );
