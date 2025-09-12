@@ -5,3 +5,15 @@ verify_jwt = true
 
 [functions.diagnose]
 verify_jwt = true
+
+[functions.diagnose-symptoms]
+verify_jwt = false
+
+[functions.drug-recommendations]
+verify_jwt = false
+
+[functions.save-diagnosis]
+verify_jwt = true
+
+[functions.doctor-actions]
+verify_jwt = true
