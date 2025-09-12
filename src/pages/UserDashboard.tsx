@@ -56,7 +56,7 @@ export const UserDashboard = () => {
 
   const quickActions = [
     {
-      title: "AI Health Assessment",
+      title: "System Assessment",
       description: "Advanced AI diagnostic assistant with symptom analysis and drug recommendations.",
       icon: Stethoscope,
       href: "/system-assessment",
