@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnhancedActivityLogger } from '@/hooks/useEnhancedActivityLogger';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar as CalendarIcon, Clock, UserCog, Loader2, MessageCircle, CheckCircle, XCircle, History } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, UserCog, Loader2, MessageCircle, CheckCircle, XCircle, History, FileText } from 'lucide-react';
 import { format, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -46,11 +46,19 @@ interface Appointment {
   consultation_fee: number;
   notes?: string;
   created_at: string;
+  diagnosis_session_id?: string; // Link to diagnosis session
   profiles?: {
     first_name: string;
     last_name: string;
     avatar_url?: string;
   };
+}
+
+interface DiagnosisSession {
+  id: string;
+  symptoms: any;
+  conditions: any;
+  suggested_drugs?: any;
 }
 
 const timeSlots = [
@@ -64,8 +72,12 @@ export default function BookAppointment() {
   const { user } = useAuth();
   const { logAppointmentBooked } = useEnhancedActivityLogger();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { exchangeRate } = useExchangeRate();
+  
+  // Get diagnosis session data from navigation state
+  const diagnosisSessionData = location.state?.diagnosisSession as DiagnosisSession | undefined;
   
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -85,6 +97,15 @@ export default function BookAppointment() {
       navigate('/login');
       return;
     }
+    
+    // Pre-fill reason if coming from diagnosis session
+    if (diagnosisSessionData) {
+      const diagnosisText = diagnosisSessionData.conditions && diagnosisSessionData.conditions.length > 0
+        ? `Follow-up consultation for: ${diagnosisSessionData.conditions.map((c: any) => c.condition_name).join(', ')}`
+        : 'Follow-up consultation for AI diagnosis results';
+      setReason(diagnosisText);
+    }
+    
     fetchDoctors();
     fetchAppointments();
     
@@ -109,7 +130,7 @@ export default function BookAppointment() {
     return () => {
       supabase.removeChannel(appointmentsChannel);
     };
-  }, [user, navigate]);
+  }, [user, navigate, diagnosisSessionData]);
 
   const fetchDoctors = async () => {
     try {
@@ -242,7 +263,8 @@ export default function BookAppointment() {
           doctor_id: selectedDoctor,
           date: format(selectedDate, 'yyyy-MM-dd'),
           time: selectedTime,
-          reason: reason.trim()
+          reason: reason.trim(),
+          diagnosis_session_id: diagnosisSessionData?.id // Include diagnosis session ID if available
         }
       });
 
@@ -448,11 +470,22 @@ export default function BookAppointment() {
 
               <TabsContent value="book">
                 <Card className="shadow-lg border-medical-blue/10">
-                  <CardHeader className="pb-4">
+                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-2 text-medical-blue">
                       <UserCog className="h-5 w-5" />
                       Book New Appointment
+                      {diagnosisSessionData && (
+                        <Badge variant="secondary" className="ml-2">
+                          <FileText className="h-3 w-3 mr-1" />
+                          With Diagnosis Report
+                        </Badge>
+                      )}
                     </CardTitle>
+                    {diagnosisSessionData && (
+                      <CardDescription>
+                        Booking consultation with linked AI diagnosis results for review
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <form onSubmit={handleSubmit} className="space-y-6">

@@ -1,26 +1,42 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Brain, Clock, AlertTriangle, BookOpenCheck, CalendarPlus, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Brain, Clock, AlertTriangle, BookOpenCheck, CalendarPlus, Save, AlertCircle } from "lucide-react";
 
 interface Diagnosis {
-  condition_id: number;
-  name: string;
-  description: string;
+  condition_id: string;
+  condition_name: string;
   probability: number;
+  explanation: string;
+  severity: string;
+  confidence: string;
+}
+
+interface DiagnosisResults {
+  success: boolean;
+  emergency: boolean;
+  alert_message?: string;
+  diagnoses: Diagnosis[];
+  session_id: string;
 }
 
 interface DrugRecommendation {
   drug_name: string;
+  rxnorm_id?: string;
+  form: string;
+  strength: string;
   dosage: string;
-  notes: string;
+  warnings: string[];
+  category: string;
+  first_line: boolean;
+  notes?: string;
 }
 
 interface SymptomOption {
@@ -43,15 +59,17 @@ const commonSymptoms: SymptomOption[] = [
 export const SystemAssessment = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
   // Form state
   const [freeTextSymptoms, setFreeTextSymptoms] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
-  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+  const [results, setResults] = useState<DiagnosisResults | null>(null);
   const [drugRecommendations, setDrugRecommendations] = useState<DrugRecommendation[]>([]);
-  const [sessionId, setSessionId] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const handleSymptomToggle = (symptomId: string) => {
     setSelectedSymptoms(prev => 
@@ -71,38 +89,49 @@ export const SystemAssessment = () => {
         commonSymptoms.find(s => s.id === id)?.name
       ).filter(Boolean) as string[];
 
-      // Add free text symptoms
-      if (freeTextSymptoms.trim()) {
-        symptomNames.push(...freeTextSymptoms.split(',').map(s => s.trim()));
+      // Combine symptoms
+      let allSymptoms = freeTextSymptoms.trim();
+      if (symptomNames.length > 0) {
+        allSymptoms = allSymptoms ? `${allSymptoms}, ${symptomNames.join(', ')}` : symptomNames.join(', ');
       }
 
-      // Call diagnosis API
-      const { data: diagnosisData, error } = await supabase.functions.invoke('diagnose-with-bayesian', {
+      // Call enhanced diagnosis API
+      const { data, error } = await supabase.functions.invoke('diagnose-symptoms', {
         body: { 
-          symptom_names: symptomNames,
-          age: 30, // You could collect this from user profile
-          gender: "unknown" // You could collect this from user profile
+          symptoms: allSymptoms,
+          demographicInfo: {
+            age: 30, // You could collect this from user profile
+            gender: "unknown" // You could collect this from user profile
+          }
         }
       });
 
       if (error) throw error;
 
-      const diagnosesList = diagnosisData || [];
-      setDiagnoses(diagnosesList);
+      setResults(data);
+      
+      // Fetch drug recommendations for top diagnosis if not emergency
+      if (!data.emergency && data.diagnoses && data.diagnoses.length > 0) {
+        fetchDrugRecommendations(data.diagnoses[0].condition_id);
+      }
 
-      // Get drug recommendations for top diagnosis
-      if (diagnosesList.length > 0) {
-        const topConditionId = diagnosesList[0].condition_id;
-        
-        const { data: drugData, error: drugError } = await supabase.functions.invoke('recommend-drug', {
-          body: { condition_id: topConditionId }
+      // Create audit log for diagnosis generation
+      try {
+        await supabase.functions.invoke('create-audit-log', {
+          body: {
+            diagnosis_id: data.session_id || 'temp_' + Date.now(),
+            actor_id: user.id,
+            action: 'diagnosis_generated',
+            details: {
+              symptom_count: selectedSymptoms.length + (freeTextSymptoms.trim() ? 1 : 0),
+              diagnosis_count: data.diagnoses?.length || 0,
+              emergency_detected: data.emergency || false,
+              ai_model: 'bayesian_inference'
+            }
+          }
         });
-
-        if (drugError) {
-          console.error('Drug recommendation error:', drugError);
-        } else if (drugData) {
-          setDrugRecommendations([drugData]);
-        }
+      } catch (auditError) {
+        console.error('Error creating audit log:', auditError);
       }
 
       setStep(3);
@@ -119,53 +148,96 @@ export const SystemAssessment = () => {
     }
   };
 
-  const handleSaveReport = async () => {
-    if (!user?.id) return;
-
-    setLoading(true);
+  const fetchDrugRecommendations = async (conditionId: string) => {
     try {
+      // Use the drug-recommendations function with the condition ID in the URL path
+      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/drug-recommendations/${conditionId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const drugData = await response.json();
+        if (drugData.success && drugData.recommendations) {
+          setDrugRecommendations(drugData.recommendations);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching drug recommendations:', error);
+    }
+  };
+
+  const handleSaveReport = async () => {
+    if (!user || !results) return;
+
+    setSaving(true);
+    try {
+      // Save to diagnosis sessions using the v2 table
       const { data, error } = await supabase
-        .from('diagnosis_sessions')
-        .insert([{
-          patient_id: user.id,
-          symptoms_text: freeTextSymptoms,
-          selected_symptoms: selectedSymptoms as any,
-          ai_diagnoses: diagnoses as any,
-          suggested_drugs: drugRecommendations as any,
-        }])
+        .from('diagnosis_sessions_v2')
+        .insert({
+          user_id: user.id,
+          symptoms: selectedSymptoms.concat(freeTextSymptoms ? [freeTextSymptoms] : []) as any,
+          conditions: results.diagnoses as any,
+          status: 'pending'
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      setSessionId(data.id);
+      // Create audit log
+      try {
+        await supabase.functions.invoke('create-audit-log', {
+          body: {
+            diagnosis_id: data.id,
+            actor_id: user.id,
+            action: 'report_saved',
+            details: {
+              symptom_count: selectedSymptoms.length + (freeTextSymptoms.trim() ? 1 : 0),
+              diagnosis_count: results.diagnoses.length,
+              has_emergency_alert: results.emergency || false
+            }
+          }
+        });
+      } catch (auditError) {
+        console.error('Error creating audit log:', auditError);
+      }
+
       toast({
         title: "Report Saved",
-        description: "Your assessment has been saved successfully.",
+        description: "Your diagnosis report has been saved successfully.",
       });
+
+      // Update the session ID for potential booking
+      setSessionId(data.id);
+      
     } catch (error) {
-      console.error('Save error:', error);
+      console.error('Error saving report:', error);
       toast({
         title: "Error",
         description: "Failed to save report. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const handleBookDoctor = () => {
     // Navigate to booking with diagnosis data
-    const diagnosisData = {
-      diagnoses,
-      symptoms: freeTextSymptoms,
-      selectedSymptoms,
-      drugRecommendations
+    const diagnosisSession = {
+      id: sessionId,
+      symptoms: selectedSymptoms.concat(freeTextSymptoms ? [freeTextSymptoms] : []),
+      conditions: results?.diagnoses || [],
+      suggested_drugs: drugRecommendations
     };
     
-    // Store in localStorage to pass to booking page
-    localStorage.setItem('diagnosisData', JSON.stringify(diagnosisData));
+    navigate('/book-appointment', { 
+      state: { diagnosisSession } 
+    });
   };
 
   return (
@@ -293,39 +365,64 @@ export const SystemAssessment = () => {
         )}
 
         {/* Step 3: Results */}
-        {step === 3 && (
+        {step === 3 && results && (
           <div className="space-y-6">
-            {/* AI Diagnoses */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="w-5 h-5" />
-                  AI Assessment Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {diagnoses.length > 0 ? (
-                  <div className="space-y-4">
-                    {diagnoses.map((diagnosis, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{diagnosis.name}</h4>
-                          <Badge variant="outline">
-                            {(diagnosis.probability * 100).toFixed(1)}% match
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-slate-600">{diagnosis.description}</p>
-                      </div>
-                    ))}
+            {/* Emergency Alert */}
+            {results.emergency && results.alert_message && (
+              <Card className="border-red-500 bg-red-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-red-800 mb-2">Emergency Alert</h3>
+                      <p className="text-red-700">{results.alert_message}</p>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-slate-500">No diagnoses available.</p>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* AI Diagnoses */}
+            {!results.emergency && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="w-5 h-5" />
+                    AI Assessment Results
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {results.diagnoses && results.diagnoses.length > 0 ? (
+                    <div className="space-y-4">
+                      {results.diagnoses.map((diagnosis, index) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{diagnosis.condition_name}</h4>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline">
+                                {(diagnosis.probability * 100).toFixed(1)}% match
+                              </Badge>
+                              <Badge variant={diagnosis.severity === 'high' ? 'destructive' : diagnosis.severity === 'moderate' ? 'default' : 'secondary'}>
+                                {diagnosis.severity}
+                              </Badge>
+                            </div>
+                          </div>
+                          <p className="text-sm text-slate-600 mb-2">{diagnosis.explanation}</p>
+                          <div className="text-xs text-slate-500">
+                            Confidence: {diagnosis.confidence}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-slate-500">No diagnoses available.</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Drug Recommendations */}
-            {drugRecommendations.length > 0 && (
+            {!results.emergency && drugRecommendations.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -337,11 +434,33 @@ export const SystemAssessment = () => {
                   <div className="space-y-4">
                     {drugRecommendations.map((drug, index) => (
                       <div key={index} className="border rounded-lg p-4">
-                        <h4 className="font-medium">{drug.drug_name}</h4>
-                        <p className="text-sm text-slate-600 mb-1">Dosage: {drug.dosage}</p>
-                        {drug.notes && (
-                          <p className="text-sm text-slate-500">{drug.notes}</p>
-                        )}
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium">{drug.drug_name}</h4>
+                          <div className="flex items-center gap-2">
+                            {drug.first_line && (
+                              <Badge variant="default">First Line</Badge>
+                            )}
+                            <Badge variant="secondary">{drug.category}</Badge>
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          <p><span className="font-medium">Form:</span> {drug.form}</p>
+                          <p><span className="font-medium">Strength:</span> {drug.strength}</p>
+                          <p><span className="font-medium">Dosage:</span> {drug.dosage}</p>
+                          {drug.warnings && drug.warnings.length > 0 && (
+                            <div>
+                              <span className="font-medium">Warnings:</span>
+                              <ul className="list-disc list-inside mt-1 text-xs text-slate-600">
+                                {drug.warnings.map((warning, i) => (
+                                  <li key={i}>{warning}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {drug.notes && (
+                            <p className="text-slate-500 text-xs">{drug.notes}</p>
+                          )}
+                        </div>
                       </div>
                     ))}
                     
@@ -361,37 +480,41 @@ export const SystemAssessment = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                asChild 
-                className="flex-1"
-                onClick={handleBookDoctor}
-              >
-                <Link to="/book-appointment">
+            {!results.emergency && (
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  onClick={handleBookDoctor}
+                  className="flex-1"
+                >
                   <CalendarPlus className="w-4 h-4 mr-2" />
-                  Book a Doctor
-                </Link>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onClick={handleSaveReport}
-                disabled={loading || !!sessionId}
-              >
-                {sessionId ? (
-                  <>
-                    <BookOpenCheck className="w-4 h-4 mr-2" />
-                    Report Saved
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Report
-                  </>
-                )}
-              </Button>
-            </div>
+                  Book Doctor Consultation
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={handleSaveReport}
+                  disabled={saving || !!sessionId}
+                >
+                  {sessionId ? (
+                    <>
+                      <BookOpenCheck className="w-4 h-4 mr-2" />
+                      Report Saved
+                    </>
+                  ) : saving ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Report
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="text-center">
@@ -399,10 +522,11 @@ export const SystemAssessment = () => {
                 variant="ghost" 
                 onClick={() => {
                   setStep(1);
-                  setDiagnoses([]);
+                  setResults(null);
                   setDrugRecommendations([]);
                   setSelectedSymptoms([]);
                   setFreeTextSymptoms("");
+                  setSessionId(null);
                 }}
               >
                 Start New Assessment

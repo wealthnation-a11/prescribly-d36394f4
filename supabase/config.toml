@@ -17,3 +17,9 @@ verify_jwt = true
 
 [functions.doctor-actions]
 verify_jwt = true
+
+[functions.create-notification]
+verify_jwt = false
+
+[functions.create-audit-log]
+verify_jwt = false

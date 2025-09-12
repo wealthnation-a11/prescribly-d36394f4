@@ -672,6 +672,53 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          diagnosis_session_id: string | null
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          diagnosis_session_id?: string | null
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          diagnosis_session_id?: string | null
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_notifications_diagnosis_session"
+            columns: ["diagnosis_session_id"]
+            isOneToOne: false
+            referencedRelation: "diagnosis_sessions_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_prescriptions: {
         Row: {
           created_at: string

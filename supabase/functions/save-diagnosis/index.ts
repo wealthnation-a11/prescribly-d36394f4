@@ -74,6 +74,25 @@ serve(async (req) => {
       );
     }
 
+    // Create audit log for session creation
+    try {
+      await supabase.functions.invoke('create-audit-log', {
+        body: {
+          diagnosis_id: data.id,
+          actor_id: user.id,
+          action: 'session_created',
+          details: {
+            symptoms_count: selected_symptoms?.length || 0,
+            diagnoses_count: ai_diagnoses?.length || 0,
+            has_drug_suggestions: suggested_drugs && suggested_drugs.length > 0
+          }
+        }
+      });
+    } catch (auditError) {
+      console.error('Error creating audit log:', auditError);
+      // Don't fail the main operation
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
