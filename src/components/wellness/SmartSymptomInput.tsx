@@ -136,7 +136,6 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
         ? prev.filter(s => s !== symptomName)
         : [...prev, symptomName]
     );
-    setSearchQuery('');
   };
 
   const removeSymptom = (symptom: string) => {
@@ -145,6 +144,7 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
 
   const addSuggestion = (symptom: SymptomSuggestion) => {
     toggleSymptom(symptom.name);
+    setSearchQuery(''); // Clear search and hide dropdown
   };
 
   const startVoiceInput = () => {
@@ -227,12 +227,12 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for symptoms..."
+                placeholder="Type to search symptoms..."
                 className="border-primary/20 focus:border-primary/50"
               />
               
-              {/* Search Suggestions */}
-              {suggestions.length > 0 && (
+              {/* Search Suggestions Dropdown */}
+              {searchQuery.trim() && suggestions.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -242,7 +242,7 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
                     <button
                       key={symptom.id}
                       onClick={() => addSuggestion(symptom)}
-                      className="w-full text-left px-4 py-3 hover:bg-primary/5 flex items-center justify-between group"
+                      className="w-full text-left px-4 py-3 hover:bg-primary/5 flex items-center justify-between group border-b border-border/50 last:border-b-0"
                     >
                       <div>
                         <div className="font-medium">{symptom.name}</div>
@@ -253,47 +253,6 @@ export const SmartSymptomInput: React.FC<SmartSymptomInputProps> = ({
                   ))}
                 </motion.div>
               )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Common Symptoms by Category */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Plus className="h-4 w-4" />
-              Quick Add Common Symptoms
-            </div>
-            
-            <div className="space-y-6">
-              {Object.entries(groupedSymptoms).map(([category, symptoms]) => (
-                <div key={category} className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-px bg-border flex-1" />
-                    <h4 className="text-sm font-semibold text-foreground px-3 py-1 bg-secondary/50 rounded-full">
-                      {category}
-                    </h4>
-                    <div className="h-px bg-border flex-1" />
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {symptoms.map((symptom) => (
-                      <Badge
-                        key={symptom.id}
-                        variant={selectedSymptoms.includes(symptom.name) ? "default" : "outline"}
-                        className="cursor-pointer hover:bg-primary/10 transition-all duration-200 justify-center py-2 px-3 text-center"
-                        onClick={() => toggleSymptom(symptom.name)}
-                      >
-                        {symptom.name}
-                        {selectedSymptoms.includes(symptom.name) && (
-                          <X className="h-3 w-3 ml-1" />
-                        )}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </CardContent>

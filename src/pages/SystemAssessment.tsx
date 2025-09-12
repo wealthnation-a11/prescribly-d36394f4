@@ -11,9 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Brain, Shield, ChevronLeft, ChevronRight, Pill } from 'lucide-react';
+import { Brain, Shield, ChevronLeft, ChevronRight, Pill, Download, Share, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { toast } from 'sonner';
 
 const STEPS = [
   { id: 1, title: 'Enter Symptoms', description: 'Tell us what you\'re experiencing' },
@@ -39,6 +42,22 @@ export const SystemAssessment = () => {
   const [diagnosisResults, setDiagnosisResults] = useState<any>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<Record<string, string>>({});
   const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Fetch user profile
+  React.useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setUserProfile(data);
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
 
   // Doctor view
   if (role === 'doctor') {
@@ -127,6 +146,240 @@ export const SystemAssessment = () => {
   const handleClarifyingQuestions = async () => {
     // After clarifying questions, run diagnosis with the symptoms
     await runDiagnosis(symptoms);
+  };
+
+  const generatePDF = async () => {
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      // Add Prescribly logo/header
+      pdf.setFontSize(20);
+      pdf.setTextColor(59, 130, 246); // Primary blue
+      pdf.text('PrescriblyAI', 20, 30);
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('AI-Powered Healthcare Assessment Report', 20, 40);
+      
+      // Add line separator
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(20, 45, pageWidth - 20, 45);
+      
+      let yPos = 60;
+      
+      // Patient Information
+      pdf.setFontSize(14);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Patient Information', 20, yPos);
+      yPos += 10;
+      
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'normal');
+      const patientName = userProfile ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() : 'N/A';
+      pdf.text(`Name: ${patientName}`, 20, yPos);
+      yPos += 8;
+      pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos);
+      yPos += 8;
+      pdf.text(`Time: ${new Date().toLocaleTimeString()}`, 20, yPos);
+      yPos += 15;
+      
+      // Symptoms Section
+      pdf.setFontSize(14);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Reported Symptoms', 20, yPos);
+      yPos += 10;
+      
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'normal');
+      symptoms.forEach((symptom, index) => {
+        pdf.text(`• ${symptom}`, 25, yPos);
+        yPos += 7;
+      });
+      yPos += 10;
+      
+      // AI Analysis Section
+      if (diagnosisResults?.diagnosis && Array.isArray(diagnosisResults.diagnosis)) {
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('AI Analysis Results', 20, yPos);
+        yPos += 10;
+        
+        diagnosisResults.diagnosis.forEach((condition: any, index: number) => {
+          pdf.setFontSize(11);
+          pdf.setFont(undefined, 'bold');
+          pdf.text(`${index + 1}. ${condition.name}`, 25, yPos);
+          yPos += 8;
+          
+          pdf.setFontSize(10);
+          pdf.setFont(undefined, 'normal');
+          if (condition.confidence) {
+            pdf.text(`   Probability: ${Math.round(condition.confidence * 100)}%`, 25, yPos);
+            yPos += 6;
+          }
+          if (condition.icd10) {
+            pdf.text(`   ICD-10: ${condition.icd10}`, 25, yPos);
+            yPos += 6;
+          }
+          yPos += 5;
+        });
+      }
+      
+      // Drug Recommendations Section
+      if (drugRecommendations.length > 0) {
+        yPos += 5;
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Recommended Medications', 20, yPos);
+        yPos += 10;
+        
+        drugRecommendations.forEach((drug, index) => {
+          // Check if we need a new page
+          if (yPos > pageHeight - 40) {
+            pdf.addPage();
+            yPos = 30;
+          }
+          
+          pdf.setFontSize(11);
+          pdf.setFont(undefined, 'bold');
+          pdf.text(`${index + 1}. ${drug.name}`, 25, yPos);
+          yPos += 8;
+          
+          pdf.setFontSize(9);
+          pdf.setFont(undefined, 'normal');
+          
+          if (drug.strength) {
+            pdf.text(`   Strength: ${drug.strength}`, 25, yPos);
+            yPos += 5;
+          }
+          if (drug.dosage) {
+            pdf.text(`   Dosage: ${drug.dosage}`, 25, yPos);
+            yPos += 5;
+          }
+          if (drug.frequency) {
+            pdf.text(`   Frequency: ${drug.frequency}`, 25, yPos);
+            yPos += 5;
+          }
+          if (drug.duration) {
+            pdf.text(`   Duration: ${drug.duration}`, 25, yPos);
+            yPos += 5;
+          }
+          if (drug.rxnorm_code) {
+            pdf.text(`   RxNorm ID: ${drug.rxnorm_code}`, 25, yPos);
+            yPos += 5;
+          }
+          if (drug.warnings) {
+            pdf.setTextColor(220, 38, 38); // Red for warnings
+            pdf.text(`   ⚠️ Warning: ${drug.warnings}`, 25, yPos);
+            pdf.setTextColor(0, 0, 0); // Reset to black
+            yPos += 5;
+          }
+          yPos += 8;
+        });
+      }
+      
+      // Footer/Disclaimer
+      yPos = pageHeight - 30;
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('IMPORTANT: This report is AI-generated for informational purposes only.', 20, yPos);
+      yPos += 5;
+      pdf.text('Always consult with a qualified healthcare professional before taking any medication.', 20, yPos);
+      yPos += 5;
+      pdf.text(`Generated by PrescriblyAI on ${new Date().toLocaleString()}`, 20, yPos);
+      
+      // Save the PDF
+      const fileName = `PrescriblyAI_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      toast.success('PDF report generated successfully!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF report');
+    }
+  };
+
+  const shareViaWhatsApp = () => {
+    const patientName = userProfile ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() : 'Patient';
+    const timestamp = new Date().toLocaleString();
+    
+    let message = `*PrescriblyAI Health Assessment Report*\n\n`;
+    message += `👤 Patient: ${patientName}\n`;
+    message += `📅 Date: ${timestamp}\n\n`;
+    
+    message += `🔍 *Symptoms Reported:*\n`;
+    symptoms.forEach(symptom => {
+      message += `• ${symptom}\n`;
+    });
+    
+    if (diagnosisResults?.diagnosis && Array.isArray(diagnosisResults.diagnosis)) {
+      message += `\n🧠 *AI Analysis:*\n`;
+      diagnosisResults.diagnosis.slice(0, 3).forEach((condition: any, index: number) => {
+        const probability = condition.confidence ? ` (${Math.round(condition.confidence * 100)}%)` : '';
+        message += `${index + 1}. ${condition.name}${probability}\n`;
+      });
+    }
+    
+    if (drugRecommendations.length > 0) {
+      message += `\n💊 *Top Recommended Medications:*\n`;
+      drugRecommendations.slice(0, 3).forEach((drug, index) => {
+        message += `${index + 1}. ${drug.name}`;
+        if (drug.strength) message += ` - ${drug.strength}`;
+        message += `\n`;
+      });
+    }
+    
+    message += `\n⚠️ *Important:* Always consult a healthcare professional before taking any medication.\n\n`;
+    message += `Generated by PrescriblyAI`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const shareViaEmail = () => {
+    const patientName = userProfile ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() : 'Patient';
+    const timestamp = new Date().toLocaleString();
+    
+    const subject = `PrescriblyAI Health Assessment Report - ${patientName}`;
+    
+    let body = `PrescriblyAI Health Assessment Report\n\n`;
+    body += `Patient: ${patientName}\n`;
+    body += `Date: ${timestamp}\n\n`;
+    
+    body += `Symptoms Reported:\n`;
+    symptoms.forEach(symptom => {
+      body += `• ${symptom}\n`;
+    });
+    
+    if (diagnosisResults?.diagnosis && Array.isArray(diagnosisResults.diagnosis)) {
+      body += `\nAI Analysis Results:\n`;
+      diagnosisResults.diagnosis.forEach((condition: any, index: number) => {
+        const probability = condition.confidence ? ` (${Math.round(condition.confidence * 100)}% probability)` : '';
+        body += `${index + 1}. ${condition.name}${probability}\n`;
+        if (condition.icd10) body += `   ICD-10: ${condition.icd10}\n`;
+      });
+    }
+    
+    if (drugRecommendations.length > 0) {
+      body += `\nRecommended Medications:\n`;
+      drugRecommendations.forEach((drug, index) => {
+        body += `${index + 1}. ${drug.name}\n`;
+        if (drug.strength) body += `   Strength: ${drug.strength}\n`;
+        if (drug.dosage) body += `   Dosage: ${drug.dosage}\n`;
+        if (drug.frequency) body += `   Frequency: ${drug.frequency}\n`;
+        if (drug.duration) body += `   Duration: ${drug.duration}\n`;
+        if (drug.rxnorm_code) body += `   RxNorm ID: ${drug.rxnorm_code}\n`;
+        if (drug.warnings) body += `   ⚠️ Warning: ${drug.warnings}\n`;
+        body += `\n`;
+      });
+    }
+    
+    body += `IMPORTANT DISCLAIMER:\n`;
+    body += `This report is AI-generated for informational purposes only. Always consult with a qualified healthcare professional before taking any medication or making health decisions.\n\n`;
+    body += `Generated by PrescriblyAI on ${timestamp}`;
+    
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
   };
 
   const handleBookDoctor = () => {
@@ -415,6 +668,40 @@ export const SystemAssessment = () => {
                         <p className="text-sm text-muted-foreground">
                           These are AI-generated recommendations based on your symptoms. Always consult with a qualified healthcare professional before taking any medication.
                         </p>
+                      </div>
+
+                      {/* Sharing Options */}
+                      <div className="mt-6 p-4 border border-border rounded-lg bg-secondary/20">
+                        <h4 className="font-medium mb-3">Share & Export Options</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={generatePDF}
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download PDF
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={shareViaWhatsApp}
+                            className="flex items-center gap-2 text-green-600 hover:text-green-700"
+                          >
+                            <Share className="h-4 w-4" />
+                            Share WhatsApp
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={shareViaEmail}
+                            className="flex items-center gap-2"
+                          >
+                            <Mail className="h-4 w-4" />
+                            Share Email
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ) : (
