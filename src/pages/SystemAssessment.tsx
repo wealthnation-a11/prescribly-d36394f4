@@ -80,8 +80,6 @@ export const SystemAssessment = () => {
   const [savedSessionData, setSavedSessionData] = useState<any>(null);
   const [loadingDrugs, setLoadingDrugs] = useState<Record<string, boolean>>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set([1])); // Step 1 is accessible by default
-
   const { 
     saveSession, 
     checkForExistingSession, 
@@ -89,35 +87,6 @@ export const SystemAssessment = () => {
     setupAutoSave,
     isRestoring 
   } = useSessionManager('system-assessment');
-
-  // Validation functions for each step
-  const isStepValid = (stepNumber: number): boolean => {
-    switch (stepNumber) {
-      case 1: // Enter Symptoms
-        return symptoms.length > 0;
-      case 2: // Clarifying Questions
-        return symptoms.length > 0 && (clarifyingQuestions.length === 0 || Object.keys(clarifyingAnswers).length > 0);
-      case 3: // AI Analysis
-        return diagnosisResults !== null;
-      case 4: // Medications
-        return diagnosisResults !== null;
-      case 5: // Book Doctor
-        return diagnosisResults !== null;
-      default:
-        return false;
-    }
-  };
-
-  const canAccessStep = (stepNumber: number): boolean => {
-    if (stepNumber === 1) return true; // First step is always accessible
-    return completedSteps.has(stepNumber - 1) && isStepValid(stepNumber - 1);
-  };
-
-  const markStepCompleted = (stepNumber: number) => {
-    if (isStepValid(stepNumber)) {
-      setCompletedSteps(prev => new Set([...prev, stepNumber]));
-    }
-  };
 
   // Auto-save session when state changes
   const getCurrentState = () => ({
@@ -208,7 +177,6 @@ export const SystemAssessment = () => {
 
   const handleSymptomSubmit = async (submittedSymptoms: string[]) => {
     setSymptoms(submittedSymptoms);
-    markStepCompleted(1); // Mark step 1 as completed
     
     // Generate clarifying questions based on symptoms
     const questions = generateClarifyingQuestions(submittedSymptoms);
@@ -216,7 +184,6 @@ export const SystemAssessment = () => {
     if (questions.length > 0) {
       setClarifyingQuestions(questions);
       setCurrentStep(2);
-      markStepCompleted(2); // Allow access to step 2
     } else {
       // Skip to diagnosis if no clarifying questions needed
       await runDiagnosis(submittedSymptoms);
@@ -297,8 +264,6 @@ export const SystemAssessment = () => {
           setSessionId(result.sessionId || null);
         }
         setCurrentStep(3);
-        markStepCompleted(2); // Mark clarifying questions as completed
-        markStepCompleted(3); // Allow access to analysis results
       }
     } catch (error) {
       console.error('Diagnosis error:', error);
@@ -307,7 +272,6 @@ export const SystemAssessment = () => {
   };
 
   const handleClarifyingSubmit = async () => {
-    markStepCompleted(2); // Mark clarifying questions as completed
     await runDiagnosis(symptoms);
   };
 
@@ -351,7 +315,6 @@ export const SystemAssessment = () => {
 
       setDrugRecommendations(prev => ({ ...prev, ...mockDrugs }));
       toast.success('Drug recommendations loaded successfully!');
-      markStepCompleted(4); // Mark medications step as completed
     } catch (error) {
       console.error('Failed to fetch drug recommendations:', error);
       toast.error('Failed to fetch drug recommendations');
@@ -493,12 +456,8 @@ export const SystemAssessment = () => {
   };
 
   const nextStep = () => {
-    if (currentStep < STEPS.length && isStepValid(currentStep)) {
-      markStepCompleted(currentStep);
-      const nextStepNumber = currentStep + 1;
-      if (canAccessStep(nextStepNumber)) {
-        setCurrentStep(nextStepNumber);
-      }
+    if (currentStep < STEPS.length) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -509,9 +468,7 @@ export const SystemAssessment = () => {
   };
 
   const goToStep = (step: number) => {
-    if (canAccessStep(step)) {
-      setCurrentStep(step);
-    }
+    setCurrentStep(step);
   };
 
   return (
@@ -612,8 +569,8 @@ export const SystemAssessment = () => {
               <div className="flex items-center justify-between">
                 {STEPS.map((step, index) => {
                   const isActive = currentStep === step.id;
-                  const isCompleted = completedSteps.has(step.id);
-                  const isAccessible = canAccessStep(step.id);
+                  const isCompleted = false;
+                  const isAccessible = true;
                   const Icon = step.icon;
                   
                   return (
@@ -651,7 +608,7 @@ export const SystemAssessment = () => {
                       </div>
                       {index < STEPS.length - 1 && (
                         <div className={`absolute h-0.5 w-20 mt-5 ml-20 ${
-                          completedSteps.has(step.id) ? 'bg-primary' : 'bg-muted'
+                          isCompleted ? 'bg-primary' : 'bg-muted'
                         }`} />
                       )}
                     </div>
@@ -1005,7 +962,7 @@ export const SystemAssessment = () => {
 
           <Button
             onClick={nextStep}
-            disabled={!isStepValid(currentStep) || currentStep === STEPS.length}
+            disabled={currentStep === STEPS.length}
             className="flex items-center gap-2"
           >
             {currentStep === STEPS.length ? 'Complete' : 'Next'}
