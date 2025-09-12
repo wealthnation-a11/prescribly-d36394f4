@@ -80,6 +80,7 @@ export const SystemAssessment = () => {
   const [savedSessionData, setSavedSessionData] = useState<any>(null);
   const [loadingDrugs, setLoadingDrugs] = useState<Record<string, boolean>>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set([1])); // Step 1 is accessible by default
 
   const { 
     saveSession, 
@@ -88,6 +89,35 @@ export const SystemAssessment = () => {
     setupAutoSave,
     isRestoring 
   } = useSessionManager('system-assessment');
+
+  // Validation functions for each step
+  const isStepValid = (stepNumber: number): boolean => {
+    switch (stepNumber) {
+      case 1: // Enter Symptoms
+        return symptoms.length > 0;
+      case 2: // Clarifying Questions
+        return symptoms.length > 0 && (clarifyingQuestions.length === 0 || Object.keys(clarifyingAnswers).length > 0);
+      case 3: // AI Analysis
+        return diagnosisResults !== null;
+      case 4: // Medications
+        return diagnosisResults !== null;
+      case 5: // Book Doctor
+        return diagnosisResults !== null;
+      default:
+        return false;
+    }
+  };
+
+  const canAccessStep = (stepNumber: number): boolean => {
+    if (stepNumber === 1) return true; // First step is always accessible
+    return completedSteps.has(stepNumber - 1) && isStepValid(stepNumber - 1);
+  };
+
+  const markStepCompleted = (stepNumber: number) => {
+    if (isStepValid(stepNumber)) {
+      setCompletedSteps(prev => new Set([...prev, stepNumber]));
+    }
+  };
 
   // Auto-save session when state changes
   const getCurrentState = () => ({
@@ -178,6 +208,7 @@ export const SystemAssessment = () => {
 
   const handleSymptomSubmit = async (submittedSymptoms: string[]) => {
     setSymptoms(submittedSymptoms);
+    markStepCompleted(1); // Mark step 1 as completed
     
     // Generate clarifying questions based on symptoms
     const questions = generateClarifyingQuestions(submittedSymptoms);
@@ -185,6 +216,7 @@ export const SystemAssessment = () => {
     if (questions.length > 0) {
       setClarifyingQuestions(questions);
       setCurrentStep(2);
+      markStepCompleted(2); // Allow access to step 2
     } else {
       // Skip to diagnosis if no clarifying questions needed
       await runDiagnosis(submittedSymptoms);
@@ -265,6 +297,8 @@ export const SystemAssessment = () => {
           setSessionId(result.sessionId || null);
         }
         setCurrentStep(3);
+        markStepCompleted(2); // Mark clarifying questions as completed
+        markStepCompleted(3); // Allow access to analysis results
       }
     } catch (error) {
       console.error('Diagnosis error:', error);
@@ -273,6 +307,7 @@ export const SystemAssessment = () => {
   };
 
   const handleClarifyingSubmit = async () => {
+    markStepCompleted(2); // Mark clarifying questions as completed
     await runDiagnosis(symptoms);
   };
 
@@ -316,6 +351,7 @@ export const SystemAssessment = () => {
 
       setDrugRecommendations(prev => ({ ...prev, ...mockDrugs }));
       toast.success('Drug recommendations loaded successfully!');
+      markStepCompleted(4); // Mark medications step as completed
     } catch (error) {
       console.error('Failed to fetch drug recommendations:', error);
       toast.error('Failed to fetch drug recommendations');
@@ -457,8 +493,12 @@ export const SystemAssessment = () => {
   };
 
   const nextStep = () => {
-    if (currentStep < STEPS.length) {
-      setCurrentStep(currentStep + 1);
+    if (currentStep < STEPS.length && isStepValid(currentStep)) {
+      markStepCompleted(currentStep);
+      const nextStepNumber = currentStep + 1;
+      if (canAccessStep(nextStepNumber)) {
+        setCurrentStep(nextStepNumber);
+      }
     }
   };
 
@@ -469,7 +509,9 @@ export const SystemAssessment = () => {
   };
 
   const goToStep = (step: number) => {
-    setCurrentStep(step);
+    if (canAccessStep(step)) {
+      setCurrentStep(step);
+    }
   };
 
   return (
@@ -570,20 +612,23 @@ export const SystemAssessment = () => {
               <div className="flex items-center justify-between">
                 {STEPS.map((step, index) => {
                   const isActive = currentStep === step.id;
-                  const isCompleted = currentStep > step.id;
+                  const isCompleted = completedSteps.has(step.id);
+                  const isAccessible = canAccessStep(step.id);
                   const Icon = step.icon;
                   
                   return (
                     <div key={step.id} className="flex flex-col items-center flex-1">
                       <button
                         onClick={() => goToStep(step.id)}
-                        disabled={step.id > currentStep}
+                        disabled={!isAccessible}
                         className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${
                           isCompleted 
                             ? 'bg-primary text-primary-foreground' 
                             : isActive 
                             ? 'bg-primary/20 text-primary border-2 border-primary' 
-                            : 'bg-muted text-muted-foreground'
+                            : isAccessible
+                            ? 'bg-muted text-muted-foreground hover:bg-muted/80 cursor-pointer'
+                            : 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed'
                         }`}
                       >
                         {isCompleted ? (
@@ -593,7 +638,11 @@ export const SystemAssessment = () => {
                         )}
                       </button>
                       <div className="text-center">
-                        <div className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <div className={`text-sm font-medium ${
+                          isActive ? 'text-primary' : 
+                          isAccessible ? 'text-muted-foreground' : 
+                          'text-muted-foreground/50'
+                        }`}>
                           {step.title}
                         </div>
                         <div className="text-xs text-muted-foreground hidden sm:block">
@@ -602,7 +651,7 @@ export const SystemAssessment = () => {
                       </div>
                       {index < STEPS.length - 1 && (
                         <div className={`absolute h-0.5 w-20 mt-5 ml-20 ${
-                          isCompleted ? 'bg-primary' : 'bg-muted'
+                          completedSteps.has(step.id) ? 'bg-primary' : 'bg-muted'
                         }`} />
                       )}
                     </div>
@@ -956,10 +1005,10 @@ export const SystemAssessment = () => {
 
           <Button
             onClick={nextStep}
-            disabled={currentStep === STEPS.length}
+            disabled={!isStepValid(currentStep) || currentStep === STEPS.length}
             className="flex items-center gap-2"
           >
-            Next
+            {currentStep === STEPS.length ? 'Complete' : 'Next'}
             <ChevronRight className="h-4 w-4" />
           </Button>
         </motion.div>
