@@ -128,15 +128,15 @@ serve(async (req) => {
       );
     }
 
+    // Get session details for notifications and audit
+    const { data: session } = await supabase
+      .from('diagnosis_sessions')
+      .select('patient_id, symptoms, conditions')
+      .eq('id', sessionId)
+      .single();
+
     // Create prescription if approved or modified
     if (prescriptionData && (action === 'approve' || action === 'modify')) {
-      // Get patient ID from session
-      const { data: session } = await supabase
-        .from('diagnosis_sessions')
-        .select('patient_id')
-        .eq('id', sessionId)
-        .single();
-
       if (session) {
         prescriptionData.patient_id = session.patient_id;
         
@@ -148,6 +148,53 @@ serve(async (req) => {
           console.error('Error creating prescription:', prescriptionError);
           // Continue anyway, session was updated
         }
+      }
+    }
+
+    // Create audit log
+    try {
+      await supabase.functions.invoke('create-audit-log', {
+        body: {
+          diagnosis_id: sessionId,
+          actor_id: user.id,
+          action: `diagnosis_${action}`,
+          details: {
+            action,
+            medications: medications || [],
+            diagnosis: diagnosis || '',
+            instructions: instructions || '',
+            notes: notes || '',
+            reason: reason || ''
+          }
+        }
+      });
+    } catch (auditError) {
+      console.error('Error creating audit log:', auditError);
+      // Don't fail the main operation
+    }
+
+    // Create notification for patient
+    if (session) {
+      try {
+        const notificationData = {
+          user_id: session.patient_id,
+          type: 'diagnosis_update',
+          title: `Diagnosis ${action === 'approve' ? 'Approved' : action === 'modify' ? 'Modified' : 'Rejected'}`,
+          message: getNotificationMessage(action, diagnosis || '', notes || ''),
+          data: {
+            diagnosis_session_id: sessionId,
+            action,
+            doctor_id: user.id
+          },
+          diagnosis_session_id: sessionId
+        };
+
+        await supabase.functions.invoke('create-notification', {
+          body: notificationData
+        });
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError);
+        // Don't fail the main operation
       }
     }
 
@@ -175,3 +222,17 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to generate notification messages
+function getNotificationMessage(action: string, diagnosis: string, notes: string): string {
+  switch (action) {
+    case 'approve':
+      return `Your diagnosis has been approved by a doctor. ${diagnosis ? `Diagnosis: ${diagnosis}` : ''} ${notes ? `Notes: ${notes}` : ''}`.trim();
+    case 'modify':
+      return `Your diagnosis has been reviewed and modified by a doctor. ${diagnosis ? `Updated diagnosis: ${diagnosis}` : ''} ${notes ? `Notes: ${notes}` : ''}`.trim();
+    case 'reject':
+      return `Your diagnosis submission has been reviewed. ${notes ? `Doctor's notes: ${notes}` : 'Please consult with a healthcare provider for further evaluation.'}`;
+    default:
+      return 'Your diagnosis has been reviewed by a doctor.';
+  }
+}

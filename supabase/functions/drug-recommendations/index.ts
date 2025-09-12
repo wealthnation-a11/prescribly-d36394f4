@@ -10,6 +10,80 @@ const corsHeaders = {
 // RxNorm API base URL (for future integration)
 const RXNORM_API_BASE = 'https://rxnav.nlm.nih.gov/REST';
 
+// Function to call actual RxNorm API
+async function callRxNormApi(conditionId: string) {
+  try {
+    // First, try to get related drugs by condition name
+    const conditionName = getConditionName(conditionId);
+    
+    if (!conditionName) {
+      console.log('Unknown condition ID, using mock data');
+      return null;
+    }
+
+    // Search for drugs related to the condition
+    const searchUrl = `${RXNORM_API_BASE}/drugs.json?name=${encodeURIComponent(conditionName)}`;
+    console.log('Calling RxNorm API:', searchUrl);
+    
+    const response = await fetch(searchUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'HealthApp/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      console.log('RxNorm API error:', response.status, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (data?.drugGroup?.conceptGroup) {
+      const drugs = [];
+      for (const group of data.drugGroup.conceptGroup) {
+        if (group.conceptProperties) {
+          for (const drug of group.conceptProperties.slice(0, 5)) { // Limit to 5 drugs
+            drugs.push({
+              drug_name: drug.name,
+              rxnorm_id: drug.rxcui,
+              form: drug.synonym || 'Various',
+              strength: 'Various',
+              dosage: 'As directed by healthcare provider',
+              warnings: ['Consult healthcare provider', 'Follow prescription instructions'],
+              category: group.tty || 'Medication',
+              first_line: false,
+              source: 'rxnorm_api'
+            });
+          }
+        }
+      }
+      
+      console.log(`RxNorm API returned ${drugs.length} drugs`);
+      return drugs;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('RxNorm API call failed:', error);
+    return null;
+  }
+}
+
+// Helper function to map condition IDs to names for RxNorm search
+function getConditionName(conditionId: string): string | null {
+  const conditionMap: Record<string, string> = {
+    'c1': 'common cold',
+    'c2': 'allergic rhinitis',
+    'c3': 'sinusitis',
+    'c4': 'migraine',
+    'c5': 'tension headache'
+  };
+  
+  return conditionMap[conditionId] || null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -55,10 +129,18 @@ serve(async (req) => {
       console.log(`Found ${recommendations.length} recommendations in database`);
     }
 
-    // If no database results, use mock RxNorm-style data
+    // If no database results, try RxNorm API
     if (recommendations.length === 0) {
-      console.log('No database results, using mock data');
-      recommendations = await getMockRxNormRecommendations(conditionId);
+      console.log('No database results, trying RxNorm API');
+      const rxnormResults = await callRxNormApi(conditionId);
+      
+      if (rxnormResults && rxnormResults.length > 0) {
+        recommendations = rxnormResults;
+      } else {
+        // Fall back to mock data
+        console.log('RxNorm API failed, using mock data');
+        recommendations = await getMockRxNormRecommendations(conditionId);
+      }
     }
 
     // Add additional drug information and safety checks
