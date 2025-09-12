@@ -283,6 +283,48 @@ export type Database = {
         }
         Relationships: []
       }
+      call_sessions: {
+        Row: {
+          appointment_id: string
+          channel_name: string
+          created_at: string
+          doctor_id: string
+          ended_at: string | null
+          id: string
+          patient_id: string
+          started_at: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          channel_name: string
+          created_at?: string
+          doctor_id: string
+          ended_at?: string | null
+          id?: string
+          patient_id: string
+          started_at?: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          channel_name?: string
+          created_at?: string
+          doctor_id?: string
+          ended_at?: string | null
+          id?: string
+          patient_id?: string
+          started_at?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       challenge_progress: {
         Row: {
           challenge_id: string

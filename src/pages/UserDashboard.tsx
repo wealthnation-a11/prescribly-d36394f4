@@ -21,6 +21,7 @@ import {
   Trophy
 } from "lucide-react";
 import RecentActivity from "@/components/RecentActivity";
+import { AppointmentCard } from "@/components/AppointmentCard";
 
 import { 
   SidebarProvider, 
@@ -51,6 +52,7 @@ export const UserDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [appointments, setAppointments] = useState<any[]>([]);
 
   const quickActions = [
     {
@@ -139,21 +141,55 @@ export const UserDashboard = () => {
     return null;
   };
 
+  // Fetch Approved Appointments
+  const fetchApprovedAppointments = async () => {
+    if (!user?.id) return [];
+
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        doctors!inner(
+          id,
+          user_id,
+          specialization,
+          profiles:profiles!doctors_user_id_fkey(
+            first_name,
+            last_name,
+            avatar_url
+          )
+        )
+      `)
+      .eq('patient_id', user.id)
+      .in('status', ['approved', 'completed'])
+      .order('scheduled_time', { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.error('Error fetching approved appointments:', error);
+      return [];
+    }
+
+    return data || [];
+  };
+
   // Load all dashboard data
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const [consultations, nextAppointment] = await Promise.all([
+      const [consultations, nextAppointment, approvedAppointments] = await Promise.all([
         fetchTotalConsultations(),
-        fetchNextAppointment()
+        fetchNextAppointment(),
+        fetchApprovedAppointments()
       ]);
 
       setStats({
         totalConsultations: consultations,
         nextAppointment
       });
+      setAppointments(approvedAppointments);
     } catch (err) {
       console.error('Error loading dashboard data:', err);
       setError('Failed to load dashboard data');
@@ -187,9 +223,13 @@ export const UserDashboard = () => {
         (payload) => {
           console.log('Appointment change detected:', payload);
           
-          // Re-fetch next appointment
+          // Re-fetch next appointment and appointments
           fetchNextAppointment().then(nextAppointment => {
             setStats(prev => ({ ...prev, nextAppointment }));
+          });
+          
+          fetchApprovedAppointments().then(approvedAppointments => {
+            setAppointments(approvedAppointments);
           });
           
           // Re-fetch consultations if status changed to completed
@@ -456,6 +496,20 @@ export const UserDashboard = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Appointments */}
+              {appointments.length > 0 && (
+                <div>
+                  <h2 className="text-heading text-foreground mb-6">Your Appointments</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {appointments.map((appointment, index) => (
+                      <div key={appointment.id} className="fade-in-up" style={{ animationDelay: `${(index + 5) * 0.1}s` }}>
+                        <AppointmentCard appointment={appointment} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Recent Activity */}
                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
