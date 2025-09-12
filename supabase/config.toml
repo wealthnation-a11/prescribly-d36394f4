@@ -12,6 +12,9 @@ verify_jwt = false
 [functions.diagnose-symptoms-secure]
 verify_jwt = true
 
+[functions.diagnose-with-validation]
+verify_jwt = true
+
 [functions.drug-recommendations]
 verify_jwt = false
 
@@ -29,3 +32,9 @@ verify_jwt = false
 
 [functions.create-audit-log]
 verify_jwt = false
+
+[functions.system-health-check]
+verify_jwt = false
+
+[functions.qa-testing-runner]
+verify_jwt = true

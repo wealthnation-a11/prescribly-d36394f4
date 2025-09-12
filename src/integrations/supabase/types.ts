@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_confidence_logs: {
+        Row: {
+          ai_model: string
+          average_confidence: number
+          conditions_analyzed: Json
+          confidence_threshold: number
+          created_at: string
+          diagnosis_session_id: string
+          highest_confidence: number
+          id: string
+          override_reason: string | null
+          passed_threshold: boolean
+        }
+        Insert: {
+          ai_model: string
+          average_confidence: number
+          conditions_analyzed: Json
+          confidence_threshold?: number
+          created_at?: string
+          diagnosis_session_id: string
+          highest_confidence: number
+          id?: string
+          override_reason?: string | null
+          passed_threshold: boolean
+        }
+        Update: {
+          ai_model?: string
+          average_confidence?: number
+          conditions_analyzed?: Json
+          confidence_threshold?: number
+          created_at?: string
+          diagnosis_session_id?: string
+          highest_confidence?: number
+          id?: string
+          override_reason?: string | null
+          passed_threshold?: boolean
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string | null
@@ -441,6 +480,21 @@ export type Database = {
         }
         Relationships: []
       }
+      conditions: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       diagnosis_sessions: {
         Row: {
           ai_diagnoses: Json | null
@@ -558,6 +612,45 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
           weekday?: string
+        }
+        Relationships: []
+      }
+      doctor_overrides: {
+        Row: {
+          confidence_after: number | null
+          confidence_before: number | null
+          created_at: string
+          diagnosis_session_id: string
+          doctor_id: string
+          doctor_modified_conditions: Json
+          id: string
+          original_ai_conditions: Json
+          override_reason: string
+          override_type: string
+        }
+        Insert: {
+          confidence_after?: number | null
+          confidence_before?: number | null
+          created_at?: string
+          diagnosis_session_id: string
+          doctor_id: string
+          doctor_modified_conditions: Json
+          id?: string
+          original_ai_conditions: Json
+          override_reason: string
+          override_type: string
+        }
+        Update: {
+          confidence_after?: number | null
+          confidence_before?: number | null
+          created_at?: string
+          diagnosis_session_id?: string
+          doctor_id?: string
+          doctor_modified_conditions?: Json
+          id?: string
+          original_ai_conditions?: Json
+          override_reason?: string
+          override_type?: string
         }
         Relationships: []
       }
@@ -771,6 +864,42 @@ export type Database = {
         }
         Relationships: []
       }
+      monitoring_logs: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          error_message: string | null
+          event_data: Json
+          event_type: string
+          id: string
+          latency_ms: number | null
+          processed_at: string | null
+          success: boolean
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          error_message?: string | null
+          event_data?: Json
+          event_type: string
+          id?: string
+          latency_ms?: number | null
+          processed_at?: string | null
+          success?: boolean
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          error_message?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          latency_ms?: number | null
+          processed_at?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -959,6 +1088,39 @@ export type Database = {
           registration_status?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      performance_metrics: {
+        Row: {
+          created_at: string
+          endpoint: string | null
+          id: string
+          measured_at: string
+          metadata: Json | null
+          metric_type: string
+          unit: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          measured_at?: string
+          metadata?: Json | null
+          metric_type: string
+          unit: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          measured_at?: string
+          metadata?: Json | null
+          metric_type?: string
+          unit?: string
+          value?: number
         }
         Relationships: []
       }
@@ -1335,6 +1497,87 @@ export type Database = {
           id?: string
           name?: string
           severity_weight?: number | null
+        }
+        Relationships: []
+      }
+      system_alerts: {
+        Row: {
+          alert_data: Json
+          alert_type: string
+          created_at: string
+          description: string
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          title: string
+          triggered_at: string
+        }
+        Insert: {
+          alert_data?: Json
+          alert_type: string
+          created_at?: string
+          description: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          status?: string
+          title: string
+          triggered_at?: string
+        }
+        Update: {
+          alert_data?: Json
+          alert_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          triggered_at?: string
+        }
+        Relationships: []
+      }
+      test_patients: {
+        Row: {
+          created_at: string
+          expected_conditions: string[]
+          expected_confidence_range: unknown
+          id: string
+          is_active: boolean
+          last_tested_at: string | null
+          test_metadata: Json | null
+          test_name: string
+          test_results: Json | null
+          test_symptoms: string[]
+        }
+        Insert: {
+          created_at?: string
+          expected_conditions: string[]
+          expected_confidence_range: unknown
+          id?: string
+          is_active?: boolean
+          last_tested_at?: string | null
+          test_metadata?: Json | null
+          test_name: string
+          test_results?: Json | null
+          test_symptoms: string[]
+        }
+        Update: {
+          created_at?: string
+          expected_conditions?: string[]
+          expected_confidence_range?: unknown
+          id?: string
+          is_active?: boolean
+          last_tested_at?: string | null
+          test_metadata?: Json | null
+          test_name?: string
+          test_results?: Json | null
+          test_symptoms?: string[]
         }
         Relationships: []
       }
@@ -1897,6 +2140,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_system_health: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       diagnose_with_bayesian: {
         Args: { age?: number; gender?: string; symptom_names: string[] }
         Returns: {
@@ -1977,6 +2224,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_monitoring_event: {
+        Args: {
+          entity_id_param: string
+          error_message_param?: string
+          event_data_param: Json
+          event_type_param: string
+          latency_ms_param?: number
+          success_param?: boolean
+        }
+        Returns: string
+      }
       refresh_public_doctor_profile: {
         Args: { _user_id: string }
         Returns: undefined
@@ -2000,6 +2258,16 @@ export type Database = {
       update_user_points: {
         Args: { points_to_add: number; user_uuid: string }
         Returns: undefined
+      }
+      validate_ai_confidence: {
+        Args: { conditions: Json; confidence_threshold?: number }
+        Returns: {
+          average_confidence: number
+          highest_confidence: number
+          passed_validation: boolean
+          recommended_action: string
+          validation_details: Json
+        }[]
       }
       validate_encrypted_content: {
         Args: { content: string }
