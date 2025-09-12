@@ -528,6 +528,22 @@ export const SystemAssessment = () => {
       </AnimatePresence>
 
       <div className="container mx-auto max-w-4xl p-4">
+        {/* Go to Dashboard Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-end mb-4"
+        >
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <Activity className="h-4 w-4" />
+            Go to Dashboard
+          </Button>
+        </motion.div>
+
         {/* Header with Lottie Animation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -969,23 +985,6 @@ export const SystemAssessment = () => {
           >
             {currentStep === STEPS.length ? 'Complete' : 'Next'}
             <ChevronRight className="h-4 w-4" />
-          </Button>
-        </motion.div>
-
-        {/* Go to Dashboard Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="flex justify-center mt-6"
-        >
-          <Button
-            variant="outline"
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2"
-          >
-            <Activity className="h-4 w-4" />
-            Go to Dashboard
           </Button>
         </motion.div>
 
