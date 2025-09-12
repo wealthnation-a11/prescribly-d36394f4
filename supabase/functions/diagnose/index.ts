@@ -39,30 +39,75 @@ serve(async (req) => {
 
     const { symptoms } = await req.json();
 
-    // Input validation
-    if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
+    // Input validation - allow both array and free text
+    let processedSymptoms = [];
+    if (typeof symptoms === 'string') {
+      processedSymptoms = [symptoms];
+    } else if (Array.isArray(symptoms)) {
+      processedSymptoms = symptoms;
+    } else {
       return new Response(
-        JSON.stringify({ error: 'Symptoms array is required and cannot be empty' }),
+        JSON.stringify({ error: 'Symptoms must be an array of strings or free text' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (processedSymptoms.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Symptoms cannot be empty' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Sanitize symptoms
-    const sanitizedSymptoms = symptoms
+    const sanitizedSymptoms = processedSymptoms
       .slice(0, 10)
-      .map(symptom => String(symptom).trim().substring(0, 300))
+      .map(symptom => String(symptom).trim().toLowerCase().substring(0, 300))
       .filter(symptom => symptom.length > 0);
 
     console.log('Processing symptoms:', sanitizedSymptoms);
 
-    // Create diagnosis session
+    // Check for emergency symptoms
+    const emergencyKeywords = ['chest pain', 'shortness of breath'];
+    const symptomText = sanitizedSymptoms.join(' ');
+    const hasEmergencySymptoms = emergencyKeywords.every(keyword => 
+      symptomText.includes(keyword)
+    );
+
+    if (hasEmergencySymptoms) {
+      return new Response(
+        JSON.stringify({
+          emergency: true,
+          message: "Seek emergency care immediately"
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Fetch all conditions from database
+    const { data: conditions, error: conditionsError } = await supabase
+      .from('conditions')
+      .select('id, name, description, common_symptoms');
+
+    if (conditionsError) {
+      console.error('Error fetching conditions:', conditionsError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch conditions' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Calculate probabilities based on symptom matching
+    const diagnosisResults = calculateDiagnosis(sanitizedSymptoms, conditions);
+
+    // Create diagnosis session in v2 table
     const { data: sessionData, error: sessionError } = await supabase
-      .from('diagnosis_sessions')
+      .from('diagnosis_sessions_v2')
       .insert({
-        patient_id: user.id,
-        symptoms_text: sanitizedSymptoms.join(', '),
-        selected_symptoms: sanitizedSymptoms,
-        doctor_review_status: 'pending'
+        user_id: user.id,
+        symptoms: sanitizedSymptoms,
+        conditions: diagnosisResults,
+        status: 'pending'
       })
       .select()
       .single();
@@ -75,25 +120,11 @@ serve(async (req) => {
       );
     }
 
-    // Simulate AI diagnostic engine by matching symptoms to conditions
-    const { data: conditions, error: conditionsError } = await supabase
-      .from('conditions')
-      .select('*')
-      .limit(20);
-
-    if (conditionsError) {
-      console.error('Error fetching conditions:', conditionsError);
-    }
-
-    // Generate mock diagnosis results
-    const results = generateMockDiagnosis(sanitizedSymptoms, conditions || []);
-
-    console.log('Generated diagnosis results:', results);
+    console.log('Generated diagnosis results:', diagnosisResults);
 
     return new Response(
       JSON.stringify({
-        sessionId: sessionData.id,
-        results: results
+        diagnosis: diagnosisResults
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -113,71 +144,79 @@ serve(async (req) => {
   }
 });
 
-function generateMockDiagnosis(symptoms: string[], conditions: any[]) {
-  // Mock diagnostic logic - in real implementation this would use AI/ML
-  const mockConditions = [
-    { name: "Malaria", baseProb: 0.8, keywords: ["fever", "headache", "chills", "sweating", "nausea"] },
-    { name: "Typhoid", baseProb: 0.7, keywords: ["fever", "headache", "weakness", "abdominal", "loss of appetite"] },
-    { name: "Common Cold", baseProb: 0.6, keywords: ["cough", "runny nose", "sneezing", "sore throat", "congestion"] },
-    { name: "Flu", baseProb: 0.65, keywords: ["fever", "body aches", "fatigue", "cough", "headache"] },
-    { name: "Gastroenteritis", baseProb: 0.55, keywords: ["nausea", "vomiting", "diarrhea", "abdominal pain", "cramping"] },
-    { name: "Migraine", baseProb: 0.7, keywords: ["headache", "nausea", "sensitivity to light", "visual disturbance"] },
-    { name: "Hypertension", baseProb: 0.4, keywords: ["headache", "dizziness", "chest pain", "shortness of breath"] }
-  ];
-
-  const symptomText = symptoms.join(' ').toLowerCase();
+function calculateDiagnosis(symptoms, conditions) {
+  const symptomText = symptoms.join(' ');
   
-  // Calculate probability scores based on keyword matching
-  const scoredConditions = mockConditions.map(condition => {
-    let score = condition.baseProb * 0.3; // Base probability
-    let matchCount = 0;
+  const scoredConditions = conditions.map(condition => {
+    let matchedSymptoms = 0;
+    let totalSymptoms = 0;
     
-    condition.keywords.forEach(keyword => {
-      if (symptomText.includes(keyword.toLowerCase())) {
-        matchCount++;
-        score += 0.15; // Add points for each keyword match
+    // Extract symptoms from common_symptoms field or use fallback
+    let conditionSymptoms = [];
+    if (condition.common_symptoms && Array.isArray(condition.common_symptoms)) {
+      conditionSymptoms = condition.common_symptoms.map(s => s.toLowerCase());
+    } else if (condition.common_symptoms && typeof condition.common_symptoms === 'string') {
+      conditionSymptoms = [condition.common_symptoms.toLowerCase()];
+    } else {
+      // Fallback keywords based on condition name
+      const fallbackKeywords = getFallbackKeywords(condition.name);
+      conditionSymptoms = fallbackKeywords;
+    }
+    
+    totalSymptoms = conditionSymptoms.length;
+    
+    // Count matches
+    conditionSymptoms.forEach(keyword => {
+      if (symptomText.includes(keyword)) {
+        matchedSymptoms++;
       }
     });
     
-    // Add some randomness to make it more realistic
-    score += (Math.random() - 0.5) * 0.2;
-    
-    // Ensure probability is between 0 and 1
-    score = Math.min(Math.max(score, 0.1), 0.95);
+    // Calculate probability as percentage
+    const probability = totalSymptoms > 0 ? Math.round((matchedSymptoms / totalSymptoms) * 100) : 0;
     
     return {
-      condition: condition.name,
-      probability: parseFloat(score.toFixed(2)),
-      explanation: generateExplanation(condition.name, matchCount, symptoms)
+      conditionId: condition.id,
+      name: condition.name,
+      probability: probability,
+      explanation: `Matched ${matchedSymptoms} of ${totalSymptoms} symptoms`,
+      matchCount: matchedSymptoms,
+      totalCount: totalSymptoms
     };
   });
 
   // Sort by probability and return top 3
   return scoredConditions
-    .sort((a, b) => b.probability - a.probability)
-    .slice(0, 3);
+    .filter(condition => condition.probability > 0) // Only include conditions with matches
+    .sort((a, b) => {
+      // Sort by probability first, then by match count
+      if (b.probability !== a.probability) {
+        return b.probability - a.probability;
+      }
+      return b.matchCount - a.matchCount;
+    })
+    .slice(0, 3)
+    .map(condition => ({
+      conditionId: condition.conditionId,
+      name: condition.name,
+      probability: condition.probability,
+      explanation: condition.explanation
+    }));
 }
 
-function generateExplanation(condition: string, matchCount: number, symptoms: string[]): string {
-  const explanations = {
-    "Malaria": "Symptoms align with malaria, especially fever and associated symptoms.",
-    "Typhoid": "Possible due to fever and systemic symptoms presentation.",
-    "Common Cold": "Overlap of respiratory and mild systemic symptoms.",
-    "Flu": "Systemic symptoms suggest possible influenza infection.",
-    "Gastroenteritis": "Gastrointestinal symptoms indicate possible stomach infection.",
-    "Migraine": "Headache pattern and associated symptoms suggest migraine.",
-    "Hypertension": "Symptoms may be related to elevated blood pressure."
+function getFallbackKeywords(conditionName) {
+  const fallbacks = {
+    "Malaria": ["fever", "headache", "chills", "sweating", "nausea"],
+    "Typhoid": ["fever", "headache", "weakness", "abdominal", "loss of appetite"],
+    "Common Cold": ["cough", "runny nose", "sneezing", "sore throat", "congestion"],
+    "Flu": ["fever", "body aches", "fatigue", "cough", "headache"],
+    "Gastroenteritis": ["nausea", "vomiting", "diarrhea", "abdominal pain", "cramping"],
+    "Migraine": ["headache", "nausea", "sensitivity to light", "visual disturbance"],
+    "Hypertension": ["headache", "dizziness", "chest pain", "shortness of breath"],
+    "Pneumonia": ["cough", "fever", "difficulty breathing", "chest pain"],
+    "Bronchitis": ["cough", "mucus", "chest discomfort", "fatigue"],
+    "Sinusitis": ["facial pain", "nasal congestion", "headache", "thick nasal discharge"]
   };
-
-  let explanation = explanations[condition] || `Symptoms partially match ${condition} pattern.`;
   
-  if (matchCount > 2) {
-    explanation += " Strong symptom correlation detected.";
-  } else if (matchCount > 0) {
-    explanation += " Some relevant symptoms present.";
-  } else {
-    explanation += " Based on general symptom presentation.";
-  }
-  
-  return explanation;
+  return fallbacks[conditionName] || ["symptoms", "discomfort", "pain"];
 }

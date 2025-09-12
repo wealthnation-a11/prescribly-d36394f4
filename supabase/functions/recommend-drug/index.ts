@@ -54,31 +54,28 @@ serve(async (req) => {
       .eq('condition_id', conditionId)
       .limit(5);
 
-    let drugRecommendations = [];
+    let response;
 
-    if (drugsError) {
-      console.log('No drugs found in database, generating mock data');
-    } else if (drugs && drugs.length > 0) {
-      // Format existing drugs
-      drugRecommendations = drugs.map(drug => ({
-        name: drug.drug_name,
-        rxnormId: drug.rxnorm_code || generateMockRxNormId(),
-        form: "Tablet", // Default form, could be enhanced
+    if (drugsError || !drugs || drugs.length === 0) {
+      console.log('No drugs found in database for condition:', conditionId);
+      response = {
+        message: "No drugs available, please consult a doctor."
+      };
+    } else {
+      // Format existing drugs according to specification
+      const drugRecommendations = drugs.map(drug => ({
+        drug_name: drug.drug_name,
+        rxnorm_id: drug.rxnorm_code || generateMockRxNormId(),
+        form: "tablet", // Default form - could be enhanced with actual data
         strength: extractStrength(drug.drug_name),
         dosage: drug.dosage || "As prescribed",
         warnings: generateWarnings(drug.drug_name)
       }));
+      
+      response = {
+        drugs: drugRecommendations
+      };
     }
-
-    // If no drugs found in database, generate mock data
-    if (drugRecommendations.length === 0) {
-      drugRecommendations = generateMockDrugs(condition.name);
-    }
-    
-    const response = {
-      condition: condition.name,
-      drugs: drugRecommendations
-    };
 
     console.log('Drug recommendations:', response);
 
