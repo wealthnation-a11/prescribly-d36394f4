@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useSecureDiagnosis } from '@/hooks/useSecureDiagnosis';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { SmartSymptomInput } from '@/components/wellness/SmartSymptomInput';
-import { DiagnosisResults } from '@/components/wellness/DiagnosisResults';
 import { DoctorReviewPanel } from '@/components/wellness/DoctorReviewPanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Brain, Shield, ChevronLeft, ChevronRight, Pill, Download, Share, Mail, RotateCcw, X } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Loader2, Brain, Shield, ChevronLeft, ChevronRight, Pill, Download, Share, Mail, RotateCcw, X, AlertTriangle, Clock, Bookmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import jsPDF from 'jspdf';
@@ -22,9 +21,8 @@ import { toast } from 'sonner';
 const STEPS = [
   { id: 1, title: 'Enter Symptoms', description: 'Tell us what you\'re experiencing' },
   { id: 2, title: 'Clarifying Questions', description: 'Help us understand better' },
-  { id: 3, title: 'Analysis', description: 'Review diagnosis results' },
-  { id: 4, title: 'Recommendations', description: 'View suggested treatments' },
-  { id: 5, title: 'Book Doctor', description: 'Connect with healthcare professionals' }
+  { id: 3, title: 'Analysis & Drugs', description: 'Review diagnosis and medications' },
+  { id: 4, title: 'Book Doctor', description: 'Connect with healthcare professionals' }
 ];
 
 export const SystemAssessment = () => {
@@ -36,16 +34,19 @@ export const SystemAssessment = () => {
   const { user } = useAuth();
   const { role } = useUserRole();
   const navigate = useNavigate();
-  const { loading, submitDiagnosis, lastDiagnosisId } = useSecureDiagnosis();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [diagnosisResults, setDiagnosisResults] = useState<any>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<Record<string, string>>({});
-  const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
+  const [drugRecommendations, setDrugRecommendations] = useState<Record<string, any>>({});
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showRestorePrompt, setShowRestorePrompt] = useState(false);
   const [savedSessionData, setSavedSessionData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingDrugs, setLoadingDrugs] = useState<Record<string, boolean>>({});
+  const [diagnosisHistory, setDiagnosisHistory] = useState<any[]>([]);
+  const [savedDiagnosis, setSavedDiagnosis] = useState<string | null>(null);
 
   const { 
     saveSession, 
@@ -61,7 +62,7 @@ export const SystemAssessment = () => {
     symptoms,
     diagnosisResults,
     clarifyingAnswers,
-    drugRecommendations,
+    drugRecommendations: [], // Convert to array for session compatibility
     path: 'system-assessment'
   });
 
@@ -103,13 +104,13 @@ export const SystemAssessment = () => {
       setSymptoms(savedSessionData.symptoms || []);
       setDiagnosisResults(savedSessionData.diagnosisResults || null);
       setClarifyingAnswers(savedSessionData.clarifyingAnswers || {});
-      setDrugRecommendations(savedSessionData.drugRecommendations || []);
+      setDrugRecommendations({}); // Reset to empty object
       setShowRestorePrompt(false);
       toast.success('Session restored successfully!');
     }
   };
 
-  // Fetch user profile
+  // Fetch user profile and diagnosis history
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user) {
@@ -122,6 +123,7 @@ export const SystemAssessment = () => {
       }
     };
     fetchUserProfile();
+    fetchDiagnosisHistory();
   }, [user]);
 
   // Doctor view
@@ -163,48 +165,76 @@ export const SystemAssessment = () => {
   };
 
   const runDiagnosis = async (symptomsToAnalyze: string[]) => {
-    const result = await submitDiagnosis({
-      symptoms: symptomsToAnalyze,
-      severity: 3,
-      duration: '2-3 days',
-      age: 30,
-      gender: 'unknown'
-    });
-
-    if (result.success) {
-      if (result.emergency) {
-        setDiagnosisResults(result);
-        setCurrentStep(3); // Go to analysis
-      } else if (result.diagnosis) {
-        setDiagnosisResults(result);
-        // Fetch drug recommendations based on symptoms
-        await fetchDrugRecommendations(symptomsToAnalyze);
-        setCurrentStep(3); // Go to analysis
-      }
-    }
-  };
-
-  const fetchDrugRecommendations = async (symptoms: string[]) => {
+    setLoading(true);
     try {
       const { data: session } = await supabase.auth.getSession();
-      if (!session.session?.access_token) return;
+      if (!session.session?.access_token) {
+        toast.error('Please log in to continue');
+        return;
+      }
 
-      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/drug-recommendations`, {
+      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/diagnose`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.session.access_token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ symptoms })
+        body: JSON.stringify({ symptoms: symptomsToAnalyze })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setDrugRecommendations(data.recommendations || []);
+      const result = await response.json();
+
+      if (result.emergency) {
+        setDiagnosisResults({ emergency: true, message: result.message });
+        setCurrentStep(3);
+        toast.error(result.message, { duration: 10000 });
+      } else if (result.diagnosis) {
+        setDiagnosisResults({ diagnosis: result.diagnosis });
+        setCurrentStep(3);
+        toast.success('Diagnosis completed successfully!');
+      } else {
+        toast.error('Failed to analyze symptoms. Please try again.');
+      }
+    } catch (error) {
+      console.error('Diagnosis error:', error);
+      toast.error('An error occurred during analysis. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDrugRecommendations = async (conditionId: string) => {
+    setLoadingDrugs(prev => ({ ...prev, [conditionId]: true }));
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.access_token) {
+        toast.error('Please log in to continue');
+        return;
+      }
+
+      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/recommend-drug/${conditionId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.drugs) {
+        setDrugRecommendations(prev => ({ ...prev, [conditionId]: result.drugs }));
+        toast.success('Drug recommendations loaded successfully!');
+      } else if (result.message) {
+        setDrugRecommendations(prev => ({ ...prev, [conditionId]: [] }));
+        toast.info(result.message);
       }
     } catch (error) {
       console.error('Failed to fetch drug recommendations:', error);
-      setDrugRecommendations([]);
+      toast.error('Failed to fetch drug recommendations');
+      setDrugRecommendations(prev => ({ ...prev, [conditionId]: [] }));
+    } finally {
+      setLoadingDrugs(prev => ({ ...prev, [conditionId]: false }));
     }
   };
 
@@ -447,10 +477,61 @@ export const SystemAssessment = () => {
     window.location.href = mailtoUrl;
   };
 
+  const saveDiagnosis = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.access_token) {
+        toast.error('Please log in to save diagnosis');
+        return;
+      }
+
+      // Save to diagnosis_sessions_v2 table
+      const { data, error } = await supabase
+        .from('diagnosis_sessions_v2')
+        .insert({
+          user_id: user?.id,
+          symptoms,
+          conditions: diagnosisResults?.diagnosis || [],
+          status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSavedDiagnosis(data.id);
+      toast.success('✅ Diagnosis saved successfully!');
+      
+      // Refresh history
+      fetchDiagnosisHistory();
+    } catch (error) {
+      console.error('Error saving diagnosis:', error);
+      toast.error('❌ Failed to save diagnosis');
+    }
+  };
+
+  const fetchDiagnosisHistory = async () => {
+    try {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('diagnosis_sessions_v2')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setDiagnosisHistory(data || []);
+    } catch (error) {
+      console.error('Error fetching diagnosis history:', error);
+    }
+  };
+
   const handleBookDoctor = () => {
     navigate('/book-appointment', {
       state: { 
-        sessionId: lastDiagnosisId,
+        sessionId: savedDiagnosis,
         symptoms,
         diagnosisResults 
       }
@@ -458,7 +539,7 @@ export const SystemAssessment = () => {
   };
 
   const handleNextStep = () => {
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -680,114 +761,144 @@ export const SystemAssessment = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.3 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-primary" />
-                    AI Diagnosis Results
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {diagnosisResults?.diagnosis ? (
-                    <div className="space-y-4">
-                      {diagnosisResults.diagnosis.map((condition: any, index: number) => (
-                        <div key={index} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium">{condition.condition}</h4>
-                            <Badge variant="outline">
-                              {Math.round(condition.probability * 100)}% match
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3">{condition.explanation}</p>
-                          <Progress value={condition.probability * 100} className="h-2" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">No diagnosis results available.</p>
-                  )}
-                  
-                  <div className="flex gap-3 mt-6">
-                    <Button variant="outline" onClick={handlePreviousStep}>
-                      Previous
-                    </Button>
-                    <Button onClick={handleNextStep} className="flex-1">
-                      Continue
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Step 4: Drug Recommendations */}
-          {currentStep === 4 && (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Pill className="h-5 w-5 text-primary" />
-                    Drug Recommendations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Based on your symptoms and analysis, here are the recommended medications:
-                  </p>
-                  
-                  {drugRecommendations.length > 0 ? (
-                    <div className="space-y-4">
-                      {drugRecommendations.map((drug, index) => (
-                        <div key={index} className="border rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-medium">{drug.name}</h4>
-                            <Badge variant="outline">{drug.form || 'Tablet'}</Badge>
-                          </div>
-                          <div className="space-y-2 text-sm text-muted-foreground">
-                            {drug.strength && (
-                              <p><span className="font-medium">Strength:</span> {drug.strength}</p>
-                            )}
-                            {drug.dosage && (
-                              <p><span className="font-medium">Dosage:</span> {drug.dosage}</p>
-                            )}
-                            {drug.frequency && (
-                              <p><span className="font-medium">Frequency:</span> {drug.frequency}</p>
-                            )}
-                            {drug.duration && (
-                              <p><span className="font-medium">Duration:</span> {drug.duration}</p>
-                            )}
-                            {drug.rxnorm_code && (
-                              <p><span className="font-medium">RxNorm ID:</span> {drug.rxnorm_code}</p>
-                            )}
-                          </div>
-                          {drug.warnings && (
-                            <div className="mt-3 p-2 bg-destructive/10 border border-destructive/20 rounded">
-                              <p className="text-xs font-medium text-destructive">⚠️ Warning:</p>
-                              <p className="text-xs text-destructive">{drug.warnings}</p>
+              {/* Emergency Alert */}
+              {diagnosisResults.emergency && (
+                <Card className="border-red-500 bg-red-50 dark:bg-red-950/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-red-600">
+                      <AlertTriangle className="h-5 w-5" />
+                      Emergency Alert
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-red-700 dark:text-red-300 text-center py-4">
+                      <p className="text-lg font-medium mb-2">{diagnosisResults.message}</p>
+                      <p className="text-sm">Please contact emergency services immediately.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Regular Diagnosis Results */}
+              {diagnosisResults.diagnosis && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Brain className="h-5 w-5 text-primary" />
+                      AI Diagnosis Results
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {diagnosisResults.diagnosis.map((condition: any, index: number) => (
+                        <div key={condition.conditionId || index} className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-xl font-bold text-foreground mb-2">{condition.name}</h3>
+                              <div className="flex items-center gap-2 mb-3">
+                                <Badge variant="secondary" className="text-sm">
+                                  {condition.probability}% probability
+                                </Badge>
+                              </div>
                             </div>
-                          )}
+                          </div>
+                          
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                              <span>Probability Match</span>
+                              <span>{condition.probability}%</span>
+                            </div>
+                            <Progress value={condition.probability} className="h-3" />
+                          </div>
+                          
+                          <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                            {condition.explanation}
+                          </p>
+
+                          {/* Recommended Drugs Section */}
+                          <div className="border-t pt-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-sm">Recommended Medications</h4>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => fetchDrugRecommendations(condition.conditionId)}
+                                disabled={loadingDrugs[condition.conditionId]}
+                                className="flex items-center gap-2"
+                              >
+                                {loadingDrugs[condition.conditionId] ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Pill className="h-4 w-4" />
+                                )}
+                                See Recommended Drugs
+                              </Button>
+                            </div>
+
+                            {/* Drug Recommendations Display */}
+                            {drugRecommendations[condition.conditionId] && (
+                              <Accordion type="single" collapsible className="w-full">
+                                <AccordionItem value="drugs" className="border-none">
+                                  <AccordionTrigger className="text-sm hover:no-underline py-2">
+                                    View {drugRecommendations[condition.conditionId]?.length || 0} drug recommendations
+                                  </AccordionTrigger>
+                                  <AccordionContent>
+                                    {drugRecommendations[condition.conditionId]?.length > 0 ? (
+                                      <div className="space-y-3 mt-2">
+                                        {drugRecommendations[condition.conditionId].map((drug: any, drugIndex: number) => (
+                                          <div key={drugIndex} className="bg-secondary/20 rounded-lg p-4">
+                                            <div className="flex items-start justify-between mb-2">
+                                              <h5 className="font-medium text-sm">{drug.drug_name}</h5>
+                                              <Badge variant="outline" className="text-xs">{drug.form || 'tablet'}</Badge>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                                              {drug.rxnorm_id && (
+                                                <p><span className="font-medium">RxNorm ID:</span> {drug.rxnorm_id}</p>
+                                              )}
+                                              {drug.strength && (
+                                                <p><span className="font-medium">Strength:</span> {drug.strength}</p>
+                                              )}
+                                              {drug.dosage && (
+                                                <p><span className="font-medium">Dosage:</span> {drug.dosage}</p>
+                                              )}
+                                            </div>
+                                            {drug.warnings && (
+                                              <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded">
+                                                <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200">⚠️ Warning:</p>
+                                                <p className="text-xs text-yellow-700 dark:text-yellow-300">{drug.warnings}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-center py-4 text-sm text-muted-foreground">
+                                        No drugs available, please consult a doctor.
+                                      </div>
+                                    )}
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                            )}
+                          </div>
                         </div>
                       ))}
                       
-                      <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                        <h4 className="font-medium text-primary mb-2">Important Notice</h4>
-                        <p className="text-sm text-muted-foreground">
-                          These are AI-generated recommendations based on your symptoms. Always consult with a qualified healthcare professional before taking any medication.
-                        </p>
-                      </div>
-
-                      {/* Sharing Options */}
-                      <div className="mt-6 p-4 border border-border rounded-lg bg-secondary/20">
-                        <h4 className="font-medium mb-3">Share & Export Options</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Action Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                        <Button
+                          onClick={saveDiagnosis}
+                          disabled={!!savedDiagnosis}
+                          className="flex items-center gap-2"
+                        >
+                          <Bookmark className="h-4 w-4" />
+                          {savedDiagnosis ? 'Diagnosis Saved' : 'Save Diagnosis'}
+                        </Button>
+                        
+                        {/* Export & Share Options */}
+                        <div className="flex gap-2 flex-1">
                           <Button
                             variant="outline"
                             size="sm"
@@ -795,16 +906,16 @@ export const SystemAssessment = () => {
                             className="flex items-center gap-2"
                           >
                             <Download className="h-4 w-4" />
-                            Download PDF
+                            PDF
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={shareViaWhatsApp}
-                            className="flex items-center gap-2 text-green-600 hover:text-green-700"
+                            className="flex items-center gap-2"
                           >
                             <Share className="h-4 w-4" />
-                            Share WhatsApp
+                            WhatsApp
                           </Button>
                           <Button
                             variant="outline"
@@ -813,44 +924,61 @@ export const SystemAssessment = () => {
                             className="flex items-center gap-2"
                           >
                             <Mail className="h-4 w-4" />
-                            Share Email
+                            Email
                           </Button>
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="border rounded-lg p-4 text-center">
-                        <h4 className="font-medium mb-2">No specific drugs available</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Please consult with a qualified doctor for proper treatment recommendations.
-                        </p>
-                      </div>
+                    
+                    <div className="flex gap-3 mt-6">
+                      <Button variant="outline" onClick={handlePreviousStep}>
+                        Previous
+                      </Button>
+                      <Button onClick={handleNextStep} className="flex-1">
+                        Continue to Book Doctor
+                      </Button>
                     </div>
-                  )}
-                  
-                  <div className="flex gap-3 mt-6">
-                    <Button 
-                      variant="outline" 
-                      onClick={handlePreviousStep}
-                      className="flex items-center gap-2"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
-                    </Button>
-                    <Button onClick={handleNextStep} className="flex-1">
-                      Continue to Booking
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Diagnosis History Section */}
+              {diagnosisHistory.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      Recent Diagnoses
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {diagnosisHistory.map((session: any) => (
+                        <div key={session.id} className="flex items-center justify-between p-3 bg-secondary/20 rounded-lg">
+                          <div>
+                            <p className="text-sm font-medium">
+                              {session.conditions?.length || 0} conditions analyzed
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(session.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {session.status}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </motion.div>
           )}
 
-          {/* Step 5: Book Doctor */}
-          {currentStep === 5 && (
+          {/* Step 4: Book Doctor */}
+          {currentStep === 4 && (
             <motion.div
-              key="step5"
+              key="step4"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
@@ -901,7 +1029,7 @@ export const SystemAssessment = () => {
         </AnimatePresence>
 
         {/* Navigation Footer */}
-        {currentStep > 1 && currentStep < 5 && (
+        {currentStep > 1 && currentStep < 4 && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
