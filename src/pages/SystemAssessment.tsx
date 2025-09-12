@@ -322,6 +322,7 @@ export const SystemAssessment = () => {
     } finally {
       setLoadingDrugs(prev => ({ ...prev, [key]: false }));
     }
+  };
 
   const saveDiagnosis = async () => {
     if (!sessionId || !diagnosisResults) return;
