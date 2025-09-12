@@ -793,7 +793,7 @@ export const SystemAssessment = () => {
                                 <Badge variant={
                                   condition.confidence > 0.7 ? 'destructive' : 
                                   condition.confidence > 0.4 ? 'default' : 'secondary'
-                                 }>
+                                }>
                                   {Math.round(condition.confidence * 100)}%
                                 </Badge>
                               </div>
