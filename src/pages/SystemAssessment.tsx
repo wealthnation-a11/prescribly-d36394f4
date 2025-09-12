@@ -11,13 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Brain, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Brain, Shield, ChevronLeft, ChevronRight, Pill } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 const STEPS = [
   { id: 1, title: 'Enter Symptoms', description: 'Tell us what you\'re experiencing' },
   { id: 2, title: 'Clarifying Questions', description: 'Help us understand better' },
-  { id: 3, title: 'AI Analysis', description: 'Get probable conditions' },
+  { id: 3, title: 'Analysis', description: 'Review diagnosis results' },
   { id: 4, title: 'Recommendations', description: 'View suggested treatments' },
   { id: 5, title: 'Book Doctor', description: 'Connect with healthcare professionals' }
 ];
@@ -37,6 +38,7 @@ export const SystemAssessment = () => {
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [diagnosisResults, setDiagnosisResults] = useState<any>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<Record<string, string>>({});
+  const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
 
   // Doctor view
   if (role === 'doctor') {
@@ -59,7 +61,7 @@ export const SystemAssessment = () => {
   const handleSymptomSubmit = async (submittedSymptoms: string[]) => {
     setSymptoms(submittedSymptoms);
     
-    // Check if we need clarifying questions BEFORE running diagnosis
+    // Check if we need clarifying questions
     const needsClarification = submittedSymptoms.some(symptom => 
       symptom.toLowerCase().includes('fever') || 
       symptom.toLowerCase().includes('headache') ||
@@ -70,12 +72,15 @@ export const SystemAssessment = () => {
     
     if (needsClarification) {
       setCurrentStep(2); // Go to clarifying questions first
-      return;
+    } else {
+      // If no clarifying questions needed, run diagnosis and go to step 3
+      await runDiagnosis(submittedSymptoms);
     }
+  };
 
-    // If no clarifying questions needed, proceed directly to diagnosis
+  const runDiagnosis = async (symptomsToAnalyze: string[]) => {
     const result = await submitDiagnosis({
-      symptoms: submittedSymptoms,
+      symptoms: symptomsToAnalyze,
       severity: 3,
       duration: '2-3 days',
       age: 30,
@@ -84,19 +89,44 @@ export const SystemAssessment = () => {
 
     if (result.success) {
       if (result.emergency) {
-        // Handle emergency case
         setDiagnosisResults(result);
-        setCurrentStep(3); // Go to results
+        setCurrentStep(3); // Go to analysis
       } else if (result.diagnosis) {
         setDiagnosisResults(result);
-        setCurrentStep(3); // Go to results
+        // Fetch drug recommendations based on symptoms
+        await fetchDrugRecommendations(symptomsToAnalyze);
+        setCurrentStep(3); // Go to analysis
       }
     }
   };
 
-  const handleClarifyingQuestions = () => {
-    // Process clarifying answers and move to results
-    setCurrentStep(3);
+  const fetchDrugRecommendations = async (symptoms: string[]) => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.access_token) return;
+
+      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/drug-recommendations`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ symptoms })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDrugRecommendations(data.recommendations || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch drug recommendations:', error);
+      setDrugRecommendations([]);
+    }
+  };
+
+  const handleClarifyingQuestions = async () => {
+    // After clarifying questions, run diagnosis with the symptoms
+    await runDiagnosis(symptoms);
   };
 
   const handleBookDoctor = () => {
@@ -324,7 +354,7 @@ export const SystemAssessment = () => {
             </motion.div>
           )}
 
-          {/* Step 4: Recommendations */}
+          {/* Step 4: Drug Recommendations */}
           {currentStep === 4 && (
             <motion.div
               key="step4"
@@ -337,28 +367,66 @@ export const SystemAssessment = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    Treatment Recommendations
+                    <Pill className="h-5 w-5 text-primary" />
+                    Drug Recommendations
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Based on your diagnosis, here are our recommended next steps:
+                    Based on your symptoms and analysis, here are the recommended medications:
                   </p>
-                  <div className="space-y-4">
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-2">Immediate Care</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Rest, stay hydrated, and monitor your symptoms.
-                      </p>
+                  
+                  {drugRecommendations.length > 0 ? (
+                    <div className="space-y-4">
+                      {drugRecommendations.map((drug, index) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-medium">{drug.name}</h4>
+                            <Badge variant="outline">{drug.form || 'Tablet'}</Badge>
+                          </div>
+                          <div className="space-y-2 text-sm text-muted-foreground">
+                            {drug.strength && (
+                              <p><span className="font-medium">Strength:</span> {drug.strength}</p>
+                            )}
+                            {drug.dosage && (
+                              <p><span className="font-medium">Dosage:</span> {drug.dosage}</p>
+                            )}
+                            {drug.frequency && (
+                              <p><span className="font-medium">Frequency:</span> {drug.frequency}</p>
+                            )}
+                            {drug.duration && (
+                              <p><span className="font-medium">Duration:</span> {drug.duration}</p>
+                            )}
+                            {drug.rxnorm_code && (
+                              <p><span className="font-medium">RxNorm ID:</span> {drug.rxnorm_code}</p>
+                            )}
+                          </div>
+                          {drug.warnings && (
+                            <div className="mt-3 p-2 bg-destructive/10 border border-destructive/20 rounded">
+                              <p className="text-xs font-medium text-destructive">⚠️ Warning:</p>
+                              <p className="text-xs text-destructive">{drug.warnings}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      
+                      <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                        <h4 className="font-medium text-primary mb-2">Important Notice</h4>
+                        <p className="text-sm text-muted-foreground">
+                          These are AI-generated recommendations based on your symptoms. Always consult with a qualified healthcare professional before taking any medication.
+                        </p>
+                      </div>
                     </div>
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-2">Professional Consultation</h4>
-                      <p className="text-sm text-muted-foreground">
-                        We recommend booking an appointment with a qualified doctor for proper treatment.
-                      </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="border rounded-lg p-4 text-center">
+                        <h4 className="font-medium mb-2">No specific drugs available</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Please consult with a qualified doctor for proper treatment recommendations.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div className="flex gap-3 mt-6">
                     <Button 

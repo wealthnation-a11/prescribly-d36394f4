@@ -95,69 +95,46 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const url = new URL(req.url);
-    const conditionId = url.pathname.split('/').pop();
-    
-    console.log('Getting drug recommendations for condition:', conditionId);
+    let symptoms: string[] = [];
+    let conditionId: string | null = null;
 
-    // First, try to get recommendations from our condition_drug_map table
-    const { data: dbRecommendations, error: dbError } = await supabase
-      .from('condition_drug_map')
-      .select('*')
-      .eq('condition_id', conditionId)
-      .order('first_line', { ascending: false }); // First-line treatments first
+    // Handle both URL parameter (legacy) and POST body (new approach)
+    if (req.method === 'POST') {
+      const body = await req.json();
+      symptoms = body.symptoms || [];
+      console.log('Getting drug recommendations for symptoms:', symptoms);
+    } else {
+      // Legacy GET approach with condition ID
+      const url = new URL(req.url);
+      conditionId = url.pathname.split('/').pop();
+      console.log('Getting drug recommendations for condition:', conditionId);
+    }
 
     let recommendations = [];
 
-    if (dbError) {
-      console.error('Database error:', dbError);
-    } else if (dbRecommendations && dbRecommendations.length > 0) {
-      // Format database results
-      recommendations = dbRecommendations.map(drug => ({
-        drug_name: drug.drug_name,
-        rxnorm_id: drug.rxnorm_id,
-        form: inferDrugForm(drug.drug_name),
-        strength: inferDrugStrength(drug.drug_name),
-        dosage: generateDosage(drug.drug_name),
-        warnings: generateWarnings(drug.drug_name),
-        category: inferDrugCategory(drug.drug_name),
-        first_line: drug.first_line,
-        notes: drug.notes,
-        source: 'database'
-      }));
-      
-      console.log(`Found ${recommendations.length} recommendations in database`);
-    }
-
-    // If no database results, try RxNorm API
-    if (recommendations.length === 0) {
-      console.log('No database results, trying RxNorm API');
-      const rxnormResults = await callRxNormApi(conditionId);
-      
-      if (rxnormResults && rxnormResults.length > 0) {
-        recommendations = rxnormResults;
-      } else {
-        // Fall back to mock data
-        console.log('RxNorm API failed, using mock data');
-        recommendations = await getMockRxNormRecommendations(conditionId);
-      }
+    if (symptoms.length > 0) {
+      // New approach: map symptoms to drug recommendations
+      recommendations = await getDrugRecommendationsFromSymptoms(symptoms, supabase);
+    } else if (conditionId) {
+      // Legacy approach: use condition ID
+      recommendations = await getDrugRecommendationsFromCondition(conditionId, supabase);
     }
 
     // Add additional drug information and safety checks
     const enhancedRecommendations = recommendations.map(drug => ({
       ...drug,
-      safety_rating: getSafetyRating(drug.drug_name),
-      contraindications: getContraindications(drug.drug_name),
-      pregnancy_category: getPregnancyCategory(drug.drug_name)
+      safety_rating: getSafetyRating(drug.name || drug.drug_name),
+      contraindications: getContraindications(drug.name || drug.drug_name),
+      pregnancy_category: getPregnancyCategory(drug.name || drug.drug_name)
     }));
 
     const response = {
       success: true,
+      symptoms: symptoms,
       condition_id: conditionId,
       recommendations: enhancedRecommendations,
       total_found: enhancedRecommendations.length,
-      source: enhancedRecommendations.length > 0 ? enhancedRecommendations[0].source : 'none',
-      disclaimer: 'For doctor review only. Do not self-medicate. Always consult healthcare provider.',
+      disclaimer: 'AI-generated recommendations. Always consult healthcare provider before taking any medication.',
       retrieved_at: new Date().toISOString()
     };
 
@@ -181,6 +158,200 @@ serve(async (req) => {
     );
   }
 });
+
+// New function to get drug recommendations from symptoms
+async function getDrugRecommendationsFromSymptoms(symptoms: string[], supabase) {
+  const symptomText = symptoms.join(' ').toLowerCase();
+  
+  // Map common symptoms to drug recommendations
+  const symptomDrugMap = {
+    // Pain/Headache symptoms
+    'headache': [
+      {
+        name: 'Acetaminophen',
+        rxnorm_code: '161',
+        form: 'Tablet',
+        strength: '500mg',
+        dosage: '500-1000mg every 4-6 hours',
+        frequency: 'Every 4-6 hours as needed',
+        duration: 'Up to 10 days',
+        warnings: 'Do not exceed 3000mg per day. Avoid alcohol.'
+      },
+      {
+        name: 'Ibuprofen',
+        rxnorm_code: '5640',
+        form: 'Tablet',
+        strength: '200mg',
+        dosage: '200-400mg every 6-8 hours',
+        frequency: 'Every 6-8 hours as needed',
+        duration: 'Up to 10 days',
+        warnings: 'Take with food. May cause stomach upset.'
+      }
+    ],
+    'pain': [
+      {
+        name: 'Acetaminophen',
+        rxnorm_code: '161',
+        form: 'Tablet',
+        strength: '500mg',
+        dosage: '500-1000mg every 4-6 hours',
+        frequency: 'Every 4-6 hours as needed',
+        duration: 'Up to 10 days',
+        warnings: 'Do not exceed 3000mg per day. Avoid alcohol.'
+      }
+    ],
+    // Cold/Flu symptoms
+    'fever': [
+      {
+        name: 'Acetaminophen',
+        rxnorm_code: '161',
+        form: 'Tablet',
+        strength: '500mg',
+        dosage: '500-1000mg every 4-6 hours',
+        frequency: 'Every 4-6 hours as needed',
+        duration: 'Until fever subsides',
+        warnings: 'Do not exceed 3000mg per day.'
+      },
+      {
+        name: 'Ibuprofen',
+        rxnorm_code: '5640',
+        form: 'Tablet',
+        strength: '200mg',
+        dosage: '200-400mg every 6-8 hours',
+        frequency: 'Every 6-8 hours as needed',
+        duration: 'Until fever subsides',
+        warnings: 'Take with food to reduce stomach irritation.'
+      }
+    ],
+    'cough': [
+      {
+        name: 'Dextromethorphan',
+        rxnorm_code: '3008',
+        form: 'Syrup',
+        strength: '15mg/5ml',
+        dosage: '15-30mg every 4 hours',
+        frequency: 'Every 4 hours as needed',
+        duration: 'Up to 7 days',
+        warnings: 'May cause drowsiness. Do not exceed recommended dose.'
+      }
+    ],
+    'nausea': [
+      {
+        name: 'Ondansetron',
+        rxnorm_code: '37801',
+        form: 'Tablet',
+        strength: '4mg',
+        dosage: '4-8mg every 8 hours',
+        frequency: 'Every 8 hours as needed',
+        duration: 'Until symptoms resolve',
+        warnings: 'May cause constipation. Prescription required.'
+      }
+    ],
+    // Allergy symptoms
+    'runny nose': [
+      {
+        name: 'Loratadine',
+        rxnorm_code: '6188',
+        form: 'Tablet',
+        strength: '10mg',
+        dosage: '10mg once daily',
+        frequency: 'Once daily',
+        duration: 'As needed during allergy season',
+        warnings: 'Non-drowsy formula. Safe for daily use.'
+      }
+    ],
+    'congestion': [
+      {
+        name: 'Pseudoephedrine',
+        rxnorm_code: '8745',
+        form: 'Tablet',
+        strength: '30mg',
+        dosage: '30-60mg every 4-6 hours',
+        frequency: 'Every 4-6 hours as needed',
+        duration: 'Up to 7 days',
+        warnings: 'May increase blood pressure. ID required for purchase.'
+      }
+    ]
+  };
+
+  const matchedDrugs = [];
+  
+  // Find matching drugs based on symptoms
+  for (const [symptom, drugs] of Object.entries(symptomDrugMap)) {
+    if (symptomText.includes(symptom)) {
+      matchedDrugs.push(...drugs.map(drug => ({
+        ...drug,
+        matched_symptom: symptom,
+        source: 'symptom_mapping'
+      })));
+    }
+  }
+
+  // Remove duplicates based on drug name
+  const uniqueDrugs = matchedDrugs.filter((drug, index, self) => 
+    index === self.findIndex(d => d.name === drug.name)
+  );
+
+  console.log(`Found ${uniqueDrugs.length} drug recommendations for symptoms:`, symptoms);
+  
+  return uniqueDrugs;
+}
+
+// Legacy function for condition-based recommendations
+async function getDrugRecommendationsFromCondition(conditionId: string, supabase) {
+  // First, try to get recommendations from our condition_drug_map table
+  const { data: dbRecommendations, error: dbError } = await supabase
+    .from('condition_drug_map')
+    .select('*')
+    .eq('condition_id', conditionId)
+    .order('first_line', { ascending: false }); // First-line treatments first
+
+  let recommendations = [];
+
+  if (dbError) {
+    console.error('Database error:', dbError);
+  } else if (dbRecommendations && dbRecommendations.length > 0) {
+    // Format database results
+    recommendations = dbRecommendations.map(drug => ({
+      name: drug.drug_name,
+      drug_name: drug.drug_name,
+      rxnorm_code: drug.rxnorm_code,
+      form: inferDrugForm(drug.drug_name),
+      strength: inferDrugStrength(drug.drug_name),
+      dosage: generateDosage(drug.drug_name),
+      warnings: generateWarnings(drug.drug_name),
+      category: inferDrugCategory(drug.drug_name),
+      first_line: drug.first_line,
+      notes: drug.notes,
+      source: 'database'
+    }));
+    
+    console.log(`Found ${recommendations.length} recommendations in database`);
+  }
+
+  // If no database results, try RxNorm API
+  if (recommendations.length === 0) {
+    console.log('No database results, trying RxNorm API');
+    const rxnormResults = await callRxNormApi(conditionId);
+    
+    if (rxnormResults && rxnormResults.length > 0) {
+      recommendations = rxnormResults.map(drug => ({
+        ...drug,
+        name: drug.drug_name
+      }));
+    } else {
+      // Fall back to mock data
+      console.log('RxNorm API failed, using mock data');
+      const mockResults = await getMockRxNormRecommendations(conditionId);
+      recommendations = mockResults.map(drug => ({
+        ...drug,
+        name: drug.drug_name
+      }));
+    }
+  }
+
+  return recommendations;
+}
 
 // Mock RxNorm API responses for different conditions
 async function getMockRxNormRecommendations(conditionId) {
