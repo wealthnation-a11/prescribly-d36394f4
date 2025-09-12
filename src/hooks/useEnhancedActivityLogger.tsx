@@ -3,7 +3,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export type ActivityType = 'appointment' | 'prescription' | 'chat' | 'profile_update' | 'availability_update';
+export type ActivityType = 'appointment' | 'prescription' | 'chat' | 'profile_update' | 'availability_update' | 'diagnosis' | 'earnings';
 
 export const useEnhancedActivityLogger = () => {
   const { user } = useAuth();
@@ -129,6 +129,32 @@ export const useEnhancedActivityLogger = () => {
     );
   };
 
+  // Diagnosis-related activities  
+  const logDiagnosisCompleted = async (conditionsCount: number, diagnosisId: string) => {
+    await logActivity(
+      'diagnosis',
+      `Completed diagnosis analysis with ${conditionsCount} potential condition${conditionsCount > 1 ? 's' : ''}`,
+      diagnosisId
+    );
+  };
+
+  const logDiagnosisReviewed = async (patientName: string, diagnosisId: string) => {
+    await logActivity(
+      'diagnosis',
+      `Reviewed diagnosis for ${patientName}`,
+      diagnosisId
+    );
+  };
+
+  // Earnings-related activities (doctor only)
+  const logEarningsReceived = async (amount: number, currency: string = 'NGN', appointmentId: string) => {
+    await logActivity(
+      'earnings',
+      `Received ${currency} ${amount.toFixed(2)} from completed appointment`,
+      appointmentId
+    );
+  };
+
   return {
     logActivity,
     logAppointmentBooked,
@@ -141,6 +167,9 @@ export const useEnhancedActivityLogger = () => {
     logMessageSent,
     logMessageReceived,
     logProfileUpdated,
-    logAvailabilityUpdated
+    logAvailabilityUpdated,
+    logDiagnosisCompleted,
+    logDiagnosisReviewed,
+    logEarningsReceived
   };
 };

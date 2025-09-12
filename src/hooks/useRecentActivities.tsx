@@ -7,7 +7,7 @@ export interface RecentActivity {
   activity_id: string;
   user_id: string | null;
   doctor_id: string | null;
-  type: 'appointment' | 'prescription' | 'chat' | 'profile_update' | 'availability_update';
+  type: 'appointment' | 'prescription' | 'chat' | 'profile_update' | 'availability_update' | 'diagnosis' | 'earnings';
   details: string;
   timestamp: string;
   related_id: string | null;

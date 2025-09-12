@@ -5,7 +5,9 @@ import {
   Pill, 
   User, 
   Clock,
-  Activity
+  Activity,
+  Stethoscope,
+  DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRecentActivities, RecentActivity as RecentActivityType } from '@/hooks/useRecentActivities';
@@ -25,6 +27,10 @@ const getActivityIcon = (type: RecentActivityType['type']) => {
       return User;
     case 'availability_update':
       return Clock;
+    case 'diagnosis':
+      return Stethoscope;
+    case 'earnings':
+      return DollarSign;
     default:
       return Activity;
   }
@@ -42,6 +48,10 @@ const getActivityColor = (type: RecentActivityType['type']) => {
       return 'text-orange-500';
     case 'availability_update':
       return 'text-yellow-500';
+    case 'diagnosis':
+      return 'text-cyan-500';
+    case 'earnings':
+      return 'text-emerald-500';
     default:
       return 'text-gray-500';
   }
