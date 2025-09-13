@@ -8,6 +8,9 @@ import { useSecureDiagnosis } from '@/hooks/useSecureDiagnosis';
 import { SmartSymptomInput } from '@/components/wellness/SmartSymptomInput';
 import { DoctorReviewPanel } from '@/components/wellness/DoctorReviewPanel';
 import { DiagnosisResults } from '@/components/wellness/DiagnosisResults';
+import { ConversationalDiagnosis } from '@/components/wellness/ConversationalDiagnosis';
+import { ClarifyingQuestions } from '@/components/wellness/ClarifyingQuestions';
+import { DrugRecommendations } from '@/components/wellness/DrugRecommendations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,6 +84,8 @@ export const SystemAssessment = () => {
   const [savedSessionData, setSavedSessionData] = useState<any>(null);
   const [loadingDrugs, setLoadingDrugs] = useState<Record<string, boolean>>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showDrugModal, setShowDrugModal] = useState(false);
+  const [selectedCondition, setSelectedCondition] = useState<{id: string, name: string} | null>(null);
   const { 
     saveSession, 
     checkForExistingSession, 
@@ -191,6 +196,21 @@ export const SystemAssessment = () => {
     }
   };
 
+  const handleDrugRecommendations = (conditionId: string, conditionName: string) => {
+    setSelectedCondition({ id: conditionId, name: conditionName });
+    setShowDrugModal(true);
+  };
+
+  const handleBookDoctor = (conditionId: string) => {
+    navigate('/book-appointment', { 
+      state: { 
+        conditionId, 
+        sessionId,
+        referringPage: 'system-assessment' 
+      } 
+    });
+  };
+
   const generateClarifyingQuestions = (symptoms: string[]): ClarifyingQuestion[] => {
     const questions: ClarifyingQuestion[] = [];
     
@@ -260,7 +280,8 @@ export const SystemAssessment = () => {
         } else {
           setDiagnosisResults({ 
             diagnosis: result.diagnosis,
-            sessionId: result.sessionId 
+            sessionId: result.sessionId,
+            red_flags: result.red_flags
           });
           setSessionId(result.sessionId || null);
         }

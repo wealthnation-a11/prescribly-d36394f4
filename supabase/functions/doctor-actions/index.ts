@@ -108,10 +108,13 @@ serve(async (req) => {
         );
     }
 
-    // Update diagnosis session
+    // Update diagnosis session in v2 table
     const { error: updateError } = await supabase
-      .from('diagnosis_sessions')
-      .update(updateData)
+      .from('diagnosis_sessions_v2')
+      .update({
+        status: action === 'approve' ? 'approved' : action === 'modify' ? 'modified' : 'rejected',
+        updated_at: new Date().toISOString()
+      })
       .eq('id', sessionId);
 
     if (updateError) {
@@ -130,18 +133,19 @@ serve(async (req) => {
 
     // Get session details for notifications and audit
     const { data: session } = await supabase
-      .from('diagnosis_sessions')
-      .select('patient_id, symptoms, conditions')
+      .from('diagnosis_sessions_v2')
+      .select('user_id, symptoms, conditions')
       .eq('id', sessionId)
       .single();
 
     // Create prescription if approved or modified
     if (prescriptionData && (action === 'approve' || action === 'modify')) {
       if (session) {
-        prescriptionData.patient_id = session.patient_id;
+        prescriptionData.patient_id = session.user_id;
+        prescriptionData.diagnosis_id = sessionId;
         
         const { error: prescriptionError } = await supabase
-          .from('prescriptions')
+          .from('prescriptions_v2')
           .insert(prescriptionData);
 
         if (prescriptionError) {
@@ -177,7 +181,7 @@ serve(async (req) => {
     if (session) {
       try {
         const notificationData = {
-          user_id: session.patient_id,
+          user_id: session.user_id,
           type: 'diagnosis_update',
           title: `Diagnosis ${action === 'approve' ? 'Approved' : action === 'modify' ? 'Modified' : 'Rejected'}`,
           message: getNotificationMessage(action, diagnosis || '', notes || ''),

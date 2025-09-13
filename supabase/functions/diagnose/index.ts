@@ -122,9 +122,15 @@ serve(async (req) => {
 
     console.log('Generated diagnosis results:', diagnosisResults);
 
+    // Generate red flags
+    const redFlags = generateRedFlags(sanitizedSymptoms, diagnosisResults);
+
     return new Response(
       JSON.stringify({
-        diagnosis: diagnosisResults
+        success: true,
+        diagnosis: diagnosisResults,
+        sessionId: sessionData.id,
+        red_flags: redFlags
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -202,6 +208,46 @@ function calculateDiagnosis(symptoms, conditions) {
       probability: condition.probability,
       explanation: condition.explanation
     }));
+}
+
+function generateRedFlags(symptoms, diagnosis) {
+  const flags = [];
+  const symptomText = symptoms.join(' ');
+  
+  // Check for emergency symptoms
+  if (symptomText.includes('chest pain') || symptomText.includes('heart')) {
+    flags.push('🔴 Seek immediate medical attention for any chest pain or heart-related symptoms.');
+  }
+  
+  if (symptomText.includes('severe headache') || (symptomText.includes('headache') && symptomText.includes('fever'))) {
+    flags.push('🔴 Severe headache with fever requires urgent medical evaluation.');
+  }
+  
+  if (symptomText.includes('difficulty breathing') || symptomText.includes('shortness of breath')) {
+    flags.push('🔴 Breathing difficulties require immediate medical attention.');
+  }
+  
+  if (symptomText.includes('severe') || symptomText.includes('intense')) {
+    flags.push('⚠️ Severe symptoms should be evaluated by a healthcare professional promptly.');
+  }
+  
+  // Check high probability diagnoses
+  const highProbabilityCondition = diagnosis.find(d => d.probability > 80);
+  if (highProbabilityCondition) {
+    flags.push(`⚠️ High confidence in ${highProbabilityCondition.name} - recommend professional medical evaluation.`);
+  }
+  
+  // Duration concerns
+  if (symptomText.includes('weeks') || symptomText.includes('months')) {
+    flags.push('⚠️ Long-lasting symptoms require professional medical evaluation.');
+  }
+  
+  // Default safety message if no specific flags
+  if (flags.length === 0) {
+    flags.push('💡 Always consult a healthcare professional for proper medical diagnosis and treatment.');
+  }
+  
+  return flags;
 }
 
 function getFallbackKeywords(conditionName) {
