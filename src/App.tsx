@@ -26,7 +26,6 @@ import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Prescription from "./pages/Prescription";
-import SystemHealth from "./pages/admin/SystemHealth";
 
 import AIHealthCompanion from "./pages/AIHealthCompanion";
 import HealthChallenges from "./pages/HealthChallenges";
@@ -207,13 +206,6 @@ const App = () => (
               </ProtectedRoute>
             } />
 
-            {/* Admin Routes */}
-            <Route path="/admin/system-health" element={
-              <ProtectedRoute requireAdmin={true}>
-                <SystemHealth />
-              </ProtectedRoute>
-            } />
-            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
