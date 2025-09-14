@@ -23,6 +23,7 @@ interface DiagnosisResponse {
   warning?: string;
   emergencyNumbers?: string[];
   flags?: string[];
+  red_flags?: string[];
   severity?: number;
   error?: string;
 }
