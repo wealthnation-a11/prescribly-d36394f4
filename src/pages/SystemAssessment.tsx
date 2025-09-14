@@ -7,7 +7,7 @@ import { useSessionManager } from '@/hooks/useSessionManager';
 import { useSecureDiagnosis } from '@/hooks/useSecureDiagnosis';
 import { SmartSymptomInput } from '@/components/wellness/SmartSymptomInput';
 import { DoctorReviewPanel } from '@/components/wellness/DoctorReviewPanel';
-import { DiagnosisResults } from '@/components/wellness/DiagnosisResults';
+import { AdvancedDiagnosisResults } from '@/components/wellness/AdvancedDiagnosisResults';
 import { ConversationalDiagnosis } from '@/components/wellness/ConversationalDiagnosis';
 import { ClarifyingQuestions } from '@/components/wellness/ClarifyingQuestions';
 import { DrugRecommendations } from '@/components/wellness/DrugRecommendations';
@@ -198,6 +198,7 @@ export const SystemAssessment = () => {
 
   const handleDrugRecommendations = (conditionId: string, conditionName: string) => {
     setSelectedCondition({ id: conditionId, name: conditionName });
+    fetchDrugRecommendations(conditionName, conditionId);
     setShowDrugModal(true);
   };
 
@@ -310,8 +311,8 @@ export const SystemAssessment = () => {
         return;
       }
 
-      // Use the recommend-drug edge function with condition ID
-      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/recommend-drug/${conditionId}`, {
+      // Use new medication endpoint
+      const response = await fetch(`https://zvjasfcntrkfrwvwzlpk.supabase.co/functions/v1/get_medications_with_condition?condition_id=${conditionId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.session.access_token}`,
@@ -321,26 +322,29 @@ export const SystemAssessment = () => {
 
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.recommendations && data.recommendations.length > 0) {
+        if (data.success && data.medications && data.medications.length > 0) {
           setDrugRecommendations(prev => ({ 
             ...prev, 
-            [key]: data.recommendations 
+            [key]: data.medications 
           }));
-          toast.success('Drug recommendations loaded successfully!');
+          toast.success('Medication recommendations loaded successfully!');
         } else {
-          // Handle case where no drugs are available
           setDrugRecommendations(prev => ({ 
             ...prev, 
             [key]: [] 
           }));
-          toast.info(data.message || 'No drug recommendations available for this condition.');
+          toast.info('No recommended drugs available. Please consult a doctor.');
         }
       } else {
-        throw new Error('Failed to fetch drug recommendations');
+        throw new Error('Failed to fetch medication recommendations');
       }
     } catch (error) {
-      console.error('Failed to fetch drug recommendations:', error);
-      toast.error('Failed to fetch drug recommendations');
+      console.error('Failed to fetch medication recommendations:', error);
+      toast.error('Failed to fetch medication recommendations');
+      setDrugRecommendations(prev => ({ 
+        ...prev, 
+        [key]: [] 
+      }));
     } finally {
       setLoadingDrugs(prev => ({ ...prev, [key]: false }));
     }
@@ -808,84 +812,16 @@ export const SystemAssessment = () => {
                 </Alert>
               ) : (
                 <>
-                  <Card className="border-primary/20 shadow-lg">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <div className="w-6 h-6">
-                          <Player
-                            play
-                            loop
-                            path={HEARTBEAT_URL}
-                            style={{ height: '24px', width: '24px' }}
-                          />
-                        </div>
-                        AI Diagnosis Results
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {diagnosisResults.diagnosis && Array.isArray(diagnosisResults.diagnosis) ? (
-                        <div className="space-y-4">
-                          {diagnosisResults.diagnosis.map((condition: any, index: number) => (
-                            <div key={index} className="border rounded-lg p-4">
-                              <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-semibold">{condition.name}</h3>
-                                <Badge variant={
-                                  condition.confidence > 0.7 ? 'destructive' : 
-                                  condition.confidence > 0.4 ? 'default' : 'secondary'
-                                }>
-                                  {Math.round(condition.confidence * 100)}%
-                                </Badge>
-                              </div>
-                              <div className="mb-2">
-                                <Progress value={condition.confidence * 100} className="h-2" />
-                              </div>
-                              {condition.explanation && (
-                                <p className="text-sm text-muted-foreground">{condition.explanation}</p>
-                              )}
-                              <div className="mt-3 flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => fetchDrugRecommendations(condition.condition_name, condition.condition_id)}
-                                  disabled={loadingDrugs[condition.condition_id]}
-                                >
-                                  <Pill className="h-4 w-4 mr-2" />
-                                  {loadingDrugs[condition.condition_id] ? 'Loading...' : 'See Drugs'}
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground">No diagnosis results available.</p>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Share Options */}
-                  <Card className="bg-primary/5 border-primary/20">
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-semibold mb-4">Save & Share Your Results</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                        <Button onClick={generatePDF} variant="outline" className="w-full">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download PDF
-                        </Button>
-                        <Button onClick={shareViaWhatsApp} variant="outline" className="w-full">
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Share via WhatsApp
-                        </Button>
-                        <Button onClick={shareViaEmail} variant="outline" className="w-full">
-                          <Mail className="h-4 w-4 mr-2" />
-                          Share via Email
-                        </Button>
-                        <Button onClick={saveDiagnosis} className="w-full">
-                          <Bookmark className="h-4 w-4 mr-2" />
-                          Save Diagnosis
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <AdvancedDiagnosisResults
+                  diagnoses={diagnosisResults.diagnosis || []}
+                  medications={drugRecommendations}
+                  loadingMedications={loadingDrugs}
+                  onFetchMedications={handleDrugRecommendations}
+                  onBookDoctor={handleBookDoctor}
+                  onSaveDiagnosis={saveDiagnosis}
+                  sessionId={sessionId}
+                  userProfile={userProfile}
+                />
                 </>
               )}
             </div>

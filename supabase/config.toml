@@ -18,6 +18,9 @@ verify_jwt = true
 [functions.drug-recommendations]
 verify_jwt = false
 
+[functions.get_medications_with_condition]
+verify_jwt = true
+
 [functions.save-diagnosis]
 verify_jwt = true
 
