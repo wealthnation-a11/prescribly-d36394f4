@@ -1,0 +1,222 @@
+[
+  {
+    "id": "malaria",
+    "name": "Malaria",
+    "symptoms": ["fever", "chills", "headache", "sweating", "nausea", "vomiting", "muscle pain", "fatigue"],
+    "recommendations": [
+      "Seek immediate medical attention for proper testing",
+      "Stay hydrated and get adequate rest", 
+      "Take antimalarial medication as prescribed by doctor",
+      "Use mosquito nets and repellents to prevent reinfection"
+    ]
+  },
+  {
+    "id": "typhoid",
+    "name": "Typhoid Fever", 
+    "symptoms": ["fever", "headache", "weakness", "abdominal pain", "loss of appetite", "diarrhea", "constipation", "rose spots"],
+    "recommendations": [
+      "Consult a doctor immediately for antibiotic treatment",
+      "Maintain strict hygiene and wash hands frequently",
+      "Drink plenty of fluids and oral rehydration solution",
+      "Avoid solid foods until fever subsides"
+    ]
+  },
+  {
+    "id": "pneumonia",
+    "name": "Pneumonia",
+    "symptoms": ["cough", "fever", "difficulty breathing", "chest pain", "fatigue", "shortness of breath", "rapid breathing"],
+    "recommendations": [
+      "Seek immediate medical attention for proper diagnosis",
+      "Take prescribed antibiotics as directed", 
+      "Get plenty of rest and stay hydrated",
+      "Use a humidifier to ease breathing"
+    ]
+  },
+  {
+    "id": "tuberculosis", 
+    "name": "Tuberculosis",
+    "symptoms": ["persistent cough", "chest pain", "coughing blood", "weakness", "weight loss", "fever", "night sweats"],
+    "recommendations": [
+      "Contact a healthcare provider immediately for TB testing",
+      "Complete full course of anti-TB medication if diagnosed",
+      "Maintain good nutrition and rest",
+      "Avoid close contact with others until cleared by doctor"
+    ]
+  },
+  {
+    "id": "hypertension",
+    "name": "Hypertension", 
+    "symptoms": ["headache", "dizziness", "chest pain", "shortness of breath", "nosebleeds", "fatigue", "confusion"],
+    "recommendations": [
+      "Monitor blood pressure regularly",
+      "Reduce sodium intake and maintain healthy diet",
+      "Exercise regularly and maintain healthy weight", 
+      "Take prescribed blood pressure medications as directed"
+    ]
+  },
+  {
+    "id": "diabetes",
+    "name": "Diabetes",
+    "symptoms": ["frequent urination", "excessive thirst", "unexplained weight loss", "fatigue", "blurred vision", "slow healing wounds", "frequent infections"],
+    "recommendations": [
+      "Get blood sugar tested immediately",
+      "Follow a diabetic diet plan",
+      "Monitor blood glucose levels regularly",
+      "Take prescribed diabetes medication as directed"
+    ]
+  },
+  {
+    "id": "asthma",
+    "name": "Asthma", 
+    "symptoms": ["wheezing", "shortness of breath", "chest tightness", "coughing", "difficulty breathing", "rapid breathing"],
+    "recommendations": [
+      "Use prescribed inhaler as directed",
+      "Avoid known asthma triggers",
+      "Keep rescue inhaler available at all times",
+      "Consult doctor for asthma action plan"
+    ]
+  },
+  {
+    "id": "peptic_ulcer",
+    "name": "Peptic Ulcer",
+    "symptoms": ["burning stomach pain", "nausea", "vomiting", "loss of appetite", "weight loss", "bloating", "heartburn"],
+    "recommendations": [
+      "Avoid spicy, acidic, and fatty foods",
+      "Take prescribed acid-reducing medications", 
+      "Eat smaller, more frequent meals",
+      "Avoid NSAIDs and alcohol"
+    ]
+  },
+  {
+    "id": "hepatitis_b",
+    "name": "Hepatitis B",
+    "symptoms": ["fatigue", "nausea", "abdominal pain", "loss of appetite", "jaundice", "dark urine", "joint pain"],
+    "recommendations": [
+      "Get liver function tests done immediately",
+      "Avoid alcohol completely",
+      "Get hepatitis B vaccination if not infected",
+      "Practice safe hygiene to prevent transmission"
+    ]
+  },
+  {
+    "id": "hiv_aids", 
+    "name": "HIV/AIDS",
+    "symptoms": ["persistent fever", "night sweats", "unexplained weight loss", "fatigue", "swollen lymph nodes", "frequent infections"],
+    "recommendations": [
+      "Get HIV testing done at a certified facility",
+      "Start antiretroviral therapy if positive", 
+      "Practice safe sex and avoid sharing needles",
+      "Maintain good nutrition and regular medical care"
+    ]
+  },
+  {
+    "id": "covid19",
+    "name": "COVID-19",
+    "symptoms": ["fever", "dry cough", "fatigue", "loss of taste", "loss of smell", "sore throat", "headache", "difficulty breathing"],
+    "recommendations": [
+      "Isolate immediately and get tested for COVID-19",
+      "Monitor oxygen levels and breathing",
+      "Rest and stay hydrated", 
+      "Seek medical attention if breathing difficulties worsen"
+    ]
+  },
+  {
+    "id": "influenza",
+    "name": "Influenza",
+    "symptoms": ["fever", "cough", "sore throat", "runny nose", "muscle aches", "headache", "fatigue", "chills"],
+    "recommendations": [
+      "Get plenty of rest and stay hydrated",
+      "Take antiviral medication if prescribed within 48 hours",
+      "Use pain relievers for aches and fever",
+      "Stay home to avoid spreading infection"
+    ]
+  },
+  {
+    "id": "gastroenteritis",
+    "name": "Gastroenteritis", 
+    "symptoms": ["diarrhea", "vomiting", "nausea", "abdominal pain", "fever", "dehydration", "loss of appetite"],
+    "recommendations": [
+      "Stay hydrated with oral rehydration solution",
+      "Follow BRAT diet (bananas, rice, applesauce, toast)",
+      "Avoid dairy and fatty foods temporarily",
+      "Seek medical help if severe dehydration occurs"
+    ]
+  },
+  {
+    "id": "uti",
+    "name": "Urinary Tract Infection",
+    "symptoms": ["frequent urination", "burning sensation", "cloudy urine", "pelvic pain", "strong smelling urine", "blood in urine"],
+    "recommendations": [
+      "Drink plenty of water to flush bacteria",
+      "Take prescribed antibiotics completely",
+      "Urinate frequently and after sexual activity",
+      "Avoid irritating feminine products"
+    ]
+  },
+  {
+    "id": "arthritis", 
+    "name": "Arthritis",
+    "symptoms": ["joint pain", "joint stiffness", "swelling", "reduced range of motion", "tenderness", "warmth in joints"],
+    "recommendations": [
+      "Apply heat or cold therapy to affected joints",
+      "Maintain regular low-impact exercise",
+      "Take prescribed anti-inflammatory medications",
+      "Consider physical therapy for joint mobility"
+    ]
+  },
+  {
+    "id": "depression",
+    "name": "Depression",
+    "symptoms": ["persistent sadness", "loss of interest", "fatigue", "sleep problems", "appetite changes", "difficulty concentrating", "hopelessness"],
+    "recommendations": [
+      "Seek professional mental health counseling",
+      "Consider antidepressant medication if recommended",
+      "Maintain regular exercise and social connections", 
+      "Practice stress reduction techniques"
+    ]
+  },
+  {
+    "id": "migraine",
+    "name": "Migraine",
+    "symptoms": ["severe headache", "nausea", "vomiting", "sensitivity to light", "sensitivity to sound", "visual disturbances"],
+    "recommendations": [
+      "Rest in a dark, quiet room",
+      "Apply cold compress to head and neck",
+      "Take prescribed migraine medication early",
+      "Identify and avoid personal migraine triggers"
+    ]
+  },
+  {
+    "id": "anemia", 
+    "name": "Anemia",
+    "symptoms": ["fatigue", "weakness", "pale skin", "shortness of breath", "dizziness", "cold hands", "brittle nails"],
+    "recommendations": [
+      "Get blood tests to determine anemia type",
+      "Increase iron-rich foods in diet",
+      "Take prescribed iron supplements",
+      "Address underlying causes of blood loss"
+    ]
+  },
+  {
+    "id": "stroke",
+    "name": "Stroke", 
+    "symptoms": ["sudden weakness", "facial drooping", "arm weakness", "speech difficulty", "confusion", "severe headache", "vision problems"],
+    "recommendations": [
+      "CALL EMERGENCY SERVICES IMMEDIATELY",
+      "Note the time symptoms started",
+      "Do not give food, water, or medication",
+      "Keep patient calm and lying down"
+    ]
+  },
+  {
+    "id": "skin_infection",
+    "name": "Skin Infection",
+    "symptoms": ["redness", "swelling", "warmth", "pain", "pus", "fever", "red streaks", "itching"],
+    "recommendations": [
+      "Keep affected area clean and dry",
+      "Apply prescribed topical antibiotics",
+      "Take oral antibiotics if prescribed",
+      "Avoid scratching or picking at infection"
+    ]
+  }
+]
