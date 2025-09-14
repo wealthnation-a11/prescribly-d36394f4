@@ -209,6 +209,33 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_questions: {
+        Row: {
+          created_at: string
+          id: string
+          question: string
+          session_id: string
+          updated_at: string
+          user_answer: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question: string
+          session_id: string
+          updated_at?: string
+          user_answer?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question?: string
+          session_id?: string
+          updated_at?: string
+          user_answer?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -557,6 +584,42 @@ export type Database = {
           id?: string
           name?: string
           severity_level?: number | null
+        }
+        Relationships: []
+      }
+      diagnosis_results: {
+        Row: {
+          answers: Json
+          condition: string
+          created_at: string
+          explanation: string
+          id: string
+          probability: number
+          recommendations: Json
+          session_id: string
+          symptoms: Json
+        }
+        Insert: {
+          answers?: Json
+          condition: string
+          created_at?: string
+          explanation: string
+          id?: string
+          probability: number
+          recommendations?: Json
+          session_id: string
+          symptoms?: Json
+        }
+        Update: {
+          answers?: Json
+          condition?: string
+          created_at?: string
+          explanation?: string
+          id?: string
+          probability?: number
+          recommendations?: Json
+          session_id?: string
+          symptoms?: Json
         }
         Relationships: []
       }

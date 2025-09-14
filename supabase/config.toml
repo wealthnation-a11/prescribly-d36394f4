@@ -47,3 +47,9 @@ verify_jwt = false
 
 [functions.qa-testing-runner]
 verify_jwt = true
+
+[functions.generate-questions]
+verify_jwt = true
+
+[functions.get-results]
+verify_jwt = true

@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,256 +13,269 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
     );
 
-    // Authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
+    // Get the user from the auth header
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const { symptoms } = await req.json();
+    const { symptoms, answers, session_id } = await req.json();
 
-    // Input validation - allow both array and free text
-    let processedSymptoms = [];
-    if (typeof symptoms === 'string') {
-      processedSymptoms = [symptoms];
-    } else if (Array.isArray(symptoms)) {
-      processedSymptoms = symptoms;
-    } else {
-      return new Response(
-        JSON.stringify({ error: 'Symptoms must be an array of strings or free text' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
+      return new Response(JSON.stringify({ error: 'Symptoms are required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    if (processedSymptoms.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Symptoms cannot be empty' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    console.log('Processing diagnosis for symptoms:', symptoms, 'with answers:', answers);
+
+    // Update questions with answers if session_id provided
+    if (session_id && answers && Array.isArray(answers)) {
+      const { data: questions } = await supabaseClient
+        .from('assessment_questions')
+        .select('*')
+        .eq('session_id', session_id)
+        .order('created_at');
+
+      if (questions && questions.length > 0) {
+        for (let i = 0; i < Math.min(questions.length, answers.length); i++) {
+          await supabaseClient
+            .from('assessment_questions')
+            .update({ user_answer: answers[i] })
+            .eq('id', questions[i].id);
+        }
+      }
     }
 
-    // Sanitize symptoms
-    const sanitizedSymptoms = processedSymptoms
-      .slice(0, 10)
-      .map(symptom => String(symptom).trim().toLowerCase().substring(0, 300))
-      .filter(symptom => symptom.length > 0);
-
-    console.log('Processing symptoms:', sanitizedSymptoms);
-
-    // Check for emergency symptoms
-    const emergencyKeywords = ['chest pain', 'shortness of breath'];
-    const symptomText = sanitizedSymptoms.join(' ');
-    const hasEmergencySymptoms = emergencyKeywords.every(keyword => 
-      symptomText.includes(keyword)
-    );
-
-    if (hasEmergencySymptoms) {
-      return new Response(
-        JSON.stringify({
-          emergency: true,
-          message: "Seek emergency care immediately"
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Fetch all conditions from database
-    const { data: conditions, error: conditionsError } = await supabase
+    // Get all conditions from database
+    const { data: conditions, error: conditionsError } = await supabaseClient
       .from('conditions')
-      .select('id, name, description, common_symptoms');
+      .select('*');
 
     if (conditionsError) {
       console.error('Error fetching conditions:', conditionsError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch conditions' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Failed to fetch conditions' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Calculate probabilities based on symptom matching
-    const diagnosisResults = calculateDiagnosis(sanitizedSymptoms, conditions);
+    // Diagnose and find the best matching condition
+    const diagnosis = performDiagnosis(symptoms, answers || [], conditions || []);
 
-    // Create diagnosis session in v2 table
-    const { data: sessionData, error: sessionError } = await supabase
-      .from('diagnosis_sessions_v2')
+    if (!diagnosis) {
+      return new Response(JSON.stringify({ error: 'No diagnosis could be determined' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Save diagnosis result
+    const finalSessionId = session_id || crypto.randomUUID();
+    const { error: saveError } = await supabaseClient
+      .from('diagnosis_results')
       .insert({
-        user_id: user.id,
-        symptoms: sanitizedSymptoms,
-        conditions: diagnosisResults,
-        status: 'pending'
-      })
-      .select()
-      .single();
+        session_id: finalSessionId,
+        symptoms: symptoms,
+        answers: answers || [],
+        condition: diagnosis.condition,
+        probability: diagnosis.probability,
+        explanation: diagnosis.explanation,
+        recommendations: diagnosis.recommendations
+      });
 
-    if (sessionError) {
-      console.error('Error creating diagnosis session:', sessionError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to create diagnosis session' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (saveError) {
+      console.error('Error saving diagnosis:', saveError);
     }
 
-    console.log('Generated diagnosis results:', diagnosisResults);
-
-    // Generate red flags
-    const redFlags = generateRedFlags(sanitizedSymptoms, diagnosisResults);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        diagnosis: diagnosisResults,
-        sessionId: sessionData.id,
-        red_flags: redFlags
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({
+      success: true,
+      session_id: finalSessionId,
+      condition: diagnosis.condition,
+      probability: diagnosis.probability,
+      explanation: diagnosis.explanation,
+      recommendations: diagnosis.recommendations
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   } catch (error) {
     console.error('Error in diagnose function:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        message: 'An unexpected error occurred. Please try again later.'
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
 
-function calculateDiagnosis(symptoms, conditions) {
-  const symptomText = symptoms.join(' ');
-  
-  const scoredConditions = conditions.map(condition => {
-    let matchedSymptoms = 0;
-    let totalSymptoms = 0;
-    
-    // Extract symptoms from common_symptoms field or use fallback
-    let conditionSymptoms = [];
-    if (condition.common_symptoms && Array.isArray(condition.common_symptoms)) {
-      conditionSymptoms = condition.common_symptoms.map(s => s.toLowerCase());
-    } else if (condition.common_symptoms && typeof condition.common_symptoms === 'string') {
-      conditionSymptoms = [condition.common_symptoms.toLowerCase()];
-    } else {
-      // Fallback keywords based on condition name
-      const fallbackKeywords = getFallbackKeywords(condition.name);
-      conditionSymptoms = fallbackKeywords;
-    }
-    
-    totalSymptoms = conditionSymptoms.length;
-    
-    // Count matches
-    conditionSymptoms.forEach(keyword => {
-      if (symptomText.includes(keyword)) {
-        matchedSymptoms++;
+function performDiagnosis(symptoms: string[], answers: string[], conditions: any[]) {
+  if (!conditions || conditions.length === 0) {
+    return null;
+  }
+
+  // Normalize symptoms
+  const normalizedSymptoms = symptoms.map(s => s.toLowerCase().trim());
+  const symptomText = normalizedSymptoms.join(' ');
+
+  // Calculate scores for each condition
+  const conditionScores = conditions.map(condition => {
+    let score = 0;
+    let matchCount = 0;
+
+    if (condition.common_symptoms) {
+      const conditionSymptoms = Array.isArray(condition.common_symptoms) 
+        ? condition.common_symptoms 
+        : condition.common_symptoms.symptoms || [];
+
+      for (const condSymptom of conditionSymptoms) {
+        const normalizedCondSymptom = condSymptom.toLowerCase();
+        
+        // Check for exact matches
+        if (normalizedSymptoms.some(s => s.includes(normalizedCondSymptom) || normalizedCondSymptom.includes(s))) {
+          score += 10;
+          matchCount++;
+        }
+        
+        // Check for partial matches in the combined symptom text
+        if (symptomText.includes(normalizedCondSymptom)) {
+          score += 5;
+        }
       }
-    });
+    }
+
+    // Boost score based on answers indicating severity
+    if (answers && answers.length > 0) {
+      answers.forEach(answer => {
+        const lowerAnswer = answer.toLowerCase();
+        if (lowerAnswer.includes('severe') || lowerAnswer.includes('very')) {
+          score += 3;
+        } else if (lowerAnswer.includes('moderate')) {
+          score += 2;
+        } else if (lowerAnswer.includes('mild')) {
+          score += 1;
+        }
+      });
+    }
+
+    // Calculate probability (normalized to 0-1 range)
+    const maxPossibleScore = condition.common_symptoms ? 
+      (Array.isArray(condition.common_symptoms) ? condition.common_symptoms.length : condition.common_symptoms.symptoms?.length || 1) * 10 : 10;
     
-    // Calculate probability as percentage
-    const probability = totalSymptoms > 0 ? Math.round((matchedSymptoms / totalSymptoms) * 100) : 0;
-    
+    const probability = Math.min(score / Math.max(maxPossibleScore, 10), 1.0);
+
     return {
-      conditionId: condition.id,
-      name: condition.name,
-      probability: probability,
-      explanation: `Matched ${matchedSymptoms} of ${totalSymptoms} symptoms`,
-      matchCount: matchedSymptoms,
-      totalCount: totalSymptoms
+      condition: condition.name,
+      description: condition.description,
+      score,
+      matchCount,
+      probability: Math.max(probability, 0.1), // Minimum 10% probability
+      severityLevel: condition.severity_level || 1
     };
   });
 
-  // Sort by probability and return top 3
-  return scoredConditions
-    .filter(condition => condition.probability > 0) // Only include conditions with matches
-    .sort((a, b) => {
-      // Sort by probability first, then by match count
-      if (b.probability !== a.probability) {
-        return b.probability - a.probability;
-      }
-      return b.matchCount - a.matchCount;
-    })
-    .slice(0, 3)
-    .map(condition => ({
-      conditionId: condition.conditionId,
-      name: condition.name,
-      probability: condition.probability,
-      explanation: condition.explanation
-    }));
-}
+  // Sort by score and select the best match
+  conditionScores.sort((a, b) => b.score - a.score);
+  const bestMatch = conditionScores[0];
 
-function generateRedFlags(symptoms, diagnosis) {
-  const flags = [];
-  const symptomText = symptoms.join(' ');
-  
-  // Check for emergency symptoms
-  if (symptomText.includes('chest pain') || symptomText.includes('heart')) {
-    flags.push('🔴 Seek immediate medical attention for any chest pain or heart-related symptoms.');
+  if (!bestMatch || bestMatch.score === 0) {
+    // Return a generic result if no good matches
+    return {
+      condition: "General Symptoms",
+      probability: 0.3,
+      explanation: "Based on the symptoms provided, multiple conditions are possible. A healthcare professional should evaluate these symptoms for an accurate diagnosis.",
+      recommendations: [
+        "Monitor symptoms closely",
+        "Stay hydrated and get adequate rest",
+        "Consult a healthcare provider if symptoms persist or worsen",
+        "Keep a symptom diary to track changes"
+      ]
+    };
   }
-  
-  if (symptomText.includes('severe headache') || (symptomText.includes('headache') && symptomText.includes('fever'))) {
-    flags.push('🔴 Severe headache with fever requires urgent medical evaluation.');
-  }
-  
-  if (symptomText.includes('difficulty breathing') || symptomText.includes('shortness of breath')) {
-    flags.push('🔴 Breathing difficulties require immediate medical attention.');
-  }
-  
-  if (symptomText.includes('severe') || symptomText.includes('intense')) {
-    flags.push('⚠️ Severe symptoms should be evaluated by a healthcare professional promptly.');
-  }
-  
-  // Check high probability diagnoses
-  const highProbabilityCondition = diagnosis.find(d => d.probability > 80);
-  if (highProbabilityCondition) {
-    flags.push(`⚠️ High confidence in ${highProbabilityCondition.name} - recommend professional medical evaluation.`);
-  }
-  
-  // Duration concerns
-  if (symptomText.includes('weeks') || symptomText.includes('months')) {
-    flags.push('⚠️ Long-lasting symptoms require professional medical evaluation.');
-  }
-  
-  // Default safety message if no specific flags
-  if (flags.length === 0) {
-    flags.push('💡 Always consult a healthcare professional for proper medical diagnosis and treatment.');
-  }
-  
-  return flags;
-}
 
-function getFallbackKeywords(conditionName) {
-  const fallbacks = {
-    "Malaria": ["fever", "headache", "chills", "sweating", "nausea"],
-    "Typhoid": ["fever", "headache", "weakness", "abdominal", "loss of appetite"],
-    "Common Cold": ["cough", "runny nose", "sneezing", "sore throat", "congestion"],
-    "Flu": ["fever", "body aches", "fatigue", "cough", "headache"],
-    "Gastroenteritis": ["nausea", "vomiting", "diarrhea", "abdominal pain", "cramping"],
-    "Migraine": ["headache", "nausea", "sensitivity to light", "visual disturbance"],
-    "Hypertension": ["headache", "dizziness", "chest pain", "shortness of breath"],
-    "Pneumonia": ["cough", "fever", "difficulty breathing", "chest pain"],
-    "Bronchitis": ["cough", "mucus", "chest discomfort", "fatigue"],
-    "Sinusitis": ["facial pain", "nasal congestion", "headache", "thick nasal discharge"]
+  // Generate explanation
+  const explanation = generateExplanation(bestMatch, normalizedSymptoms);
+  
+  // Generate recommendations
+  const recommendations = generateRecommendations(bestMatch, normalizedSymptoms);
+
+  return {
+    condition: bestMatch.condition,
+    probability: bestMatch.probability,
+    explanation,
+    recommendations
   };
+}
+
+function generateExplanation(diagnosis: any, symptoms: string[]): string {
+  const conditionName = diagnosis.condition;
+  const probability = Math.round(diagnosis.probability * 100);
   
-  return fallbacks[conditionName] || ["symptoms", "discomfort", "pain"];
+  let explanation = `Based on the reported symptoms including ${symptoms.slice(0, 3).join(', ')}, `;
+  explanation += `${conditionName} appears to be the most likely condition with ${probability}% probability. `;
+  
+  if (diagnosis.matchCount > 0) {
+    explanation += `Several key symptoms align with this condition. `;
+  }
+  
+  if (probability >= 80) {
+    explanation += "The high probability suggests a strong symptom match, but medical confirmation is recommended.";
+  } else if (probability >= 60) {
+    explanation += "While this is a probable diagnosis, other conditions should also be considered.";
+  } else {
+    explanation += "This diagnosis is based on limited symptom matching. Professional medical evaluation is strongly advised.";
+  }
+  
+  return explanation;
+}
+
+function generateRecommendations(diagnosis: any, symptoms: string[]): string[] {
+  const recommendations = [];
+  const conditionName = diagnosis.condition.toLowerCase();
+  
+  // General recommendations
+  recommendations.push("Consult a healthcare provider for proper diagnosis and treatment");
+  
+  // Condition-specific recommendations
+  if (conditionName.includes('fever') || conditionName.includes('malaria') || conditionName.includes('typhoid')) {
+    recommendations.push("Stay hydrated and monitor temperature");
+    recommendations.push("Get adequate rest");
+    recommendations.push("Seek immediate medical attention if fever exceeds 39°C (102°F)");
+  } else if (conditionName.includes('cough') || conditionName.includes('pneumonia') || conditionName.includes('asthma')) {
+    recommendations.push("Avoid smoking and polluted environments");
+    recommendations.push("Use a humidifier or breathe steam to ease breathing");
+    recommendations.push("Monitor breathing difficulty closely");
+  } else if (conditionName.includes('pain') || conditionName.includes('headache') || conditionName.includes('migraine')) {
+    recommendations.push("Rest in a quiet, dark room");
+    recommendations.push("Apply cold or warm compress as appropriate");
+    recommendations.push("Keep a pain diary to track triggers");
+  } else if (conditionName.includes('stomach') || conditionName.includes('digestive') || conditionName.includes('gastro')) {
+    recommendations.push("Stay hydrated with clear fluids");
+    recommendations.push("Follow a bland diet (BRAT: bananas, rice, applesauce, toast)");
+    recommendations.push("Avoid dairy, caffeine, and fatty foods temporarily");
+  }
+  
+  // High severity recommendations
+  if (diagnosis.probability >= 0.8 || diagnosis.severityLevel >= 4) {
+    recommendations.push("Seek immediate medical attention - this may require urgent care");
+  }
+  
+  // General health recommendations
+  recommendations.push("Monitor symptoms and seek help if they worsen");
+  recommendations.push("Take prescribed medications as directed by a healthcare provider");
+  
+  return recommendations;
 }
