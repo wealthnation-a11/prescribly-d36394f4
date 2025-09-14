@@ -12,7 +12,7 @@ interface SessionData {
   path: string;
 }
 
-export const useSessionManager = (initialPath: string = 'system-assessment') => {
+export const useSessionManager = (initialPath: string = 'ai-health-companion') => {
   const { user } = useAuth();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);

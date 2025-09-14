@@ -209,33 +209,6 @@ export type Database = {
         }
         Relationships: []
       }
-      assessment_questions: {
-        Row: {
-          created_at: string
-          id: string
-          question: string
-          session_id: string
-          updated_at: string
-          user_answer: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          question: string
-          session_id: string
-          updated_at?: string
-          user_answer?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          question?: string
-          session_id?: string
-          updated_at?: string
-          user_answer?: string | null
-        }
-        Relationships: []
-      }
       audit_logs: {
         Row: {
           action: string
@@ -261,15 +234,7 @@ export type Database = {
           diagnosis_id?: string
           id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_audit_logs_diagnosis"
-            columns: ["diagnosis_id"]
-            isOneToOne: false
-            referencedRelation: "diagnosis_sessions_v2"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       call_logs: {
         Row: {
@@ -584,126 +549,6 @@ export type Database = {
           id?: string
           name?: string
           severity_level?: number | null
-        }
-        Relationships: []
-      }
-      diagnosis_results: {
-        Row: {
-          answers: Json
-          condition: string
-          created_at: string
-          explanation: string
-          id: string
-          probability: number
-          recommendations: Json
-          session_id: string
-          symptoms: Json
-        }
-        Insert: {
-          answers?: Json
-          condition: string
-          created_at?: string
-          explanation: string
-          id?: string
-          probability: number
-          recommendations?: Json
-          session_id: string
-          symptoms?: Json
-        }
-        Update: {
-          answers?: Json
-          condition?: string
-          created_at?: string
-          explanation?: string
-          id?: string
-          probability?: number
-          recommendations?: Json
-          session_id?: string
-          symptoms?: Json
-        }
-        Relationships: []
-      }
-      diagnosis_sessions: {
-        Row: {
-          ai_diagnoses: Json | null
-          created_at: string
-          doctor_id: string | null
-          doctor_notes: string | null
-          doctor_review_status: string | null
-          final_prescription_id: string | null
-          id: string
-          patient_id: string
-          selected_symptoms: Json | null
-          suggested_drugs: Json | null
-          symptoms_text: string | null
-          updated_at: string
-        }
-        Insert: {
-          ai_diagnoses?: Json | null
-          created_at?: string
-          doctor_id?: string | null
-          doctor_notes?: string | null
-          doctor_review_status?: string | null
-          final_prescription_id?: string | null
-          id?: string
-          patient_id: string
-          selected_symptoms?: Json | null
-          suggested_drugs?: Json | null
-          symptoms_text?: string | null
-          updated_at?: string
-        }
-        Update: {
-          ai_diagnoses?: Json | null
-          created_at?: string
-          doctor_id?: string | null
-          doctor_notes?: string | null
-          doctor_review_status?: string | null
-          final_prescription_id?: string | null
-          id?: string
-          patient_id?: string
-          selected_symptoms?: Json | null
-          suggested_drugs?: Json | null
-          symptoms_text?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      diagnosis_sessions_v2: {
-        Row: {
-          conditions: Json
-          created_at: string
-          encrypted_conditions: string | null
-          encrypted_symptoms: string | null
-          encryption_key_id: string | null
-          id: string
-          status: string
-          symptoms: Json
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          conditions?: Json
-          created_at?: string
-          encrypted_conditions?: string | null
-          encrypted_symptoms?: string | null
-          encryption_key_id?: string | null
-          id?: string
-          status?: string
-          symptoms?: Json
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          conditions?: Json
-          created_at?: string
-          encrypted_conditions?: string | null
-          encrypted_symptoms?: string | null
-          encryption_key_id?: string | null
-          id?: string
-          status?: string
-          symptoms?: Json
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -1065,15 +910,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_notifications_diagnosis_session"
-            columns: ["diagnosis_session_id"]
-            isOneToOne: false
-            referencedRelation: "diagnosis_sessions_v2"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       patient_prescriptions: {
         Row: {
@@ -1333,15 +1170,7 @@ export type Database = {
           patient_id?: string
           status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_prescriptions_v2_diagnosis"
-            columns: ["diagnosis_id"]
-            isOneToOne: false
-            referencedRelation: "diagnosis_sessions_v2"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -2251,14 +2080,6 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: undefined
       }
-      check_emergency_symptoms: {
-        Args: { symptoms: string[] }
-        Returns: {
-          flags: string[]
-          is_emergency: boolean
-          severity: number
-        }[]
-      }
       check_rate_limit: {
         Args: {
           endpoint_name: string
@@ -2271,35 +2092,6 @@ export type Database = {
       check_system_health: {
         Args: Record<PropertyKey, never>
         Returns: Json
-      }
-      diagnose_with_bayesian: {
-        Args: { age?: number; gender?: string; symptom_names: string[] }
-        Returns: {
-          condition_id: string
-          description: string
-          dosage: string
-          drug_name: string
-          name: string
-          notes: string
-          probability: number
-        }[]
-      }
-      diagnose_with_context: {
-        Args: {
-          age: number
-          duration: number
-          gender: string
-          severity: number
-          symptoms: string[]
-        }
-        Returns: {
-          condition: string
-          confidence: number
-          dosage: string
-          drug: string
-          instructions: string
-          precautions: string
-        }[]
       }
       get_challenge_leaderboard: {
         Args: { challenge_uuid: string }
@@ -2367,10 +2159,6 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
-      sanitize_input: {
-        Args: { input_text: string }
-        Returns: string
-      }
       set_limit: {
         Args: { "": number }
         Returns: number
@@ -2386,16 +2174,6 @@ export type Database = {
       update_user_points: {
         Args: { points_to_add: number; user_uuid: string }
         Returns: undefined
-      }
-      validate_ai_confidence: {
-        Args: { conditions: Json; confidence_threshold?: number }
-        Returns: {
-          average_confidence: number
-          highest_confidence: number
-          passed_validation: boolean
-          recommended_action: string
-          validation_details: Json
-        }[]
       }
       validate_encrypted_content: {
         Args: { content: string }

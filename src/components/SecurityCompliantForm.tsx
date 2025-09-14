@@ -7,9 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Lock, UserCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSecureDiagnosis } from "@/hooks/useSecureDiagnosis";
-import { ValidationIndicator } from "./ValidationIndicator";
-import { EmergencyWarning } from "./EmergencyWarning";
 import { toast } from "sonner";
 
 export const SecurityCompliantForm = () => {
@@ -23,49 +20,10 @@ export const SecurityCompliantForm = () => {
   const [diagnosisResult, setDiagnosisResult] = useState<any>(null);
 
   const { user } = useAuth();
-  const { loading, submitDiagnosis } = useSecureDiagnosis();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!symptoms.trim()) {
-      toast.error("Please describe your symptoms");
-      return;
-    }
-
-    // Input sanitization and validation
-    const symptomsArray = symptoms
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && s.length <= 500)
-      .slice(0, 20); // Limit to 20 symptoms
-
-    if (symptomsArray.length === 0) {
-      toast.error("Please provide valid symptoms");
-      return;
-    }
-
-    const request = {
-      symptoms: symptomsArray,
-      severity: severity ? parseInt(severity) : undefined,
-      duration: duration || undefined,
-      age: age ? parseInt(age) : undefined,
-      gender: gender || undefined,
-      medicalHistory: medicalHistory.trim() || undefined
-    };
-
-    const result = await submitDiagnosis(request);
-    
-    if (result.emergency) {
-      setEmergencyResponse(result);
-    } else if (result.success) {
-      setDiagnosisResult(result);
-      // Clear form on successful submission
-      setSymptoms("");
-      setSeverity("");
-      setDuration("");
-      setMedicalHistory("");
-    }
+    toast.error("System Assessment functionality has been removed");
   };
 
   const handleEmergencyAcknowledge = () => {
@@ -93,13 +51,14 @@ export const SecurityCompliantForm = () => {
 
   if (emergencyResponse) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <EmergencyWarning 
-          flags={emergencyResponse.flags || []}
-          severity={emergencyResponse.severity || 5}
-          onAcknowledge={handleEmergencyAcknowledge}
-        />
-      </div>
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="p-8 text-center">
+          <h2 className="text-2xl font-semibold mb-4">System Assessment Removed</h2>
+          <p className="text-muted-foreground">
+            The system assessment functionality has been removed.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -127,12 +86,6 @@ export const SecurityCompliantForm = () => {
             )}
           </div>
 
-          {diagnosisResult.validation && (
-            <ValidationIndicator 
-              validation={diagnosisResult.validation}
-              className="mb-4"
-            />
-          )}
           
           {diagnosisResult.diagnosis?.conditions && (
             <div className="space-y-2">
@@ -302,8 +255,8 @@ export const SecurityCompliantForm = () => {
             </div>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Processing Securely...' : 'Submit for Secure Diagnosis'}
+          <Button type="submit" className="w-full">
+            System Assessment Removed - Feature Unavailable
           </Button>
         </form>
       </CardContent>

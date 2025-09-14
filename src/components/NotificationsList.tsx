@@ -109,12 +109,8 @@ export const NotificationsList = () => {
 
     // Navigate based on notification type
     if (notification.type === 'diagnosis_update' && notification.diagnosis_session_id) {
-      navigate('/system-assessment', { 
-        state: { 
-          viewSessionId: notification.diagnosis_session_id,
-          fromNotification: true 
-        } 
-      });
+      // System assessment was removed - redirect to dashboard instead
+      navigate('/user-dashboard');
     }
   };
 
