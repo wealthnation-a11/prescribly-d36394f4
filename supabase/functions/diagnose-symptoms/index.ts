@@ -134,20 +134,57 @@ function parseSymptoms(symptoms) {
     // Parse free text symptoms
     const text = symptoms.toLowerCase();
     
-    // Extract common symptoms using keyword matching
+    // Enhanced symptom keywords covering all 20 conditions
     const symptomKeywords = [
+      // General symptoms
       'headache', 'fever', 'cough', 'sore throat', 'runny nose', 'congestion',
       'nausea', 'vomiting', 'diarrhea', 'fatigue', 'dizziness', 'chest pain',
       'shortness of breath', 'abdominal pain', 'back pain', 'muscle aches',
       'sneezing', 'itchy eyes', 'watery eyes', 'facial pressure', 'neck stiffness',
-      'vision changes', 'light sensitivity', 'sound sensitivity'
+      'vision changes', 'light sensitivity', 'sound sensitivity',
+      
+      // Specific symptoms for our conditions
+      'weakness', 'pale skin', 'cold hands', 'cold feet', 'joint pain', 'stiffness',
+      'swelling', 'wheezing', 'chest tightness', 'difficulty breathing', 'red eyes',
+      'discharge from eyes', 'burning sensation', 'body aches', 'loss of taste', 
+      'loss of smell', 'persistent sadness', 'loss of interest', 'sleep problems',
+      'appetite changes', 'difficulty concentrating', 'itchy skin', 'red skin',
+      'dry skin', 'rash', 'increased thirst', 'frequent urination', 'hunger',
+      'blurred vision', 'slow healing wounds', 'dark urine', 'pale stools',
+      'jaundice', 'weight loss', 'night sweats', 'chills', 'throbbing pain',
+      'ear pain', 'hearing problems', 'ear discharge', 'irritability',
+      'difficulty sleeping', 'stomach pain', 'bloating', 'heartburn',
+      'sudden weakness', 'speech problems', 'loss of coordination',
+      'persistent cough', 'coughing up blood', 'high fever', 'constipation',
+      'loss of appetite', 'burning urination', 'cloudy urine', 'strong urine odor',
+      'pelvic pain', 'muscle pain', 'tenderness', 'warmth around joints',
+      'reduced range of motion', 'opportunistic infections'
     ];
     
+    // Check for symptom matches with fuzzy matching
     symptomKeywords.forEach(keyword => {
       if (text.includes(keyword)) {
         normalizedSymptoms.push(keyword);
       }
     });
+    
+    // Check for common phrase variations
+    if (text.includes('head hurt') || text.includes('head ache')) {
+      normalizedSymptoms.push('headache');
+    }
+    if (text.includes('feel sick') || text.includes('feel nauseous')) {
+      normalizedSymptoms.push('nausea');
+    }
+    if (text.includes('throw up') || text.includes('throwing up')) {
+      normalizedSymptoms.push('vomiting');
+    }
+    if (text.includes('can\'t breathe') || text.includes('hard to breathe')) {
+      normalizedSymptoms.push('shortness of breath');
+    }
+    if (text.includes('belly pain') || text.includes('tummy ache')) {
+      normalizedSymptoms.push('stomach pain');
+    }
+    
   } else if (Array.isArray(symptoms)) {
     // Structured symptom list
     normalizedSymptoms.push(...symptoms.map(s => s.toLowerCase()));
@@ -176,63 +213,93 @@ function runDiagnosisMatching(symptoms, dbConditions, demographicInfo) {
   
   for (const condition of dbConditions) {
     // Parse common symptoms from the condition (stored as JSONB)
-    const conditionSymptoms = condition.common_symptoms || [];
+    let conditionSymptoms = [];
+    try {
+      conditionSymptoms = condition.common_symptoms ? JSON.parse(condition.common_symptoms) : [];
+    } catch (e) {
+      conditionSymptoms = condition.common_symptoms || [];
+    }
     
     // Calculate match score based on symptom overlap
     let matchScore = 0;
-    let totalPossibleMatches = Math.max(symptoms.length, 1);
+    let exactMatches = 0;
+    let partialMatches = 0;
     
     for (const symptom of symptoms) {
-      // Check if symptom matches any in the condition's symptom list
-      const hasMatch = conditionSymptoms.some(condSymptom => 
-        symptom.toLowerCase().includes(condSymptom.toLowerCase()) ||
-        condSymptom.toLowerCase().includes(symptom.toLowerCase())
+      // Check for exact matches first
+      const exactMatch = conditionSymptoms.some(condSymptom => 
+        symptom.toLowerCase() === condSymptom.toLowerCase()
       );
       
-      if (hasMatch) {
-        matchScore += 1;
+      if (exactMatch) {
+        exactMatches += 1;
+        matchScore += 2; // Higher weight for exact matches
+      } else {
+        // Check for partial matches
+        const partialMatch = conditionSymptoms.some(condSymptom => 
+          symptom.toLowerCase().includes(condSymptom.toLowerCase()) ||
+          condSymptom.toLowerCase().includes(symptom.toLowerCase()) ||
+          isSymptomRelated(symptom.toLowerCase(), condSymptom.toLowerCase())
+        );
+        
+        if (partialMatch) {
+          partialMatches += 1;
+          matchScore += 1; // Lower weight for partial matches
+        }
       }
     }
     
-    // Calculate base probability based on match ratio and severity
-    let probability = (matchScore / totalPossibleMatches) * 0.7; // Base match score
+    // Calculate base probability with improved scoring
+    let probability = 0;
     
-    // Add base prevalence factor
-    const severityBonus = (condition.severity_level || 1) * 0.05;
-    probability += severityBonus;
-    
-    // Ensure minimum probability for any condition with at least one match
-    if (matchScore > 0 && probability < 0.1) {
-      probability = 0.1;
+    if (matchScore > 0) {
+      // Base probability calculation
+      const maxPossibleScore = Math.max(symptoms.length * 2, conditionSymptoms.length * 2);
+      probability = (matchScore / maxPossibleScore) * 0.8;
+      
+      // Bonus for multiple matches
+      if (exactMatches > 1) {
+        probability += 0.15;
+      }
+      
+      // Add base prevalence based on condition commonality
+      const prevalenceBonus = getConditionPrevalence(condition.name);
+      probability += prevalenceBonus;
+      
+      // Ensure reasonable minimum probability for matches
+      if (probability < 0.15) {
+        probability = 0.15;
+      }
+    } else {
+      // Small chance for common conditions even without direct symptom matches
+      probability = getConditionPrevalence(condition.name) * 0.3;
     }
     
     // Apply demographic adjustments
-    if (demographicInfo?.age) {
-      // Simple age-based adjustments
-      if (condition.name.toLowerCase().includes('migraine') && 
-          demographicInfo.age >= 20 && demographicInfo.age <= 50) {
-        probability *= 1.3;
-      }
-      if (condition.name.toLowerCase().includes('cold') && demographicInfo.age < 18) {
-        probability *= 1.2;
-      }
-    }
+    probability = applyDemographicAdjustments(probability, condition.name, demographicInfo);
     
     results.push({
       id: condition.id,
       name: condition.name,
       description: condition.description,
-      probability: Math.min(probability, 1.0), // Cap at 1.0
+      probability: Math.min(probability, 0.95), // Cap at 95%
       match_score: matchScore,
+      exact_matches: exactMatches,
+      partial_matches: partialMatches,
       severity_level: condition.severity_level
     });
   }
   
-  // Normalize probabilities so they sum to 1
-  const totalProbability = results.reduce((sum, result) => sum + result.probability, 0);
-  if (totalProbability > 0) {
-    results.forEach(result => {
-      result.probability = result.probability / totalProbability;
+  // Sort by probability and normalize top candidates
+  results.sort((a, b) => b.probability - a.probability);
+  
+  // Enhanced normalization: ensure top 3 have meaningful probabilities
+  const topResults = results.slice(0, 8); // Consider top 8 for normalization
+  const totalTopProbability = topResults.reduce((sum, result) => sum + result.probability, 0);
+  
+  if (totalTopProbability > 0) {
+    topResults.forEach(result => {
+      result.probability = (result.probability / totalTopProbability) * 0.9; // Scale to 90% total
     });
   }
   
@@ -242,12 +309,36 @@ function runDiagnosisMatching(symptoms, dbConditions, demographicInfo) {
 // Generate explanation for diagnosis
 function generateExplanation(diagnosis, symptoms) {
   const matchingCount = diagnosis.match_score || 0;
+  const exactMatches = diagnosis.exact_matches || 0;
+  const partialMatches = diagnosis.partial_matches || 0;
   
   if (matchingCount === 0) {
-    return `Based on general symptom patterns, ${diagnosis.name} is being considered.`;
+    return `${diagnosis.name} is being considered based on general prevalence patterns and demographic factors.`;
   }
   
-  return `Based on symptoms including ${symptoms.slice(0, 3).join(', ')}, this suggests ${diagnosis.name}. The probability is calculated using symptom matching and population prevalence data.`;
+  let explanation = `Based on your symptoms`;
+  
+  if (exactMatches > 0) {
+    explanation += ` with ${exactMatches} direct match${exactMatches > 1 ? 'es' : ''}`;
+    if (partialMatches > 0) {
+      explanation += ` and ${partialMatches} related symptom${partialMatches > 1 ? 's' : ''}`;
+    }
+  } else if (partialMatches > 0) {
+    explanation += ` with ${partialMatches} related symptom${partialMatches > 1 ? 's' : ''}`;
+  }
+  
+  explanation += `, ${diagnosis.name} is a possible condition.`;
+  
+  // Add confidence indicator
+  if (diagnosis.probability > 0.6) {
+    explanation += ' This shows strong symptom alignment.';
+  } else if (diagnosis.probability > 0.3) {
+    explanation += ' This shows moderate symptom alignment.';
+  } else {
+    explanation += ' Additional evaluation may be needed.';
+  }
+  
+  return explanation;
 }
 
 // Determine severity level
@@ -266,4 +357,99 @@ function getConfidenceLevel(probability, symptomCount) {
   if (confidence > 0.8) return 'high';
   if (confidence > 0.5) return 'moderate';
   return 'low';
+}
+
+// Check if symptoms are related (semantic matching)
+function isSymptomRelated(symptom1, symptom2) {
+  const synonyms = {
+    'headache': ['head pain', 'migraine', 'cephalgia'],
+    'fever': ['high temperature', 'pyrexia', 'hot'],
+    'fatigue': ['tiredness', 'exhaustion', 'weakness'],
+    'cough': ['coughing', 'hack'],
+    'pain': ['ache', 'hurt', 'discomfort', 'sore'],
+    'shortness of breath': ['breathlessness', 'dyspnea', 'difficulty breathing'],
+    'nausea': ['sick feeling', 'queasiness'],
+    'vomiting': ['throwing up', 'emesis'],
+    'diarrhea': ['loose stools', 'runny stool'],
+    'chest pain': ['chest discomfort', 'chest ache'],
+    'stomach pain': ['abdominal pain', 'belly pain', 'tummy ache'],
+    'sore throat': ['throat pain', 'pharyngitis']
+  };
+  
+  // Check direct synonyms
+  for (const [key, values] of Object.entries(synonyms)) {
+    if ((symptom1.includes(key) && values.some(v => symptom2.includes(v))) ||
+        (symptom2.includes(key) && values.some(v => symptom1.includes(v)))) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Get base prevalence for different conditions
+function getConditionPrevalence(conditionName) {
+  const prevalence = {
+    'COVID-19': 0.08,
+    'Migraine': 0.12,
+    'Hypertension': 0.10,
+    'Diabetes Mellitus Type 2': 0.08,
+    'Asthma': 0.07,
+    'Depression': 0.06,
+    'Arthritis': 0.05,
+    'Urinary Tract Infection': 0.05,
+    'Pneumonia': 0.04,
+    'Dermatitis': 0.04,
+    'Conjunctivitis': 0.03,
+    'Otitis Media': 0.03,
+    'Peptic Ulcer': 0.03,
+    'Anemia': 0.02,
+    'Malaria': 0.02,
+    'Typhoid Fever': 0.02,
+    'Tuberculosis': 0.01,
+    'Hepatitis B': 0.01,
+    'HIV/AIDS': 0.01,
+    'Stroke': 0.01
+  };
+  
+  return prevalence[conditionName] || 0.02;
+}
+
+// Apply demographic adjustments to probability
+function applyDemographicAdjustments(probability, conditionName, demographicInfo) {
+  let adjustedProbability = probability;
+  
+  if (demographicInfo?.age) {
+    const age = demographicInfo.age;
+    
+    // Age-based adjustments
+    if (conditionName === 'Migraine' && age >= 20 && age <= 50) {
+      adjustedProbability *= 1.4;
+    } else if (conditionName === 'Stroke' && age > 65) {
+      adjustedProbability *= 1.6;
+    } else if (conditionName === 'Otitis Media' && age < 10) {
+      adjustedProbability *= 1.5;
+    } else if (conditionName === 'Arthritis' && age > 50) {
+      adjustedProbability *= 1.3;
+    } else if (conditionName === 'Hypertension' && age > 40) {
+      adjustedProbability *= 1.2;
+    } else if (conditionName === 'Diabetes Mellitus Type 2' && age > 35) {
+      adjustedProbability *= 1.2;
+    }
+  }
+  
+  if (demographicInfo?.gender) {
+    const gender = demographicInfo.gender.toLowerCase();
+    
+    // Gender-based adjustments
+    if (conditionName === 'Migraine' && gender === 'female') {
+      adjustedProbability *= 1.3;
+    } else if (conditionName === 'Urinary Tract Infection' && gender === 'female') {
+      adjustedProbability *= 1.4;
+    } else if (conditionName === 'Stroke' && gender === 'male') {
+      adjustedProbability *= 1.1;
+    }
+  }
+  
+  return Math.min(adjustedProbability, 0.98);
 }
