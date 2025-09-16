@@ -14,12 +14,15 @@ import {
   History, 
   RotateCcw,
   TrendingUp,
-  Info
+  Info,
+  Download,
+  Share
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { generateDiagnosisPDF, downloadPDF, shareOnWhatsApp } from '@/utils/pdfGenerator';
 
 interface DiagnosisResultScreenProps {
   symptoms: string[];
@@ -42,6 +45,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const [saving, setSaving] = useState(false);
   const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
   const inFlightRef = useRef(false);
 
   // Get diagnosis from backend
@@ -200,6 +204,50 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
       toast.error('Failed to save diagnosis.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!diagnosisResult) return;
+
+    setGeneratingPDF(true);
+    try {
+      const pdfBlob = await generateDiagnosisPDF(
+        diagnosisResult,
+        drugRecommendations,
+        user?.email || 'Patient'
+      );
+      
+      const filename = `diagnosis-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      downloadPDF(pdfBlob, filename);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    if (!diagnosisResult) return;
+
+    setGeneratingPDF(true);
+    try {
+      const pdfBlob = await generateDiagnosisPDF(
+        diagnosisResult,
+        drugRecommendations,
+        user?.email || 'Patient'
+      );
+      
+      const filename = `diagnosis-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      await shareOnWhatsApp(pdfBlob, filename);
+      toast.success('Opening WhatsApp to share your report!');
+    } catch (error) {
+      console.error('Error sharing on WhatsApp:', error);
+      toast.error('Failed to share on WhatsApp. Please try downloading instead.');
+    } finally {
+      setGeneratingPDF(false);
     }
   };
 
@@ -438,42 +486,87 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
       </Alert>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Button
-          onClick={saveDiagnosis}
-          disabled={saving}
-          className="flex-1"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <FileText className="h-4 w-4 mr-2" />
-              Save Diagnosis
-            </>
-          )}
-        </Button>
-        
-        <Button
-          variant="outline"
-          onClick={onViewHistory}
-          className="flex-1"
-        >
-          <History className="h-4 w-4 mr-2" />
-          View History
-        </Button>
-        
-        <Button
-          variant="outline"
-          onClick={onStartNew}
-          className="flex-1"
-        >
-          <RotateCcw className="h-4 w-4 mr-2" />
-          New Diagnosis
-        </Button>
+      <div className="space-y-4">
+        {/* PDF Actions */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={generatingPDF}
+            className="flex-1"
+            variant="default"
+          >
+            {generatingPDF ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF Report
+              </>
+            )}
+          </Button>
+          
+          <Button
+            onClick={handleShareWhatsApp}
+            disabled={generatingPDF}
+            className="flex-1"
+            variant="outline"
+          >
+            {generatingPDF ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <Share className="h-4 w-4 mr-2" />
+                Share on WhatsApp
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Other Actions */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button
+            onClick={saveDiagnosis}
+            disabled={saving}
+            className="flex-1"
+            variant="secondary"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <FileText className="h-4 w-4 mr-2" />
+                Save Diagnosis
+              </>
+            )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={onViewHistory}
+            className="flex-1"
+          >
+            <History className="h-4 w-4 mr-2" />
+            View History
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={onStartNew}
+            className="flex-1"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            New Diagnosis
+          </Button>
+        </div>
       </div>
     </div>
   );
