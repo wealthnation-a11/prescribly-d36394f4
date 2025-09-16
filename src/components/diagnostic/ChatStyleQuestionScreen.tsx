@@ -142,21 +142,14 @@ export const ChatStyleQuestionScreen: React.FC<ChatStyleQuestionScreenProps> = (
 
   const askNextQuestion = (questionsList: Question[], index: number, currentMessages: ChatMessage[]) => {
     if (index >= questionsList.length) {
-      // All questions answered, show completion message
+      // All questions answered, show completion message only
       const completionMessage: ChatMessage = {
         id: 'completion',
         type: 'bot',
         content: 'Perfect! I have all the information I need. Let me analyze your symptoms and provide you with a diagnosis.',
         timestamp: new Date()
       };
-      
       setMessages(prev => [...prev, completionMessage]);
-      
-      // Submit the answers after a brief delay
-      setTimeout(() => {
-        onSubmit(questionsList, answers);
-      }, 2000);
-      
       return;
     }
 
@@ -180,7 +173,6 @@ export const ChatStyleQuestionScreen: React.FC<ChatStyleQuestionScreenProps> = (
       setIsTyping(false);
     }, 1500);
   };
-
   const handleAnswerSelect = (questionId: string, answer: string) => {
     const newAnswers = { ...answers, [questionId]: answer };
     setAnswers(newAnswers);
@@ -198,12 +190,24 @@ export const ChatStyleQuestionScreen: React.FC<ChatStyleQuestionScreenProps> = (
     // Move to next question
     const nextIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(nextIndex);
+
+    // If last question, finalize and submit immediately
+    if (nextIndex >= questions.length) {
+      const completionMessage: ChatMessage = {
+        id: 'completion',
+        type: 'bot',
+        content: 'Perfect! I have all the information I need. Let me analyze your symptoms and provide you with a diagnosis.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, completionMessage]);
+      setTimeout(() => onSubmit(questions, newAnswers), 500);
+      return;
+    }
     
     setTimeout(() => {
       askNextQuestion(questions, nextIndex, messages);
     }, 500);
   };
-
   const getQuestionOptions = (questionId: string, question: string) => {
     const lowerQ = question.toLowerCase();
     
