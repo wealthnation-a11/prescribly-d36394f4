@@ -33,24 +33,51 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  // Load diagnosis history
+  // Load diagnosis history from user_assessments
   useEffect(() => {
     const loadHistory = async () => {
       if (!user) return;
 
       setLoading(true);
       try {
-        // Load from analytics_events since diagnosis_history doesn't exist
+        // Load from user_assessments table
         const { data, error } = await supabase
-          .from('analytics_events')
-          .select('*')
+          .from('user_assessments')
+          .select(`
+            id,
+            created_at,
+            condition_id,
+            symptoms,
+            answers,
+            recommended_drugs,
+            probability,
+            reasoning,
+            session_id,
+            conditions(name, description, icd10_code)
+          `)
           .eq('user_id', user.id)
-          .eq('event_type', 'diagnosis_completed')
           .order('created_at', { ascending: false })
           .limit(20);
 
         if (error) throw error;
-        setHistoryData(data || []);
+
+        const processedHistory = data?.map((assessment: any) => ({
+          id: assessment.id,
+          created_at: assessment.created_at,
+          payload: {
+            condition_name: assessment.conditions?.name || 'Unknown Condition',
+            description: assessment.conditions?.description || '',
+            icd10_code: assessment.conditions?.icd10_code || '',
+            probability: assessment.probability || 0,
+            symptoms: assessment.symptoms || [],
+            answers: assessment.answers || {},
+            recommended_drugs: assessment.recommended_drugs || [],
+            reasoning: assessment.reasoning || '',
+            session_id: assessment.session_id
+          }
+        })) || [];
+
+        setHistoryData(processedHistory);
       } catch (error) {
         console.error('Error loading history:', error);
         toast.error('Failed to load diagnosis history');
@@ -216,6 +243,27 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                   {isExpanded && (
                     <CardContent className="border-t">
                       <div className="space-y-4">
+                        {/* Condition Details */}
+                        {payload.description && (
+                          <div>
+                            <h4 className="font-medium mb-2">About This Condition</h4>
+                            <p className="text-sm text-muted-foreground">{payload.description}</p>
+                            {payload.icd10_code && (
+                              <Badge variant="outline" className="mt-2">
+                                ICD-10: {payload.icd10_code}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Why This Was Suggested */}
+                        {payload.reasoning && (
+                          <div>
+                            <h4 className="font-medium mb-2">Why This Was Suggested</h4>
+                            <p className="text-sm text-muted-foreground">{payload.reasoning}</p>
+                          </div>
+                        )}
+
                         {/* Confidence Level */}
                         <div>
                           <h4 className="font-medium mb-2">Confidence Level</h4>
@@ -246,12 +294,47 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                           </div>
                         )}
 
+                        {/* Recommended Medications */}
+                        {payload.recommended_drugs && payload.recommended_drugs.length > 0 && (
+                          <div>
+                            <h4 className="font-medium mb-2 flex items-center gap-2">
+                              <Pill className="h-4 w-4" />
+                              Recommended Medications
+                            </h4>
+                            <div className="space-y-2">
+                              {payload.recommended_drugs.map((drug: any, drugIndex: number) => (
+                                <div key={drugIndex} className="p-3 bg-muted/50 rounded-lg">
+                                  <div className="flex items-start justify-between">
+                                    <div>
+                                      <h5 className="font-medium">{drug.drug_name}</h5>
+                                      {drug.dosage && (
+                                        <p className="text-sm text-muted-foreground">{drug.dosage}</p>
+                                      )}
+                                      {drug.notes && (
+                                        <p className="text-xs text-muted-foreground mt-1 italic">{drug.notes}</p>
+                                      )}
+                                    </div>
+                                    {drug.rxnorm_id && (
+                                      <Badge variant="outline" className="text-xs">
+                                        RxNorm: {drug.rxnorm_id}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground italic mt-2">
+                              This is an AI-powered health suggestion. Please consult a doctor before starting any medication.
+                            </p>
+                          </div>
+                        )}
+
                         {/* Key Answers */}
                         {Object.keys(answers).length > 0 && (
                           <div>
-                            <h4 className="font-medium mb-2">Key Information</h4>
+                            <h4 className="font-medium mb-2">Your Answers</h4>
                             <div className="space-y-2 text-sm">
-                              {Object.entries(answers).slice(0, 3).map(([key, value]) => (
+                              {Object.entries(answers).slice(0, 5).map(([key, value]) => (
                                 <div key={key} className="flex justify-between">
                                   <span className="text-muted-foreground capitalize">
                                     {key.replace(/_/g, ' ')}:

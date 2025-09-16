@@ -5,6 +5,7 @@ import { usePageSEO } from '@/hooks/usePageSEO';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { SymptomEntryScreen } from '@/components/diagnostic/SymptomEntryScreen';
 import { ClarifyingQuestionsScreen } from '@/components/diagnostic/ClarifyingQuestionsScreen';
+import { ChatStyleQuestionScreen } from '@/components/diagnostic/ChatStyleQuestionScreen';
 import { DiagnosisResultScreen } from '@/components/diagnostic/DiagnosisResultScreen';
 import { HistoryScreen } from '@/components/diagnostic/HistoryScreen';
 import { Brain, ArrowLeft } from 'lucide-react';
@@ -213,7 +214,7 @@ const HealthDiagnostic = () => {
               )}
 
               {currentStep === 'questions' && (
-                <ClarifyingQuestionsScreen
+                <ChatStyleQuestionScreen
                   symptoms={symptoms}
                   onSubmit={handleQuestionsSubmit}
                   loading={loading}

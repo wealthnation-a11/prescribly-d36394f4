@@ -33,43 +33,59 @@ export const ClarifyingQuestionsScreen: React.FC<ClarifyingQuestionsScreenProps>
         const { data: conditionsData, error: conditionsError } = await supabase
           .from('conditions')
           .select('id, name')
-          .limit(5);
+          .limit(10);
 
         if (conditionsError) throw conditionsError;
 
-        // Since clarifying_questions table doesn't exist, use hardcoded questions
-        const questionsData = [
-          {
-            id: 'duration',
-            question: 'How long have you been experiencing these symptoms?',
-            condition_id: null
-          },
-          {
-            id: 'severity',
-            question: 'How would you rate the severity of your symptoms on a scale of 1-10?',
-            condition_id: null
-          },
-          {
-            id: 'onset',
-            question: 'Did your symptoms start suddenly or gradually?',
-            condition_id: null
-          },
-          {
-            id: 'triggers',
-            question: 'Have you noticed any triggers that make your symptoms worse?',
-            condition_id: null
-          },
-          {
-            id: 'relief',
-            question: 'Have you tried anything that provides relief?',
-            condition_id: null
-          }
-        ];
+        let questionsData = [];
+        
+        if (conditionsData && conditionsData.length > 0) {
+          // Get clarifying questions for the top conditions
+          const conditionIds = conditionsData.map(c => c.id);
+          
+          const { data: fetchedQuestions, error: questionsError } = await supabase
+            .from('clarifying_questions')
+            .select('id, condition_id, question')
+            .in('condition_id', conditionIds)
+            .limit(6);
 
-        // Use our predefined questions
-        if (questionsData && questionsData.length > 0) {
-          setQuestions(questionsData);
+          if (!questionsError && fetchedQuestions && fetchedQuestions.length > 0) {
+            questionsData = fetchedQuestions;
+          }
         }
+
+        // If no questions found from database, use fallback questions
+        if (questionsData.length === 0) {
+          questionsData = [
+            {
+              id: 'duration',
+              question: 'How long have you been experiencing these symptoms?',
+              condition_id: null
+            },
+            {
+              id: 'severity',
+              question: 'How would you rate the severity of your symptoms on a scale of 1-10?',
+              condition_id: null
+            },
+            {
+              id: 'onset',
+              question: 'Did your symptoms start suddenly or gradually?',
+              condition_id: null
+            },
+            {
+              id: 'triggers',
+              question: 'Have you noticed any triggers that make your symptoms worse?',
+              condition_id: null
+            },
+            {
+              id: 'relief',
+              question: 'Have you tried anything that provides relief?',
+              condition_id: null
+            }
+          ];
+        }
+
+        setQuestions(questionsData);
       } catch (error) {
         console.error('Error loading questions:', error);
         toast.error('Failed to load clarifying questions');

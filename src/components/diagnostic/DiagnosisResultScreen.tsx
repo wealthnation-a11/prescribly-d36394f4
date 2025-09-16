@@ -84,30 +84,51 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
   const loadDrugRecommendations = async (conditionId: number) => {
     try {
-      // Since drugs table doesn't exist in current schema, use mock data
-      const mockDrugs = [
-        {
-          id: 1,
-          drug_name: 'Acetaminophen',
-          rxnorm_id: '161',
-          strength: '500mg',
-          form: 'Tablet',
-          dosage: '1-2 tablets every 4-6 hours as needed',
-          notes: 'For pain and fever relief. Do not exceed 4000mg in 24 hours.'
-        },
-        {
-          id: 2,
-          drug_name: 'Ibuprofen',
-          rxnorm_id: '5640',
-          strength: '200mg',
-          form: 'Tablet',
-          dosage: '1-2 tablets every 6-8 hours as needed',
-          notes: 'Anti-inflammatory for pain and fever. Take with food to reduce stomach irritation.'
-        }
-      ];
-      setDrugRecommendations(mockDrugs);
+      // Fetch drug recommendations from the drugs table
+      const { data: drugsData, error: drugsError } = await supabase
+        .from('drugs')
+        .select('id, drug_name, rxnorm_id, strength, form, dosage, notes')
+        .eq('condition_id', conditionId)
+        .limit(5);
+
+      if (drugsError) {
+        console.error('Error fetching drugs:', drugsError);
+        // Fallback to mock data if database query fails
+        const fallbackDrugs = [
+          {
+            id: 1,
+            drug_name: 'Acetaminophen',
+            rxnorm_id: '161',
+            strength: '500mg',
+            form: 'Tablet',
+            dosage: '1-2 tablets every 4-6 hours as needed',
+            notes: 'For pain and fever relief. Do not exceed 4000mg in 24 hours.'
+          }
+        ];
+        setDrugRecommendations(fallbackDrugs);
+        return;
+      }
+
+      if (drugsData && drugsData.length > 0) {
+        setDrugRecommendations(drugsData);
+      } else {
+        // No drugs found for this condition, use general recommendations
+        const generalDrugs = [
+          {
+            id: 1,
+            drug_name: 'General Pain Relief',
+            rxnorm_id: '161',
+            strength: '500mg',
+            form: 'Tablet',
+            dosage: 'As directed by physician',
+            notes: 'Consult with healthcare provider for appropriate medication.'
+          }
+        ];
+        setDrugRecommendations(generalDrugs);
+      }
     } catch (error) {
       console.error('Error loading drug recommendations:', error);
+      setDrugRecommendations([]);
     }
   };
 
@@ -118,20 +139,18 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
     try {
       const topDiagnosis = diagnosisResult.diagnoses[0];
       
-      // Since diagnosis_history table doesn't exist, save to analytics for now
+      // Save to user_assessments table
       const { error } = await supabase
-        .from('analytics_events')
+        .from('user_assessments')
         .insert({
           user_id: user.id,
-          event_type: 'diagnosis_completed',
-          payload: {
-            session_id: diagnosisResult.session_id,
-            condition_name: topDiagnosis.condition_name,
-            probability: topDiagnosis.probability,
-            symptoms: symptoms,
-            answers: answers,
-            diagnosis_data: diagnosisResult
-          }
+          condition_id: topDiagnosis.condition_id || null,
+          symptoms: symptoms,
+          answers: answers,
+          recommended_drugs: drugRecommendations,
+          probability: topDiagnosis.probability,
+          session_id: diagnosisResult.session_id,
+          reasoning: topDiagnosis.explanation || 'AI analysis based on reported symptoms and answers'
         });
 
       if (error) throw error;
