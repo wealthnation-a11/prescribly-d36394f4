@@ -1,4 +1,4 @@
-import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen } from "lucide-react";
+import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
@@ -25,6 +25,7 @@ export function AppSidebar() {
     { title: t("dashboard"), url: "/user-dashboard", icon: Home },
     { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus },
     { title: "AI Health Companion", url: "/ai-health-companion", icon: MessageCircle },
+    { title: "Health Diagnostic", url: "/health-diagnostic", icon: Brain },
     { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText },
     { title: t("chat"), url: "/chat", icon: MessageCircle },
     { title: t("profile"), url: "/profile", icon: User },

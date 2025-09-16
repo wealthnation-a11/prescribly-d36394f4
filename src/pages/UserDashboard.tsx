@@ -64,6 +64,14 @@ export const UserDashboard = () => {
       color: "text-purple-600"
     },
     {
+      title: "Health Diagnostic",
+      description: "Advanced AI-powered symptom checker with medical analysis and prescription recommendations.",
+      icon: Stethoscope,
+      href: "/health-diagnostic",
+      variant: "primary" as const,
+      color: "text-blue-600"
+    },
+    {
       title: "Health Challenges",
       description: "Join community wellness challenges, track progress, and earn points.",
       icon: Trophy,
