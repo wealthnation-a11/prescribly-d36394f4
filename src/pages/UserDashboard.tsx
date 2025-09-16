@@ -57,7 +57,7 @@ export const UserDashboard = () => {
   const quickActions = [
     {
       title: "Health Diagnostic",
-      description: "Advanced AI-powered symptom checker with medical analysis and prescription recommendations.",
+      description: "Professional symptom assessment tool with structured medical questionnaires and detailed diagnosis reports.",
       icon: Stethoscope,
       href: "/health-diagnostic",
       variant: "primary" as const,
