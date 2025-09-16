@@ -42,9 +42,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { symptoms, demographicInfo } = await req.json();
+    const { symptoms, demographicInfo, answers, user_id, session_id } = await req.json();
     
-    console.log('Processing diagnosis request:', { symptoms, demographicInfo });
+    console.log('Processing diagnosis request:', { symptoms, demographicInfo, answers, user_id, session_id });
 
     // Parse symptoms into normalized array
     const normalizedSymptoms = parseSymptoms(symptoms);
@@ -78,8 +78,8 @@ serve(async (req) => {
 
     console.log(`Found ${dbConditions?.length || 0} conditions in database`);
 
-    // Run diagnosis matching against database conditions
-    const diagnoses = runDiagnosisMatching(normalizedSymptoms, dbConditions || [], demographicInfo);
+    // Run diagnosis matching against database conditions  
+    const diagnoses = runDiagnosisMatching(normalizedSymptoms, dbConditions || [], demographicInfo, answers);
     
     // Get top 3 diagnoses
     const topDiagnoses = diagnoses
@@ -98,9 +98,10 @@ serve(async (req) => {
       success: true,
       emergency: false,
       diagnoses: topDiagnoses,
-      session_id: crypto.randomUUID(),
+      session_id: session_id || crypto.randomUUID(),
       processed_at: new Date().toISOString(),
       input_symptoms: normalizedSymptoms,
+      answers: answers,
       demographic_info: demographicInfo,
       total_conditions_evaluated: dbConditions?.length || 0
     };
@@ -208,7 +209,7 @@ function checkEmergencyPatterns(symptoms) {
 }
 
 // Diagnosis matching against database conditions
-function runDiagnosisMatching(symptoms, dbConditions, demographicInfo) {
+function runDiagnosisMatching(symptoms, dbConditions, demographicInfo, answers = {}) {
   const results = [];
   
   for (const condition of dbConditions) {
@@ -275,8 +276,9 @@ function runDiagnosisMatching(symptoms, dbConditions, demographicInfo) {
       probability = getConditionPrevalence(condition.name) * 0.3;
     }
     
-    // Apply demographic adjustments
+    // Apply demographic adjustments and answer-based adjustments
     probability = applyDemographicAdjustments(probability, condition.name, demographicInfo);
+    probability = applyAnswerAdjustments(probability, condition.name, answers);
     
     results.push({
       id: condition.id,
@@ -448,6 +450,72 @@ function applyDemographicAdjustments(probability, conditionName, demographicInfo
       adjustedProbability *= 1.4;
     } else if (conditionName === 'Stroke' && gender === 'male') {
       adjustedProbability *= 1.1;
+    }
+  }
+  
+  return Math.min(adjustedProbability, 0.98);
+}
+
+// Apply adjustments based on clarifying question answers
+function applyAnswerAdjustments(probability, conditionName, answers) {
+  if (!answers || Object.keys(answers).length === 0) {
+    return probability;
+  }
+  
+  let adjustedProbability = probability;
+  
+  // Duration-based adjustments
+  const duration = Object.values(answers).find(answer => 
+    answer && (answer.includes('day') || answer.includes('week') || answer.includes('sudden'))
+  );
+  
+  if (duration) {
+    if (duration.includes('sudden') || duration.includes('Less than 1 day')) {
+      // Acute conditions more likely
+      if (['COVID-19', 'Migraine', 'Stroke', 'Pneumonia'].includes(conditionName)) {
+        adjustedProbability *= 1.3;
+      }
+    } else if (duration.includes('More than 2 weeks')) {
+      // Chronic conditions more likely
+      if (['Diabetes Mellitus Type 2', 'Hypertension', 'Arthritis', 'Depression'].includes(conditionName)) {
+        adjustedProbability *= 1.4;
+      }
+    }
+  }
+  
+  // Severity-based adjustments
+  const severity = Object.values(answers).find(answer => 
+    answer && (answer.includes('Severe') || answer.includes('Mild'))
+  );
+  
+  if (severity) {
+    if (severity.includes('Very Severe') || severity.includes('9-10')) {
+      // High severity conditions
+      if (['Migraine', 'Stroke', 'Pneumonia', 'COVID-19'].includes(conditionName)) {
+        adjustedProbability *= 1.5;
+      }
+    } else if (severity.includes('Mild')) {
+      // Mild conditions
+      if (['Conjunctivitis', 'Dermatitis', 'Otitis Media'].includes(conditionName)) {
+        adjustedProbability *= 1.2;
+      }
+    }
+  }
+  
+  // Trigger-based adjustments
+  const triggers = Object.values(answers).find(answer => 
+    answer && (answer.includes('stress') || answer.includes('activity') || answer.includes('food'))
+  );
+  
+  if (triggers) {
+    if (triggers.toLowerCase().includes('stress')) {
+      if (['Migraine', 'Depression', 'Hypertension'].includes(conditionName)) {
+        adjustedProbability *= 1.3;
+      }
+    } else if (triggers.toLowerCase().includes('activity')) {
+      if (['Asthma', 'Arthritis', 'Hypertension'].includes(conditionName)) {
+        adjustedProbability *= 1.2;
+      }
     }
   }
   
