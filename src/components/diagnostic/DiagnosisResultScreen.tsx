@@ -41,6 +41,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Get diagnosis from backend
   useEffect(() => {
@@ -55,13 +56,19 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
           session_id: crypto.randomUUID()
         };
 
+        console.log('Calling diagnose-symptoms with payload:', payload);
+        
         // Call the diagnose edge function
         const { data, error } = await supabase.functions.invoke('diagnose-symptoms', {
           body: payload
         });
 
-        if (error) throw error;
-
+        if (error) {
+          console.error('Supabase function error:', error);
+          throw error;
+        }
+        
+        console.log('Diagnosis result received:', data);
         setDiagnosisResult(data);
         
         // Get drug recommendations for top diagnosis
@@ -73,6 +80,8 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
         onComplete(data);
       } catch (error) {
         console.error('Error getting diagnosis:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        setError(`Failed to get diagnosis: ${errorMessage}`);
         toast.error('Failed to get diagnosis. Please try again.');
       } finally {
         setLoading(false);
@@ -84,12 +93,16 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
   const loadDrugRecommendations = async (conditionId: number) => {
     try {
+      console.log('Loading drug recommendations for condition ID:', conditionId);
+      
       // Fetch drug recommendations from the drugs table
       const { data: drugsData, error: drugsError } = await supabase
         .from('drugs')
         .select('id, drug_name, rxnorm_id, strength, form, dosage, notes')
         .eq('condition_id', conditionId)
         .limit(5);
+
+      console.log('Drugs query result:', { drugsData, drugsError });
 
       if (drugsError) {
         console.error('Error fetching drugs:', drugsError);
@@ -190,15 +203,31 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   if (!diagnosisResult) {
     return (
       <div className="text-center py-20">
-        <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
-        <h3 className="text-2xl font-bold mb-2">Analysis Failed</h3>
-        <p className="text-lg text-muted-foreground mb-6">
-          We couldn't complete the diagnosis. Please try again.
-        </p>
-        <Button onClick={onStartNew}>
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Start New Diagnosis
-        </Button>
+        {error ? (
+          <div className="space-y-4">
+            <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <h3 className="text-2xl font-bold mb-2">Analysis Error</h3>
+            <p className="text-lg text-muted-foreground mb-6">
+              {error}
+            </p>
+            <Button onClick={onStartNew}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <h3 className="text-2xl font-bold mb-2">Analysis Failed</h3>
+            <p className="text-lg text-muted-foreground mb-6">
+              We couldn't complete the diagnosis. Please try again.
+            </p>
+            <Button onClick={onStartNew}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Start New Diagnosis
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
