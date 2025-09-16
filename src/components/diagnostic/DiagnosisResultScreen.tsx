@@ -218,7 +218,12 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
     setGeneratingPDF(true);
     try {
       const pdfBlob = await generateDiagnosisPDF(
-        diagnosisResult,
+        {
+          symptoms: diagnosisResult.input_symptoms || symptoms,
+          diagnoses: diagnosisResult.diagnoses,
+          emergency: diagnosisResult.emergency,
+          alert_message: diagnosisResult.alert_message
+        },
         drugRecommendations,
         user?.email || 'Patient'
       );
@@ -240,7 +245,12 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
     setGeneratingPDF(true);
     try {
       const pdfBlob = await generateDiagnosisPDF(
-        diagnosisResult,
+        {
+          symptoms: diagnosisResult.input_symptoms || symptoms,
+          diagnoses: diagnosisResult.diagnoses,
+          emergency: diagnosisResult.emergency,
+          alert_message: diagnosisResult.alert_message
+        },
         drugRecommendations,
         user?.email || 'Patient'
       );
