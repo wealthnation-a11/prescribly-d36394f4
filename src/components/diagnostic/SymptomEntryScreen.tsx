@@ -109,7 +109,7 @@ export const SymptomEntryScreen: React.FC<SymptomEntryScreenProps> = ({
   ];
 
   return (
-    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pb-6">
+    <div className="space-y-6 pb-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
