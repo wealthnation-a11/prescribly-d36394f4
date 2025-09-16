@@ -56,7 +56,7 @@ export const UserDashboard = () => {
 
   const quickActions = [
     {
-      title: "AI Health Companion", 
+      title: "Health Companion", 
       description: "Interactive AI companion with progressive diagnosis and personalized treatment.",
       icon: Brain,
       href: "/ai-health-companion",
