@@ -512,19 +512,25 @@ export type Database = {
       }
       conditions: {
         Row: {
+          common_symptoms: Json | null
           description: string | null
           id: number
           name: string
+          severity_level: string | null
         }
         Insert: {
+          common_symptoms?: Json | null
           description?: string | null
           id?: number
           name: string
+          severity_level?: string | null
         }
         Update: {
+          common_symptoms?: Json | null
           description?: string | null
           id?: number
           name?: string
+          severity_level?: string | null
         }
         Relationships: []
       }
