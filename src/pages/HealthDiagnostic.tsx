@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePageSEO } from '@/hooks/usePageSEO';
@@ -123,21 +123,21 @@ const HealthDiagnostic = () => {
     setCurrentStep('results');
   };
 
-  const handleDiagnosisComplete = (result: any) => {
+  const handleDiagnosisComplete = useCallback((result: any) => {
     setDiagnosisResult(result);
-  };
+  }, []);
 
-  const handleViewHistory = () => {
+  const handleViewHistory = useCallback(() => {
     setCurrentStep('history');
-  };
+  }, []);
 
-  const handleStartNewDiagnosis = () => {
+  const handleStartNewDiagnosis = useCallback(() => {
     setCurrentStep('symptoms');
     setSymptoms([]);
     setQuestions([]);
     setAnswers({});
     setDiagnosisResult(null);
-  };
+  }, []);
 
   const handleBack = () => {
     switch (currentStep) {
