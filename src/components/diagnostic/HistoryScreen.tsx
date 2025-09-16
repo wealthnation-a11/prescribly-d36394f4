@@ -53,7 +53,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
             probability,
             reasoning,
             session_id,
-            conditions(name, description, icd10_code)
+            conditions!inner(name, description)
           `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
@@ -65,14 +65,14 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
           id: assessment.id,
           created_at: assessment.created_at,
           payload: {
-            condition_name: assessment.conditions?.name || 'Unknown Condition',
-            description: assessment.conditions?.description || '',
+            condition_name: assessment.conditions?.name || 'General Health Assessment',
+            description: assessment.conditions?.description || 'AI-powered health analysis based on your symptoms.',
             icd10_code: assessment.conditions?.icd10_code || '',
             probability: assessment.probability || 0,
             symptoms: assessment.symptoms || [],
             answers: assessment.answers || {},
             recommended_drugs: assessment.recommended_drugs || [],
-            reasoning: assessment.reasoning || '',
+            reasoning: assessment.reasoning || 'AI analysis completed successfully.',
             session_id: assessment.session_id
           }
         })) || [];

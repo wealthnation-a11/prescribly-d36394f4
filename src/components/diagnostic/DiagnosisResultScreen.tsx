@@ -106,6 +106,11 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
         }
 
         onComplete(data);
+        
+        // Auto-save diagnosis to history after a short delay to ensure data is ready
+        setTimeout(() => {
+          saveDiagnosis();
+        }, 1000);
       } catch (error) {
         console.error('Error getting diagnosis:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -198,7 +203,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
       if (error) throw error;
 
-      toast.success('Diagnosis saved to your history!');
+      toast.success('Diagnosis automatically saved to your history!');
     } catch (error) {
       console.error('Error saving diagnosis:', error);
       toast.error('Failed to save diagnosis.');
@@ -544,7 +549,8 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
             ) : (
               <>
                 <FileText className="h-4 w-4 mr-2" />
-                Save Diagnosis
+                {/* Auto-save confirmation or manual save */}
+                Save to History
               </>
             )}
           </Button>
