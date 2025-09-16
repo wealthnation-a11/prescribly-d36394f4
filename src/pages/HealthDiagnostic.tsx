@@ -181,7 +181,7 @@ const HealthDiagnostic = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-accent/5 overflow-auto">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-accent/5">
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           {/* Header */}
           <div className="text-center mb-8">
@@ -259,7 +259,7 @@ const HealthDiagnostic = () => {
 
           {/* Screen Content */}
           <div className="max-w-4xl mx-auto">
-            <div className="max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-background">
+            <div className="">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentStep}
