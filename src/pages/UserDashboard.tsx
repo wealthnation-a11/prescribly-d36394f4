@@ -61,7 +61,7 @@ export const UserDashboard = () => {
       icon: Stethoscope,
       href: "/health-diagnostic",
       variant: "primary" as const,
-      color: "text-blue-600"
+      color: "text-emerald-600"
     },
     {
       title: "Health Companion", 
