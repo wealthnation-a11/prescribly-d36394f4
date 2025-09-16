@@ -205,7 +205,7 @@ export const SymptomEntryScreen: React.FC<SymptomEntryScreenProps> = ({
           </div>
 
           {searchResults.length > 0 && (
-            <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+            <div className="border rounded-md p-2 space-y-1">
               {searchResults.map((result) => (
                 <div
                   key={result.symptom}
