@@ -484,40 +484,25 @@ export type Database = {
         }
         Relationships: []
       }
-      condition_drug_map: {
+      clarifying_questions: {
         Row: {
-          condition_id: string | null
-          created_at: string
-          dosage: string | null
-          drug_name: string
-          duration: string | null
-          frequency: string | null
+          condition_id: number | null
           id: number
-          rxnorm_code: string | null
+          question: string
         }
         Insert: {
-          condition_id?: string | null
-          created_at?: string
-          dosage?: string | null
-          drug_name: string
-          duration?: string | null
-          frequency?: string | null
+          condition_id?: number | null
           id?: number
-          rxnorm_code?: string | null
+          question: string
         }
         Update: {
-          condition_id?: string | null
-          created_at?: string
-          dosage?: string | null
-          drug_name?: string
-          duration?: string | null
-          frequency?: string | null
+          condition_id?: number | null
           id?: number
-          rxnorm_code?: string | null
+          question?: string
         }
         Relationships: [
           {
-            foreignKeyName: "condition_drug_map_condition_id_fkey"
+            foreignKeyName: "clarifying_questions_condition_id_fkey"
             columns: ["condition_id"]
             isOneToOne: false
             referencedRelation: "conditions"
@@ -527,30 +512,59 @@ export type Database = {
       }
       conditions: {
         Row: {
-          common_symptoms: Json | null
-          created_at: string | null
           description: string | null
-          id: string
+          id: number
           name: string
-          severity_level: number | null
         }
         Insert: {
-          common_symptoms?: Json | null
-          created_at?: string | null
           description?: string | null
-          id?: string
+          id?: number
           name: string
-          severity_level?: number | null
         }
         Update: {
-          common_symptoms?: Json | null
-          created_at?: string | null
           description?: string | null
-          id?: string
+          id?: number
           name?: string
-          severity_level?: number | null
         }
         Relationships: []
+      }
+      diagnosis_history: {
+        Row: {
+          condition_id: number | null
+          created_at: string | null
+          evidence: Json | null
+          id: string
+          probability: number | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          condition_id?: number | null
+          created_at?: string | null
+          evidence?: Json | null
+          id?: string
+          probability?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          condition_id?: number | null
+          created_at?: string | null
+          evidence?: Json | null
+          id?: string
+          probability?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnosis_history_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       doctor_availability: {
         Row: {
@@ -680,6 +694,50 @@ export type Database = {
           years_of_experience?: number | null
         }
         Relationships: []
+      }
+      drugs: {
+        Row: {
+          category: string | null
+          condition_id: number | null
+          dosage: string | null
+          drug_name: string
+          form: string | null
+          id: number
+          notes: string | null
+          rxnorm_id: string | null
+          strength: string | null
+        }
+        Insert: {
+          category?: string | null
+          condition_id?: number | null
+          dosage?: string | null
+          drug_name: string
+          form?: string | null
+          id?: number
+          notes?: string | null
+          rxnorm_id?: string | null
+          strength?: string | null
+        }
+        Update: {
+          category?: string | null
+          condition_id?: number | null
+          dosage?: string | null
+          drug_name?: string
+          form?: string | null
+          id?: number
+          notes?: string | null
+          rxnorm_id?: string | null
+          strength?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drugs_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       emergency_flags: {
         Row: {
@@ -1391,6 +1449,35 @@ export type Database = {
         }
         Relationships: []
       }
+      symptom_condition_map: {
+        Row: {
+          condition_id: number | null
+          id: number
+          symptom: string
+          weight: number
+        }
+        Insert: {
+          condition_id?: number | null
+          id?: number
+          symptom: string
+          weight: number
+        }
+        Update: {
+          condition_id?: number | null
+          id?: number
+          symptom?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "symptom_condition_map_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       symptom_logs: {
         Row: {
           additional_symptoms: string | null
@@ -1644,6 +1731,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_assessments: {
+        Row: {
+          answers: Json
+          condition_id: number | null
+          created_at: string
+          id: string
+          probability: number | null
+          reasoning: string | null
+          recommended_drugs: Json
+          session_id: string | null
+          symptoms: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          condition_id?: number | null
+          created_at?: string
+          id?: string
+          probability?: number | null
+          reasoning?: string | null
+          recommended_drugs?: Json
+          session_id?: string | null
+          symptoms?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          condition_id?: number | null
+          created_at?: string
+          id?: string
+          probability?: number | null
+          reasoning?: string | null
+          recommended_drugs?: Json
+          session_id?: string | null
+          symptoms?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_assessments_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_badges: {
         Row: {
