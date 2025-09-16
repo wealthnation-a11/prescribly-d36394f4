@@ -236,7 +236,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const isEmergency = diagnosisResult.emergency;
 
   return (
-    <div className="space-y-6 max-h-[calc(100vh-250px)] overflow-y-auto pb-6 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+    <div className="space-y-6 pb-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
