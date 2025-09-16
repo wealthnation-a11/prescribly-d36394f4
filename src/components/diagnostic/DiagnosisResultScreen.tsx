@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,11 +42,35 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const [saving, setSaving] = useState(false);
   const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const inFlightRef = useRef(false);
 
   // Get diagnosis from backend
   useEffect(() => {
     const getDiagnosis = async () => {
+      // Prevent multiple simultaneous calls
+      if (inFlightRef.current) {
+        console.log('Diagnosis request already in progress, skipping...');
+        return;
+      }
+
+      // Input validation
+      if (!symptoms || symptoms.length === 0) {
+        setError('No symptoms provided. Please go back and add symptoms.');
+        setLoading(false);
+        return;
+      }
+
+      inFlightRef.current = true;
       setLoading(true);
+      setError(null);
+
+      // Set timeout fallback
+      const timeout = setTimeout(() => {
+        setError('The diagnosis is taking longer than expected. Please try again.');
+        setLoading(false);
+        inFlightRef.current = false;
+      }, 15000);
+
       try {
         // Prepare payload for diagnosis
         const payload = {
@@ -84,12 +108,14 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
         setError(`Failed to get diagnosis: ${errorMessage}`);
         toast.error('Failed to get diagnosis. Please try again.');
       } finally {
+        clearTimeout(timeout);
         setLoading(false);
+        inFlightRef.current = false;
       }
     };
 
     getDiagnosis();
-  }, [symptoms, answers, user, onComplete]);
+  }, [symptoms, answers, user?.id]);
 
   const loadDrugRecommendations = async (conditionId: number) => {
     try {
