@@ -207,12 +207,12 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const isEmergency = diagnosisResult.emergency;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[calc(100vh-250px)] overflow-y-auto pb-6 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className="text-center sticky top-0 bg-background/95 backdrop-blur py-4 z-10"
       >
         <div className="flex items-center justify-center gap-2 mb-4">
           <Brain className="h-16 w-16 text-primary" />

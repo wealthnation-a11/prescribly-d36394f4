@@ -295,9 +295,9 @@ export const ChatStyleQuestionScreen: React.FC<ChatStyleQuestionScreenProps> = (
       </div>
 
       {/* Chat Interface */}
-      <Card className="min-h-[500px] max-h-[600px] overflow-hidden flex flex-col">
+      <Card className="min-h-[400px] max-h-[70vh] overflow-hidden flex flex-col shadow-lg border-primary/20">
         <CardContent className="p-0 flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
             <AnimatePresence>
               {messages.map((message) => (
                 <motion.div

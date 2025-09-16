@@ -109,12 +109,12 @@ export const SymptomEntryScreen: React.FC<SymptomEntryScreenProps> = ({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pb-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className="text-center sticky top-0 bg-background/95 backdrop-blur py-4 z-10"
       >
         <Stethoscope className="h-16 w-16 text-primary mx-auto mb-4" />
         <h2 className="text-3xl font-bold mb-2">Describe Your Symptoms</h2>
