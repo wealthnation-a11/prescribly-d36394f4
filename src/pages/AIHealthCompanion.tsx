@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Link } from 'react-router-dom';
 import { 
   Brain, 
   Send, 
@@ -15,7 +17,8 @@ import {
   Trophy,
   CheckCircle,
   BarChart3,
-  Calendar
+  Calendar,
+  ArrowLeft
 } from 'lucide-react';
 
 interface Question {
@@ -40,6 +43,7 @@ const AIHealthCompanion = () => {
   });
 
   const { toast } = useToast();
+  const { isDoctor } = useUserRole();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Chat state
@@ -220,6 +224,16 @@ const AIHealthCompanion = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 relative z-10">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link to={isDoctor ? "/doctor-dashboard" : "/user-dashboard"}>
+            <Button variant="ghost" size="sm" className="gap-2 text-primary hover:text-primary/80 hover:bg-primary/10">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-4">
