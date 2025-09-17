@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +10,14 @@ import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
 import { FloatingIcons } from "./FloatingIcons";
 import { Header } from "./Header";
+import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import heroImage from "@/assets/hero-doctor.jpg";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 
 export const LandingPage = () => {
   const { t } = useTranslation();
+  const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
   const features = [
     {
       icon: Bot,
@@ -298,6 +301,10 @@ export const LandingPage = () => {
                     <CardDescription>
                       Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
                     </CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">$300</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
@@ -347,7 +354,7 @@ export const LandingPage = () => {
                       variant="cta"
                       className="w-full mt-4"
                       aria-label="Request Enterprise Demo"
-                      onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                      onClick={() => setIsEnterpriseDemoModalOpen(true)}
                     >
                       Request Enterprise Demo
                     </Button>
@@ -444,6 +451,10 @@ export const LandingPage = () => {
                     <CardDescription>
                       Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
                     </CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-primary">$300</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
@@ -493,7 +504,7 @@ export const LandingPage = () => {
                       variant="cta"
                       className="w-full mt-4"
                       aria-label="Request Enterprise Demo"
-                      onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                      onClick={() => setIsEnterpriseDemoModalOpen(true)}
                     >
                       Request Enterprise Demo
                     </Button>
@@ -666,6 +677,11 @@ export const LandingPage = () => {
           </div>
         </div>
       </footer>
+      
+      <EnterpriseDemoModal 
+        open={isEnterpriseDemoModalOpen} 
+        onOpenChange={setIsEnterpriseDemoModalOpen} 
+      />
     </div>
   );
 };
