@@ -36,58 +36,67 @@ export const useMessaging = () => {
     if (!user?.id || !userRole) return;
 
     try {
-      let query;
-      
       if (isDoctor) {
         // Get patients with approved appointments
-        query = supabase
+        const { data: appointments, error: appointmentsError } = await supabase
           .from('appointments')
-          .select(`
-            patient_id,
-            profiles!appointments_patient_id_fkey(
-              user_id,
-              first_name,
-              last_name,
-              avatar_url
-            )
-          `)
+          .select('patient_id')
           .eq('doctor_id', user.id)
           .eq('status', 'approved');
+
+        if (appointmentsError) throw appointmentsError;
+
+        if (appointments && appointments.length > 0) {
+          const patientIds = [...new Set(appointments.map(apt => apt.patient_id))];
+          
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('user_id, first_name, last_name, avatar_url')
+            .in('user_id', patientIds);
+
+          if (profilesError) throw profilesError;
+
+          const participantList: ChatParticipant[] = profiles?.map((profile: any) => ({
+            id: profile.user_id,
+            name: `${profile.first_name} ${profile.last_name}`,
+            avatar_url: profile.avatar_url,
+          })) || [];
+
+          setParticipants(participantList);
+        } else {
+          setParticipants([]);
+        }
       } else {
         // Get doctors with approved appointments
-        query = supabase
+        const { data: appointments, error: appointmentsError } = await supabase
           .from('appointments')
-          .select(`
-            doctor_id,
-            profiles!appointments_doctor_id_fkey(
-              user_id,
-              first_name,
-              last_name,
-              avatar_url
-            )
-          `)
+          .select('doctor_id')
           .eq('patient_id', user.id)
           .eq('status', 'approved');
+
+        if (appointmentsError) throw appointmentsError;
+
+        if (appointments && appointments.length > 0) {
+          const doctorIds = [...new Set(appointments.map(apt => apt.doctor_id))];
+          
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('user_id, first_name, last_name, avatar_url')
+            .in('user_id', doctorIds);
+
+          if (profilesError) throw profilesError;
+
+          const participantList: ChatParticipant[] = profiles?.map((profile: any) => ({
+            id: profile.user_id,
+            name: `${profile.first_name} ${profile.last_name}`,
+            avatar_url: profile.avatar_url,
+          })) || [];
+
+          setParticipants(participantList);
+        } else {
+          setParticipants([]);
+        }
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      const participantList: ChatParticipant[] = data?.map((item: any) => {
-        const profile = item.profiles;
-        return {
-          id: profile.user_id,
-          name: `${profile.first_name} ${profile.last_name}`,
-          avatar_url: profile.avatar_url,
-        };
-      }) || [];
-
-      // Remove duplicates
-      const uniqueParticipants = participantList.filter((participant, index, self) =>
-        index === self.findIndex(p => p.id === participant.id)
-      );
-
-      setParticipants(uniqueParticipants);
     } catch (error) {
       console.error('Error loading participants:', error);
       toast({
