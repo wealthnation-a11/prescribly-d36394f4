@@ -40,7 +40,8 @@ export const DoctorEarnings = () => {
 
     const fetchData = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      // Temporarily using any to bypass TypeScript until types regenerate
+      const { data, error } = await (supabase as any)
         .from("call_logs")
         .select("id, call_date, patient_id, patient_payment, doctor_earnings, admin_fee, status")
         .eq("doctor_id", user.id)

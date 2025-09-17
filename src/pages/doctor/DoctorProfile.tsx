@@ -158,7 +158,8 @@ export const DoctorProfile = () => {
 
   const fetchEarnings = async () => {
     try {
-      const { data, error } = await supabase
+      // Temporarily using any to bypass TypeScript until types regenerate
+      const { data, error } = await (supabase as any)
         .from('call_logs')
         .select('doctor_earnings, duration_minutes')
         .eq('doctor_id', user?.id);

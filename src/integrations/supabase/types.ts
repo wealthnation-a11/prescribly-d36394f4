@@ -236,6 +236,59 @@ export type Database = {
         }
         Relationships: []
       }
+      call_logs: {
+        Row: {
+          admin_fee: number | null
+          call_date: string | null
+          call_session_id: string | null
+          created_at: string | null
+          doctor_earnings: number | null
+          doctor_id: string
+          duration_minutes: number | null
+          id: string
+          patient_id: string
+          patient_payment: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_fee?: number | null
+          call_date?: string | null
+          call_session_id?: string | null
+          created_at?: string | null
+          doctor_earnings?: number | null
+          doctor_id: string
+          duration_minutes?: number | null
+          id?: string
+          patient_id: string
+          patient_payment?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_fee?: number | null
+          call_date?: string | null
+          call_session_id?: string | null
+          created_at?: string | null
+          doctor_earnings?: number | null
+          doctor_id?: string
+          duration_minutes?: number | null
+          id?: string
+          patient_id?: string
+          patient_payment?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_logs_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_sessions: {
         Row: {
           appointment_id: string | null
