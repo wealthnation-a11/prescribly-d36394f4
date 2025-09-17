@@ -17,7 +17,7 @@ export const DoctorAppointments = () => {
   const queryClient = useQueryClient();
   const { logAppointmentApproved, logAppointmentCompleted, logAppointmentRejected } = useEnhancedActivityLogger();
 
-  // Fetch today's appointments for the doctor
+  // Fetch appointments for the doctor (today and all pending)
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ['doctor-appointments', user?.id],
     queryFn: async () => {

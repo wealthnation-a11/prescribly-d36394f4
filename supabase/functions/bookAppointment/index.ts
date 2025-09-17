@@ -94,7 +94,7 @@ serve(async (req) => {
       });
     }
     
-    // Check if the doctor is available at this time
+    // Check if the doctor has existing appointments at this time
     const { data: existingAppointments, error: checkError } = await supabase
       .from('appointments')
       .select('*')
@@ -112,6 +112,40 @@ serve(async (req) => {
 
     if (existingAppointments && existingAppointments.length > 0) {
       return new Response(JSON.stringify({ error: 'Time slot already taken. Please choose a different time.' }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if the doctor has set availability for this day and time
+    const weekday = scheduledTime.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const appointmentTime = scheduledTime.toTimeString().slice(0, 5); // HH:MM format
+
+    const { data: doctorAvailability, error: availabilityError } = await supabase
+      .from('doctor_availability')
+      .select('*')
+      .eq('doctor_id', doctor_id)
+      .eq('weekday', weekday)
+      .eq('is_available', true);
+
+    if (availabilityError) {
+      console.error('Error checking doctor availability schedule:', availabilityError);
+      return new Response(JSON.stringify({ error: 'Unable to verify doctor schedule. Please try again.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if the requested time falls within any available slot
+    const isTimeAvailable = doctorAvailability && doctorAvailability.some(slot => {
+      if (!slot.start_time || !slot.end_time) return false;
+      const startTime = slot.start_time;
+      const endTime = slot.end_time;
+      return appointmentTime >= startTime && appointmentTime < endTime;
+    });
+
+    if (!isTimeAvailable) {
+      return new Response(JSON.stringify({ error: 'Doctor is not available at this time. Please check the doctor\'s availability and choose a different time slot.' }), {
         status: 409,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -171,7 +205,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       appointment: appointment,
-      message: 'Appointment booked successfully!' 
+      message: 'Appointment booked successfully! The doctor will review and approve your request.' 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
