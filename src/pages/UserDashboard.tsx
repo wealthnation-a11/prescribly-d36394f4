@@ -20,7 +20,7 @@ import {
   Brain,
   Trophy
 } from "lucide-react";
-import RecentActivity from "@/components/RecentActivity";
+import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
 import { AppointmentCard } from "@/components/AppointmentCard";
 import { DailyHealthTip } from "@/components/DailyHealthTip";
 import { useUserDashboardStats } from '@/hooks/useUserDashboardStats';
@@ -421,7 +421,7 @@ export const UserDashboard = () => {
               {/* Recent Activity */}
               <div>
                 <h2 className="text-heading text-foreground mb-6">Recent Activity</h2>
-                <RecentActivity />
+                <EnhancedRecentActivity />
               </div>
             </div>
           </main>

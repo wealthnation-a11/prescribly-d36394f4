@@ -13,7 +13,7 @@ import { formatUSD } from "@/utils/currency";
 
 import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
 import { useRealtimePrescriptions } from "@/hooks/useRealtimePrescriptions";
-import RecentActivity from "@/components/RecentActivity";
+import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
 
 
 export const DoctorDashboard = () => {
@@ -375,11 +375,11 @@ export const DoctorDashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-                  <RecentActivity />
+                  <EnhancedRecentActivity />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-                  <RecentActivity />
+                  <EnhancedRecentActivity />
                 </div>
               </div>
             </div>
