@@ -949,26 +949,23 @@ export type Database = {
       messages: {
         Row: {
           appointment_id: string
+          content: string
           created_at: string
           id: string
-          message: string
-          receiver_id: string
           sender_id: string
         }
         Insert: {
           appointment_id: string
+          content: string
           created_at?: string
           id?: string
-          message: string
-          receiver_id: string
           sender_id: string
         }
         Update: {
           appointment_id?: string
+          content?: string
           created_at?: string
           id?: string
-          message?: string
-          receiver_id?: string
           sender_id?: string
         }
         Relationships: [
