@@ -16,13 +16,15 @@ import {
   TrendingUp,
   Info,
   Download,
-  Share
+  Share,
+  Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { generateDiagnosisPDF, downloadPDF, shareOnWhatsApp } from '@/utils/pdfGenerator';
+import { useNavigate } from 'react-router-dom';
 
 interface DiagnosisResultScreenProps {
   symptoms: string[];
@@ -40,6 +42,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   onStartNew
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [diagnosisResult, setDiagnosisResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -502,6 +505,17 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
       {/* Action Buttons */}
       <div className="space-y-4">
+        {/* Primary Action - Book Appointment */}
+        <Button
+          onClick={() => navigate('/book-appointment')}
+          className="w-full"
+          variant="default"
+          size="lg"
+        >
+          <Calendar className="h-5 w-5 mr-2" />
+          Book an Appointment with a Doctor
+        </Button>
+
         {/* PDF Actions */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
