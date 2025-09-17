@@ -948,33 +948,43 @@ export type Database = {
       }
       messages: {
         Row: {
-          appointment_id: string
           content: string
           created_at: string
+          doctor_id: string
           id: string
-          sender_id: string
+          patient_id: string
+          sender: string
         }
         Insert: {
-          appointment_id: string
           content: string
           created_at?: string
+          doctor_id: string
           id?: string
-          sender_id: string
+          patient_id: string
+          sender: string
         }
         Update: {
-          appointment_id?: string
           content?: string
           created_at?: string
+          doctor_id?: string
           id?: string
-          sender_id?: string
+          patient_id?: string
+          sender?: string
         }
         Relationships: [
           {
-            foreignKeyName: "messages_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: "messages_doctor_id_fkey"
+            columns: ["doctor_id"]
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "messages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
