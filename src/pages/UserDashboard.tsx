@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import RecentActivity from "@/components/RecentActivity";
 import { AppointmentCard } from "@/components/AppointmentCard";
+import { DailyHealthTip } from "@/components/DailyHealthTip";
 
 import { 
   SidebarProvider, 
@@ -403,6 +404,9 @@ export const UserDashboard = () => {
             </div>
 
             <div className="container mx-auto p-6 space-y-8">
+              {/* Daily Health Tip */}
+              <DailyHealthTip />
+
               {/* Stats Overview */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {statsCards.map((stat, index) => (

@@ -435,6 +435,35 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_tips: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: number
+          tip_id: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: never
+          tip_id?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: never
+          tip_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_tips_tip_id_fkey"
+            columns: ["tip_id"]
+            isOneToOne: false
+            referencedRelation: "health_tips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnosis_history: {
         Row: {
           condition_id: number | null
@@ -760,6 +789,24 @@ export type Database = {
           id?: string
           rate?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      health_tips: {
+        Row: {
+          created_at: string | null
+          id: number
+          tip: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          tip: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          tip?: string
         }
         Relationships: []
       }

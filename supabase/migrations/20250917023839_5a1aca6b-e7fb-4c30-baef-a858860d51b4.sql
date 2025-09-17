@@ -1,0 +1,116 @@
+-- Create health_tips table
+CREATE TABLE public.health_tips (
+  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  tip text NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Create daily_tips table
+CREATE TABLE public.daily_tips (
+  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  tip_id bigint REFERENCES public.health_tips(id),
+  date date NOT NULL UNIQUE,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.health_tips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_tips ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies
+CREATE POLICY "Anyone can view health tips" ON public.health_tips FOR SELECT USING (true);
+CREATE POLICY "Anyone can view daily tips" ON public.daily_tips FOR SELECT USING (true);
+CREATE POLICY "Service can insert daily tips" ON public.daily_tips FOR INSERT WITH CHECK (true);
+
+-- Insert health tips
+INSERT INTO public.health_tips (tip) VALUES
+('Drink at least 8 glasses of water daily.'),
+('Include fruits in every meal.'),
+('Eat a rainbow of vegetables for better nutrients.'),
+('Limit sugary drinks; prefer water or herbal tea.'),
+('Start your day with a healthy breakfast.'),
+('Snack on nuts instead of chips.'),
+('Add fiber-rich foods to aid digestion.'),
+('Eat lean protein like fish, chicken, or legumes.'),
+('Reduce salt intake to support heart health.'),
+('Include probiotics for gut health.'),
+('Swap soda for sparkling water with lemon.'),
+('Eat seasonal fruits for maximum nutrition.'),
+('Include whole grains instead of refined carbs.'),
+('Limit processed foods for better energy.'),
+('Add a vegetable to every snack.'),
+('Drink green tea for antioxidants.'),
+('Use healthy fats like olive oil or avocado.'),
+('Eat slowly to improve digestion.'),
+('Avoid skipping meals.'),
+('Include calcium-rich foods for strong bones.'),
+('Walk 10,000 steps a day.'),
+('Stretch for 5–10 minutes daily.'),
+('Take stairs instead of the elevator.'),
+('Do strength training twice a week.'),
+('Include yoga for flexibility and stress relief.'),
+('Take short walking breaks at work.'),
+('Try high-intensity interval training (HIIT).'),
+('Practice deep breathing during exercise.'),
+('Dance for fun and fitness.'),
+('Do a 10-minute morning workout.'),
+('Cycle or jog to improve stamina.'),
+('Incorporate balance exercises to prevent falls.'),
+('Stretch before bed to relax muscles.'),
+('Take a nature walk to improve mood.'),
+('Include core exercises for posture.'),
+('Swim for full-body fitness.'),
+('Try resistance bands for strength.'),
+('Mix cardio with weight training weekly.'),
+('Stand up every hour to reduce sitting time.'),
+('Practice proper form to prevent injuries.'),
+('Meditate for 10 minutes daily.'),
+('Write down 3 things you''re grateful for.'),
+('Practice mindfulness during meals.'),
+('Take digital detox breaks.'),
+('Spend time outdoors daily.'),
+('Listen to calming music.'),
+('Prioritize sleep for mental clarity.'),
+('Schedule "me time" weekly.'),
+('Practice deep breathing when stressed.'),
+('Keep a journal to manage emotions.'),
+('Laugh daily; it reduces stress.'),
+('Avoid multitasking to stay focused.'),
+('Set small achievable goals.'),
+('Take short naps if tired.'),
+('Practice positive affirmations.'),
+('Limit caffeine intake in the evening.'),
+('Declutter your workspace for clarity.'),
+('Connect with friends regularly.'),
+('Try guided meditation apps.'),
+('Practice patience and self-compassion.'),
+('Aim for 7–8 hours of sleep.'),
+('Keep a consistent sleep schedule.'),
+('Avoid screens 30 minutes before bed.'),
+('Keep your bedroom dark and quiet.'),
+('Use a comfortable mattress and pillow.'),
+('Avoid heavy meals before bedtime.'),
+('Limit alcohol before sleep.'),
+('Practice gentle stretches before bed.'),
+('Try a warm shower to relax.'),
+('Avoid caffeine late in the day.'),
+('Listen to calming music before sleep.'),
+('Keep your room cool for better rest.'),
+('Use aromatherapy like lavender.'),
+('Journal worries to clear your mind.'),
+('Avoid napping too late in the day.'),
+('Wash your hands regularly.'),
+('Get vaccinated as recommended.'),
+('Wear sunscreen to protect skin.'),
+('Check blood pressure regularly.'),
+('Have regular dental check-ups.'),
+('Limit alcohol for liver health.'),
+('Schedule annual physical exams.'),
+('Monitor cholesterol and blood sugar.'),
+('Avoid smoking for lung health.'),
+('Wear a helmet when cycling.'),
+('Use seat belts in vehicles.'),
+('Keep emergency contacts handy.'),
+('Practice safe food handling.'),
+('Avoid sharing personal items.'),
+('Get screened for common diseases.');
