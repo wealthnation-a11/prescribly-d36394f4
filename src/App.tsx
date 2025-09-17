@@ -34,6 +34,8 @@ import HydrationChallenge from "./pages/HydrationChallenge";
 import StepsChallenge from "./pages/StepsChallenge";
 import HealthTrendsDashboard from "./pages/HealthTrendsDashboard";
 import MyPrescriptions from "./pages/MyPrescriptions";
+import Subscription from "./pages/Subscription";
+import { SubscriptionGuard } from "./components/SubscriptionGuard";
 
 
 
@@ -78,11 +80,13 @@ const App = () => (
             <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
             
             {/* Role-based Dashboard Routes */}
-            <Route path="/user-dashboard" element={
-              <ProtectedRoute requirePatient={true}>
-                <UserDashboard />
-              </ProtectedRoute>
-            } />
+        <Route path="/user-dashboard" element={
+          <ProtectedRoute requirePatient={true}>
+            <SubscriptionGuard>
+              <UserDashboard />
+            </SubscriptionGuard>
+          </ProtectedRoute>
+        } />
             <Route path="/doctor-dashboard" element={
               <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorDashboard />
@@ -99,32 +103,44 @@ const App = () => (
             {/* Patient-specific Routes */}
             <Route path="/ai-health-companion" element={
               <ProtectedRoute requirePatient={true}>
-                <AIHealthCompanion />
+                <SubscriptionGuard>
+                  <AIHealthCompanion />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/health-diagnostic" element={
               <ProtectedRoute requirePatient={true}>
-                <HealthDiagnostic />
+                <SubscriptionGuard>
+                  <HealthDiagnostic />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/health-challenges" element={
               <ProtectedRoute requirePatient={true}>
-                <HealthChallenges />
+                <SubscriptionGuard>
+                  <HealthChallenges />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/health-challenges/hydration" element={
               <ProtectedRoute requirePatient={true}>
-                <HydrationChallenge />
+                <SubscriptionGuard>
+                  <HydrationChallenge />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/health-challenges/steps" element={
               <ProtectedRoute requirePatient={true}>
-                <StepsChallenge />
+                <SubscriptionGuard>
+                  <StepsChallenge />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/health-trends" element={
               <ProtectedRoute requirePatient={true}>
-                <HealthTrendsDashboard />
+                <SubscriptionGuard>
+                  <HealthTrendsDashboard />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
@@ -134,27 +150,37 @@ const App = () => (
             } />
             <Route path="/appointments" element={
               <ProtectedRoute requirePatient={true}>
-                <div>Appointments Page - Coming Soon</div>
+                <SubscriptionGuard>
+                  <div>Appointments Page - Coming Soon</div>
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/chat" element={
               <ProtectedRoute requirePatient={true}>
-                <Chat />
+                <SubscriptionGuard>
+                  <Chat />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/book-appointment" element={
               <ProtectedRoute requirePatient={true}>
-                <BookAppointment />
+                <SubscriptionGuard>
+                  <BookAppointment />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/prescription" element={
               <ProtectedRoute requirePatient={true}>
-                <Prescription />
+                <SubscriptionGuard>
+                  <Prescription />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/my-prescriptions" element={
               <ProtectedRoute requirePatient={true}>
-                <MyPrescriptions />
+                <SubscriptionGuard>
+                  <MyPrescriptions />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
 

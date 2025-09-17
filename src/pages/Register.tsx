@@ -137,8 +137,8 @@ import { Logo } from "@/components/Logo";
           title: "Registration Successful!",
           description: "Welcome to Prescribly! Your account has been created successfully.",
         });
-        // Redirect to dashboard
-        navigate("/dashboard");
+        // Redirect based on role - patients need subscription, doctors go to dashboard
+        navigate("/subscription");
       }
     } catch (error: any) {
       console.error('Unexpected registration error:', error);

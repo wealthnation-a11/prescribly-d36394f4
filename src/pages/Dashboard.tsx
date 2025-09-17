@@ -50,6 +50,7 @@ const Dashboard = () => {
   }
   
   if (isPatient) {
+    // Check if patient needs subscription before accessing dashboard
     return <Navigate to="/user-dashboard" replace />;
   }
 
