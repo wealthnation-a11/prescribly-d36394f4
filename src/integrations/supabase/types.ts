@@ -236,87 +236,6 @@ export type Database = {
         }
         Relationships: []
       }
-      call_logs: {
-        Row: {
-          admin_fee: number | null
-          call_date: string
-          created_at: string | null
-          doctor_earnings: number | null
-          doctor_id: string
-          duration_minutes: number | null
-          id: string
-          patient_id: string
-          patient_payment: number | null
-          status: string | null
-        }
-        Insert: {
-          admin_fee?: number | null
-          call_date: string
-          created_at?: string | null
-          doctor_earnings?: number | null
-          doctor_id: string
-          duration_minutes?: number | null
-          id?: string
-          patient_id: string
-          patient_payment?: number | null
-          status?: string | null
-        }
-        Update: {
-          admin_fee?: number | null
-          call_date?: string
-          created_at?: string | null
-          doctor_earnings?: number | null
-          doctor_id?: string
-          duration_minutes?: number | null
-          id?: string
-          patient_id?: string
-          patient_payment?: number | null
-          status?: string | null
-        }
-        Relationships: []
-      }
-      call_sessions: {
-        Row: {
-          appointment_id: string
-          channel_name: string
-          created_at: string
-          doctor_id: string
-          ended_at: string | null
-          id: string
-          patient_id: string
-          started_at: string
-          status: string
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          appointment_id: string
-          channel_name: string
-          created_at?: string
-          doctor_id: string
-          ended_at?: string | null
-          id?: string
-          patient_id: string
-          started_at?: string
-          status?: string
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          appointment_id?: string
-          channel_name?: string
-          created_at?: string
-          doctor_id?: string
-          ended_at?: string | null
-          id?: string
-          patient_id?: string
-          started_at?: string
-          status?: string
-          type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       challenge_progress: {
         Row: {
           challenge_id: string
@@ -445,45 +364,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chats: {
-        Row: {
-          created_at: string
-          encrypted_message: string | null
-          encryption_version: number | null
-          file_type: string | null
-          file_url: string | null
-          id: string
-          key_exchange_data: Json | null
-          message: string | null
-          recipient_id: string
-          sender_id: string
-        }
-        Insert: {
-          created_at?: string
-          encrypted_message?: string | null
-          encryption_version?: number | null
-          file_type?: string | null
-          file_url?: string | null
-          id?: string
-          key_exchange_data?: Json | null
-          message?: string | null
-          recipient_id: string
-          sender_id: string
-        }
-        Update: {
-          created_at?: string
-          encrypted_message?: string | null
-          encryption_version?: number | null
-          file_type?: string | null
-          file_url?: string | null
-          id?: string
-          key_exchange_data?: Json | null
-          message?: string | null
-          recipient_id?: string
-          sender_id?: string
-        }
-        Relationships: []
-      }
       clarifying_questions: {
         Row: {
           condition_id: number | null
@@ -509,6 +389,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      companion_questions: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: number
+          question_text: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: number
+          question_text: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: number
+          question_text?: string
+        }
+        Relationships: []
       }
       conditions: {
         Row: {
