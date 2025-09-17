@@ -16,10 +16,13 @@ declare global {
 }
 
 const Subscription = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { subscription, hasActiveSubscription, createSubscription, loading } = useSubscription();
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
+
+  // If user is legacy or doctor, they don't need subscription
+  const hasLegacyAccess = userProfile?.is_legacy || userProfile?.role === 'doctor';
 
   const handlePaystackPayment = () => {
     if (!user?.email) return;
@@ -69,32 +72,43 @@ const Subscription = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Subscription</CardTitle>
             <p className="text-muted-foreground">
-              Manage your subscription to access all features
+              Access all premium features with your subscription or free legacy access
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            {hasActiveSubscription && subscription ? (
+            {hasActiveSubscription || hasLegacyAccess ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="h-5 w-5 text-green-500" />
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    Active Plan
+                    {hasLegacyAccess ? 'Free Access' : 'Active Plan'}
                   </Badge>
                 </div>
                 
                 <div className="text-center space-y-2">
-                  <h3 className="text-lg font-semibold">Monthly Plan</h3>
-                  <p className="text-2xl font-bold text-primary">$10/month</p>
+                  <h3 className="text-lg font-semibold">
+                    {hasLegacyAccess ? 'Legacy User Access' : 'Monthly Plan'}
+                  </h3>
+                  <p className="text-2xl font-bold text-primary">
+                    {hasLegacyAccess ? 'FREE' : '$10/month'}
+                  </p>
+                  {hasLegacyAccess && (
+                    <p className="text-sm text-muted-foreground">
+                      You have free access as an existing user
+                    </p>
+                  )}
                 </div>
 
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Expires on: {format(new Date(subscription.expires_at), 'PPP')}
-                    </span>
+                {subscription && !hasLegacyAccess && (
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Expires on: {format(new Date(subscription.expires_at), 'PPP')}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="space-y-2">
                   <h4 className="font-semibold">Included Features:</h4>

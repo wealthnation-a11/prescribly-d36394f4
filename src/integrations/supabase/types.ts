@@ -1360,6 +1360,7 @@ export type Database = {
           gender: string | null
           id: string
           is_blocked: boolean | null
+          is_legacy: boolean | null
           last_name: string | null
           location_country: string | null
           location_state: string | null
@@ -1378,6 +1379,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_blocked?: boolean | null
+          is_legacy?: boolean | null
           last_name?: string | null
           location_country?: string | null
           location_state?: string | null
@@ -1396,6 +1398,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_blocked?: boolean | null
+          is_legacy?: boolean | null
           last_name?: string | null
           location_country?: string | null
           location_state?: string | null

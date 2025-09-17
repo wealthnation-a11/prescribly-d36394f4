@@ -58,11 +58,11 @@ export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
                 size="lg"
               >
                 <CreditCard className="h-4 w-4 mr-2" />
-                Subscribe Now
+                Subscribe Now - $10/month
               </Button>
 
               <p className="text-xs text-muted-foreground">
-                Doctors get free access to all features
+                Doctors and existing users get free access
               </p>
             </CardContent>
           </Card>

@@ -55,8 +55,11 @@ export const useSubscription = () => {
     // Doctors don't need subscription
     if (userProfile?.role === 'doctor') return false;
     
-    // Patients need active subscription
-    return userProfile?.role === 'patient' && !hasActiveSubscription();
+    // Legacy users don't need subscription
+    if (userProfile?.is_legacy) return false;
+    
+    // New patients need active subscription
+    return userProfile?.role === 'patient' && !userProfile?.is_legacy && !hasActiveSubscription();
   };
 
   const createSubscription = async (paymentReference: string) => {
