@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { CheckCircle, CreditCard, Clock } from 'lucide-react';
+import { CheckCircle, CreditCard, Clock, Crown, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 declare global {
   interface Window {
@@ -17,41 +18,44 @@ declare global {
 
 const Subscription = () => {
   const { user, userProfile } = useAuth();
-  const { subscription, hasActiveSubscription, createSubscription, loading } = useSubscription();
+  const { subscription, hasActiveSubscription, loading, getDaysUntilExpiry } = useSubscription();
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
 
   // If user is legacy or doctor, they don't need subscription
   const hasLegacyAccess = userProfile?.is_legacy || userProfile?.role === 'doctor';
 
-  const handlePaystackPayment = () => {
+  const handlePaystackPayment = async (plan: 'monthly' | 'yearly') => {
     if (!user?.email) return;
 
     setProcessing(true);
 
-    const handler = window.PaystackPop.setup({
-      key: 'pk_live_YOUR_PAYSTACK_PUBLIC_KEY', // Replace with your actual Paystack public key
-      email: user.email,
-      amount: 1000, // $10 in kobo (Paystack uses kobo for USD)
-      currency: 'USD',
-      callback: async (response: any) => {
-        try {
-          await createSubscription(response.reference);
-          toast.success('Subscription activated successfully!');
-          navigate('/user-dashboard');
-        } catch (error) {
-          console.error('Subscription creation failed:', error);
-          toast.error('Failed to activate subscription. Please try again.');
-        } finally {
-          setProcessing(false);
+    try {
+      const amount = plan === 'yearly' ? 110 : 10;
+      
+      // Initialize payment with our edge function
+      const { data: initData, error: initError } = await supabase.functions.invoke('paystack-initialize', {
+        body: {
+          email: user.email,
+          amount,
+          user_id: user.id,
+          type: 'subscription',
+          plan
         }
-      },
-      onClose: () => {
-        setProcessing(false);
-      },
-    });
+      });
 
-    handler.openIframe();
+      if (initError || !initData.status) {
+        throw new Error(initData?.message || 'Payment initialization failed');
+      }
+
+      // Redirect to Paystack checkout
+      window.location.href = initData.authorization_url;
+      
+    } catch (error) {
+      console.error('Payment initialization failed:', error);
+      toast.error('Failed to initialize payment. Please try again.');
+      setProcessing(false);
+    }
   };
 
   if (loading) {
@@ -131,40 +135,85 @@ const Subscription = () => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="text-center space-y-2">
-                  <h3 className="text-lg font-semibold">Subscribe Now</h3>
-                  <p className="text-3xl font-bold text-primary">$10/month</p>
-                  <p className="text-sm text-muted-foreground">
-                    Access all premium features
+                  <h3 className="text-2xl font-bold">Choose Your Plan</h3>
+                  <p className="text-muted-foreground">
+                    Get access to all premium features
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-semibold">What's included:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>✓ Full dashboard access</li>
-                    <li>✓ Unlimited chat with doctors</li>
-                    <li>✓ Video consultations</li>
-                    <li>✓ Appointment booking</li>
-                    <li>✓ AI health diagnostics</li>
-                    <li>✓ Personal health companion</li>
-                    <li>✓ Health challenges & rewards</li>
-                  </ul>
-                </div>
+                {/* Monthly Plan */}
+                <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Zap className="h-5 w-5 text-primary" />
+                        <h4 className="text-lg font-semibold">Monthly Plan</h4>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-primary">$10</p>
+                        <p className="text-sm text-muted-foreground">/month</p>
+                      </div>
+                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>✓ Full dashboard access</li>
+                      <li>✓ Unlimited chat with doctors</li>
+                      <li>✓ Video consultations</li>
+                      <li>✓ Appointment booking</li>
+                      <li>✓ AI health diagnostics</li>
+                    </ul>
+                    <Button 
+                      onClick={() => handlePaystackPayment('monthly')} 
+                      disabled={processing}
+                      className="w-full"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      {processing ? 'Processing...' : 'Subscribe Monthly - $10'}
+                    </Button>
+                  </CardContent>
+                </Card>
 
-                <Button 
-                  onClick={handlePaystackPayment} 
-                  disabled={processing}
-                  className="w-full"
-                  size="lg"
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  {processing ? 'Processing...' : 'Subscribe Now - $10/month'}
-                </Button>
+                {/* Yearly Plan */}
+                <Card className="border-2 border-secondary/20 hover:border-secondary/40 transition-colors relative">
+                  <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-secondary text-secondary-foreground">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Best Value
+                    </Badge>
+                  </div>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Crown className="h-5 w-5 text-secondary" />
+                        <h4 className="text-lg font-semibold">Yearly Plan</h4>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-secondary">$110</p>
+                        <p className="text-sm text-muted-foreground">/year</p>
+                        <p className="text-xs text-green-600">Save $10!</p>
+                      </div>
+                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>✓ Everything in Monthly Plan</li>
+                      <li>✓ 2 months free (12 for 10)</li>
+                      <li>✓ Priority support</li>
+                      <li>✓ Early access to new features</li>
+                    </ul>
+                    <Button 
+                      onClick={() => handlePaystackPayment('yearly')} 
+                      disabled={processing}
+                      className="w-full"
+                      variant="secondary"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      {processing ? 'Processing...' : 'Subscribe Yearly - $110'}
+                    </Button>
+                  </CardContent>
+                </Card>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  Secure payment powered by Paystack
+                  Secure payment powered by Paystack • Cancel anytime
                 </p>
               </div>
             )}
@@ -172,8 +221,6 @@ const Subscription = () => {
         </Card>
       </div>
 
-      {/* Load Paystack inline script */}
-      <script src="https://js.paystack.co/v1/inline.js"></script>
     </div>
   );
 };

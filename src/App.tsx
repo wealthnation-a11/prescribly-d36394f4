@@ -35,6 +35,7 @@ import StepsChallenge from "./pages/StepsChallenge";
 import HealthTrendsDashboard from "./pages/HealthTrendsDashboard";
 import MyPrescriptions from "./pages/MyPrescriptions";
 import Subscription from "./pages/Subscription";
+import PaymentCallback from "./pages/PaymentCallback";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 
 
@@ -78,6 +79,8 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
+            <Route path="/subscription" element={<Subscription />} />
+            <Route path="/payment-callback" element={<PaymentCallback />} />
             
             {/* Role-based Dashboard Routes */}
         <Route path="/user-dashboard" element={

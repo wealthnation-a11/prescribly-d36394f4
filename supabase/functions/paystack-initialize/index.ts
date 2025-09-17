@@ -36,7 +36,7 @@ serve(async (req) => {
           type,
           plan: plan || 'monthly'
         },
-        callback_url: `${req.headers.get('origin')}/subscription?payment=success`
+        callback_url: `${req.headers.get('origin')}/payment-callback`
       })
     });
 

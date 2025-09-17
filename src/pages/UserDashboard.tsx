@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -18,7 +20,8 @@ import {
   Shield,
   Loader2,
   Brain,
-  Trophy
+  Trophy,
+  Crown
 } from "lucide-react";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
 import { AppointmentCard } from "@/components/AppointmentCard";
@@ -38,6 +41,8 @@ export const UserDashboard = () => {
   const { user, userProfile } = useAuth();
   const { role } = useUserRole();
   const { stats, loading: statsLoading, error } = useUserDashboardStats();
+  const { subscription, hasActiveSubscription, getDaysUntilExpiry, refreshSubscription } = useSubscription();
+  const [searchParams] = useSearchParams();
   
   // Real-time subscriptions
   useRealtimeAppointments('patient');
@@ -136,6 +141,94 @@ export const UserDashboard = () => {
       fetchRecentAppointments();
     }
   }, [user?.id]);
+
+  // Handle payment success callback
+  useEffect(() => {
+    const handlePaymentCallback = async () => {
+      const paymentSuccess = searchParams.get('payment');
+      const reference = searchParams.get('trxref');
+      
+      if (paymentSuccess === 'success' && reference) {
+        try {
+          // Verify payment
+          const { data: verifyData, error: verifyError } = await supabase.functions.invoke('paystack-verify', {
+            body: { reference }
+          });
+
+          if (verifyError || !verifyData.status) {
+            throw new Error(verifyData?.message || 'Payment verification failed');
+          }
+
+          toast({
+            title: "Payment Successful",
+            description: "Your subscription has been activated!",
+          });
+
+          // Refresh subscription data
+          await refreshSubscription();
+          
+          // Clear URL parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+        } catch (error) {
+          console.error('Payment verification failed:', error);
+          toast({
+            title: "Payment Verification Failed",
+            description: "Please contact support if your payment was deducted.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    handlePaymentCallback();
+  }, [searchParams, refreshSubscription]);
+
+  // Show subscription status for non-legacy users
+  const getSubscriptionStatus = () => {
+    if (userProfile?.role === 'doctor') return null;
+    if (userProfile?.is_legacy) {
+      return (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Shield className="h-5 w-5 text-green-600" />
+              <span className="font-medium text-green-800">Free Lifetime Access</span>
+            </div>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">Legacy User</Badge>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (hasActiveSubscription && subscription) {
+      const daysLeft = getDaysUntilExpiry;
+      const isExpiringSoon = daysLeft <= 7;
+      
+      return (
+        <Card className={`border-2 ${isExpiringSoon ? 'border-yellow-200 bg-yellow-50' : 'border-green-200 bg-green-50'}`}>
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Crown className={`h-5 w-5 ${isExpiringSoon ? 'text-yellow-600' : 'text-green-600'}`} />
+              <div>
+                <span className={`font-medium ${isExpiringSoon ? 'text-yellow-800' : 'text-green-800'}`}>
+                  Active Subscription
+                </span>
+                <p className={`text-sm ${isExpiringSoon ? 'text-yellow-600' : 'text-green-600'}`}>
+                  {daysLeft} days remaining • {subscription.plan === 'yearly' ? 'Yearly' : 'Monthly'} Plan
+                </p>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/subscription">Manage</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return null;
+  };
 
   const formatNextAppointment = (appointment: typeof stats.nextAppointment) => {
     if (!appointment || !appointment.appointmentDate) {
@@ -285,6 +378,13 @@ export const UserDashboard = () => {
             </div>
 
             <div className="container mx-auto p-6 space-y-8">
+              {/* Subscription Status */}
+              {getSubscriptionStatus() && (
+                <div>
+                  {getSubscriptionStatus()}
+                </div>
+              )}
+
               {/* Daily Health Tip */}
               <DailyHealthTip />
 

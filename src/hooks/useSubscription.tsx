@@ -62,45 +62,15 @@ export const useSubscription = () => {
     return userProfile?.role === 'patient' && !userProfile?.is_legacy && !hasActiveSubscription();
   };
 
-  const createSubscription = async (paymentReference: string) => {
-    if (!user?.id) return;
-
-    const startedAt = new Date();
-    const expiresAt = new Date();
-    expiresAt.setDate(startedAt.getDate() + 30); // 30 days from now
-
-    try {
-      // Insert/update subscription
-      const { error: subError } = await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          status: 'active',
-          plan: 'monthly',
-          started_at: startedAt.toISOString(),
-          expires_at: expiresAt.toISOString(),
-        });
-
-      if (subError) throw subError;
-
-      // Insert payment record
-      const { error: payError } = await supabase
-        .from('payments')
-        .insert({
-          user_id: user.id,
-          amount: 10,
-          reference: paymentReference,
-          status: 'completed',
-        });
-
-      if (payError) throw payError;
-
-      // Refresh subscription data
-      await fetchSubscription();
-    } catch (error) {
-      console.error('Error creating subscription:', error);
-      throw error;
-    }
+  const getDaysUntilExpiry = () => {
+    if (!subscription || !hasActiveSubscription()) return 0;
+    
+    const now = new Date();
+    const expiresAt = new Date(subscription.expires_at);
+    const timeDiff = expiresAt.getTime() - now.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    return Math.max(0, daysDiff);
   };
 
   return {
@@ -108,7 +78,7 @@ export const useSubscription = () => {
     loading,
     hasActiveSubscription: hasActiveSubscription(),
     needsSubscription: needsSubscription(),
-    createSubscription,
+    getDaysUntilExpiry: getDaysUntilExpiry(),
     refreshSubscription: fetchSubscription,
   };
 };
