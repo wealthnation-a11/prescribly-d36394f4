@@ -948,42 +948,38 @@ export type Database = {
       }
       messages: {
         Row: {
-          conversation_id: string
+          appointment_id: string
           created_at: string
-          encrypted_message_text: string | null
-          encryption_version: number | null
           id: string
-          key_exchange_data: Json | null
-          message_text: string
-          sender_id: string | null
-          sender_type: string
-          user_id: string
+          message: string
+          receiver_id: string
+          sender_id: string
         }
         Insert: {
-          conversation_id: string
+          appointment_id: string
           created_at?: string
-          encrypted_message_text?: string | null
-          encryption_version?: number | null
           id?: string
-          key_exchange_data?: Json | null
-          message_text: string
-          sender_id?: string | null
-          sender_type: string
-          user_id: string
+          message: string
+          receiver_id: string
+          sender_id: string
         }
         Update: {
-          conversation_id?: string
+          appointment_id?: string
           created_at?: string
-          encrypted_message_text?: string | null
-          encryption_version?: number | null
           id?: string
-          key_exchange_data?: Json | null
-          message_text?: string
-          sender_id?: string | null
-          sender_type?: string
-          user_id?: string
+          message?: string
+          receiver_id?: string
+          sender_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       monitoring_logs: {
         Row: {
