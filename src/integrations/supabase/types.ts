@@ -236,6 +236,56 @@ export type Database = {
         }
         Relationships: []
       }
+      call_sessions: {
+        Row: {
+          appointment_id: string | null
+          channel_name: string
+          created_at: string | null
+          doctor_id: string
+          ended_at: string | null
+          id: string
+          patient_id: string
+          started_at: string | null
+          status: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          channel_name: string
+          created_at?: string | null
+          doctor_id: string
+          ended_at?: string | null
+          id?: string
+          patient_id: string
+          started_at?: string | null
+          status?: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          channel_name?: string
+          created_at?: string | null
+          doctor_id?: string
+          ended_at?: string | null
+          id?: string
+          patient_id?: string
+          started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       challenge_progress: {
         Row: {
           challenge_id: string
@@ -361,6 +411,39 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      chats: {
+        Row: {
+          created_at: string | null
+          encrypted_message: string | null
+          file_type: string | null
+          id: string
+          message: string | null
+          recipient_id: string
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          encrypted_message?: string | null
+          file_type?: string | null
+          id?: string
+          message?: string | null
+          recipient_id: string
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          encrypted_message?: string | null
+          file_type?: string | null
+          id?: string
+          message?: string | null
+          recipient_id?: string
+          sender_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

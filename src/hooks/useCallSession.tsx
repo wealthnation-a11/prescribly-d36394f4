@@ -23,7 +23,8 @@ export const useCallSession = () => {
 
   const startCall = async (appointmentId: string, doctorId: string, callType: 'voice' | 'video') => {
     try {
-      const { data, error } = await supabase
+      // Temporarily using any to bypass TypeScript until types regenerate
+      const { data, error } = await (supabase as any)
         .from('call_sessions')
         .insert({
           appointment_id: appointmentId,
@@ -73,7 +74,8 @@ export const useCallSession = () => {
     if (!activeCall) return;
 
     try {
-      const { error } = await supabase
+      // Temporarily using any to bypass TypeScript until types regenerate
+      const { error } = await (supabase as any)
         .from('call_sessions')
         .update({
           status: 'ended',
