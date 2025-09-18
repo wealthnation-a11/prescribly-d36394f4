@@ -30,7 +30,7 @@ serve(async (req) => {
       body: JSON.stringify({
         email,
         amount: amount * 100, // Convert to kobo/cents
-        currency: 'USD',
+        currency: 'NGN',
         metadata: {
           user_id,
           type,
