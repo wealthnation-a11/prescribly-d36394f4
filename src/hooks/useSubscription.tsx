@@ -62,6 +62,10 @@ export const useSubscription = () => {
     return userProfile?.role === 'patient' && !userProfile?.is_legacy && !hasActiveSubscription();
   };
 
+  const isLegacyUser = () => {
+    return userProfile?.is_legacy === true;
+  };
+
   const getDaysUntilExpiry = () => {
     if (!subscription || !hasActiveSubscription()) return 0;
     
@@ -80,5 +84,6 @@ export const useSubscription = () => {
     needsSubscription: needsSubscription(),
     getDaysUntilExpiry: getDaysUntilExpiry(),
     refreshSubscription: fetchSubscription,
+    isLegacyUser: isLegacyUser(),
   };
 };

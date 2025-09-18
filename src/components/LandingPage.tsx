@@ -283,7 +283,11 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button variant="medical" className="w-full mt-6">
+                    <Button 
+                      variant="medical" 
+                      className="w-full mt-6"
+                      onClick={() => window.location.href = '/register'}
+                    >
                       {t('get_started')}
                     </Button>
                   </CardContent>
@@ -433,7 +437,11 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button variant="medical" className="w-full mt-6">
+                    <Button 
+                      variant="medical" 
+                      className="w-full mt-6"
+                      onClick={() => window.location.href = '/register'}
+                    >
                       Get Started
                     </Button>
                   </CardContent>

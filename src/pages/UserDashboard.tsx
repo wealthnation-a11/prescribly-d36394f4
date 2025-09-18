@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useSubscription } from "@/hooks/useSubscription";
+import { SubscriptionCountdownTimer } from "@/components/SubscriptionCountdownTimer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +42,7 @@ export const UserDashboard = () => {
   const { user, userProfile } = useAuth();
   const { role } = useUserRole();
   const { stats, loading: statsLoading, error } = useUserDashboardStats();
-  const { subscription, hasActiveSubscription, getDaysUntilExpiry, refreshSubscription } = useSubscription();
+  const { subscription, hasActiveSubscription, getDaysUntilExpiry, loading: subscriptionLoading, isLegacyUser, refreshSubscription } = useSubscription();
   const [searchParams] = useSearchParams();
   
   // Real-time subscriptions
@@ -383,6 +384,15 @@ export const UserDashboard = () => {
                 <div>
                   {getSubscriptionStatus()}
                 </div>
+              )}
+
+              {/* Subscription Countdown Timer for New Users */}
+              {!isLegacyUser && hasActiveSubscription && subscription && (
+                <SubscriptionCountdownTimer 
+                  expirationDate={subscription.expires_at}
+                  daysRemaining={getDaysUntilExpiry}
+                  isActive={hasActiveSubscription}
+                />
               )}
 
               {/* Daily Health Tip */}
