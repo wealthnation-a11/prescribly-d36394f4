@@ -31,7 +31,7 @@ const Subscription = () => {
     setProcessing(true);
 
     try {
-      const amount = plan === 'yearly' ? 110 : 10;
+      const amount = plan === 'yearly' ? 164000 : 15000;
       
       // Initialize payment with our edge function
       const { data: initData, error: initError } = await supabase.functions.invoke('paystack-initialize', {
@@ -93,9 +93,9 @@ const Subscription = () => {
                   <h3 className="text-lg font-semibold">
                     {hasLegacyAccess ? 'Legacy User Access' : 'Monthly Plan'}
                   </h3>
-                  <p className="text-2xl font-bold text-primary">
-                    {hasLegacyAccess ? 'FREE' : '$10/month'}
-                  </p>
+                   <p className="text-2xl font-bold text-primary">
+                     {hasLegacyAccess ? 'FREE' : '₦15,000/month'}
+                   </p>
                   {hasLegacyAccess && (
                     <p className="text-sm text-muted-foreground">
                       You have free access as an existing user
@@ -151,10 +151,10 @@ const Subscription = () => {
                         <Zap className="h-5 w-5 text-primary" />
                         <h4 className="text-lg font-semibold">Monthly Plan</h4>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">$10</p>
-                        <p className="text-sm text-muted-foreground">/month</p>
-                      </div>
+                       <div className="text-right">
+                         <p className="text-2xl font-bold text-primary">₦15,000</p>
+                         <p className="text-sm text-muted-foreground">/month</p>
+                       </div>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li>✓ Full dashboard access</li>
@@ -169,7 +169,7 @@ const Subscription = () => {
                       className="w-full"
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
-                      {processing ? 'Processing...' : 'Subscribe Monthly - $10'}
+                      {processing ? 'Processing...' : 'Subscribe Monthly - ₦15,000'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -188,11 +188,11 @@ const Subscription = () => {
                         <Crown className="h-5 w-5 text-secondary" />
                         <h4 className="text-lg font-semibold">Yearly Plan</h4>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-secondary">$110</p>
-                        <p className="text-sm text-muted-foreground">/year</p>
-                        <p className="text-xs text-green-600">Save $10!</p>
-                      </div>
+                       <div className="text-right">
+                         <p className="text-2xl font-bold text-secondary">₦164,000</p>
+                         <p className="text-sm text-muted-foreground">/year</p>
+                         <p className="text-xs text-green-600">Save ₦16,000!</p>
+                       </div>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li>✓ Everything in Monthly Plan</li>
@@ -207,7 +207,7 @@ const Subscription = () => {
                       variant="secondary"
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
-                      {processing ? 'Processing...' : 'Subscribe Yearly - $110'}
+                      {processing ? 'Processing...' : 'Subscribe Yearly - ₦164,000'}
                     </Button>
                   </CardContent>
                 </Card>

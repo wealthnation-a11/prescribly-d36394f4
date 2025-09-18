@@ -253,10 +253,10 @@ export const LandingPage = () => {
                   <CardHeader className="text-center pb-8">
                     <CardTitle className="text-2xl mb-2">Individual</CardTitle>
                     <CardDescription>Perfect for personal healthcare needs</CardDescription>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-primary">$10</span>
-                      <span className="text-muted-foreground">/month</span>
-                    </div>
+                     <div className="mt-4">
+                       <span className="text-4xl font-bold text-primary">₦15,000</span>
+                       <span className="text-muted-foreground">/month</span>
+                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -275,11 +275,11 @@ export const LandingPage = () => {
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>Prescription Management</span>
                     </div>
-                    <div className="pt-4 space-y-2 text-sm text-muted-foreground">
-                      <div>3 months: $25 (save $5)</div>
-                      <div>6 months: $55 (save $5)</div>
-                      <div>12 months: $110 (save $10)</div>
-                    </div>
+                     <div className="pt-4 space-y-2 text-sm text-muted-foreground">
+                       <div>3 months: ₦37,500 (save ₦7,500)</div>
+                       <div>6 months: ₦82,500 (save ₦7,500)</div>
+                       <div>12 months: ₦164,000 (save ₦16,000)</div>
+                     </div>
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
@@ -305,10 +305,10 @@ export const LandingPage = () => {
                     <CardDescription>
                       Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
                     </CardDescription>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-primary">$300</span>
-                      <span className="text-muted-foreground">/month</span>
-                    </div>
+                     <div className="mt-4">
+                       <span className="text-4xl font-bold text-primary">₦450,000</span>
+                       <span className="text-muted-foreground">/month</span>
+                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
@@ -411,11 +411,11 @@ export const LandingPage = () => {
                   <CardHeader className="text-center pb-8">
                     <CardTitle className="text-2xl mb-2">Individual</CardTitle>
                     <CardDescription>Perfect for personal healthcare needs</CardDescription>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-primary">$110</span>
-                      <span className="text-muted-foreground">/year</span>
-                    </div>
-                    <div className="text-sm text-green-600 font-medium">Save $10 annually</div>
+                     <div className="mt-4">
+                       <span className="text-4xl font-bold text-primary">₦164,000</span>
+                       <span className="text-muted-foreground">/year</span>
+                     </div>
+                     <div className="text-sm text-green-600 font-medium">Save ₦16,000 annually</div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -459,10 +459,10 @@ export const LandingPage = () => {
                     <CardDescription>
                       Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
                     </CardDescription>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-primary">$300</span>
-                      <span className="text-muted-foreground">/month</span>
-                    </div>
+                     <div className="mt-4">
+                       <span className="text-4xl font-bold text-primary">₦450,000</span>
+                       <span className="text-muted-foreground">/month</span>
+                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">

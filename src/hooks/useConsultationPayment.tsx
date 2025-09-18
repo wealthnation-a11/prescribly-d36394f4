@@ -20,7 +20,7 @@ export const useConsultationPayment = () => {
       const { data: initData, error: initError } = await supabase.functions.invoke('paystack-initialize', {
         body: {
           email: user.email,
-          amount: 10, // $10 consultation fee
+          amount: 15000, // ₦15,000 consultation fee
           user_id: user.id,
           type: 'consultation',
           appointment_id: appointmentId
