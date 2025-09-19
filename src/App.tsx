@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Support from "./pages/Support";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { DoctorLogin } from "./pages/DoctorLogin";
@@ -181,6 +182,11 @@ const App = () => (
                 <SubscriptionGuard>
                   <MyPrescriptions />
                 </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/support" element={
+              <ProtectedRoute requirePatient={true}>
+                <Support />
               </ProtectedRoute>
             } />
 

@@ -4,13 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, PhoneCall, Linkedin, Instagram, Twitter } from "lucide-react";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, PhoneCall, Linkedin, Instagram, Twitter, HelpCircle } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
 import { FloatingIcons } from "./FloatingIcons";
 import { Header } from "./Header";
 import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
+import { SupportForm } from "./SupportForm";
 import heroImage from "@/assets/hero-doctor.jpg";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
@@ -583,6 +584,32 @@ export const LandingPage = () => {
               </AccordionItem>
             ))}
           </Accordion>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-20 bg-secondary/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
+              Need Help?
+            </h2>
+            <p className="text-xl text-muted-foreground fade-in-up stagger-1">
+              Our support team is here to assist you
+            </p>
+          </div>
+          <div className="max-w-md mx-auto">
+            <SupportForm 
+              trigger={
+                <Button variant="cta" className="w-full" size="lg">
+                  <HelpCircle className="w-5 h-5 mr-2" />
+                  Contact Support
+                </Button>
+              }
+              title="Get Support"
+              description="Have a question or need assistance? We're here to help!"
+            />
+          </div>
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain } from "lucide-react";
+import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain, HelpCircle } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
@@ -30,6 +30,7 @@ export function AppSidebar() {
     { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText, requiresSubscription: true },
     { title: t("chat"), url: "/chat", icon: MessageCircle, requiresSubscription: true },
     { title: t("profile"), url: "/profile", icon: User, requiresSubscription: false },
+    { title: "Support", url: "/support", icon: HelpCircle, requiresSubscription: false },
   ];
 
   const isActive = (path: string) => currentPath === path;
