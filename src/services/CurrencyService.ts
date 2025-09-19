@@ -24,7 +24,7 @@ export class CurrencyService {
   private static readonly UPDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
 
   /**
-   * Get pricing for subscription plans in user's currency
+   * Get pricing for subscription plans - always returns USD for display
    */
   static async getSubscriptionPricing(currency: string, plan: 'monthly' | 'yearly'): Promise<PricingData> {
     const monthlyPriceUSD = this.BASE_FEE_USD;
@@ -32,14 +32,29 @@ export class CurrencyService {
     
     const baseUSD = plan === 'monthly' ? monthlyPriceUSD : yearlyPriceUSD;
     
-    return this.convertPrice(baseUSD, currency);
+    return this.getUSDPricing(baseUSD, currency);
   }
 
   /**
-   * Get consultation fee in user's currency
+   * Get consultation fee - always returns USD for display
    */
   static async getConsultationPricing(currency: string): Promise<PricingData> {
-    return this.convertPrice(this.BASE_FEE_USD, currency);
+    return this.getUSDPricing(this.BASE_FEE_USD, currency);
+  }
+
+  /**
+   * Get USD pricing for display while calculating local amount for processing
+   */
+  static async getUSDPricing(usdAmount: number, targetCurrency: string): Promise<PricingData> {
+    // Calculate local amount for backend processing but show USD to users
+    const localData = await this.convertPrice(usdAmount, targetCurrency);
+    
+    return {
+      baseUSD: usdAmount,
+      localAmount: localData.localAmount, // For backend processing
+      localCurrency: targetCurrency, // For backend processing
+      localSymbol: '$' // Always show USD symbol to users
+    };
   }
 
   /**
@@ -153,9 +168,16 @@ export class CurrencyService {
   }
 
   /**
-   * Format amount with currency symbol
+   * Format amount with currency symbol - always shows USD
    */
-  static formatAmount(amount: number, currency: string): string {
+  static formatAmount(amount: number, currency?: string): string {
+    return `$${amount.toLocaleString()}`;
+  }
+
+  /**
+   * Format amount in local currency (for backend processing)
+   */
+  static formatLocalAmount(amount: number, currency: string): string {
     const { symbol } = this.getCurrencyInfo(currency);
     return `${symbol}${amount.toLocaleString()}`;
   }

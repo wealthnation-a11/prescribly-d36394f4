@@ -125,6 +125,7 @@ export const useMultiCurrencyPayment = () => {
     getConsultationPricing,
     initializeSubscriptionPayment,
     initializeConsultationPayment,
-    formatAmount: CurrencyService.formatAmount
+    formatAmount: CurrencyService.formatAmount,
+    formatLocalAmount: CurrencyService.formatLocalAmount
   };
 };
