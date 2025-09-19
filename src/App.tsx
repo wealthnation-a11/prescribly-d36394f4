@@ -20,6 +20,9 @@ import DoctorProfile from "./pages/doctor/DoctorProfile";
 import DoctorAvailability from "./pages/doctor/DoctorAvailability";
 import DoctorEarnings from "./pages/doctor/DoctorEarnings";
 import PatientDetails from "./pages/doctor/PatientDetails";
+import AdminDashboard from "./pages/AdminDashboard";
+import UserManagement from "./pages/admin/UserManagement";
+import DoctorManagement from "./pages/admin/DoctorManagement";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
@@ -37,9 +40,6 @@ import MyPrescriptions from "./pages/MyPrescriptions";
 import Subscription from "./pages/Subscription";
 import PaymentCallback from "./pages/PaymentCallback";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
-
-
-
 
 import UserProfile from "./pages/UserProfile";
 import BookAppointment from "./pages/BookAppointment";
@@ -100,6 +100,53 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin Routes */}
+            <Route path="/admin-dashboard" element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute requireAdmin>
+                <UserManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/doctors" element={
+              <ProtectedRoute requireAdmin>
+                <DoctorManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/appointments" element={
+              <ProtectedRoute requireAdmin>
+                <div>Admin Appointments - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/finance" element={
+              <ProtectedRoute requireAdmin>
+                <div>Financial Reports - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute requireAdmin>
+                <div>Analytics Dashboard - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/notifications" element={
+              <ProtectedRoute requireAdmin>
+                <div>Notifications Management - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/content" element={
+              <ProtectedRoute requireAdmin>
+                <div>Content Management - Coming Soon</div>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute requireAdmin>
+                <div>System Settings - Coming Soon</div>
               </ProtectedRoute>
             } />
 
@@ -198,7 +245,7 @@ const App = () => (
                 <DoctorPatients />
               </ProtectedRoute>
             } />
-            <Route path="/doctor/patient/:id" element={
+            <Route path="/doctor/patients/:patientId" element={
               <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <PatientDetails />
               </ProtectedRoute>
