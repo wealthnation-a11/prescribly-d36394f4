@@ -78,13 +78,14 @@ export const Header = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-background border-b border-border shadow-lg z-40">
-            <nav className="px-4 py-6 space-y-4">
-              {menuItems.map((item) => (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-background border-b border-border shadow-lg z-40 animate-fade-in">
+            <nav className="px-4 py-6 space-y-4 animate-slide-down">
+              {menuItems.map((item, index) => (
                 <a
                   key={item.name}
                   href={item.href}
-                  className="block text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium py-2"
+                  className="block text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium py-2 opacity-0 animate-fade-in hover-scale"
+                  style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
                   onClick={closeMobileMenu}
                 >
                   {item.name}
@@ -92,15 +93,15 @@ export const Header = () => {
               ))}
               
               {/* Mobile Action Buttons */}
-              <div className="pt-4 space-y-3 border-t border-border">
+              <div className="pt-4 space-y-3 border-t border-border opacity-0 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
                 <LanguageSelector />
-                <Button variant="outline" size="sm" className="w-full" asChild>
+                <Button variant="outline" size="sm" className="w-full hover-scale" asChild>
                   <a href="/login" onClick={closeMobileMenu}>{t('login')}</a>
                 </Button>
                 <Button 
                   variant="medical" 
                   size="sm" 
-                  className="w-full"
+                  className="w-full hover-scale"
                   onClick={() => {
                     setShowUserTypeModal(true);
                     closeMobileMenu();
