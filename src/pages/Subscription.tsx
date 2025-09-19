@@ -152,7 +152,7 @@ const Subscription = () => {
                         <h4 className="text-lg font-semibold">Monthly Plan</h4>
                       </div>
                        <div className="text-right">
-                         <p className="text-2xl font-bold text-primary">₦15,000</p>
+                         <p className="text-2xl font-bold text-primary">$10</p>
                          <p className="text-sm text-muted-foreground">/month</p>
                        </div>
                     </div>
@@ -163,14 +163,14 @@ const Subscription = () => {
                       <li>✓ Appointment booking</li>
                       <li>✓ AI health diagnostics</li>
                     </ul>
-                    <Button 
-                      onClick={() => handlePaystackPayment('monthly')} 
-                      disabled={processing}
-                      className="w-full"
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      {processing ? 'Processing...' : 'Subscribe Monthly - ₦15,000'}
-                    </Button>
+                     <Button 
+                       onClick={() => handlePaystackPayment('monthly')} 
+                       disabled={processing}
+                       className="w-full"
+                     >
+                       <CreditCard className="h-4 w-4 mr-2" />
+                       {processing ? 'Processing...' : 'Subscribe Monthly - $10'}
+                     </Button>
                   </CardContent>
                 </Card>
 
@@ -189,9 +189,9 @@ const Subscription = () => {
                         <h4 className="text-lg font-semibold">Yearly Plan</h4>
                       </div>
                        <div className="text-right">
-                         <p className="text-2xl font-bold text-secondary">₦164,000</p>
+                         <p className="text-2xl font-bold text-secondary">$100</p>
                          <p className="text-sm text-muted-foreground">/year</p>
-                         <p className="text-xs text-green-600">Save ₦16,000!</p>
+                         <p className="text-xs text-green-600">Save $20!</p>
                        </div>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-1">
@@ -200,14 +200,14 @@ const Subscription = () => {
                       <li>✓ Priority support</li>
                       <li>✓ Early access to new features</li>
                     </ul>
-                    <Button 
-                      onClick={() => handlePaystackPayment('yearly')} 
-                      disabled={processing}
-                      className="w-full"
-                      variant="secondary"
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      {processing ? 'Processing...' : 'Subscribe Yearly - ₦164,000'}
+                     <Button 
+                       onClick={() => handlePaystackPayment('yearly')} 
+                       disabled={processing}
+                       className="w-full"
+                       variant="secondary"
+                     >
+                       <CreditCard className="h-4 w-4 mr-2" />
+                       {processing ? 'Processing...' : 'Subscribe Yearly - $100'}
                     </Button>
                   </CardContent>
                 </Card>

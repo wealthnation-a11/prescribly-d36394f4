@@ -504,7 +504,7 @@ export default function BookAppointment() {
                                     Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
                                   </span>
                                    <span className="text-sm text-muted-foreground">
-                                     {doctor.specialization} • {formatNGNAsUSD(doctor.consultation_fee, exchangeRate)}
+                                     {doctor.specialization} • $10 consultation fee
                                    </span>
                                 </div>
                               </SelectItem>
