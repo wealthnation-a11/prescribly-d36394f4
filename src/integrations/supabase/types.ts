@@ -576,7 +576,11 @@ export type Database = {
           amount: number
           appointment_id: string | null
           created_at: string
+          currency: string | null
+          exchange_rate_used: number | null
           id: string
+          local_amount: number | null
+          provider: string | null
           reference: string
           status: string
           user_id: string
@@ -585,7 +589,11 @@ export type Database = {
           amount: number
           appointment_id?: string | null
           created_at?: string
+          currency?: string | null
+          exchange_rate_used?: number | null
           id?: string
+          local_amount?: number | null
+          provider?: string | null
           reference: string
           status?: string
           user_id: string
@@ -594,7 +602,11 @@ export type Database = {
           amount?: number
           appointment_id?: string | null
           created_at?: string
+          currency?: string | null
+          exchange_rate_used?: number | null
           id?: string
+          local_amount?: number | null
+          provider?: string | null
           reference?: string
           status?: string
           user_id?: string
@@ -1241,7 +1253,11 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          currency: string | null
+          exchange_rate_used: number | null
           id: string
+          local_amount: number | null
+          provider: string | null
           reference: string
           status: string
           user_id: string
@@ -1249,7 +1265,11 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          currency?: string | null
+          exchange_rate_used?: number | null
           id?: string
+          local_amount?: number | null
+          provider?: string | null
           reference: string
           status?: string
           user_id: string
@@ -1257,7 +1277,11 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          currency?: string | null
+          exchange_rate_used?: number | null
           id?: string
+          local_amount?: number | null
+          provider?: string | null
           reference?: string
           status?: string
           user_id?: string
