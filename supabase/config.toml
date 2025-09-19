@@ -56,3 +56,21 @@ verify_jwt = true
 
 [functions.daily-health-tip]
 verify_jwt = false
+
+[functions.admin-auth]
+verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = true
+
+[functions.admin-doctors]
+verify_jwt = true
+
+[functions.admin-analytics]
+verify_jwt = true
+
+[functions.admin-appointments]
+verify_jwt = true
+
+[functions.admin-financial]
+verify_jwt = true
