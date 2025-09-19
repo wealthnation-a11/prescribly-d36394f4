@@ -372,11 +372,7 @@ export const DoctorDashboard = () => {
             
             {/* Recent Activity Section */}
             <div className="mt-8 max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-                  <EnhancedRecentActivity />
-                </div>
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
                   <EnhancedRecentActivity />

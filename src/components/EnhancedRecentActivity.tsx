@@ -49,12 +49,17 @@ const EnhancedRecentActivity = () => {
         .order('created_at', { ascending: false })
         .limit(10);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching diagnostics:', error);
+        return [];
+      }
       
       return (data || []).map(item => ({
         id: item.id,
         title: 'Health Diagnostic Completed',
-        description: `AI diagnosis session with probability: ${(item.probability * 100).toFixed(1)}%`,
+        description: item.probability 
+          ? `AI diagnosis session with probability: ${(item.probability * 100).toFixed(1)}%`
+          : 'Health diagnostic session completed',
         timestamp: item.created_at,
         status: 'completed',
         icon: <Brain className="h-4 w-4 text-purple-600" />
@@ -69,28 +74,26 @@ const EnhancedRecentActivity = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const query = isDoctor 
-        ? supabase
-            .from('prescriptions')
-            .select('*')
-            .eq('doctor_id', user.id)
-        : supabase
-            .from('prescriptions')
-            .select('*')
-            .eq('patient_id', user.id);
-            
-      const { data, error } = await query
+      // First try the main prescriptions table
+      const column = isDoctor ? 'doctor_id' : 'patient_id';
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .select('*')
+        .eq(column, user.id)
         .order('created_at', { ascending: false })
         .limit(10);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching prescriptions:', error);
+        return [];
+      }
       
       return (data || []).map(item => ({
         id: item.id,
         title: isDoctor ? 'Prescription Written' : 'Prescription Received',
-        description: item.diagnosis || 'Medical prescription',
+        description: item.diagnosis || item.instructions || 'Medical prescription',
         timestamp: item.created_at,
-        status: item.status,
+        status: item.status || 'active',
         icon: <Pill className="h-4 w-4 text-green-600" />
       }));
     },
@@ -106,23 +109,36 @@ const EnhancedRecentActivity = () => {
       const column = isDoctor ? 'doctor_id' : 'patient_id';
       const { data, error } = await supabase
         .from('appointments')
-        .select('*')
+        .select(`
+          *,
+          profiles!${column === 'doctor_id' ? 'appointments_patient_id_fkey' : 'appointments_doctor_id_fkey'}(first_name, last_name)
+        `)
         .eq(column, user.id)
         .order('created_at', { ascending: false })
         .limit(10);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching appointments:', error);
+        return [];
+      }
       
-      return (data || []).map(item => ({
-        id: item.id,
-        title: isDoctor ? 'Appointment Scheduled' : 'Appointment Booked',
-        description: `${item.notes || 'Consultation'} - ${format(new Date(item.scheduled_time), 'MMM dd, yyyy')}`,
-        timestamp: item.created_at,
-        status: item.status,
-        icon: <Calendar className="h-4 w-4 text-blue-600" />
-      }));
+      return (data || []).map(item => {
+        const otherPersonName = (item as any).profiles
+          ? `${(item as any).profiles.first_name || ''} ${(item as any).profiles.last_name || ''}`.trim()
+          : isDoctor ? 'Patient' : 'Doctor';
+          
+        return {
+          id: item.id,
+          title: isDoctor ? 'Appointment Scheduled' : 'Appointment Booked',
+          description: `${item.notes || 'Consultation'} - ${format(new Date(item.scheduled_time), 'MMM dd, yyyy')}${otherPersonName !== 'Patient' && otherPersonName !== 'Doctor' ? ` with ${otherPersonName}` : ''}`,
+          timestamp: item.created_at,
+          status: item.status,
+          icon: <Calendar className="h-4 w-4 text-blue-600" />
+        };
+      });
     },
     enabled: !!user?.id,
+    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
   });
 
   // Fetch Doctor-specific data
@@ -142,18 +158,28 @@ const EnhancedRecentActivity = () => {
         .order('updated_at', { ascending: false })
         .limit(10);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching consultations:', error);
+        return [];
+      }
       
-      return (data || []).map(item => ({
-        id: item.id,
-        title: 'Patient Consultation',
-        description: `Consultation with ${(item as any).profiles?.first_name || 'Patient'} completed`,
-        timestamp: item.updated_at,
-        status: 'completed',
-        icon: <Users className="h-4 w-4 text-teal-600" />
-      }));
+      return (data || []).map(item => {
+        const patientName = (item as any).profiles
+          ? `${(item as any).profiles.first_name || ''} ${(item as any).profiles.last_name || ''}`.trim()
+          : 'Patient';
+          
+        return {
+          id: item.id,
+          title: 'Patient Consultation',
+          description: `Consultation with ${patientName} completed`,
+          timestamp: item.updated_at,
+          status: 'completed',
+          icon: <Users className="h-4 w-4 text-teal-600" />
+        };
+      });
     },
     enabled: !!user?.id && isDoctor,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const getStatusColor = (status: string) => {
