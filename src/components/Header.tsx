@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { UserTypeModal } from "./UserTypeModal";
 import { LanguageSelector } from "./LanguageSelector";
+import { X, Menu } from "lucide-react";
 
 export const Header = () => {
   const { t } = useTranslation();
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const menuItems = [
     { name: t("Home"), href: "#home" },
@@ -17,6 +19,14 @@ export const Header = () => {
     { name: t("contact"), href: "#contact" }
   ];
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4">
@@ -24,7 +34,7 @@ export const Header = () => {
           {/* Logo */}
           <Logo withLink priority size="md" />
 
-          {/* Navigation Menu */}
+          {/* Navigation Menu - Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
             {menuItems.map((item) => (
               <a
@@ -37,8 +47,8 @@ export const Header = () => {
             ))}
           </nav>
 
-          {/* Action Buttons and Language Selector */}
-          <div className="flex items-center space-x-4">
+          {/* Action Buttons and Language Selector - Desktop */}
+          <div className="hidden md:flex items-center space-x-4">
             <LanguageSelector />
             <Button variant="outline" size="sm" asChild>
               <a href="/login">{t('login')}</a>
@@ -53,14 +63,55 @@ export const Header = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button className="md:hidden">
-            <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1">
-              <div className="w-4 h-0.5 bg-foreground"></div>
-              <div className="w-4 h-0.5 bg-foreground"></div>
-              <div className="w-4 h-0.5 bg-foreground"></div>
-            </div>
+          <button 
+            className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
+            onClick={toggleMobileMenu}
+            aria-label="Toggle mobile menu"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-background border-b border-border shadow-lg z-40">
+            <nav className="px-4 py-6 space-y-4">
+              {menuItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="block text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium py-2"
+                  onClick={closeMobileMenu}
+                >
+                  {item.name}
+                </a>
+              ))}
+              
+              {/* Mobile Action Buttons */}
+              <div className="pt-4 space-y-3 border-t border-border">
+                <LanguageSelector />
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <a href="/login" onClick={closeMobileMenu}>{t('login')}</a>
+                </Button>
+                <Button 
+                  variant="medical" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => {
+                    setShowUserTypeModal(true);
+                    closeMobileMenu();
+                  }}
+                >
+                  {t('register')}
+                </Button>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
       
       <UserTypeModal
