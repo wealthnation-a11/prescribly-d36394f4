@@ -14,7 +14,7 @@ export function AdminDomainGuard({ children }: AdminDomainGuardProps) {
     const checkDomain = () => {
       const currentDomain = window.location.hostname;
       const allowedDomains = [
-        'presscriblyadmin.lovable.app',
+        'prescriblyadmin.lovable.app',
         'localhost', // For development
         '127.0.0.1' // For development
       ];
@@ -56,7 +56,7 @@ export function AdminDomainGuard({ children }: AdminDomainGuardProps) {
               This admin portal can only be accessed from:
             </p>
             <div className="bg-muted p-3 rounded-lg">
-              <code className="text-sm">presscriblyadmin.lovable.app</code>
+              <code className="text-sm">prescriblyadmin.lovable.app</code>
             </div>
             <p className="text-xs text-muted-foreground mt-4">
               Please use the correct domain to access the admin portal.
