@@ -20,16 +20,6 @@ import DoctorProfile from "./pages/doctor/DoctorProfile";
 import DoctorAvailability from "./pages/doctor/DoctorAvailability";
 import DoctorEarnings from "./pages/doctor/DoctorEarnings";
 import PatientDetails from "./pages/doctor/PatientDetails";
-import AdminDashboard from "./pages/AdminDashboard";
-import UserManagement from "./pages/admin/UserManagement";
-import DoctorManagement from "./pages/admin/DoctorManagement";
-import AppointmentManagement from "./pages/admin/AppointmentManagement";
-import FinancialReports from "./pages/admin/FinancialReports";
-import SystemAnalytics from "./pages/admin/SystemAnalytics";
-import NotificationCenter from "./pages/admin/NotificationCenter";
-import ContentManagement from "./pages/admin/ContentManagement";
-import SystemSettings from "./pages/admin/SystemSettings";
-import { AdminDomainGuard } from "./components/AdminDomainGuard";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
@@ -107,71 +97,6 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
-              </ProtectedRoute>
-            } />
-
-            {/* Admin Routes */}
-            <Route path="/admin-dashboard" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <AdminDashboard />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <UserManagement />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/doctors" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <DoctorManagement />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/appointments" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <AppointmentManagement />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/finance" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <FinancialReports />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/analytics" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <SystemAnalytics />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/notifications" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <NotificationCenter />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/content" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <ContentManagement />
-                </AdminDomainGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/settings" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDomainGuard>
-                  <SystemSettings />
-                </AdminDomainGuard>
               </ProtectedRoute>
             } />
 

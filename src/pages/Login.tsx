@@ -26,11 +26,8 @@ export const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Allow admin login regardless of user type selection
-    const isAdminEmail = email === "admin@prescriblyadmin.lovable.app";
-    
-    // Block doctors from logging in through patient login (unless admin)
-    if (userType === "doctor" && !isAdminEmail) {
+    // Block doctors from logging in through patient login
+    if (userType === "doctor") {
       toast({
         title: "Access Denied",
         description: "Doctors must use the Doctor Login section.",
@@ -67,14 +64,8 @@ export const Login = () => {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        
-        // Check if admin user and redirect accordingly
-        if (email === "admin@prescriblyadmin.lovable.app") {
-          navigate("/admin-dashboard");
-        } else {
-          // Redirect to dashboard which will handle role-based routing
-          navigate("/dashboard");
-        }
+        // Redirect to dashboard which will handle role-based routing
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
