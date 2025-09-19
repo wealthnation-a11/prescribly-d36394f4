@@ -23,6 +23,13 @@ import PatientDetails from "./pages/doctor/PatientDetails";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import DoctorManagement from "./pages/admin/DoctorManagement";
+import AppointmentManagement from "./pages/admin/AppointmentManagement";
+import FinancialReports from "./pages/admin/FinancialReports";
+import SystemAnalytics from "./pages/admin/SystemAnalytics";
+import NotificationCenter from "./pages/admin/NotificationCenter";
+import ContentManagement from "./pages/admin/ContentManagement";
+import SystemSettings from "./pages/admin/SystemSettings";
+import { AdminDomainGuard } from "./components/AdminDomainGuard";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
@@ -106,47 +113,65 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin-dashboard" element={
               <ProtectedRoute requireAdmin>
-                <AdminDashboard />
+                <AdminDomainGuard>
+                  <AdminDashboard />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
               <ProtectedRoute requireAdmin>
-                <UserManagement />
+                <AdminDomainGuard>
+                  <UserManagement />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/doctors" element={
               <ProtectedRoute requireAdmin>
-                <DoctorManagement />
+                <AdminDomainGuard>
+                  <DoctorManagement />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/appointments" element={
               <ProtectedRoute requireAdmin>
-                <div>Admin Appointments - Coming Soon</div>
+                <AdminDomainGuard>
+                  <AppointmentManagement />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/finance" element={
               <ProtectedRoute requireAdmin>
-                <div>Financial Reports - Coming Soon</div>
+                <AdminDomainGuard>
+                  <FinancialReports />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/analytics" element={
               <ProtectedRoute requireAdmin>
-                <div>Analytics Dashboard - Coming Soon</div>
+                <AdminDomainGuard>
+                  <SystemAnalytics />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/notifications" element={
               <ProtectedRoute requireAdmin>
-                <div>Notifications Management - Coming Soon</div>
+                <AdminDomainGuard>
+                  <NotificationCenter />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/content" element={
               <ProtectedRoute requireAdmin>
-                <div>Content Management - Coming Soon</div>
+                <AdminDomainGuard>
+                  <ContentManagement />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/settings" element={
               <ProtectedRoute requireAdmin>
-                <div>System Settings - Coming Soon</div>
+                <AdminDomainGuard>
+                  <SystemSettings />
+                </AdminDomainGuard>
               </ProtectedRoute>
             } />
 
