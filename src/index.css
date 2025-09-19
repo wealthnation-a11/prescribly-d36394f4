@@ -452,6 +452,7 @@ html[dir="rtl"] .rtl\:ml-auto {
 
 .medical-icon {
   animation: float 4s ease-in-out infinite;
+  will-change: transform;
 }
 
 .medical-icon:nth-child(2) {
@@ -460,6 +461,26 @@ html[dir="rtl"] .rtl\:ml-auto {
 
 .medical-icon:nth-child(3) {
   animation-delay: -2s;
+}
+
+.medical-icon:nth-child(4) {
+  animation-delay: -0.5s;
+}
+
+.medical-icon:nth-child(5) {
+  animation-delay: -1.5s;
+}
+
+.medical-icon:nth-child(6) {
+  animation-delay: -2.5s;
+}
+
+.medical-icon:nth-child(7) {
+  animation-delay: -3s;
+}
+
+.medical-icon:nth-child(8) {
+  animation-delay: -3.5s;
 }
 
 .hover-lift {
