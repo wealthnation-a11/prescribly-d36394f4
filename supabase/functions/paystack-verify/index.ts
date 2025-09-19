@@ -39,8 +39,8 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { user_id, type, plan } = data.data.metadata;
-    const amount = data.data.amount / 100; // Convert from kobo/cents
+    const { user_id, type, plan, base_usd_amount, currency, local_amount, exchange_rate_used } = data.data.metadata;
+    const amount = base_usd_amount || (data.data.amount / 100); // Use base USD amount or convert from kobo/cents
 
     // Insert payment record
     const { error: paymentError } = await supabase
@@ -49,7 +49,11 @@ serve(async (req) => {
         user_id,
         amount,
         reference,
-        status: 'completed'
+        status: 'completed',
+        currency: currency || 'NGN',
+        local_amount: local_amount || (data.data.amount / 100),
+        exchange_rate_used: exchange_rate_used,
+        provider: 'paystack'
       });
 
     if (paymentError) throw paymentError;
@@ -84,7 +88,11 @@ serve(async (req) => {
           user_id,
           amount,
           reference,
-          status: 'completed'
+          status: 'completed',
+          currency: currency || 'NGN',
+          local_amount: local_amount || (data.data.amount / 100),
+          exchange_rate_used: exchange_rate_used,
+          provider: 'paystack'
         });
 
       if (consultationError) throw consultationError;

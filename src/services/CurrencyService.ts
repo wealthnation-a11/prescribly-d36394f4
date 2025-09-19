@@ -15,7 +15,6 @@ export interface PricingData {
   localAmount: number;
   localCurrency: string;
   localSymbol: string;
-  provider: 'paystack' | 'stripe';
 }
 
 export class CurrencyService {
@@ -53,14 +52,12 @@ export class CurrencyService {
     const localAmount = Math.round(usdAmount / rate); // Convert from USD to local currency
     
     const currencyInfo = this.getCurrencyInfo(targetCurrency);
-    const provider = targetCurrency === 'NGN' ? 'paystack' : 'stripe';
     
     return {
       baseUSD: usdAmount,
       localAmount,
       localCurrency: targetCurrency,
-      localSymbol: currencyInfo.symbol,
-      provider
+      localSymbol: currencyInfo.symbol
     };
   }
 
@@ -161,18 +158,5 @@ export class CurrencyService {
   static formatAmount(amount: number, currency: string): string {
     const { symbol } = this.getCurrencyInfo(currency);
     return `${symbol}${amount.toLocaleString()}`;
-  }
-
-  /**
-   * Get payment provider-specific amount
-   */
-  static getProviderAmount(pricing: PricingData): number {
-    if (pricing.provider === 'paystack') {
-      // Paystack expects amount in kobo (multiply by 100)
-      return pricing.localAmount * 100;
-    } else {
-      // Stripe expects amount in cents for USD, or smallest unit for other currencies
-      return pricing.localAmount * 100;
-    }
   }
 }

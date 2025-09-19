@@ -68,17 +68,16 @@ export const useMultiCurrencyPayment = () => {
         throw new Error('Failed to get pricing information');
       }
 
-      const providerAmount = CurrencyService.getProviderAmount(pricing);
-      
-      // Determine which edge function to use
-      const functionName = pricing.provider === 'paystack' ? 'paystack-initialize' : 'stripe-initialize';
+      // Use Paystack for all currencies
+      const functionName = 'paystack-initialize';
       
       const body: any = {
         email: user.email,
-        amount: providerAmount,
+        amount: pricing.baseUSD, // Always base $10 USD
         currency: pricing.localCurrency,
         user_id: user.id,
         type,
+        local_amount: pricing.localAmount,
         base_usd_amount: pricing.baseUSD,
         exchange_rate_used: pricing.localAmount / pricing.baseUSD
       };

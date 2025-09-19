@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, amount, user_id, type, plan } = await req.json();
+    const { email, amount, user_id, type, plan, currency = 'NGN', local_amount, exchange_rate_used } = await req.json();
     
     const paystackSecret = Deno.env.get('PAYSTACK_SECRET');
     if (!paystackSecret) {
@@ -29,12 +29,16 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         email,
-        amount: amount * 100, // Convert to kobo/cents
-        currency: 'NGN',
+        amount: (local_amount || amount) * 100, // Convert to kobo/cents
+        currency: currency || 'NGN',
         metadata: {
           user_id,
           type,
-          plan: plan || 'monthly'
+          plan: plan || 'monthly',
+          base_usd_amount: amount,
+          currency,
+          local_amount,
+          exchange_rate_used
         },
         callback_url: `${req.headers.get('origin')}/payment-callback`
       })
