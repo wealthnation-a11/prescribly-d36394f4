@@ -1,4 +1,5 @@
 import { SupportForm } from "@/components/SupportForm";
+import { MobileHeader } from "@/components/MobileHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -16,13 +17,7 @@ export const Support = () => {
         <AppSidebar />
         
         <SidebarInset className="flex-1">
-          {/* Header */}
-          <header className="flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur px-6">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="flex-1">
-              <h1 className="text-heading text-foreground">Support Center</h1>
-            </div>
-          </header>
+          <MobileHeader title="Support Center" />
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto p-6">

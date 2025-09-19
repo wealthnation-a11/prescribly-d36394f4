@@ -22,8 +22,10 @@ import {
   Loader2,
   Brain,
   Trophy,
-  Crown
+  Crown,
+  HelpCircle
 } from "lucide-react";
+import { MobileHeader } from "@/components/MobileHeader";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
 import { AppointmentCard } from "@/components/AppointmentCard";
 import { DailyHealthTip } from "@/components/DailyHealthTip";
@@ -350,13 +352,7 @@ export const UserDashboard = () => {
         <AppSidebar />
         
         <SidebarInset className="flex-1">
-          {/* Header */}
-          <header className="flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur px-6">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="flex-1">
-              <h1 className="text-heading text-foreground">Dashboard</h1>
-            </div>
-          </header>
+          <MobileHeader title="Dashboard" />
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto">

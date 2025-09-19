@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
 import { FeatureAccessGuard } from "./FeatureAccessGuard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Sidebar,
   SidebarContent,
@@ -18,9 +19,10 @@ import {
 
 export function AppSidebar() {
   const { t } = useTranslation();
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const isMobile = useIsMobile();
 
   const items = [
     { title: t("dashboard"), url: "/user-dashboard", icon: Home, requiresSubscription: false },
@@ -41,9 +43,17 @@ export function AppSidebar() {
       ? "bg-primary/10 text-primary font-medium border-r-2 border-primary" 
       : "hover:bg-accent/50 text-muted-foreground hover:text-foreground";
 
+  // Close mobile sidebar on navigation
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <Sidebar
       className={`border-r border-border transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"}`}
+      collapsible="icon"
     >
       <SidebarContent className="bg-sidebar">
         <div className="p-4 border-b border-sidebar-border">
@@ -73,6 +83,7 @@ export function AppSidebar() {
                         <NavLink 
                           to={item.url} 
                           end 
+                          onClick={handleNavClick}
                           className={({ isActive }) => `
                             flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full
                             ${getNavCls({ isActive })}
@@ -88,6 +99,7 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         end 
+                        onClick={handleNavClick}
                         className={({ isActive }) => `
                           flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
                           ${getNavCls({ isActive })}
