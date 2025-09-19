@@ -28,6 +28,7 @@ import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
 import { AppointmentCard } from "@/components/AppointmentCard";
 import { DailyHealthTip } from "@/components/DailyHealthTip";
 import { useUserDashboardStats } from '@/hooks/useUserDashboardStats';
+import { FeatureAccessGuard } from "@/components/FeatureAccessGuard";
 
 import { 
   SidebarProvider, 
@@ -472,31 +473,33 @@ export const UserDashboard = () => {
                 <h2 className="text-heading text-foreground mb-6">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                   {quickActions.map((action, index) => (
-                    <Card key={action.title} className="dashboard-card hover-scale fade-in-up" style={{ animationDelay: `${(index + 3) * 0.1}s` }}>
-                      <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center gap-3 text-lg">
-                          <div className="icon-container">
-                            <action.icon className={`w-5 h-5 ${action.color}`} />
-                          </div>
-                          {action.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <p className="text-content text-muted-foreground mb-6 leading-relaxed">
-                          {action.description}
-                        </p>
-                        <Button 
-                          asChild 
-                          variant={action.variant === "primary" ? "medical" : "outline"}
-                          className="w-full hover-scale"
-                          size="lg"
-                        >
-                          <Link to={action.href}>
-                            Get Started
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
+                    <FeatureAccessGuard key={action.title} featureName={action.title}>
+                      <Card className="dashboard-card hover-scale fade-in-up" style={{ animationDelay: `${(index + 3) * 0.1}s` }}>
+                        <CardHeader className="pb-4">
+                          <CardTitle className="flex items-center gap-3 text-lg">
+                            <div className="icon-container">
+                              <action.icon className={`w-5 h-5 ${action.color}`} />
+                            </div>
+                            {action.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <p className="text-content text-muted-foreground mb-6 leading-relaxed">
+                            {action.description}
+                          </p>
+                          <Button 
+                            asChild 
+                            variant={action.variant === "primary" ? "medical" : "outline"}
+                            className="w-full hover-scale"
+                            size="lg"
+                          >
+                            <Link to={action.href}>
+                              Get Started
+                            </Link>
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </FeatureAccessGuard>
                   ))}
                 </div>
               </div>

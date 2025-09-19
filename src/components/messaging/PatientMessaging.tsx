@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { ConsultationAccessGuard } from '@/components/ConsultationAccessGuard';
 
 const PatientMessaging = () => {
   const { user } = useAuth();
@@ -174,22 +175,34 @@ const PatientMessaging = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => startCall(true)}
+                        <ConsultationAccessGuard 
+                          appointmentId={selectedParticipant.appointmentId || ''} 
+                          doctorName={selectedParticipant.name}
+                          featureType="call"
                         >
-                          <Phone className="w-4 h-4 mr-2" />
-                          Voice Call
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => startCall(false)}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => startCall(true)}
+                          >
+                            <Phone className="w-4 h-4 mr-2" />
+                            Voice Call
+                          </Button>
+                        </ConsultationAccessGuard>
+                        <ConsultationAccessGuard 
+                          appointmentId={selectedParticipant.appointmentId || ''} 
+                          doctorName={selectedParticipant.name}
+                          featureType="call"
                         >
-                          <Video className="w-4 h-4 mr-2" />
-                          Video Call
-                        </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => startCall(false)}
+                          >
+                            <Video className="w-4 h-4 mr-2" />
+                            Video Call
+                          </Button>
+                        </ConsultationAccessGuard>
                       </div>
                     </div>
                   </div>
@@ -225,30 +238,36 @@ const PatientMessaging = () => {
                   </ScrollArea>
 
                   {/* Message Input */}
-                  <div className="p-4 border-t">
-                    <div className="flex gap-2">
-                      <Input
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type a message..."
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                        disabled={isLoading}
-                        className="flex-1"
-                      />
-                      <Button 
-                        onClick={handleSendMessage} 
-                        disabled={isLoading || !newMessage.trim()}
-                        size="sm"
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
+                  <ConsultationAccessGuard 
+                    appointmentId={selectedParticipant.appointmentId || ''} 
+                    doctorName={selectedParticipant.name}
+                    featureType="chat"
+                  >
+                    <div className="p-4 border-t">
+                      <div className="flex gap-2">
+                        <Input
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="Type a message..."
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendMessage();
+                            }
+                          }}
+                          disabled={isLoading}
+                          className="flex-1"
+                        />
+                        <Button 
+                          onClick={handleSendMessage} 
+                          disabled={isLoading || !newMessage.trim()}
+                          size="sm"
+                        >
+                          <Send className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  </ConsultationAccessGuard>
                 </>
               ) : (
                 <div className="flex-1 flex items-center justify-center">

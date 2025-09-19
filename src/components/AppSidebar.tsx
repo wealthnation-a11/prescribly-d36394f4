@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
+import { FeatureAccessGuard } from "./FeatureAccessGuard";
 import {
   Sidebar,
   SidebarContent,
@@ -22,13 +23,13 @@ export function AppSidebar() {
   const currentPath = location.pathname;
 
   const items = [
-    { title: t("dashboard"), url: "/user-dashboard", icon: Home },
-    { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus },
-    { title: "Health Companion", url: "/ai-health-companion", icon: MessageCircle },
-    { title: "Health Diagnostic", url: "/health-diagnostic", icon: Brain },
-    { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText },
-    { title: t("chat"), url: "/chat", icon: MessageCircle },
-    { title: t("profile"), url: "/profile", icon: User },
+    { title: t("dashboard"), url: "/user-dashboard", icon: Home, requiresSubscription: false },
+    { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus, requiresSubscription: true },
+    { title: "Health Companion", url: "/ai-health-companion", icon: MessageCircle, requiresSubscription: true },
+    { title: "Health Diagnostic", url: "/health-diagnostic", icon: Brain, requiresSubscription: true },
+    { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText, requiresSubscription: true },
+    { title: t("chat"), url: "/chat", icon: MessageCircle, requiresSubscription: true },
+    { title: t("profile"), url: "/profile", icon: User, requiresSubscription: false },
   ];
 
   const isActive = (path: string) => currentPath === path;
@@ -66,19 +67,37 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild className="h-12">
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className={({ isActive }) => `
-                        flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                        ${getNavCls({ isActive })}
-                      `}
-                    >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      {!isCollapsed && (
-                        <span className="text-content font-medium">{item.title}</span>
-                      )}
-                    </NavLink>
+                    {item.requiresSubscription ? (
+                      <FeatureAccessGuard featureName={item.title}>
+                        <NavLink 
+                          to={item.url} 
+                          end 
+                          className={({ isActive }) => `
+                            flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full
+                            ${getNavCls({ isActive })}
+                          `}
+                        >
+                          <item.icon className="w-5 h-5 flex-shrink-0" />
+                          {!isCollapsed && (
+                            <span className="text-content font-medium">{item.title}</span>
+                          )}
+                        </NavLink>
+                      </FeatureAccessGuard>
+                    ) : (
+                      <NavLink 
+                        to={item.url} 
+                        end 
+                        className={({ isActive }) => `
+                          flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                          ${getNavCls({ isActive })}
+                        `}
+                      >
+                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                        {!isCollapsed && (
+                          <span className="text-content font-medium">{item.title}</span>
+                        )}
+                      </NavLink>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

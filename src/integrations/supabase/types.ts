@@ -2467,6 +2467,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
       log_monitoring_event: {
         Args: {
           entity_id_param: string

@@ -18,6 +18,7 @@ interface ChatParticipant {
   avatar_url?: string;
   last_message?: string;
   last_message_time?: string;
+  appointmentId?: string;
 }
 
 export const useMessaging = () => {
@@ -70,7 +71,7 @@ export const useMessaging = () => {
         // Get doctors with approved appointments
         const { data: appointments, error: appointmentsError } = await supabase
           .from('appointments')
-          .select('doctor_id')
+          .select('id, doctor_id')
           .eq('patient_id', user.id)
           .eq('status', 'approved');
 
@@ -86,11 +87,19 @@ export const useMessaging = () => {
 
           if (profilesError) throw profilesError;
 
-          const participantList: ChatParticipant[] = profiles?.map((profile: any) => ({
-            id: profile.user_id,
-            name: `${profile.first_name} ${profile.last_name}`,
-            avatar_url: profile.avatar_url,
-          })) || [];
+          const participantList: ChatParticipant[] = profiles?.map((profile: any) => {
+            // Find the most recent appointment for this doctor
+            const mostRecentAppointment = appointments
+              .filter(apt => apt.doctor_id === profile.user_id)
+              .sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime())[0];
+
+            return {
+              id: profile.user_id,
+              name: `${profile.first_name} ${profile.last_name}`,
+              avatar_url: profile.avatar_url,
+              appointmentId: mostRecentAppointment?.id
+            };
+          }) || [];
 
           setParticipants(participantList);
         } else {
