@@ -668,7 +668,7 @@ export const LandingPage = () => {
               <h4 className="font-semibold text-background">Contact</h4>
               <div className="space-y-3 text-sm text-background/80">
                 <div>
-                  <a href="mailto:support@prescribly.app" className="hover:underline">support@prescribly.app</a>
+                  <a href="mailto:prescribly@gmail.com" className="hover:underline">prescribly@gmail.com</a>
                 </div>
                 <nav aria-label="Social media" className="flex items-center gap-4">
                   <a

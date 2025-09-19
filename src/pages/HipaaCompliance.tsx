@@ -72,7 +72,7 @@ export default function HipaaCompliance() {
 
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">8. Contact</h2>
-          <p className="text-muted-foreground">Email: privacy@prescribly.com</p>
+          <p className="text-muted-foreground">Email: prescribly@gmail.com</p>
           <p className="text-xs text-muted-foreground mt-2">This information is provided for transparency and does not constitute legal advice.</p>
         </section>
       </main>

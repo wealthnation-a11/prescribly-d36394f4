@@ -100,7 +100,7 @@ export default function Privacy() {
 
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">11. Contact</h2>
-          <p className="text-muted-foreground">Email: privacy@prescribly.com</p>
+          <p className="text-muted-foreground">Email: prescribly@gmail.com</p>
         </section>
       </main>
     </div>

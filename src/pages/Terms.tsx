@@ -88,7 +88,7 @@ export default function Terms() {
 
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">10. Contact Us</h2>
-          <p className="text-muted-foreground">Email: support@prescribly.com</p>
+          <p className="text-muted-foreground">Email: prescribly@gmail.com</p>
         </section>
       </main>
     </div>

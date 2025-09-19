@@ -61,7 +61,7 @@ export const DoctorPendingApproval = () => {
                   <Mail className="w-5 h-5 text-slate-600" />
                   <div>
                     <p className="font-medium text-slate-900">Email Support</p>
-                    <p className="text-sm text-slate-600">support@example.com</p>
+                    <p className="text-sm text-slate-600">prescribly@gmail.com</p>
                   </div>
                 </div>
               </div>
