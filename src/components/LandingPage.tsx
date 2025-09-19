@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, PhoneCall, Linkedin, Instagram, Twitter, HelpCircle } from "lucide-react";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
@@ -12,6 +12,7 @@ import { FloatingIcons } from "./FloatingIcons";
 import { Header } from "./Header";
 import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
+import { CustomTeamContactForm } from "./CustomTeamContactForm";
 import heroImage from "@/assets/hero-doctor.jpg";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
@@ -396,10 +397,7 @@ export const LandingPage = () => {
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>Training & Onboarding</span>
                     </div>
-                    <Button variant="outline" className="w-full mt-6">
-                      <PhoneCall className="w-4 h-4 mr-2" />
-                      Contact Support
-                    </Button>
+                    <CustomTeamContactForm />
                   </CardContent>
                 </Card>
               </div>
@@ -550,10 +548,7 @@ export const LandingPage = () => {
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>Training & Onboarding</span>
                     </div>
-                    <Button variant="outline" className="w-full mt-6">
-                      <PhoneCall className="w-4 h-4 mr-2" />
-                      Contact Support
-                    </Button>
+                    <CustomTeamContactForm />
                   </CardContent>
                 </Card>
               </div>
