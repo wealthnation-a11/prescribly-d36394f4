@@ -55,22 +55,22 @@ export const LandingPage = () => {
 
   const testimonials = [
     {
-      quote: "Prescribly helped me get answers at 2am when clinics were closed. The AI diagnosis was spot-on!",
-      author: "Sarah Johnson",
-      role: "Patient",
-      avatar: "👩‍💼"
+      quote: "I was able to speak to a doctor the same day I booked—helped me feel seen and cared for.",
+      author: "Amara",
+      role: "Lagos",
+      avatar: "👩🏾‍💼"
     },
     {
-      quote: "Finally, a platform that connects me with patients without stress. I've doubled my consultation income!",
-      author: "Dr. Michael Chen",
-      role: "Family Medicine",
-      avatar: "👨‍⚕️"
+      quote: "Affordable, reliable, and empathetic. I trust Prescribly like I would a clinic.",
+      author: "James",
+      role: "London",
+      avatar: "👨🏻‍💼"
     },
     {
-      quote: "My child's health issue was addressed in minutes! The doctor was professional and caring.",
-      author: "Maria Rodriguez",
-      role: "Parent",
-      avatar: "👩‍👧"
+      quote: "The video call was so easy. The doctor listened, diagnosed, and I got a prescription without leaving my house.",
+      author: "Fatima",
+      role: "Accra",
+      avatar: "👩🏿‍💼"
     }
   ];
 
@@ -107,17 +107,46 @@ export const LandingPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <h1 className="text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
-                {t('welcome_message')}{" "}
-                <span className="text-primary">{t('app_name')}</span>
+                Real Doctors. Real Care.{" "}
+                <span className="text-primary">Anytime, Anywhere.</span>
               </h1>
               <p className="text-xl text-muted-foreground fade-in-up stagger-1">
-                {t('tagline')}
+                Prescribly connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
               </p>
+              <div className="flex flex-col sm:flex-row gap-4 fade-in-up stagger-2">
+                <Button
+                  variant="cta"
+                  size="lg"
+                  className="text-lg px-8 py-6"
+                  onClick={() => window.location.href = '/register'}
+                >
+                  Get Started
+                </Button>
+                <Button
+                  variant="medical"
+                  size="lg"
+                  className="text-lg px-8 py-6"
+                  onClick={() => window.location.href = '/book-appointment'}
+                >
+                  Book a Doctor
+                </Button>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground fade-in-up stagger-3 bg-card/50 rounded-lg p-4 border border-border/20">
+                <div className="flex items-center gap-1">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Licensed Professionals</span>
+                </div>
+                <div className="w-1 h-1 rounded-full bg-muted-foreground/30"></div>
+                <div className="flex items-center gap-1">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Secure & Private</span>
+                </div>
+              </div>
             </div>
             <div className="relative fade-in-up stagger-2">
               <img 
                 src={heroImage} 
-                alt="AI Doctor Avatar"
+                alt="Professional healthcare consultation"
                 width={1200}
                 height={800}
                 className="w-full h-auto rounded-2xl medical-shadow floating-animation"
@@ -153,60 +182,117 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Who It's For Section */}
-      <section id="about" className="py-20">
+      {/* Why Prescribly Section */}
+      <section id="why-prescribly" className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
-            {t('about')}
+            Why Patients Choose Prescribly
           </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Heart className="w-10 h-10 text-primary" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up text-center">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Heart className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">For Patients</CardTitle>
-                <CardDescription>Healthcare when you need it most</CardDescription>
+                <CardTitle className="text-lg">Compassionate Healthcare When You Need It</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary"></div>
-                  <span>24/7 access to medical guidance</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary"></div>
-                  <span>Fast diagnosis and treatment</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary"></div>
-                  <span>Affordable care for everyone</span>
-                </div>
-              </CardContent>
             </Card>
             
-            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-20 h-20 rounded-full bg-trust-blue/10 flex items-center justify-center mb-4">
-                  <Stethoscope className="w-10 h-10 text-trust-blue" />
+            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 text-center">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Check className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">For Doctors</CardTitle>
-                <CardDescription>Grow your practice digitally</CardDescription>
+                <CardTitle className="text-lg">Clear, Fair Pricing</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-trust-blue"></div>
-                  <span>Verified access and credibility</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-trust-blue"></div>
-                  <span>Manage consultations efficiently</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-trust-blue"></div>
-                  <span>Earn and grow your reputation</span>
-                </div>
-              </CardContent>
             </Card>
+
+            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-2 text-center">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Stethoscope className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Professional & Trusted</CardTitle>
+              </CardHeader>
+            </Card>
+
+            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-3 text-center">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Globe className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Data You Control</CardTitle>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* How it Works Section */}
+      <section id="how-it-works" className="py-20 bg-secondary/30">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
+            How Prescribly Works
+          </h2>
+          <div className="grid md:grid-cols-5 gap-8 max-w-6xl mx-auto">
+            <div className="text-center fade-in-up">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+                1
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Sign Up</h3>
+              <p className="text-sm text-muted-foreground">Create your secure account</p>
+            </div>
+            
+            <div className="text-center fade-in-up stagger-1">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+                2
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Choose Subscription</h3>
+              <p className="text-sm text-muted-foreground">Select your healthcare plan</p>
+            </div>
+
+            <div className="text-center fade-in-up stagger-2">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+                3
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Book a Doctor</h3>
+              <p className="text-sm text-muted-foreground">Schedule with licensed professionals</p>
+            </div>
+
+            <div className="text-center fade-in-up stagger-3">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+                4
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Chat or Call</h3>
+              <p className="text-sm text-muted-foreground">Connect via your preferred method</p>
+            </div>
+
+            <div className="text-center fade-in-up stagger-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+                5
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Receive Care & Prescription</h3>
+              <p className="text-sm text-muted-foreground">Get treatment and medications</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Promise Section */}
+      <section id="our-promise" className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl font-bold text-foreground mb-8 fade-in-up">
+              Our Promise to You
+            </h2>
+            <div className="prose prose-lg mx-auto text-muted-foreground fade-in-up stagger-1">
+              <p className="text-lg leading-relaxed">
+                At Prescribly, we believe health care should be human first. Our platform connects you with compassionate, licensed healthcare professionals who truly care about your well-being. 
+              </p>
+              <p className="text-lg leading-relaxed mt-6">
+                We promise transparent pricing, secure data handling, and healthcare that puts your needs first. Every consultation is designed to make you feel heard, understood, and cared for—because your health deserves nothing less.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -215,7 +301,7 @@ export const LandingPage = () => {
       <section className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
-            {t('testimonials')}
+            What Our Patients Say
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
