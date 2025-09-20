@@ -19,8 +19,8 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         hero: "hero-gradient text-primary-foreground hover:opacity-90 hover:scale-105 transition-all duration-300 glow-effect font-semibold",
-        medical: "bg-medical-blue text-primary-foreground hover:bg-trust-blue transition-all duration-300 medical-shadow",
-        cta: "bg-trust-blue text-primary-foreground hover:bg-primary pulse-glow hover:scale-105 transition-all duration-300 font-bold",
+        medical: "bg-gradient-to-r from-medical-blue to-trust-blue text-primary-foreground hover:from-trust-blue hover:to-primary hover:scale-105 hover:shadow-xl transition-all duration-500 medical-shadow font-semibold",
+        cta: "bg-gradient-to-r from-trust-blue to-primary text-primary-foreground hover:from-primary hover:to-accent hover:scale-105 hover:shadow-2xl pulse-glow transition-all duration-500 font-bold",
         oauth: "bg-background text-foreground border border-input hover:bg-accent hover:text-accent-foreground",
       },
       size: {

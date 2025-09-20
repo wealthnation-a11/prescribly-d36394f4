@@ -105,19 +105,21 @@ export const LandingPage = () => {
         <FloatingIcons />
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <h1 className="text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
+            <div className="hero-curved-border space-y-8 animate-fade-in">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
                 Real Doctors. Real Care.{" "}
-                <span className="text-primary">Anytime, Anywhere.</span>
+                <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Anytime, Anywhere.
+                </span>
               </h1>
-              <p className="text-xl text-muted-foreground fade-in-up stagger-1">
+              <p className="text-lg sm:text-xl text-muted-foreground fade-in-up stagger-1 leading-relaxed">
                 Prescribly connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 fade-in-up stagger-2">
+              <div className="button-container-enhanced fade-in-up stagger-2">
                 <Button
                   variant="cta"
                   size="lg"
-                  className="text-lg px-8 py-6"
+                  className="button-enhanced"
                   onClick={() => window.location.href = '/register'}
                 >
                   Get Started
@@ -125,21 +127,23 @@ export const LandingPage = () => {
                 <Button
                   variant="medical"
                   size="lg"
-                  className="text-lg px-8 py-6"
+                  className="button-enhanced"
                   onClick={() => window.location.href = '/book-appointment'}
                 >
                   Book a Doctor
                 </Button>
               </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground fade-in-up stagger-3 bg-card/50 rounded-lg p-4 border border-border/20">
-                <div className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Licensed Professionals</span>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm text-muted-foreground fade-in-up stagger-3 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 border border-prescribly-accent/20 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-success-green animate-pulse"></div>
+                  <Check className="w-4 h-4 text-success-green" />
+                  <span className="font-medium">Licensed Professionals</span>
                 </div>
-                <div className="w-1 h-1 rounded-full bg-muted-foreground/30"></div>
-                <div className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Secure & Private</span>
+                <div className="w-1 h-1 rounded-full bg-muted-foreground/30 hidden sm:block"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-success-green animate-pulse"></div>
+                  <Check className="w-4 h-4 text-success-green" />
+                  <span className="font-medium">Secure & Private</span>
                 </div>
               </div>
             </div>
