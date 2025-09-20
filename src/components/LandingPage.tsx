@@ -13,7 +13,7 @@ import { Header } from "./Header";
 import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
-import heroImage from "@/assets/hero-doctor.jpg";
+import heroImage from "@/assets/hero-doctors-team.jpg";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 
@@ -105,7 +105,7 @@ export const LandingPage = () => {
         <FloatingIcons />
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="hero-curved-border space-y-8 animate-fade-in">
+            <div className="space-y-8 animate-fade-in">
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
                 Real Doctors. Real Care.{" "}
                 <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -115,19 +115,19 @@ export const LandingPage = () => {
               <p className="text-lg sm:text-xl text-muted-foreground fade-in-up stagger-1 leading-relaxed">
                 Prescribly connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
               </p>
-              <div className="button-container-enhanced fade-in-up stagger-2">
+              <div className="flex flex-row gap-3 justify-center sm:justify-start fade-in-up stagger-2">
                 <Button
                   variant="cta"
-                  size="lg"
-                  className="button-enhanced"
+                  size="sm"
+                  className="button-enhanced text-sm px-6 py-2"
                   onClick={() => window.location.href = '/register'}
                 >
                   Get Started
                 </Button>
                 <Button
                   variant="medical"
-                  size="lg"
-                  className="button-enhanced"
+                  size="sm"
+                  className="button-enhanced text-sm px-6 py-2"
                   onClick={() => window.location.href = '/book-appointment'}
                 >
                   Book a Doctor
