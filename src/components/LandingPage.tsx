@@ -128,7 +128,7 @@ export const LandingPage = () => {
                   variant="medical"
                   size="sm"
                   className="button-enhanced text-sm px-6 py-2"
-                  onClick={() => window.location.href = '/book-appointment'}
+                  onClick={() => window.location.href = '/register'}
                 >
                   Book a Doctor
                 </Button>

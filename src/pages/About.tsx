@@ -9,12 +9,6 @@ export default function About() {
     canonicalPath: "/about",
   });
 
-  const leaders = [
-    { name: "Dr. Amina Yusuf", role: "CEO & Co‑founder", bio: "Clinician and technologist focused on equitable access.", img: "/placeholder.svg" },
-    { name: "Michael Chen", role: "CTO & Co‑founder", bio: "Built scalable healthtech systems for millions of users.", img: "/placeholder.svg" },
-    { name: "Sara Rodriguez", role: "Head of Clinical Ops", bio: "Leads doctor onboarding and clinical quality.", img: "/placeholder.svg" },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
@@ -57,23 +51,6 @@ export default function About() {
           </Card>
         </section>
 
-        <section>
-          <h2 className="text-2xl font-semibold text-foreground mb-6">Leadership</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {leaders.map((m) => (
-              <Card key={m.name} className="hover-lift">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <img src={m.img} alt={`${m.name} headshot`} width={72} height={72} loading="lazy" className="w-18 h-18 rounded-full bg-secondary/40" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">{m.name}</h3>
-                    <p className="text-sm text-muted-foreground">{m.role}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{m.bio}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
 
         <section>
           <h2 className="text-2xl font-semibold text-foreground mb-6">Our Values</h2>
