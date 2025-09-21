@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle } from "lucide-react";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle, Shield, Lock, FileText } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
@@ -14,6 +14,8 @@ import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
 import heroImage from "@/assets/hero-doctors-team.jpg";
+import gdprCertification from "@/assets/gdpr-certification.png";
+import hipaaCertification from "@/assets/hipaa-certification.png";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 
@@ -644,6 +646,106 @@ export const LandingPage = () => {
               </div>
             </TabsContent>
           </Tabs>
+        </div>
+      </section>
+
+      {/* Certifications Section */}
+      <section className="py-20 bg-secondary/50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
+              Trusted & Certified
+            </h2>
+            <p className="text-xl text-muted-foreground fade-in-up stagger-1 max-w-3xl mx-auto">
+              Our platform meets the highest standards of data protection and healthcare compliance, 
+              ensuring your sensitive health information is always secure and protected.
+            </p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              {/* GDPR Certification */}
+              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up p-8 text-center">
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="w-24 h-24 flex items-center justify-center">
+                    <img 
+                      src={gdprCertification} 
+                      alt="GDPR Compliance Certification"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-foreground">GDPR Compliant</h3>
+                    <p className="text-muted-foreground">
+                      Full compliance with European Union General Data Protection Regulation, 
+                      ensuring maximum privacy and data protection for all our users.
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-sm text-primary font-medium">
+                      <Check className="w-4 h-4" />
+                      <span>EU Data Protection Standards</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* HIPAA Certification */}
+              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 p-8 text-center">
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="w-24 h-24 flex items-center justify-center">
+                    <img 
+                      src={hipaaCertification} 
+                      alt="HIPAA Compliance Certification"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-foreground">HIPAA Compliant</h3>
+                    <p className="text-muted-foreground">
+                      Meets all Health Insurance Portability and Accountability Act requirements, 
+                      providing enterprise-grade security for Protected Health Information (PHI).
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-sm text-primary font-medium">
+                      <Check className="w-4 h-4" />
+                      <span>Healthcare Data Security</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Additional Security Features */}
+            <div className="mt-16 grid md:grid-cols-3 gap-8 fade-in-up stagger-2">
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground">End-to-End Encryption</h4>
+                <p className="text-sm text-muted-foreground">
+                  All data is encrypted in transit and at rest using industry-standard AES-256 encryption
+                </p>
+              </div>
+              
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground">Secure Authentication</h4>
+                <p className="text-sm text-muted-foreground">
+                  Multi-factor authentication and secure access controls protect your account
+                </p>
+              </div>
+              
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground">Audit Trails</h4>
+                <p className="text-sm text-muted-foreground">
+                  Complete audit logging and monitoring for all healthcare data access
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
