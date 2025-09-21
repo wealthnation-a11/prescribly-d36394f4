@@ -815,8 +815,8 @@ export const LandingPage = () => {
               variant="cta"
               size="lg"
               className="text-xl px-12 py-6"
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-              aria-label="Go to contact section"
+              onClick={() => window.location.href = '/register'}
+              aria-label="Navigate to registration page"
             >
               Sign Up Now
             </Button>
