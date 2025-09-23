@@ -44,6 +44,7 @@ import BookAppointment from "./pages/BookAppointment";
 import Chat from "./pages/Chat";
 import About from "./pages/About";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Press from "./pages/Press";
 import Careers from "./pages/Careers";
 import Terms from "./pages/Terms";
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/doctor-pending-approval" element={<DoctorPendingApproval />} />
             <Route path="/about" element={<About />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/press" element={<Press />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/terms" element={<Terms />} />
