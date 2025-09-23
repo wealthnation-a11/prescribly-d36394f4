@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { NotificationBell } from "./NotificationBell";
 import { HelpCircle, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -24,17 +25,18 @@ export const MobileHeader = ({ title, showSupportButton = true }: MobileHeaderPr
         <h1 className="text-lg font-semibold text-foreground truncate">{title}</h1>
       </div>
       
-      {/* Mobile Support Button */}
-      {showSupportButton && (
-        <div className="lg:hidden">
+      {/* Mobile Notification Bell and Support Button */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <NotificationBell size="sm" />
+        {showSupportButton && (
           <Link to="/support">
             <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
               <HelpCircle className="h-4 w-4" />
               <span className="sr-only">Support</span>
             </Button>
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 };

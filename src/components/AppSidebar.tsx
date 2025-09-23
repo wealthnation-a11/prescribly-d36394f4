@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
+import { NotificationBell } from "./NotificationBell";
 import { FeatureAccessGuard } from "./FeatureAccessGuard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -60,12 +61,22 @@ export function AppSidebar() {
           <NavLink to="/" end className="flex items-center gap-3" aria-label="Go to home">
             <Logo size="sm" />
             {!isCollapsed && (
-              <div>
+              <div className="flex-1">
                 <h2 className="font-bold text-lg text-sidebar-foreground">Prescribly</h2>
                 <p className="text-xs text-sidebar-foreground/70">Health Platform</p>
               </div>
             )}
           </NavLink>
+          {!isCollapsed && (
+            <div className="mt-3 flex justify-center">
+              <NotificationBell />
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="mt-2 flex justify-center">
+              <NotificationBell size="sm" />
+            </div>
+          )}
         </div>
 
         <SidebarGroup className="px-2 py-4">

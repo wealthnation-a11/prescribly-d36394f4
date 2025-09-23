@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { UserTypeModal } from "./UserTypeModal";
 import { LanguageSelector } from "./LanguageSelector";
+import { NotificationBell } from "./NotificationBell";
+import { useAuth } from "@/contexts/AuthContext";
 import { X, Menu } from "lucide-react";
 
 export const Header = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -50,16 +53,22 @@ export const Header = () => {
           {/* Action Buttons and Language Selector - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSelector />
-            <Button variant="outline" size="sm" asChild>
-              <a href="/login">{t('login')}</a>
-            </Button>
-            <Button 
-              variant="medical" 
-              size="sm" 
-              onClick={() => setShowUserTypeModal(true)}
-            >
-              {t('register')}
-            </Button>
+            {user ? (
+              <NotificationBell />
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="/login">{t('login')}</a>
+                </Button>
+                <Button 
+                  variant="medical" 
+                  size="sm" 
+                  onClick={() => setShowUserTypeModal(true)}
+                >
+                  {t('register')}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -95,20 +104,28 @@ export const Header = () => {
               {/* Mobile Action Buttons */}
               <div className="pt-4 space-y-3 border-t border-border opacity-0 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
                 <LanguageSelector />
-                <Button variant="outline" size="sm" className="w-full hover-scale" asChild>
-                  <a href="/login" onClick={closeMobileMenu}>{t('login')}</a>
-                </Button>
-                <Button 
-                  variant="medical" 
-                  size="sm" 
-                  className="w-full hover-scale"
-                  onClick={() => {
-                    setShowUserTypeModal(true);
-                    closeMobileMenu();
-                  }}
-                >
-                  {t('register')}
-                </Button>
+                {user ? (
+                  <div className="flex justify-center">
+                    <NotificationBell size="lg" />
+                  </div>
+                ) : (
+                  <>
+                    <Button variant="outline" size="sm" className="w-full hover-scale" asChild>
+                      <a href="/login" onClick={closeMobileMenu}>{t('login')}</a>
+                    </Button>
+                    <Button 
+                      variant="medical" 
+                      size="sm" 
+                      className="w-full hover-scale"
+                      onClick={() => {
+                        setShowUserTypeModal(true);
+                        closeMobileMenu();
+                      }}
+                    >
+                      {t('register')}
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>

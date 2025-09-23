@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useDoctorApproval } from "@/hooks/useDoctorApproval";
 import { useLogout } from "@/hooks/useLogout";
 import { Logo } from "./Logo";
+import { NotificationBell } from "./NotificationBell";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -53,12 +54,22 @@ export function DoctorSidebar() {
           <NavLink to="/" end className="flex items-center gap-3" aria-label="Go to home">
             <Logo size="sm" />
             {!isCollapsed && (
-              <div>
+              <div className="flex-1">
                 <h2 className="font-bold text-lg text-white">Prescribly</h2>
                 <p className="text-xs text-gray-300">Doctor Portal</p>
               </div>
             )}
           </NavLink>
+          {!isCollapsed && (
+            <div className="mt-3 flex justify-center">
+              <NotificationBell variant="outline" className="border-gray-600 text-white hover:bg-gray-800" />
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="mt-2 flex justify-center">
+              <NotificationBell variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-800" />
+            </div>
+          )}
         </div>
 
         {/* Menu Items */}
