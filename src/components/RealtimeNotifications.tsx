@@ -33,8 +33,50 @@ export const RealtimeNotifications = () => {
       )
       .subscribe();
 
+    // Subscribe to appointment notifications  
+    const notificationsChannel = supabase
+      .channel('user-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          const notification = payload.new as any;
+          
+          // Show toast for appointment-related notifications
+          if (notification.type === 'appointment_request') {
+            toast({
+              title: notification.title,
+              description: notification.message,
+            });
+          } else if (notification.type === 'appointment_approved') {
+            toast({
+              title: notification.title,
+              description: notification.message,
+            });
+          } else if (notification.type === 'appointment_cancelled') {
+            toast({
+              title: notification.title,
+              description: notification.message,
+              variant: "destructive",
+            });
+          } else if (notification.type === 'appointment_completed') {
+            toast({
+              title: notification.title,
+              description: notification.message,
+            });
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(notificationsChannel);
     };
   }, [user?.id, toast]);
 
