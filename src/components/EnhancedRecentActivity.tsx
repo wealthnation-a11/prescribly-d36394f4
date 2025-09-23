@@ -42,28 +42,61 @@ const EnhancedRecentActivity = () => {
     queryFn: async () => {
       if (!user?.id || isDoctor) return [];
       
-      const { data, error } = await supabase
-        .from('diagnosis_history')
+      // Query user_history for diagnosis activities
+      const { data: historyData, error: historyError } = await supabase
+        .from('user_history')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(5);
+
+      // Query chat_sessions for AI diagnostic activities
+      const { data: chatData, error: chatError } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
       
-      if (error) {
-        console.error('Error fetching diagnostics:', error);
+      if (historyError && chatError) {
+        console.error('Error fetching diagnostics:', historyError || chatError);
         return [];
       }
       
-      return (data || []).map(item => ({
-        id: item.id,
-        title: 'Health Diagnostic Completed',
-        description: item.probability 
-          ? `AI diagnosis session with probability: ${(item.probability * 100).toFixed(1)}%`
-          : 'Health diagnostic session completed',
-        timestamp: item.created_at,
-        status: 'completed',
-        icon: <Brain className="h-4 w-4 text-purple-600" />
-      }));
+      const activities = [];
+      
+      // Add history data
+      if (historyData) {
+        activities.push(...historyData.map(item => ({
+          id: item.id,
+          title: 'Health Diagnostic Completed',
+          description: Array.isArray(item.suggested_conditions) && item.suggested_conditions.length > 0
+            ? `AI diagnosis: ${(item.suggested_conditions[0] as any)?.condition || 'Condition analyzed'}`
+            : item.input_text || 'Health diagnostic session completed',
+          timestamp: item.created_at,
+          status: 'completed',
+          icon: <Brain className="h-4 w-4 text-purple-600" />
+        })));
+      }
+
+      // Add chat session data
+      if (chatData) {
+        activities.push(...chatData.map(item => ({
+          id: item.id,
+          title: 'AI Health Chat Session',
+          description: item.confidence_score 
+            ? `Interactive diagnosis with confidence: ${(item.confidence_score * 100).toFixed(1)}%`
+            : 'AI-powered health consultation',
+          timestamp: item.created_at,
+          status: item.status || 'completed',
+          icon: <Brain className="h-4 w-4 text-purple-600" />
+        })));
+      }
+
+      // Sort by timestamp and limit to 10
+      return activities
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 10);
     },
     enabled: !!user?.id && !isDoctor,
   });
@@ -74,10 +107,32 @@ const EnhancedRecentActivity = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      // First try the main prescriptions table
       const column = isDoctor ? 'doctor_id' : 'patient_id';
+      
+      // Try patient_prescriptions table first
+      const { data: patientPrescData, error: patientPrescError } = await supabase
+        .from('patient_prescriptions')
+        .select('*')
+        .eq('patient_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (!patientPrescError && patientPrescData?.length > 0) {
+        return patientPrescData.map(item => ({
+          id: item.id,
+          title: 'Prescription Received',
+          description: item.diagnosis ? 
+            `${typeof item.diagnosis === 'object' ? JSON.stringify(item.diagnosis) : item.diagnosis}` : 
+            'Medical prescription generated',
+          timestamp: item.created_at,
+          status: item.status || 'active',
+          icon: <Pill className="h-4 w-4 text-green-600" />
+        }));
+      }
+
+      // Fallback to prescriptions_v2 table
       const { data, error } = await supabase
-        .from('prescriptions')
+        .from('prescriptions_v2')
         .select('*')
         .eq(column, user.id)
         .order('created_at', { ascending: false })
@@ -91,7 +146,7 @@ const EnhancedRecentActivity = () => {
       return (data || []).map(item => ({
         id: item.id,
         title: isDoctor ? 'Prescription Written' : 'Prescription Received',
-        description: item.diagnosis || item.instructions || 'Medical prescription',
+        description: item.diagnosis_id || (Array.isArray(item.drugs) ? (item.drugs as any[]).join(', ') : 'Medical prescription'),
         timestamp: item.created_at,
         status: item.status || 'active',
         icon: <Pill className="h-4 w-4 text-green-600" />
@@ -107,12 +162,11 @@ const EnhancedRecentActivity = () => {
       if (!user?.id) return [];
       
       const column = isDoctor ? 'doctor_id' : 'patient_id';
+      const otherColumn = isDoctor ? 'patient_id' : 'doctor_id';
+      
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          profiles!${column === 'doctor_id' ? 'appointments_patient_id_fkey' : 'appointments_doctor_id_fkey'}(first_name, last_name)
-        `)
+        .select('*')
         .eq(column, user.id)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -121,21 +175,32 @@ const EnhancedRecentActivity = () => {
         console.error('Error fetching appointments:', error);
         return [];
       }
-      
-      return (data || []).map(item => {
-        const otherPersonName = (item as any).profiles
-          ? `${(item as any).profiles.first_name || ''} ${(item as any).profiles.last_name || ''}`.trim()
-          : isDoctor ? 'Patient' : 'Doctor';
-          
-        return {
-          id: item.id,
-          title: isDoctor ? 'Appointment Scheduled' : 'Appointment Booked',
-          description: `${item.notes || 'Consultation'} - ${format(new Date(item.scheduled_time), 'MMM dd, yyyy')}${otherPersonName !== 'Patient' && otherPersonName !== 'Doctor' ? ` with ${otherPersonName}` : ''}`,
-          timestamp: item.created_at,
-          status: item.status,
-          icon: <Calendar className="h-4 w-4 text-blue-600" />
-        };
-      });
+
+      // Get profiles for the other person in each appointment
+      const appointmentsWithProfiles = await Promise.all(
+        (data || []).map(async (item) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', item[otherColumn])
+            .maybeSingle();
+
+          const otherPersonName = profile
+            ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+            : isDoctor ? 'Patient' : 'Doctor';
+            
+          return {
+            id: item.id,
+            title: isDoctor ? 'Appointment Scheduled' : 'Appointment Booked',
+            description: `${item.notes || 'Consultation'} - ${format(new Date(item.scheduled_time), 'MMM dd, yyyy')}${otherPersonName !== 'Patient' && otherPersonName !== 'Doctor' ? ` with ${otherPersonName}` : ''}`,
+            timestamp: item.created_at,
+            status: item.status,
+            icon: <Calendar className="h-4 w-4 text-blue-600" />
+          };
+        })
+      );
+
+      return appointmentsWithProfiles;
     },
     enabled: !!user?.id,
     refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
@@ -149,10 +214,7 @@ const EnhancedRecentActivity = () => {
       
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          profiles!appointments_patient_id_fkey(first_name, last_name)
-        `)
+        .select('*')
         .eq('doctor_id', user.id)
         .eq('status', 'completed')
         .order('updated_at', { ascending: false })
@@ -162,21 +224,32 @@ const EnhancedRecentActivity = () => {
         console.error('Error fetching consultations:', error);
         return [];
       }
-      
-      return (data || []).map(item => {
-        const patientName = (item as any).profiles
-          ? `${(item as any).profiles.first_name || ''} ${(item as any).profiles.last_name || ''}`.trim()
-          : 'Patient';
-          
-        return {
-          id: item.id,
-          title: 'Patient Consultation',
-          description: `Consultation with ${patientName} completed`,
-          timestamp: item.updated_at,
-          status: 'completed',
-          icon: <Users className="h-4 w-4 text-teal-600" />
-        };
-      });
+
+      // Get patient profiles for completed consultations
+      const consultationsWithProfiles = await Promise.all(
+        (data || []).map(async (item) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', item.patient_id)
+            .maybeSingle();
+
+          const patientName = profile
+            ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+            : 'Patient';
+            
+          return {
+            id: item.id,
+            title: 'Patient Consultation',
+            description: `Consultation with ${patientName} completed`,
+            timestamp: item.updated_at,
+            status: 'completed',
+            icon: <Users className="h-4 w-4 text-teal-600" />
+          };
+        })
+      );
+
+      return consultationsWithProfiles;
     },
     enabled: !!user?.id && isDoctor,
     refetchInterval: 30000, // Refetch every 30 seconds
