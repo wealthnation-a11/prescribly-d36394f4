@@ -47,6 +47,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Press from "./pages/Press";
 import Careers from "./pages/Careers";
+import JobApplication from "./pages/JobApplication";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Cookies from "./pages/Cookies";
@@ -74,7 +75,8 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/press" element={<Press />} />
-            <Route path="/careers" element={<Careers />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/careers/apply/:position" element={<JobApplication />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/cookies" element={<Cookies />} />

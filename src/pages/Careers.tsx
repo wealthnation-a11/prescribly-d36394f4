@@ -1,6 +1,7 @@
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export default function Careers() {
   usePageSEO({
@@ -13,14 +14,22 @@ export default function Careers() {
     {
       title: "Doctor Onboarding Specialist",
       desc: "Guide clinicians through credentialing and ensure a world‑class onboarding experience.",
+      slug: "doctor-onboarding-specialist"
     },
     {
       title: "Frontend Developer",
       desc: "Build elegant, performant interfaces that clinicians and patients love.",
+      slug: "frontend-developer"
     },
     {
       title: "Patient Support Agent",
       desc: "Support patients with compassion and resolve issues quickly across channels.",
+      slug: "patient-support-agent"
+    },
+    {
+      title: "UI/UX Designer",
+      desc: "Design intuitive healthcare experiences that prioritize user needs and accessibility.",
+      slug: "ui-ux-designer"
     },
   ];
 
@@ -69,7 +78,9 @@ export default function Careers() {
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{j.desc}</p>
                   <Button asChild variant="medical">
-                    <a href="#" aria-label={`Apply now: ${j.title}`}>Apply Now</a>
+                    <Link to={`/careers/apply/${j.slug}`} aria-label={`Apply now: ${j.title}`}>
+                      Apply Now
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
