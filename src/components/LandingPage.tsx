@@ -108,7 +108,7 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 animate-fade-in">
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground fade-in-up">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground fade-in-up">
                 Real Doctors. Real Care.{" "}
                 <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   Anytime, Anywhere.
