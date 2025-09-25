@@ -78,7 +78,10 @@ export default function Careers() {
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{j.desc}</p>
                   <Button asChild variant="medical">
-                    <Link to={`/careers/apply/${j.slug}`} aria-label={`Apply now: ${j.title}`}>
+                    <Link 
+                      to={j.title === "Doctor Onboarding Specialist" ? "/doctor-register" : `/careers/apply/${j.slug}`} 
+                      aria-label={`Apply now: ${j.title}`}
+                    >
                       Apply Now
                     </Link>
                   </Button>
