@@ -12,7 +12,7 @@ export const Logo = ({ size = "md", withLink = false, className, priority = fals
   const heightCls = size === "sm" ? "h-6" : size === "lg" ? "h-10" : "h-8";
   const Img = (
     <img
-      src="/lovable-uploads/f0e7a9d5-ed9f-4f1e-9b54-765017780d65.png"
+      src="/prescribly-logo.jpg"
       alt="Prescribly logo"
       width={236}
       height={286}
