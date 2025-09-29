@@ -171,41 +171,86 @@ html[dir="rtl"] .rtl\:ml-auto {
   }
 
   .dark {
+    /* Dark mode base colors with better contrast */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 84% 6%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 84% 6%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Prescribly Dark Mode Brand Colors */
+    --prescribly-primary: 195 100% 60%; /* Brighter blue for dark mode */
+    --prescribly-accent: 195 77% 70%; /* Lighter accent for visibility */
+    --prescribly-background: 222.2 84% 8%; /* Dark background with slight tint */
+    --prescribly-light: 210 40% 98%; /* Light text color */
+
+    --primary: 195 100% 60%; /* Use Prescribly primary for consistency */
+    --primary-foreground: 222.2 84% 4.9%;
+    --primary-glow: 195 77% 70%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 70%; /* Increased contrast */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 195 77% 70%; /* Use Prescribly accent */
+    --accent-foreground: 222.2 84% 4.9%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 217.2 32.6% 20%;
+    --input: 217.2 32.6% 15%;
+    --ring: 195 100% 60%;
+
+    /* Dark mode medical colors */
+    --medical-blue: 195 100% 60%;
+    --medical-light: 217.2 32.6% 20%;
+    --trust-blue: 210 100% 65%;
+    --success-green: 142 71% 55%;
+    
+    /* Dark mode gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--prescribly-background)) 100%);
+    --gradient-medical: linear-gradient(135deg, hsl(var(--prescribly-background)) 0%, hsl(var(--background)) 100%);
+    --gradient-chat-ai: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+    --gradient-chat-user: linear-gradient(135deg, hsl(var(--prescribly-accent)) 0%, hsl(var(--prescribly-primary)) 100%);
+    --gradient-glassmorphism: linear-gradient(135deg, hsl(var(--card) / 0.8) 0%, hsl(var(--muted) / 0.4) 100%);
+    
+    /* Dark mode shadows */
+    --shadow-medical: 0 10px 30px -5px hsl(var(--prescribly-primary) / 0.3);
+    --shadow-glow: 0 0 20px hsl(var(--prescribly-accent) / 0.4);
+    --shadow-chat: 0 2px 10px hsl(var(--prescribly-primary) / 0.2);
+    --shadow-glassmorphism: 0 8px 32px hsl(var(--prescribly-primary) / 0.2);
+
+    /* Dark mode sidebar colors */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 195 100% 60%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 195 100% 60%;
+
+    /* Dark mode doctor dashboard section colors */
+    --section-appointments: 214 50% 15%;
+    --section-prescriptions: 149 50% 15%;
+    --section-messages: 262 50% 15%;
+    --section-availability: 25 50% 15%;
+    --section-earnings: 173 50% 15%;
+
+    /* Dark mode doctor sidebar colors */
+    --doctor-sidebar-bg: 222 47% 8%;
+    --doctor-sidebar-text: 210 40% 98%;
+    --doctor-sidebar-hover-appointments: 214 100% 55%;
+    --doctor-sidebar-hover-prescriptions: 149 71% 55%;
+    --doctor-sidebar-hover-messages: 262 83% 65%;
+    --doctor-sidebar-hover-availability: 25 95% 65%;
+    --doctor-sidebar-hover-earnings: 173 71% 55%;
   }
 }
 
