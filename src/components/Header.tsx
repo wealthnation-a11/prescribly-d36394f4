@@ -5,6 +5,7 @@ import { Logo } from "./Logo";
 import { UserTypeModal } from "./UserTypeModal";
 import { LanguageSelector } from "./LanguageSelector";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { X, Menu } from "lucide-react";
 
@@ -53,6 +54,7 @@ export const Header = () => {
           {/* Action Buttons and Language Selector - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSelector />
+            <ThemeToggle />
             {user ? (
               <NotificationBell />
             ) : (
@@ -104,6 +106,9 @@ export const Header = () => {
               {/* Mobile Action Buttons */}
               <div className="pt-4 space-y-3 border-t border-border opacity-0 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
                 <LanguageSelector />
+                <div className="flex justify-center">
+                  <ThemeToggle showText={true} variant="outline" size="sm" />
+                </div>
                 {user ? (
                   <div className="flex justify-center">
                     <NotificationBell size="lg" />

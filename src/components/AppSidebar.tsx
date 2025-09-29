@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 import { FeatureAccessGuard } from "./FeatureAccessGuard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -68,13 +69,15 @@ export function AppSidebar() {
             )}
           </NavLink>
           {!isCollapsed && (
-            <div className="mt-3 flex justify-center">
+            <div className="mt-3 flex justify-center gap-2">
               <NotificationBell />
+              <ThemeToggle />
             </div>
           )}
           {isCollapsed && (
-            <div className="mt-2 flex justify-center">
+            <div className="mt-2 space-y-2 flex flex-col items-center">
               <NotificationBell size="sm" />
+              <ThemeToggle size="sm" />
             </div>
           )}
         </div>

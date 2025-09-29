@@ -4,6 +4,7 @@ import { useDoctorApproval } from "@/hooks/useDoctorApproval";
 import { useLogout } from "@/hooks/useLogout";
 import { Logo } from "./Logo";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -61,13 +62,15 @@ export function DoctorSidebar() {
             )}
           </NavLink>
           {!isCollapsed && (
-            <div className="mt-3 flex justify-center">
+            <div className="mt-3 flex justify-center gap-2">
               <NotificationBell variant="outline" className="border-gray-600 text-white hover:bg-gray-800" />
+              <ThemeToggle variant="outline" className="border-gray-600 text-white hover:bg-gray-800" />
             </div>
           )}
           {isCollapsed && (
-            <div className="mt-2 flex justify-center">
+            <div className="mt-2 space-y-2 flex flex-col items-center">
               <NotificationBell variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-800" />
+              <ThemeToggle variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-800" />
             </div>
           )}
         </div>
