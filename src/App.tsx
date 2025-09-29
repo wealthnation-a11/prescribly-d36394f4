@@ -53,6 +53,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Cookies from "./pages/Cookies";
 import HipaaCompliance from "./pages/HipaaCompliance";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,11 @@ const App = () => (
             <Route path="/doctor-dashboard" element={
               <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin-dashboard" element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminDashboard />
               </ProtectedRoute>
             } />
             
