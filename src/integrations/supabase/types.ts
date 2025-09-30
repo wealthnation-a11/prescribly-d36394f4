@@ -755,6 +755,41 @@ export type Database = {
         }
         Relationships: []
       }
+      doctor_verification_audit: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          doctor_id: string
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_verification_audit_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctors: {
         Row: {
           bio: string | null
