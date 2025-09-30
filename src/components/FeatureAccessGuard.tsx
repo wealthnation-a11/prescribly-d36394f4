@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -79,12 +80,14 @@ export const FeatureAccessGuard = ({
               </Card>
 
               <Button 
-                onClick={() => window.location.href = '/subscription'} 
+                asChild
                 className="w-full"
                 size="lg"
               >
-                <CreditCard className="h-4 w-4 mr-2" />
-                Subscribe Now
+                <Link to="/subscription" className="flex items-center justify-center">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Subscribe Now
+                </Link>
               </Button>
 
               <Button 

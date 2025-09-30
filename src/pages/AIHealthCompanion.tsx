@@ -393,11 +393,13 @@ const AIHealthCompanion = () => {
         {isComplete && (
           <div className="flex justify-center gap-4 mt-6 animate-fade-in">
             <Button 
-              onClick={() => window.location.href = '/health-trends'}
+              asChild
               className="rounded-full px-6 py-3 bg-green-500 hover:bg-green-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
             >
-              <BarChart3 className="h-5 w-5 mr-2" />
-              View Health Trends
+              <Link to="/health-trends" className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2" />
+                View Health Trends
+              </Link>
             </Button>
           </div>
         )}

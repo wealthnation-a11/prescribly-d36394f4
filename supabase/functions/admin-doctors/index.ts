@@ -119,6 +119,14 @@ serve(async (req) => {
 
       if (error) throw error;
 
+      // Create audit log
+      await supabase.from('doctor_verification_audit').insert({
+        doctor_id: doctorId,
+        admin_id: user.id,
+        action: status === 'approved' ? 'approved' : 'rejected',
+        notes: notes || null
+      });
+
       // Create notification for doctor
       await supabase.from('notifications').insert({
         user_id: updatedDoctor.user_id,
@@ -129,6 +137,8 @@ serve(async (req) => {
           : `Your doctor application has been rejected. ${notes || ''}`,
         data: { verification_status: status, admin_notes: notes }
       });
+
+      console.log(`Admin ${user.id} ${status} doctor ${doctorId}`);
 
       return new Response(JSON.stringify({
         success: true,

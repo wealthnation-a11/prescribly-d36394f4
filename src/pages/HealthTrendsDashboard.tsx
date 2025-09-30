@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -464,11 +465,13 @@ const HealthTrendsDashboard = () => {
         {/* Action Button */}
         <div className="text-center mt-8">
           <Button 
-            onClick={() => window.location.href = '/ai-health-companion'}
+            asChild
             className="rounded-full px-8 py-3 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
-            <Brain className="h-5 w-5 mr-2" />
-            Today's Check-in
+            <Link to="/ai-health-companion" className="flex items-center">
+              <Brain className="h-5 w-5 mr-2" />
+              Today's Check-in
+            </Link>
           </Button>
         </div>
       </div>

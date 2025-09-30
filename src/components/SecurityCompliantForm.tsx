@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,9 +41,11 @@ export const SecurityCompliantForm = () => {
           <p className="text-muted-foreground mb-6">
             Please log in to access the secure diagnostic system. Your privacy and data security are our top priorities.
           </p>
-          <Button onClick={() => window.location.href = '/login'}>
-            <UserCheck className="h-4 w-4 mr-2" />
-            Log In to Continue
+          <Button asChild>
+            <Link to="/login" className="flex items-center">
+              <UserCheck className="h-4 w-4 mr-2" />
+              Log In to Continue
+            </Link>
           </Button>
         </CardContent>
       </Card>
@@ -124,10 +127,10 @@ export const SecurityCompliantForm = () => {
               Submit Another Diagnosis
             </Button>
             <Button 
-              onClick={() => window.location.href = '/book-appointment'}
+              asChild
               className="flex-1"
             >
-              Book Doctor Consultation
+              <Link to="/book-appointment">Book Doctor Consultation</Link>
             </Button>
           </div>
         </CardContent>

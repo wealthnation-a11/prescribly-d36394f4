@@ -79,7 +79,7 @@ export const LandingPage = () => {
   const faqs = [
     {
       question: "Is Prescribly really free?",
-      answer: "No."
+      answer: "Prescribly offers flexible payment options. While some initial consultations may have fees, we strive to keep healthcare accessible and affordable for everyone. Check our pricing page for detailed information."
     },
     {
       question: "Can I talk to a real doctor?",
@@ -122,17 +122,17 @@ export const LandingPage = () => {
                   variant="cta"
                   size="sm"
                   className="button-enhanced text-sm px-6 py-2"
-                  onClick={() => window.location.href = '/register'}
+                  asChild
                 >
-                  Get Started
+                  <Link to="/register">Get Started</Link>
                 </Button>
                 <Button
                   variant="medical"
                   size="sm"
                   className="button-enhanced text-sm px-6 py-2"
-                  onClick={() => window.location.href = '/register'}
+                  asChild
                 >
-                  Book a Doctor
+                  <Link to="/register">Book a Doctor</Link>
                 </Button>
               </div>
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm text-muted-foreground fade-in-up stagger-3 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 border border-prescribly-accent/20 backdrop-blur-sm">
@@ -377,12 +377,12 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button 
+                     <Button 
                       variant="medical" 
                       className="w-full mt-6"
-                      onClick={() => window.location.href = '/register'}
+                      asChild
                     >
-                      {t('get_started')}
+                      <Link to="/register">{t('get_started')}</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -531,9 +531,9 @@ export const LandingPage = () => {
                     <Button 
                       variant="medical" 
                       className="w-full mt-6"
-                      onClick={() => window.location.href = '/register'}
+                      asChild
                     >
-                      Get Started
+                      <Link to="/register">Get Started</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -815,10 +815,10 @@ export const LandingPage = () => {
               variant="cta"
               size="lg"
               className="text-xl px-12 py-6"
-              onClick={() => window.location.href = '/register'}
+              asChild
               aria-label="Navigate to registration page"
             >
-              Sign Up Now
+              <Link to="/register">Sign Up Now</Link>
             </Button>
             <div className="text-sm text-muted-foreground">
               🚀 Free to start • No credit card required • 5-star rated
