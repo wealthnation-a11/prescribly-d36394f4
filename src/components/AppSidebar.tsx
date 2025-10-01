@@ -2,7 +2,6 @@ import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, Use
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
-import { LanguageSelector } from "./LanguageSelector";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { FeatureAccessGuard } from "./FeatureAccessGuard";
