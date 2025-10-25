@@ -217,8 +217,8 @@ export const LandingPage = () => {
               <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
                 3
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Book a Doctor</h3>
-              <p className="text-sm text-muted-foreground">Make your choice on any of your desired service</p>
+              <h3 className="font-semibold text-foreground mb-2">Select from any of our service</h3>
+              <p className="text-sm text-muted-foreground">Make your selection</p>
             </div>
 
             <div className="text-center fade-in-up stagger-3">
