@@ -18,89 +18,70 @@ import gdprCertification from "@/assets/gdpr-certification.png";
 import hipaaCertification from "@/assets/hipaa-certification.png";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-
 export const LandingPage = () => {
-  const { t } = useTranslation();
+  const {
+    t
+  } = useTranslation();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
-  const features = [
-    {
-      icon: Bot,
-      title: "AI Symptom Checker",
-      description: "Get instant analysis of your symptoms",
-      details: "Our advanced AI analyzes your symptoms and provides preliminary diagnosis recommendations in seconds."
-    },
-    {
-      icon: Stethoscope,
-      title: "Book a Doctor Instantly",
-      description: "Connect with verified doctors 24/7",
-      details: "Schedule consultations with licensed medical professionals available around the clock."
-    },
-    {
-      icon: Heart,
-      title: "Personalized Prescriptions",
-      description: "Receive tailored treatment plans",
-      details: "Get customized medication recommendations and treatment plans based on your specific condition."
-    },
-    {
-      icon: Bot,
-      title: "Medical Record History",
-      description: "Secure digital health records",
-      details: "Access your complete medical history anytime, anywhere with bank-level security."
-    },
-    {
-      icon: Stethoscope,
-      title: "Doctor Dashboard",
-      description: "Comprehensive practice management",
-      details: "Streamlined tools for doctors to manage patients, consultations, and grow their practice."
-    }
-  ];
-
-  const testimonials = [
-    {
-      quote: "I was able to speak to a doctor the same day I booked—helped me feel seen and cared for.",
-      author: "Amara",
-      role: "Lagos",
-      avatar: "👩🏾‍💼"
-    },
-    {
-      quote: "Affordable, reliable, and empathetic. I trust Prescribly like I would a clinic.",
-      author: "James",
-      role: "London",
-      avatar: "👨🏻‍💼"
-    },
-    {
-      quote: "The video call was so easy. The doctor listened, diagnosed, and I got a prescription without leaving my house.",
-      author: "Fatima",
-      role: "Accra",
-      avatar: "👩🏿‍💼"
-    }
-  ];
-
-  const faqs = [
-    {
-      question: "Is Prescribly really free?",
-      answer: "Prescribly offers flexible payment options. While some initial consultations may have fees, we strive to keep healthcare accessible and affordable for everyone. Check our pricing page for detailed information."
-    },
-    {
-      question: "Can I talk to a real doctor?",
-      answer: "Absolutely! All our doctors are licensed medical professionals. The AI provides initial analysis, then connects you with real doctors for consultations."
-    },
-    {
-      question: "How is my data protected?",
-      answer: "We use bank-level encryption and comply with HIPAA regulations. Your medical data is stored securely and never shared without your consent."
-    },
-    {
-      question: "Is AI better than physical checkups?",
-      answer: "AI complements, not replaces, traditional healthcare. It provides quick initial analysis and connects you with doctors for comprehensive care when needed."
-    },
-    {
-      question: "How do I get started as a doctor?",
-      answer: "Simply apply through our doctor portal with your medical license. Our team verifies credentials within 24-48 hours."
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
+  const features = [{
+    icon: Bot,
+    title: "AI Symptom Checker",
+    description: "Get instant analysis of your symptoms",
+    details: "Our advanced AI analyzes your symptoms and provides preliminary diagnosis recommendations in seconds."
+  }, {
+    icon: Stethoscope,
+    title: "Book a Doctor Instantly",
+    description: "Connect with verified doctors 24/7",
+    details: "Schedule consultations with licensed medical professionals available around the clock."
+  }, {
+    icon: Heart,
+    title: "Personalized Prescriptions",
+    description: "Receive tailored treatment plans",
+    details: "Get customized medication recommendations and treatment plans based on your specific condition."
+  }, {
+    icon: Bot,
+    title: "Medical Record History",
+    description: "Secure digital health records",
+    details: "Access your complete medical history anytime, anywhere with bank-level security."
+  }, {
+    icon: Stethoscope,
+    title: "Doctor Dashboard",
+    description: "Comprehensive practice management",
+    details: "Streamlined tools for doctors to manage patients, consultations, and grow their practice."
+  }];
+  const testimonials = [{
+    quote: "I was able to speak to a doctor the same day I booked—helped me feel seen and cared for.",
+    author: "Amara",
+    role: "Lagos",
+    avatar: "👩🏾‍💼"
+  }, {
+    quote: "Affordable, reliable, and empathetic. I trust Prescribly like I would a clinic.",
+    author: "James",
+    role: "London",
+    avatar: "👨🏻‍💼"
+  }, {
+    quote: "The video call was so easy. The doctor listened, diagnosed, and I got a prescription without leaving my house.",
+    author: "Fatima",
+    role: "Accra",
+    avatar: "👩🏿‍💼"
+  }];
+  const faqs = [{
+    question: "Is Prescribly really free?",
+    answer: "Prescribly offers flexible payment options. While some initial consultations may have fees, we strive to keep healthcare accessible and affordable for everyone. Check our pricing page for detailed information."
+  }, {
+    question: "Can I talk to a real doctor?",
+    answer: "Absolutely! All our doctors are licensed medical professionals. The AI provides initial analysis, then connects you with real doctors for consultations."
+  }, {
+    question: "How is my data protected?",
+    answer: "We use bank-level encryption and comply with HIPAA regulations. Your medical data is stored securely and never shared without your consent."
+  }, {
+    question: "Is AI better than physical checkups?",
+    answer: "AI complements, not replaces, traditional healthcare. It provides quick initial analysis and connects you with doctors for comprehensive care when needed."
+  }, {
+    question: "How do I get started as a doctor?",
+    answer: "Simply apply through our doctor portal with your medical license. Our team verifies credentials within 24-48 hours."
+  }];
+  return <div className="min-h-screen bg-background">
       <Header />
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
@@ -118,20 +99,10 @@ export const LandingPage = () => {
                 Prescribly connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
               </p>
               <div className="flex flex-row gap-3 justify-center sm:justify-start fade-in-up stagger-2">
-                <Button
-                  variant="cta"
-                  size="sm"
-                  className="button-enhanced text-sm px-6 py-2"
-                  asChild
-                >
+                <Button variant="cta" size="sm" className="button-enhanced text-sm px-6 py-2" asChild>
                   <Link to="/register">Get Started</Link>
                 </Button>
-                <Button
-                  variant="medical"
-                  size="sm"
-                  className="button-enhanced text-sm px-6 py-2"
-                  asChild
-                >
+                <Button variant="medical" size="sm" className="button-enhanced text-sm px-6 py-2" asChild>
                   <Link to="/register">Book a Doctor</Link>
                 </Button>
               </div>
@@ -150,13 +121,7 @@ export const LandingPage = () => {
               </div>
             </div>
             <div className="relative fade-in-up stagger-2">
-              <img 
-                src={heroImage} 
-                alt="Professional healthcare consultation"
-                width={1200}
-                height={800}
-                className="w-full h-auto rounded-2xl medical-shadow floating-animation"
-              />
+              <img src={heroImage} alt="Professional healthcare consultation" width={1200} height={800} className="w-full h-auto rounded-2xl medical-shadow floating-animation" />
             </div>
           </div>
         </div>
@@ -174,16 +139,7 @@ export const LandingPage = () => {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <FeatureCard
-                key={feature.title}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-                details={feature.details}
-                delay={`stagger-${index + 1}`}
-              />
-            ))}
+            {features.map((feature, index) => <FeatureCard key={feature.title} icon={feature.icon} title={feature.title} description={feature.description} details={feature.details} delay={`stagger-${index + 1}`} />)}
           </div>
         </div>
       </section>
@@ -262,15 +218,15 @@ export const LandingPage = () => {
                 3
               </div>
               <h3 className="font-semibold text-foreground mb-2">Book a Doctor</h3>
-              <p className="text-sm text-muted-foreground">Schedule with licensed professionals</p>
+              <p className="text-sm text-muted-foreground">Make your choice on any of your desired service</p>
             </div>
 
             <div className="text-center fade-in-up stagger-3">
               <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
                 4
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Chat or Call</h3>
-              <p className="text-sm text-muted-foreground">Connect via your preferred method</p>
+              <h3 className="font-semibold text-foreground mb-2">Connect to a Doctor</h3>
+              <p className="text-sm text-muted-foreground">Schedule with licensed professionals</p>
             </div>
 
             <div className="text-center fade-in-up stagger-4">
@@ -310,11 +266,9 @@ export const LandingPage = () => {
             What Our Patients Say
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={testimonial.author} className={`fade-in-up stagger-${index + 1}`}>
+            {testimonials.map((testimonial, index) => <div key={testimonial.author} className={`fade-in-up stagger-${index + 1}`}>
                 <TestimonialCard {...testimonial} />
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -377,11 +331,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                     <Button 
-                      variant="medical" 
-                      className="w-full mt-6"
-                      asChild
-                    >
+                     <Button variant="medical" className="w-full mt-6" asChild>
                       <Link to="/register">{t('get_started')}</Link>
                     </Button>
                   </CardContent>
@@ -448,12 +398,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button
-                      variant="cta"
-                      className="w-full mt-4"
-                      aria-label="Request Enterprise Demo"
-                      onClick={() => setIsEnterpriseDemoModalOpen(true)}
-                    >
+                    <Button variant="cta" className="w-full mt-4" aria-label="Request Enterprise Demo" onClick={() => setIsEnterpriseDemoModalOpen(true)}>
                       Request Enterprise Demo
                     </Button>
                   </CardContent>
@@ -528,11 +473,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button 
-                      variant="medical" 
-                      className="w-full mt-6"
-                      asChild
-                    >
+                    <Button variant="medical" className="w-full mt-6" asChild>
                       <Link to="/register">Get Started</Link>
                     </Button>
                   </CardContent>
@@ -599,12 +540,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
                     </div>
-                    <Button
-                      variant="cta"
-                      className="w-full mt-4"
-                      aria-label="Request Enterprise Demo"
-                      onClick={() => setIsEnterpriseDemoModalOpen(true)}
-                    >
+                    <Button variant="cta" className="w-full mt-4" aria-label="Request Enterprise Demo" onClick={() => setIsEnterpriseDemoModalOpen(true)}>
                       Request Enterprise Demo
                     </Button>
                   </CardContent>
@@ -668,11 +604,7 @@ export const LandingPage = () => {
               <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up p-8 text-center">
                 <div className="flex flex-col items-center space-y-6">
                   <div className="w-24 h-24 flex items-center justify-center">
-                    <img 
-                      src={gdprCertification} 
-                      alt="GDPR Compliance Certification"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src={gdprCertification} alt="GDPR Compliance Certification" className="w-full h-full object-contain" />
                   </div>
                   <div className="space-y-3">
                     <h3 className="text-2xl font-bold text-foreground">GDPR Compliant</h3>
@@ -692,11 +624,7 @@ export const LandingPage = () => {
               <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 p-8 text-center">
                 <div className="flex flex-col items-center space-y-6">
                   <div className="w-24 h-24 flex items-center justify-center">
-                    <img 
-                      src={hipaaCertification} 
-                      alt="HIPAA Compliance Certification"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src={hipaaCertification} alt="HIPAA Compliance Certification" className="w-full h-full object-contain" />
                   </div>
                   <div className="space-y-3">
                     <h3 className="text-2xl font-bold text-foreground">HIPAA Compliant</h3>
@@ -756,20 +684,14 @@ export const LandingPage = () => {
             {t('faq')}
           </h2>
           <Accordion type="single" collapsible className="space-y-4 fade-in-up">
-            {faqs.map((faq, index) => (
-              <AccordionItem 
-                key={index} 
-                value={`item-${index}`}
-                className="card-gradient border-0 medical-shadow rounded-lg px-6"
-              >
+            {faqs.map((faq, index) => <AccordionItem key={index} value={`item-${index}`} className="card-gradient border-0 medical-shadow rounded-lg px-6">
                 <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
                   {faq.answer}
                 </AccordionContent>
-              </AccordionItem>
-            ))}
+              </AccordionItem>)}
           </Accordion>
         </div>
       </section>
@@ -786,16 +708,10 @@ export const LandingPage = () => {
             </p>
           </div>
           <div className="max-w-md mx-auto">
-            <SupportForm 
-              trigger={
-                <Button variant="cta" className="w-full" size="lg">
+            <SupportForm trigger={<Button variant="cta" className="w-full" size="lg">
                   <HelpCircle className="w-5 h-5 mr-2" />
                   Contact Support
-                </Button>
-              }
-              title="Get Support"
-              description="Have a question or need assistance? We're here to help!"
-            />
+                </Button>} title="Get Support" description="Have a question or need assistance? We're here to help!" />
           </div>
         </div>
       </section>
@@ -811,13 +727,7 @@ export const LandingPage = () => {
             <p className="text-xl text-muted-foreground">
               Join thousands of patients and doctors who trust Prescribly for better healthcare outcomes.
             </p>
-            <Button
-              variant="cta"
-              size="lg"
-              className="text-xl px-12 py-6"
-              asChild
-              aria-label="Navigate to registration page"
-            >
+            <Button variant="cta" size="lg" className="text-xl px-12 py-6" asChild aria-label="Navigate to registration page">
               <Link to="/register">Sign Up Now</Link>
             </Button>
             <div className="text-sm text-muted-foreground">
@@ -863,31 +773,13 @@ export const LandingPage = () => {
                   <a href="mailto:prescribly@gmail.com" className="hover:underline">prescribly@gmail.com</a>
                 </div>
                 <nav aria-label="Social media" className="flex items-center gap-4">
-                  <a
-                    href="https://www.linkedin.com/in/bonaventure-joshua-augustine-526b81374?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="LinkedIn"
-                    className="text-background hover:text-primary transition-colors"
-                  >
+                  <a href="https://www.linkedin.com/in/bonaventure-joshua-augustine-526b81374?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-background hover:text-primary transition-colors">
                     <Linkedin className="w-5 h-5" />
                   </a>
-                  <a
-                    href="https://www.instagram.com/prescribly?igsh=MWo5azZ5bXVia2FpNQ=="
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                    className="text-background hover:text-primary transition-colors"
-                  >
+                  <a href="https://www.instagram.com/prescribly?igsh=MWo5azZ5bXVia2FpNQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-background hover:text-primary transition-colors">
                     <Instagram className="w-5 h-5" />
                   </a>
-                  <a
-                    href="https://x.com/prescribly?t=WvKfzzmqXkht038Y1Mxjog&s=09"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Twitter/X"
-                    className="text-background hover:text-primary transition-colors"
-                  >
+                  <a href="https://x.com/prescribly?t=WvKfzzmqXkht038Y1Mxjog&s=09" target="_blank" rel="noopener noreferrer" aria-label="Twitter/X" className="text-background hover:text-primary transition-colors">
                     <Twitter className="w-5 h-5" />
                   </a>
                 </nav>
@@ -900,10 +792,6 @@ export const LandingPage = () => {
         </div>
       </footer>
       
-      <EnterpriseDemoModal 
-        open={isEnterpriseDemoModalOpen} 
-        onOpenChange={setIsEnterpriseDemoModalOpen} 
-      />
-    </div>
-  );
+      <EnterpriseDemoModal open={isEnterpriseDemoModalOpen} onOpenChange={setIsEnterpriseDemoModalOpen} />
+    </div>;
 };
