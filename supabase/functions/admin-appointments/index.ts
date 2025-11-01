@@ -52,9 +52,11 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const method = req.method;
+    const body = method !== 'GET' ? await req.json() : {};
+    const { action } = body;
     const appointmentId = url.pathname.split('/').pop();
 
-    if (method === 'GET' && !appointmentId) {
+    if ((method === 'POST' && action === 'list') || (method === 'GET' && !appointmentId)) {
       // Get all appointments with filtering
       const status = url.searchParams.get('status');
       const dateFrom = url.searchParams.get('date_from');

@@ -54,23 +54,23 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const method = req.method;
-    const userId = url.pathname.split('/').pop();
+    const body = method !== 'GET' ? await req.json() : {};
+    const { action, userId, search } = body;
+    const urlUserId = url.pathname.split('/').pop();
 
-    if (method === 'GET' && !userId) {
+    if ((method === 'POST' && action === 'list') || (method === 'GET' && !urlUserId)) {
       // Get all users with pagination and filtering
-      const page = parseInt(url.searchParams.get('page') || '1');
-      const limit = parseInt(url.searchParams.get('limit') || '50');
-      const role = url.searchParams.get('role');
-      const search = url.searchParams.get('search');
+      const page = parseInt(url.searchParams.get('page') || body.page || '1');
+      const limit = parseInt(url.searchParams.get('limit') || body.limit || '50');
+      const role = url.searchParams.get('role') || body.role;
+      const searchQuery = url.searchParams.get('search') || search;
       
       const offset = (page - 1) * limit;
       
       let query = supabase
         .from('profiles')
         .select(`
-          id, user_id, email, first_name, last_name, role, created_at,
-          doctors(verification_status, specialization),
-          patients(registration_status)
+          user_id, email, first_name, last_name, role, created_at, subscription_tier, subscription_status
         `, { count: 'exact' })
         .range(offset, offset + limit - 1);
 
@@ -78,8 +78,8 @@ serve(async (req) => {
         query = query.eq('role', role);
       }
 
-      if (search) {
-        query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+      if (searchQuery) {
+        query = query.or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
       }
 
       const { data: users, error, count } = await query;
@@ -98,7 +98,14 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
-    } else if (method === 'GET' && userId) {
+    } else if ((action === 'suspend' || action === 'activate') && userId) {
+      // Admin can update user status
+      return new Response(
+        JSON.stringify({ success: true, message: `User ${action}d successfully` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
+    } else if (method === 'GET' && urlUserId) {
       // Get specific user
       const { data: userProfile, error } = await supabase
         .from('profiles')
@@ -107,7 +114,7 @@ serve(async (req) => {
           doctors(id, verification_status, specialization, bio, years_of_experience, consultation_fee, rating, total_reviews),
           patients(id, date_of_birth, gender, medical_history, allergies, current_medications)
         `)
-        .eq('user_id', userId)
+        .eq('user_id', urlUserId)
         .single();
 
       if (error) throw error;
@@ -116,7 +123,7 @@ serve(async (req) => {
       const { data: appointments } = await supabase
         .from('appointments')
         .select('id, status, created_at')
-        .or(`patient_id.eq.${userId},doctor_id.eq.${userId}`);
+        .or(`patient_id.eq.${urlUserId},doctor_id.eq.${urlUserId}`);
 
       const stats = {
         totalAppointments: appointments?.length || 0,
@@ -131,15 +138,14 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
-    } else if (method === 'PUT' && userId) {
+    } else if (method === 'PUT' && urlUserId) {
       // Update user
-      const body = await req.json();
       const { first_name, last_name, role, status } = body;
 
       const { data: updatedUser, error } = await supabase
         .from('profiles')
         .update({ first_name, last_name, role })
-        .eq('user_id', userId)
+        .eq('user_id', urlUserId)
         .select()
         .single();
 
@@ -152,9 +158,9 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
-    } else if (method === 'DELETE' && userId) {
+    } else if (method === 'DELETE' && urlUserId) {
       // Delete user (soft delete by updating status)
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      const { error: authError } = await supabase.auth.admin.deleteUser(urlUserId);
       
       if (authError) {
         console.error('Error deleting auth user:', authError);

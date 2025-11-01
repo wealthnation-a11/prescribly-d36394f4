@@ -51,9 +51,79 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
+    const method = req.method;
+    const body = method !== 'GET' ? await req.json() : {};
+    const { action } = body;
     const endpoint = url.pathname.split('/').pop();
 
-    if (endpoint === 'health') {
+    if (action === 'overview' || action === 'dashboard-stats' || endpoint === 'overview') {
+      // Get comprehensive stats
+      const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      const { data: doctors } = await supabase
+        .from('doctors')
+        .select('id, verification_status, created_at');
+
+      const totalDoctors = doctors?.length || 0;
+      const approvedDoctors = doctors?.filter(d => d.verification_status === 'approved').length || 0;
+      const pendingDoctors = doctors?.filter(d => d.verification_status === 'pending').length || 0;
+
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const newApplications = doctors?.filter(
+        d => new Date(d.created_at) >= monthStart
+      ).length || 0;
+
+      const stats = {
+        totalDoctors,
+        approvedDoctors,
+        pendingDoctors,
+        newApplications,
+      };
+
+      return new Response(JSON.stringify({ stats }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
+    } else if (action === 'ai-logs') {
+      const { data: logs, error } = await supabase
+        .from('ai_confidence_logs')
+        .select(`
+          id,
+          ai_model,
+          highest_confidence,
+          average_confidence,
+          passed_threshold,
+          conditions_analyzed,
+          created_at
+        `)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      const formattedLogs = logs.map(log => ({
+        ...log,
+        user_name: 'User',
+      }));
+
+      const stats = {
+        totalDiagnoses: logs.length,
+        avgConfidence: logs.length
+          ? (logs.reduce((sum, log) => sum + Number(log.average_confidence), 0) / logs.length) * 100
+          : 0,
+        highConfidence: logs.filter(log => log.passed_threshold).length,
+        lowConfidence: logs.filter(log => !log.passed_threshold).length,
+      };
+
+      return new Response(JSON.stringify({ logs: formattedLogs, stats }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
+    } else if (endpoint === 'health') {
       // System health metrics
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);

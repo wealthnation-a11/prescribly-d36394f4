@@ -51,9 +51,61 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
+    const method = req.method;
+    const body = method !== 'GET' ? await req.json() : {};
+    const { action } = body;
     const endpoint = url.pathname.split('/').pop();
 
-    if (endpoint === 'overview') {
+    if (action === 'payments' || endpoint === 'payments') {
+      // Get all payments
+      const { data: consultationPayments, error: cpError } = await supabase
+        .from('consultation_payments')
+        .select(`
+          id,
+          amount,
+          currency,
+          status,
+          reference,
+          created_at,
+          user:profiles!consultation_payments_user_id_fkey(first_name, last_name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (cpError) throw cpError;
+
+      const formattedPayments = consultationPayments.map(payment => ({
+        id: payment.id,
+        user_name: `${payment.user?.first_name || ''} ${payment.user?.last_name || ''}`,
+        amount: payment.amount,
+        currency: payment.currency || 'NGN',
+        status: payment.status,
+        reference: payment.reference,
+        created_at: payment.created_at,
+        type: 'consultation',
+      }));
+
+      const totalRevenue = formattedPayments
+        .filter(p => p.status === 'completed')
+        .reduce((sum, p) => sum + Number(p.amount), 0);
+
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthlyRevenue = formattedPayments
+        .filter(p => p.status === 'completed' && new Date(p.created_at) >= monthStart)
+        .reduce((sum, p) => sum + Number(p.amount), 0);
+
+      const stats = {
+        totalRevenue,
+        monthlyRevenue,
+        totalTransactions: formattedPayments.length,
+        payingUsers: new Set(formattedPayments.map(p => p.user_name)).size,
+      };
+
+      return new Response(JSON.stringify({ payments: formattedPayments, stats }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
+    } else if (endpoint === 'overview') {
       // Financial overview
       const period = url.searchParams.get('period') || 'month';
       const year = parseInt(url.searchParams.get('year') || new Date().getFullYear().toString());
