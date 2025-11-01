@@ -1,14 +1,31 @@
-import { useState } from "react";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePageSEO } from "@/hooks/usePageSEO";
 import DoctorApplicationsManagement from "@/components/admin/DoctorApplicationsManagement";
+import UserManagement from "@/components/admin/UserManagement";
+import AppointmentManagement from "@/components/admin/AppointmentManagement";
+import PaymentManagement from "@/components/admin/PaymentManagement";
+import AIDiagnosisLogs from "@/components/admin/AIDiagnosisLogs";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp } from "lucide-react";
 
 const AdminDashboard = () => {
   usePageSEO({
     title: "Admin Dashboard - Prescribly",
-    description: "Administrative dashboard for managing doctor applications and system overview",
+    description: "Administrative dashboard for managing the entire platform",
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ["admin-dashboard-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("admin-analytics", {
+        body: { action: "dashboard-stats" },
+      });
+      if (error) throw error;
+      return data.stats;
+    },
   });
 
   return (
@@ -17,7 +34,7 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-2">
-            Manage doctor applications and oversee platform operations
+            Comprehensive platform management and oversight
           </p>
         </div>
 
@@ -28,7 +45,7 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">-</div>
+              <div className="text-2xl font-bold">{stats?.totalDoctors || 0}</div>
               <p className="text-xs text-muted-foreground">All registered doctors</p>
             </CardContent>
           </Card>
@@ -39,7 +56,7 @@ const AdminDashboard = () => {
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">-</div>
+              <div className="text-2xl font-bold">{stats?.approvedDoctors || 0}</div>
               <p className="text-xs text-muted-foreground">Active doctors</p>
             </CardContent>
           </Card>
@@ -50,7 +67,7 @@ const AdminDashboard = () => {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">-</div>
+              <div className="text-2xl font-bold">{stats?.pendingDoctors || 0}</div>
               <p className="text-xs text-muted-foreground">Awaiting approval</p>
             </CardContent>
           </Card>
@@ -61,18 +78,49 @@ const AdminDashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">-</div>
+              <div className="text-2xl font-bold">{stats?.newApplications || 0}</div>
               <p className="text-xs text-muted-foreground">New applications</p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="doctors" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="doctors">Doctor Applications</TabsTrigger>
+        <Tabs defaultValue="analytics" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="doctors">Doctors</TabsTrigger>
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="ai-logs">AI Diagnosis</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Platform Analytics</CardTitle>
+                <CardDescription>
+                  Overview of platform performance and metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminAnalytics />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="users" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>
+                  Manage all user accounts and subscriptions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UserManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="doctors" className="mt-6">
             <Card>
@@ -88,30 +136,44 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="analytics" className="mt-6">
+          <TabsContent value="appointments" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>System Analytics</CardTitle>
+                <CardTitle>Appointment Management</CardTitle>
                 <CardDescription>
-                  Platform usage statistics and insights
+                  Monitor all appointments across the platform
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Analytics dashboard coming soon...</p>
+                <AppointmentManagement />
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="settings" className="mt-6">
+          <TabsContent value="payments" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>System Settings</CardTitle>
+                <CardTitle>Payment Management</CardTitle>
                 <CardDescription>
-                  Configure platform settings and preferences
+                  Track all transactions and financial data
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Settings panel coming soon...</p>
+                <PaymentManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ai-logs" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Diagnosis Logs</CardTitle>
+                <CardDescription>
+                  Monitor AI diagnosis performance and accuracy
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AIDiagnosisLogs />
               </CardContent>
             </Card>
           </TabsContent>
