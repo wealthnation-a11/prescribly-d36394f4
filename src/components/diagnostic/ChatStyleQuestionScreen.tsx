@@ -50,66 +50,13 @@ export const ChatStyleQuestionScreen: React.FC<ChatStyleQuestionScreenProps> = (
     scrollToBottom();
   }, [messages]);
 
-  // Load questions on mount
+  // Load questions on mount - GENERATE BASED ON SYMPTOMS
   useEffect(() => {
     const loadQuestions = async () => {
       setQuestionsLoading(true);
       try {
-        // Get related conditions for the symptoms
-        const { data: conditionsData, error: conditionsError } = await supabase
-          .from('conditions')
-          .select('id, name')
-          .limit(10);
-
-        if (conditionsError) throw conditionsError;
-
-        let questionsData: Question[] = [];
-        
-        if (conditionsData && conditionsData.length > 0) {
-          // Get clarifying questions for the top conditions
-          const conditionIds = conditionsData.map(c => c.id);
-          
-          const { data: fetchedQuestions, error: questionsError } = await supabase
-            .from('clarifying_questions')
-            .select('id, condition_id, question')
-            .in('condition_id', conditionIds)
-            .limit(6);
-
-          if (!questionsError && fetchedQuestions && fetchedQuestions.length > 0) {
-            questionsData = fetchedQuestions.map(q => ({
-              id: q.id.toString(),
-              question: q.question,
-              condition_id: q.condition_id
-            }));
-          }
-        }
-
-        // If no questions found from database, use fallback questions
-        if (questionsData.length === 0) {
-          questionsData = [
-            {
-              id: 'duration',
-              question: 'How long have you been experiencing these symptoms?'
-            },
-            {
-              id: 'severity',
-              question: 'How would you rate the severity of your symptoms on a scale of 1-10?'
-            },
-            {
-              id: 'onset',
-              question: 'Did your symptoms start suddenly or gradually?'
-            },
-            {
-              id: 'triggers',
-              question: 'Have you noticed any triggers that make your symptoms worse?'
-            },
-            {
-              id: 'relief',
-              question: 'Have you tried anything that provides relief?'
-            }
-          ];
-        }
-
+        // Generate symptom-specific questions
+        const questionsData = generateSymptomBasedQuestions(symptoms);
         setQuestions(questionsData);
         
         // Add initial messages
@@ -208,14 +155,133 @@ export const ChatStyleQuestionScreen: React.FC<ChatStyleQuestionScreenProps> = (
       askNextQuestion(questions, nextIndex, messages);
     }, 500);
   };
+  // Generate questions based on the specific symptoms selected
+  const generateSymptomBasedQuestions = (symptoms: string[]): Question[] => {
+    const symptomText = symptoms.join(' ').toLowerCase();
+    const questions: Question[] = [];
+
+    // Always ask duration and severity first
+    questions.push(
+      {
+        id: 'duration',
+        question: 'How long have you been experiencing these symptoms?'
+      },
+      {
+        id: 'severity',
+        question: 'How would you rate the severity of your symptoms (1-10)?'
+      }
+    );
+
+    // Add symptom-specific questions
+    if (symptomText.includes('fever') || symptomText.includes('chills')) {
+      questions.push({
+        id: 'fever_level',
+        question: 'What is your current temperature (if measured)?'
+      });
+    }
+
+    if (symptomText.includes('pain') || symptomText.includes('ache') || symptomText.includes('headache')) {
+      questions.push({
+        id: 'pain_type',
+        question: 'How would you describe the pain?'
+      });
+      questions.push({
+        id: 'pain_location',
+        question: 'Where exactly is the pain located?'
+      });
+    }
+
+    if (symptomText.includes('cough')) {
+      questions.push({
+        id: 'cough_type',
+        question: 'Is your cough dry or producing mucus/phlegm?'
+      });
+    }
+
+    if (symptomText.includes('throat') || symptomText.includes('swallow')) {
+      questions.push({
+        id: 'throat_details',
+        question: 'Do you have difficulty swallowing?'
+      });
+    }
+
+    if (symptomText.includes('breath') || symptomText.includes('breathing')) {
+      questions.push({
+        id: 'breathing_severity',
+        question: 'How severe is your breathing difficulty?'
+      });
+    }
+
+    if (symptomText.includes('nausea') || symptomText.includes('vomit')) {
+      questions.push({
+        id: 'vomiting',
+        question: 'Have you been vomiting?'
+      });
+    }
+
+    if (symptomText.includes('stomach') || symptomText.includes('abdominal')) {
+      questions.push({
+        id: 'stomach_timing',
+        question: 'When does the stomach pain occur (before/after meals)?'
+      });
+    }
+
+    if (symptomText.includes('dizziness') || symptomText.includes('dizzy')) {
+      questions.push({
+        id: 'dizziness_trigger',
+        question: 'Does the dizziness occur when standing up or moving?'
+      });
+    }
+
+    // Always ask about onset and current medications
+    questions.push(
+      {
+        id: 'onset',
+        question: 'Did your symptoms start suddenly or gradually?'
+      },
+      {
+        id: 'current_meds',
+        question: 'Are you currently taking any medications?'
+      }
+    );
+
+    // Limit to 6 most relevant questions
+    return questions.slice(0, 6);
+  };
+
   const getQuestionOptions = (questionId: string, question: string) => {
     const lowerQ = question.toLowerCase();
+    
+    // Specific question type options
+    if (questionId === 'fever_level') {
+      return ['Below 100°F (Normal)', '100-101°F (Low grade)', '101-103°F (Moderate)', 'Above 103°F (High)', 'Not measured'];
+    }
+    
+    if (questionId === 'pain_type') {
+      return ['Sharp/Stabbing', 'Dull/Aching', 'Throbbing/Pulsating', 'Burning', 'Pressure'];
+    }
+    
+    if (questionId === 'pain_location') {
+      return ['Head (front)', 'Head (sides/temples)', 'Head (back)', 'Neck', 'Chest', 'Abdomen', 'Back', 'Other'];
+    }
+    
+    if (questionId === 'cough_type') {
+      return ['Dry cough (no mucus)', 'Productive (clear mucus)', 'Productive (yellow/green mucus)', 'Productive (blood-tinged)'];
+    }
+    
+    if (questionId === 'breathing_severity') {
+      return ['Mild (slight discomfort)', 'Moderate (affects activities)', 'Severe (difficulty speaking)', 'Very severe (emergency)'];
+    }
+    
+    if (questionId === 'stomach_timing') {
+      return ['Before meals', 'After meals', 'No pattern', 'At night'];
+    }
     
     if (lowerQ.includes('duration') || lowerQ.includes('how long')) {
       return ['Less than 1 day', '1-3 days', '4-7 days', '1-2 weeks', 'More than 2 weeks'];
     }
     
-    if (lowerQ.includes('severity') || lowerQ.includes('scale')) {
+    if (lowerQ.includes('severity') || lowerQ.includes('scale') || lowerQ.includes('1-10')) {
       return ['1-2 (Mild)', '3-4 (Mild-Moderate)', '5-6 (Moderate)', '7-8 (Severe)', '9-10 (Very Severe)'];
     }
     
@@ -223,12 +289,8 @@ export const ChatStyleQuestionScreen: React.FC<ChatStyleQuestionScreenProps> = (
       return ['Suddenly (within minutes)', 'Gradually over hours', 'Gradually over days', 'Not sure'];
     }
     
-    if (lowerQ.includes('trigger') || lowerQ.includes('worse')) {
-      return ['Physical activity', 'Stress', 'Certain foods', 'Weather changes', 'No specific triggers', 'Not sure'];
-    }
-    
-    if (lowerQ.includes('relief') || lowerQ.includes('better')) {
-      return ['Rest', 'Medication', 'Heat/Cold therapy', 'Movement/Exercise', 'Nothing helps', 'Haven\'t tried anything'];
+    if (lowerQ.includes('medication') || lowerQ.includes('taking')) {
+      return ['Yes, prescription drugs', 'Yes, over-the-counter', 'Yes, both', 'No medications'];
     }
     
     // Default yes/no options
