@@ -1586,7 +1586,7 @@ export type Database = {
           endpoint: string
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           request_method: string | null
           request_payload: Json | null
           response_status: number | null
@@ -1600,7 +1600,7 @@ export type Database = {
           endpoint: string
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           request_method?: string | null
           request_payload?: Json | null
           response_status?: number | null
@@ -1614,7 +1614,7 @@ export type Database = {
           endpoint?: string
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           request_method?: string | null
           request_payload?: Json | null
           response_status?: number | null
@@ -2261,6 +2261,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_routes: {
         Row: {
           activity_id: string | null
@@ -2471,10 +2495,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      check_system_health: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      check_system_health: { Args: never; Returns: Json }
       get_challenge_leaderboard: {
         Args: { challenge_uuid: string }
         Returns: {
@@ -2499,26 +2520,6 @@ export type Database = {
           symptom: string
         }[]
       }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -2526,10 +2527,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_email: string }; Returns: boolean }
       log_monitoring_event: {
         Args: {
           entity_id_param: string
@@ -2545,18 +2543,8 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       update_user_points: {
         Args: { points_to_add: number; user_uuid: string }
         Returns: undefined

@@ -52,6 +52,9 @@ export const useSubscription = () => {
   };
 
   const needsSubscription = () => {
+    // Admins have full access without subscription
+    if (userProfile?.role === 'admin') return false;
+    
     // Doctors don't need subscription
     if (userProfile?.role === 'doctor') return false;
     

@@ -15,6 +15,11 @@ export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
   const { needsSubscription, loading: subLoading } = useSubscription();
   const location = useLocation();
 
+  // Admins have full access without subscription checks
+  if (userProfile?.role === 'admin') {
+    return <>{children}</>;
+  }
+
   // Show loading while checking auth and subscription
   if (authLoading || subLoading) {
     return (

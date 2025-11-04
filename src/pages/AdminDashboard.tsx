@@ -7,6 +7,8 @@ import AppointmentManagement from "@/components/admin/AppointmentManagement";
 import PaymentManagement from "@/components/admin/PaymentManagement";
 import AIDiagnosisLogs from "@/components/admin/AIDiagnosisLogs";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import { RoleManagement } from "@/components/admin/RoleManagement";
+import { SubscriptionManagement } from "@/components/admin/SubscriptionManagement";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp } from "lucide-react";
@@ -85,9 +87,11 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="analytics" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="roles">Roles</TabsTrigger>
+            <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
             <TabsTrigger value="doctors">Doctors</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -120,6 +124,24 @@ const AdminDashboard = () => {
                 <UserManagement />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="roles" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Role Management</CardTitle>
+                <CardDescription>
+                  Assign and manage user roles across the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RoleManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="subscriptions" className="mt-6">
+            <SubscriptionManagement />
           </TabsContent>
 
           <TabsContent value="doctors" className="mt-6">
