@@ -65,7 +65,17 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">User Management</h2>
+          <p className="text-muted-foreground">
+            Manage all user accounts and permissions
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
       <Input
         placeholder="Search by name or email..."
         value={searchQuery}
@@ -137,6 +147,7 @@ const UserManagement = () => {
             ))}
           </TableBody>
         </Table>
+      </div>
       </div>
     </div>
   );

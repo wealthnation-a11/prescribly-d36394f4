@@ -93,10 +93,20 @@ export const SubscriptionManagement = () => {
   const patients = users?.filter((user) => user.role === "patient") || [];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Subscription Management</CardTitle>
-      </CardHeader>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Subscription Management</h2>
+          <p className="text-muted-foreground">
+            Manage user subscriptions and legacy status
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Users</CardTitle>
+        </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
@@ -159,5 +169,6 @@ export const SubscriptionManagement = () => {
         </Table>
       </CardContent>
     </Card>
+    </div>
   );
 };
