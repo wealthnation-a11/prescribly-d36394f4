@@ -52,11 +52,14 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const method = req.method;
-    const pathParts = url.pathname.split('/');
-    const doctorId = pathParts[pathParts.length - 2];
-    const action = pathParts[pathParts.length - 1];
+    const pathParts = url.pathname.split('/').filter(p => p);
+    
+    // Check if this is a specific doctor action
+    const isSpecificDoctorRequest = pathParts.length > 2;
+    const doctorId = isSpecificDoctorRequest ? pathParts[pathParts.length - 2] : null;
+    const action = isSpecificDoctorRequest ? pathParts[pathParts.length - 1] : null;
 
-    if (method === 'GET' && !action) {
+    if (method === 'GET' && !isSpecificDoctorRequest) {
       // Get all doctors with filtering
       const status = url.searchParams.get('status');
       const page = parseInt(url.searchParams.get('page') || '1');

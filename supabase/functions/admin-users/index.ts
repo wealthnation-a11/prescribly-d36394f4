@@ -70,7 +70,7 @@ serve(async (req) => {
       let query = supabase
         .from('profiles')
         .select(`
-          user_id, email, first_name, last_name, role, created_at, subscription_tier, subscription_status
+          user_id, email, first_name, last_name, role, created_at
         `, { count: 'exact' })
         .range(offset, offset + limit - 1);
 
