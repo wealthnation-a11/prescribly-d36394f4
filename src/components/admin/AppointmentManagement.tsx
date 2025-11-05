@@ -47,17 +47,7 @@ const AppointmentManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Appointment Management</h2>
-          <p className="text-muted-foreground">
-            Monitor all appointments across the platform
-          </p>
-        </div>
-      </div>
-
-      <Tabs defaultValue="all">
+    <Tabs defaultValue="all">
       <TabsList>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -98,7 +88,6 @@ const AppointmentManagement = () => {
         </TabsContent>
       ))}
     </Tabs>
-    </div>
   );
 };
 

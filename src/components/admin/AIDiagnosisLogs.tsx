@@ -36,15 +36,6 @@ const AIDiagnosisLogs = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">AI Diagnosis Logs</h2>
-          <p className="text-muted-foreground">
-            Monitor AI diagnosis performance and accuracy
-          </p>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
