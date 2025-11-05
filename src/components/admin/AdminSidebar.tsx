@@ -18,11 +18,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { title: "Analytics", url: "/admin-dashboard", icon: LayoutDashboard, exact: true },
+  { title: "Dashboard", url: "/admin-dashboard", icon: LayoutDashboard, exact: true },
   { title: "Users", url: "/admin-dashboard/users", icon: Users },
   { title: "Roles", url: "/admin-dashboard/roles", icon: Shield },
   { title: "Subscriptions", url: "/admin-dashboard/subscriptions", icon: CreditCard },
@@ -45,19 +46,40 @@ export function AdminSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
+    <Sidebar collapsible="icon" className="bg-[#2d2d3a] border-r-0">
+      <SidebarHeader className="border-b border-white/10 p-6">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[hsl(var(--admin-gradient-start))] to-[hsl(var(--admin-gradient-end))] flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
+          </div>
+          {open && <span className="text-white font-semibold text-lg">Prescribly</span>}
+        </div>
+      </SidebarHeader>
+      
+      <SidebarContent className="bg-[#2d2d3a]">
         <SidebarGroup>
-          <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-gray-400 uppercase text-xs px-3">
+            {open ? "Admin Panel" : ""}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
                 const active = isActive(item);
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={active}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={active}
+                      className={`
+                        ${active 
+                          ? 'bg-gradient-to-r from-[hsl(var(--admin-gradient-start))] to-[hsl(var(--admin-gradient-end))] text-white' 
+                          : 'text-gray-300 hover:bg-white/5'
+                        }
+                        transition-all duration-200
+                      `}
+                    >
                       <NavLink to={item.url} end={item.exact}>
-                        <item.icon />
+                        <item.icon className="h-5 w-5" />
                         <span>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>

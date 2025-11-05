@@ -143,30 +143,21 @@ const DoctorApplicationsManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Doctor Applications</h2>
-          <p className="text-muted-foreground">
-            Review and manage doctor registration applications
-          </p>
-        </div>
-      </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="pending">
+        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+          <TabsTrigger value="pending" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--admin-gradient-start))] data-[state=active]:to-[hsl(var(--admin-gradient-end))]">
             <Clock className="w-4 h-4 mr-2" />
             Pending ({doctors?.pending_verification || 0})
           </TabsTrigger>
-          <TabsTrigger value="approved">
+          <TabsTrigger value="approved" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--admin-gradient-start))] data-[state=active]:to-[hsl(var(--admin-gradient-end))]">
             <CheckCircle className="w-4 h-4 mr-2" />
             Approved
           </TabsTrigger>
-          <TabsTrigger value="rejected">
+          <TabsTrigger value="rejected" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--admin-gradient-start))] data-[state=active]:to-[hsl(var(--admin-gradient-end))]">
             <XCircle className="w-4 h-4 mr-2" />
             Rejected
           </TabsTrigger>
-          <TabsTrigger value="all">
+          <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--admin-gradient-start))] data-[state=active]:to-[hsl(var(--admin-gradient-end))]">
             <User className="w-4 h-4 mr-2" />
             All Doctors
           </TabsTrigger>
@@ -178,20 +169,20 @@ const DoctorApplicationsManagement = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Doctor</TableHead>
-                    <TableHead>Specialization</TableHead>
-                    <TableHead>Experience</TableHead>
-                    <TableHead>License</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Applied</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-0">
+                 <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">Doctor</TableHead>
+                      <TableHead className="font-semibold">Specialization</TableHead>
+                      <TableHead className="font-semibold">Experience</TableHead>
+                      <TableHead className="font-semibold">License</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                   {doctors?.doctors?.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -248,9 +239,10 @@ const DoctorApplicationsManagement = () => {
                       </TableRow>
                     ))
                   )}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
       </Tabs>
