@@ -67,13 +67,29 @@ serve(async (req) => {
           status,
           reference,
           created_at,
-          user:profiles!consultation_payments_user_id_fkey(first_name, last_name)
+          user_id
         `)
         .order('created_at', { ascending: false });
 
       if (cpError) throw cpError;
 
-      const formattedPayments = consultationPayments.map(payment => ({
+      // Fetch user profiles separately
+      const paymentsWithProfiles = await Promise.all(
+        (consultationPayments || []).map(async (payment) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', payment.user_id)
+            .single();
+          
+          return {
+            ...payment,
+            user: profile || { first_name: '', last_name: '' }
+          };
+        })
+      );
+
+      const formattedPayments = paymentsWithProfiles.map(payment => ({
         id: payment.id,
         user_name: `${payment.user?.first_name || ''} ${payment.user?.last_name || ''}`,
         amount: payment.amount,
