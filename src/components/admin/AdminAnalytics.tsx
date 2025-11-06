@@ -22,6 +22,7 @@ const AdminAnalytics = () => {
       if (error) throw error;
       return data;
     },
+    refetchInterval: 10000, // Real-time updates every 10 seconds
   });
 
   if (isLoading) {
