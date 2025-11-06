@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -106,7 +106,7 @@ const UserManagement = () => {
     const doc = new jsPDF();
     doc.text("User Management Report", 14, 15);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 25,
       head: [['Name', 'Email', 'Role', 'Joined']],
       body: users.map(user => [

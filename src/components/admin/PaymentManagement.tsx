@@ -8,7 +8,7 @@ import { DollarSign, TrendingUp, Users, CreditCard, Download } from "lucide-reac
 import { toast } from "sonner";
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface Payment {
   id: string;
@@ -67,7 +67,7 @@ const PaymentManagement = () => {
     const doc = new jsPDF();
     doc.text("Payment Management Report", 14, 15);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 25,
       head: [['User', 'Type', 'Amount', 'Reference', 'Status', 'Date']],
       body: payments.map((payment: Payment) => [
