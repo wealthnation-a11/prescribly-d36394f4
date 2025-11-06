@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, AlertTriangle, CheckCircle, Activity } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface AILog {
   id: string;
@@ -17,8 +18,10 @@ interface AILog {
 }
 
 const AIDiagnosisLogs = () => {
+  const [realTimeUpdate, setRealTimeUpdate] = useState(0);
+  
   const { data: logsData, isLoading } = useQuery({
-    queryKey: ["admin-ai-logs"],
+    queryKey: ["admin-ai-logs", realTimeUpdate],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("admin-analytics", {
         body: { action: "ai-logs" },
@@ -26,7 +29,30 @@ const AIDiagnosisLogs = () => {
       if (error) throw error;
       return data;
     },
+    refetchInterval: 5000, // Refetch every 5 seconds
   });
+
+  // Real-time subscription for new AI diagnosis logs
+  useEffect(() => {
+    const channel = supabase
+      .channel('ai-diagnosis-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ai_confidence_logs'
+        },
+        () => {
+          setRealTimeUpdate(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   if (isLoading) {
     return <div className="text-center py-8">Loading AI diagnosis logs...</div>;
@@ -36,6 +62,14 @@ const AIDiagnosisLogs = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">AI Diagnosis Logs</h2>
+        <Badge variant="outline" className="animate-pulse">
+          <Activity className="h-3 w-3 mr-1" />
+          Live Updates
+        </Badge>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

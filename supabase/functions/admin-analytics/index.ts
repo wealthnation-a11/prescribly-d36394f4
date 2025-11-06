@@ -57,7 +57,32 @@ serve(async (req) => {
     const endpoint = url.pathname.split('/').pop();
 
     if (action === 'overview' || action === 'dashboard-stats' || endpoint === 'overview') {
-      // Get comprehensive stats
+      const { timePeriod, startDate, endDate } = body;
+      
+      // Calculate date range based on timePeriod
+      let dateFilter = {};
+      const now = new Date();
+      
+      if (timePeriod === 'month') {
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        dateFilter = { gte: monthStart.toISOString() };
+      } else if (timePeriod === 'year') {
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        dateFilter = { gte: yearStart.toISOString() };
+      } else if (timePeriod === 'custom' && startDate && endDate) {
+        dateFilter = { gte: startDate, lte: endDate };
+      }
+      
+      // Get all users with their details
+      const { data: allUsers } = await supabase
+        .from('profiles')
+        .select('user_id, gender, created_at, country');
+      
+      // Filter users based on time period for new users count
+      const filteredUsers = dateFilter.gte 
+        ? allUsers?.filter(u => new Date(u.created_at) >= new Date(dateFilter.gte as string))
+        : allUsers;
+      
       const { count: totalUsers } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
@@ -66,25 +91,94 @@ serve(async (req) => {
         .from('doctors')
         .select('id, verification_status, created_at');
 
+      const { data: appointments } = await supabase
+        .from('appointments')
+        .select('id, status, created_at');
+
+      const { data: subscriptions } = await supabase
+        .from('user_subscriptions')
+        .select('id, status');
+
+      const { data: diagnoses } = await supabase
+        .from('ai_confidence_logs')
+        .select('id, created_at, average_confidence');
+
+      // Calculate stats
       const totalDoctors = doctors?.length || 0;
       const approvedDoctors = doctors?.filter(d => d.verification_status === 'approved').length || 0;
       const pendingDoctors = doctors?.filter(d => d.verification_status === 'pending').length || 0;
-
-      const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const newApplications = doctors?.filter(d => new Date(d.created_at) >= monthStart).length || 0;
 
-      const newApplications = doctors?.filter(
-        d => new Date(d.created_at) >= monthStart
-      ).length || 0;
+      const totalAppointments = appointments?.length || 0;
+      const completedAppointments = appointments?.filter(a => a.status === 'completed').length || 0;
+      
+      const activeSubscriptions = subscriptions?.filter(s => s.status === 'active').length || 0;
+      
+      const totalDiagnoses = diagnoses?.length || 0;
+      const diagnosesThisMonth = diagnoses?.filter(d => new Date(d.created_at) >= monthStart).length || 0;
+      const avgAIConfidence = diagnoses?.reduce((sum, d) => sum + (d.average_confidence || 0), 0) / (diagnoses?.length || 1) * 100;
+
+      // Gender distribution
+      const genderCounts: Record<string, number> = {};
+      allUsers?.forEach(user => {
+        const gender = user.gender || 'Not Specified';
+        genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+      });
+      
+      const genderData = Object.entries(genderCounts).map(([name, value]) => ({
+        name,
+        value
+      }));
+
+      // Country distribution
+      const countryCounts: Record<string, number> = {};
+      allUsers?.forEach(user => {
+        const country = user.country || 'Unknown';
+        countryCounts[country] = (countryCounts[country] || 0) + 1;
+      });
+      
+      const countryData = Object.entries(countryCounts)
+        .map(([country, count]) => ({ country, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      // User growth over time (last 30 days)
+      const last30Days = Array.from({ length: 30 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (29 - i));
+        return date.toISOString().split('T')[0];
+      });
+      
+      const userGrowthData = last30Days.map(date => {
+        const count = allUsers?.filter(u => u.created_at?.split('T')[0] === date).length || 0;
+        return {
+          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          users: count
+        };
+      });
 
       const stats = {
+        totalUsers: totalUsers || 0,
+        newUsersThisMonth: filteredUsers?.length || 0,
         totalDoctors,
         approvedDoctors,
         pendingDoctors,
         newApplications,
+        totalAppointments,
+        completedAppointments,
+        activeSubscriptions,
+        totalDiagnoses,
+        diagnosesThisMonth,
+        avgAIConfidence: avgAIConfidence || 0,
       };
 
-      return new Response(JSON.stringify({ stats }), {
+      return new Response(JSON.stringify({ 
+        stats, 
+        genderData,
+        countryData,
+        userGrowthData
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
 
