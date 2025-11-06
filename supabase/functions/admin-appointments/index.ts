@@ -69,9 +69,8 @@ serve(async (req) => {
       let query = supabase
         .from('appointments')
         .select(`
-          id, scheduled_time, status, consultation_fee, duration_minutes, notes, created_at,
-          patient:patient_id(id, first_name, last_name, email),
-          doctor:doctor_id(id, first_name, last_name, email)
+          id, scheduled_time, status, consultation_fee, duration_minutes, 
+          notes, created_at, patient_id, doctor_id
         `, { count: 'exact' })
         .range(offset, offset + limit - 1)
         .order('scheduled_time', { ascending: false });
@@ -91,6 +90,30 @@ serve(async (req) => {
       const { data: appointments, error, count } = await query;
 
       if (error) throw error;
+
+      // Fetch patient and doctor profiles separately
+      const appointmentsWithProfiles = await Promise.all(
+        (appointments || []).map(async (appointment) => {
+          const [{ data: patient }, { data: doctor }] = await Promise.all([
+            supabase
+              .from('profiles')
+              .select('user_id, first_name, last_name, email')
+              .eq('user_id', appointment.patient_id)
+              .single(),
+            supabase
+              .from('profiles')
+              .select('user_id, first_name, last_name, email')
+              .eq('user_id', appointment.doctor_id)
+              .single()
+          ]);
+          
+          return {
+            ...appointment,
+            patient: patient || { user_id: appointment.patient_id, first_name: '', last_name: '', email: '' },
+            doctor: doctor || { user_id: appointment.doctor_id, first_name: '', last_name: '', email: '' }
+          };
+        })
+      );
 
       // Get summary stats
       const { data: allAppointments } = await supabase
@@ -116,7 +139,7 @@ serve(async (req) => {
       };
 
       return new Response(JSON.stringify({
-        appointments,
+        appointments: appointmentsWithProfiles,
         total: count || 0,
         page,
         totalPages: Math.ceil((count || 0) / limit),
@@ -138,14 +161,30 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
         .eq('id', appointmentId)
-        .select(`
-          id, status, scheduled_time,
-          patient:patient_id(first_name, last_name, email),
-          doctor:doctor_id(first_name, last_name, email)
-        `)
+        .select('id, status, scheduled_time, patient_id, doctor_id')
         .single();
 
       if (error) throw error;
+
+      // Fetch patient and doctor profiles separately
+      const [{ data: patient }, { data: doctor }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, email')
+          .eq('user_id', updatedAppointment.patient_id)
+          .single(),
+        supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, email')
+          .eq('user_id', updatedAppointment.doctor_id)
+          .single()
+      ]);
+
+      const appointmentWithProfiles = {
+        ...updatedAppointment,
+        patient: patient || { user_id: updatedAppointment.patient_id, first_name: '', last_name: '', email: '' },
+        doctor: doctor || { user_id: updatedAppointment.doctor_id, first_name: '', last_name: '', email: '' }
+      };
 
       // Create notification for patient and doctor
       const notificationMessage = `Your appointment has been ${status} by admin.${notes ? ` Note: ${notes}` : ''}`;
@@ -153,7 +192,7 @@ serve(async (req) => {
       await Promise.all([
         // Notify patient
         supabase.from('notifications').insert({
-          user_id: updatedAppointment.patient.id,
+          user_id: appointmentWithProfiles.patient.user_id,
           type: 'appointment_status',
           title: `Appointment ${status.charAt(0).toUpperCase() + status.slice(1)}`,
           message: notificationMessage,
@@ -161,7 +200,7 @@ serve(async (req) => {
         }),
         // Notify doctor
         supabase.from('notifications').insert({
-          user_id: updatedAppointment.doctor.id,
+          user_id: appointmentWithProfiles.doctor.user_id,
           type: 'appointment_status',
           title: `Appointment ${status.charAt(0).toUpperCase() + status.slice(1)}`,
           message: notificationMessage,
@@ -171,7 +210,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({
         success: true,
-        appointment: updatedAppointment,
+        appointment: appointmentWithProfiles,
         message: `Appointment ${status} successfully`
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
