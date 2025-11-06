@@ -90,7 +90,7 @@ serve(async (req) => {
             .from('profiles')
             .select('first_name, last_name, email')
             .eq('user_id', doctor.user_id)
-            .single();
+            .maybeSingle();
           
           return {
             ...doctor,
@@ -139,7 +139,7 @@ serve(async (req) => {
         .from('profiles')
         .select('first_name, last_name, email')
         .eq('user_id', updatedDoctor.user_id)
-        .single();
+        .maybeSingle();
       
       const doctorWithProfile = {
         ...updatedDoctor,

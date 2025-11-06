@@ -99,12 +99,12 @@ serve(async (req) => {
               .from('profiles')
               .select('user_id, first_name, last_name, email')
               .eq('user_id', appointment.patient_id)
-              .single(),
+              .maybeSingle(),
             supabase
               .from('profiles')
               .select('user_id, first_name, last_name, email')
               .eq('user_id', appointment.doctor_id)
-              .single()
+              .maybeSingle()
           ]);
           
           return {
@@ -172,12 +172,12 @@ serve(async (req) => {
           .from('profiles')
           .select('user_id, first_name, last_name, email')
           .eq('user_id', updatedAppointment.patient_id)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('profiles')
           .select('user_id, first_name, last_name, email')
           .eq('user_id', updatedAppointment.doctor_id)
-          .single()
+          .maybeSingle()
       ]);
 
       const appointmentWithProfiles = {

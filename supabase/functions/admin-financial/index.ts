@@ -80,7 +80,7 @@ serve(async (req) => {
             .from('profiles')
             .select('first_name, last_name')
             .eq('user_id', payment.user_id)
-            .single();
+            .maybeSingle();
           
           return {
             ...payment,
