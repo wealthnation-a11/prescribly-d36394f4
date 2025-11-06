@@ -71,8 +71,7 @@ serve(async (req) => {
         .from('doctors')
         .select(`
           id, user_id, specialization, license_number, years_of_experience, 
-          consultation_fee, verification_status, bio, rating, total_reviews, created_at,
-          profiles!inner(first_name, last_name, email)
+          consultation_fee, verification_status, bio, rating, total_reviews, created_at
         `, { count: 'exact' })
         .range(offset, offset + limit - 1);
 
@@ -84,6 +83,22 @@ serve(async (req) => {
 
       if (error) throw error;
 
+      // Fetch profile data separately for each doctor
+      const doctorsWithProfiles = await Promise.all(
+        (doctors || []).map(async (doctor) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('user_id', doctor.user_id)
+            .single();
+          
+          return {
+            ...doctor,
+            profiles: profile || { first_name: '', last_name: '', email: '' }
+          };
+        })
+      );
+
       // Get pending verification count
       const { count: pendingCount } = await supabase
         .from('doctors')
@@ -91,7 +106,7 @@ serve(async (req) => {
         .eq('verification_status', 'pending');
 
       return new Response(JSON.stringify({
-        doctors,
+        doctors: doctorsWithProfiles,
         total: count || 0,
         pending_verification: pendingCount || 0,
         page,
@@ -114,13 +129,22 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
         .eq('id', doctorId)
-        .select(`
-          id, user_id, verification_status,
-          profiles!inner(first_name, last_name, email)
-        `)
+        .select('id, user_id, verification_status')
         .single();
 
       if (error) throw error;
+
+      // Fetch profile data separately
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', updatedDoctor.user_id)
+        .single();
+      
+      const doctorWithProfile = {
+        ...updatedDoctor,
+        profiles: profile || { first_name: '', last_name: '', email: '' }
+      };
 
       // Create audit log
       await supabase.from('doctor_verification_audit').insert({
@@ -132,7 +156,7 @@ serve(async (req) => {
 
       // Create notification for doctor
       await supabase.from('notifications').insert({
-        user_id: updatedDoctor.user_id,
+        user_id: doctorWithProfile.user_id,
         type: 'doctor_verification',
         title: `Application ${status === 'approved' ? 'Approved' : 'Rejected'}`,
         message: status === 'approved' 
@@ -145,7 +169,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({
         success: true,
-        doctor: updatedDoctor,
+        doctor: doctorWithProfile,
         message: `Doctor ${verificationAction}d successfully`
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
