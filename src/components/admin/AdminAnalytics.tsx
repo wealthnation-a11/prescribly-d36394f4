@@ -134,6 +134,7 @@ const AdminAnalytics = () => {
                   selected={dateRange as any}
                   onSelect={(range: any) => setDateRange(range || {})}
                   numberOfMonths={2}
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
