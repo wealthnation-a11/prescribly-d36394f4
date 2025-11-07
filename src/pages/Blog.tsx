@@ -3,6 +3,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Calendar, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  cover_image: string | null;
+  author_id: string;
+  published: boolean;
+  published_at: string | null;
+  category: string | null;
+  tags: string[] | null;
+  views: number;
+  created_at: string;
+}
 
 export default function Blog() {
   usePageSEO({
@@ -11,32 +30,47 @@ export default function Blog() {
     canonicalPath: "/blog",
   });
 
-  const posts = [
-    {
-      title: "5 Ways Telemedicine is Transforming Healthcare in 2025",
-      excerpt: "From faster triage to continuous care, telemedicine is reshaping patient experience and outcomes.",
-      img: "/placeholder.svg",
-      slug: "telemedicine-transforming-healthcare-2025",
-      author: "Dr. Sarah Johnson",
-      date: "March 15, 2025"
+  const { data: posts, isLoading } = useQuery({
+    queryKey: ["published-blog-posts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("published", true)
+        .order("published_at", { ascending: false });
+      
+      if (error) throw error;
+      return data as BlogPost[];
     },
-    {
-      title: "The Importance of Data Privacy in Digital Health",
-      excerpt: "As care moves online, patient trust depends on strong security and transparent data practices.",
-      img: "/placeholder.svg",
-      slug: "data-privacy-digital-health",
-      author: "Michael Chen, Privacy Officer",
-      date: "March 10, 2025"
-    },
-    {
-      title: "How Prescribly Doctors Deliver Better Consultations",
-      excerpt: "Tools that reduce admin overhead, surface context instantly, and keep visits focused on care.",
-      img: "/placeholder.svg",
-      slug: "prescribly-doctors-better-consultations",
-      author: "Dr. Lisa Park, Chief Medical Officer",
-      date: "March 5, 2025"
-    },
-  ];
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading blog posts...</p>
+      </div>
+    );
+  }
+
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="bg-secondary/30 border-b border-border/50">
+          <div className="container mx-auto px-4 py-10">
+            <h1 className="text-4xl font-bold text-foreground">Prescribly Blog</h1>
+            <p className="text-muted-foreground mt-2">Featured articles and the latest posts</p>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-10">
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground">No blog posts available yet. Check back soon!</p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,7 +86,12 @@ export default function Blog() {
         <section>
           <div className="grid lg:grid-cols-2 gap-6 items-stretch">
             <Card className="overflow-hidden">
-              <img src={posts[0].img} alt={posts[0].title} className="w-full h-56 object-cover bg-secondary/50" loading="lazy" />
+              <img 
+                src={posts[0].cover_image || "/placeholder.svg"} 
+                alt={posts[0].title} 
+                className="w-full h-56 object-cover bg-secondary/50" 
+                loading="lazy" 
+              />
               <CardHeader>
                 <CardTitle className="text-2xl">{posts[0].title}</CardTitle>
                 <CardDescription>{posts[0].excerpt}</CardDescription>
@@ -60,12 +99,8 @@ export default function Blog() {
               <CardContent>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    <span>{posts[0].author}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{posts[0].date}</span>
+                    <span>{posts[0].published_at ? format(new Date(posts[0].published_at), "MMM dd, yyyy") : ""}</span>
                   </div>
                 </div>
                 <Button variant="medical" asChild>
@@ -75,10 +110,15 @@ export default function Blog() {
             </Card>
 
             <div className="grid gap-6">
-              {posts.slice(1).map((p) => (
-                <Card key={p.title} className="overflow-hidden">
+              {posts.slice(1, 3).map((p) => (
+                <Card key={p.id} className="overflow-hidden">
                   <div className="grid sm:grid-cols-3 gap-0">
-                    <img src={p.img} alt={p.title} className="sm:col-span-1 w-full h-full object-cover bg-secondary/50" loading="lazy" />
+                    <img 
+                      src={p.cover_image || "/placeholder.svg"} 
+                      alt={p.title} 
+                      className="sm:col-span-1 w-full h-full object-cover bg-secondary/50" 
+                      loading="lazy" 
+                    />
                     <div className="sm:col-span-2">
                       <CardHeader>
                         <CardTitle className="text-xl">{p.title}</CardTitle>
@@ -86,9 +126,7 @@ export default function Blog() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                          <span>{p.author}</span>
-                          <span>•</span>
-                          <span>{p.date}</span>
+                          <span>{p.published_at ? format(new Date(p.published_at), "MMM dd, yyyy") : ""}</span>
                         </div>
                         <Button variant="outline" asChild>
                           <Link to={`/blog/${p.slug}`} aria-label={`Read more: ${p.title}`}>Read more</Link>
@@ -103,29 +141,29 @@ export default function Blog() {
         </section>
 
         {/* Recent posts list */}
-        <section>
-          <h2 className="text-2xl font-semibold text-foreground mb-4">Recent Posts</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {posts.map((p) => (
-              <Card key={`recent-${p.title}`} className="hover-lift">
-                <CardHeader>
-                  <CardTitle className="text-lg">{p.title}</CardTitle>
-                  <CardDescription>{p.excerpt}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
-                    <span>{p.author}</span>
-                    <span>•</span>
-                    <span>{p.date}</span>
-                  </div>
-                  <Button variant="link" asChild>
-                    <Link to={`/blog/${p.slug}`} aria-label={`Read more: ${p.title}`}>Read more →</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+        {posts.length > 3 && (
+          <section>
+            <h2 className="text-2xl font-semibold text-foreground mb-4">Recent Posts</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              {posts.slice(3).map((p) => (
+                <Card key={p.id} className="hover-lift">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{p.title}</CardTitle>
+                    <CardDescription>{p.excerpt}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
+                      <span>{p.published_at ? format(new Date(p.published_at), "MMM dd, yyyy") : ""}</span>
+                    </div>
+                    <Button variant="link" asChild>
+                      <Link to={`/blog/${p.slug}`} aria-label={`Read more: ${p.title}`}>Read more →</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

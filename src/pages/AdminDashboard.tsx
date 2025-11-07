@@ -9,6 +9,7 @@ import AIDiagnosisLogs from "@/components/admin/AIDiagnosisLogs";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import { RoleManagement } from "@/components/admin/RoleManagement";
 import { SubscriptionManagement } from "@/components/admin/SubscriptionManagement";
+import BlogManagement from "@/components/admin/BlogManagement";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp } from "lucide-react";
@@ -87,7 +88,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="analytics" className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="roles">Roles</TabsTrigger>
@@ -96,6 +97,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="ai-logs">AI Diagnosis</TabsTrigger>
+            <TabsTrigger value="blog">Blog</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="mt-6">
@@ -196,6 +198,20 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <AIDiagnosisLogs />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="blog" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Blog Management</CardTitle>
+                <CardDescription>
+                  Create and manage blog posts for the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BlogManagement />
               </CardContent>
             </Card>
           </TabsContent>
