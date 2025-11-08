@@ -236,6 +236,50 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_comments: {
+        Row: {
+          approved: boolean | null
+          author_email: string
+          author_name: string
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          author_email: string
+          author_name: string
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          author_email?: string
+          author_name?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string
@@ -245,6 +289,9 @@ export type Database = {
           created_at: string
           excerpt: string | null
           id: string
+          meta_description: string | null
+          meta_keywords: string[] | null
+          og_image: string | null
           published: boolean
           published_at: string | null
           slug: string
@@ -261,6 +308,9 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          og_image?: string | null
           published?: boolean
           published_at?: string | null
           slug: string
@@ -277,6 +327,9 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          og_image?: string | null
           published?: boolean
           published_at?: string | null
           slug?: string
@@ -1149,6 +1202,30 @@ export type Database = {
           latency_ms?: number | null
           processed_at?: string | null
           success?: boolean
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          subscribed: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          subscribed?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          subscribed?: boolean | null
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -2,10 +2,13 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Calendar, User } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import NewsletterSubscribe from "@/components/blog/NewsletterSubscribe";
 
 interface BlogPost {
   id: string;
@@ -24,6 +27,8 @@ interface BlogPost {
 }
 
 export default function Blog() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
   usePageSEO({
     title: "Prescribly Blog | Insights on Digital Health",
     description: "Featured stories and insights on telemedicine, data privacy, and how Prescribly enhances virtual care.",
@@ -31,16 +36,36 @@ export default function Blog() {
   });
 
   const { data: posts, isLoading } = useQuery({
-    queryKey: ["published-blog-posts"],
+    queryKey: ["published-blog-posts", selectedCategory],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("blog_posts")
         .select("*")
-        .eq("published", true)
-        .order("published_at", { ascending: false });
+        .eq("published", true);
+      
+      if (selectedCategory) {
+        query = query.eq("category", selectedCategory);
+      }
+      
+      const { data, error } = await query.order("published_at", { ascending: false });
       
       if (error) throw error;
       return data as BlogPost[];
+    },
+  });
+
+  const { data: categories } = useQuery({
+    queryKey: ["blog-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select("category")
+        .eq("published", true)
+        .not("category", "is", null);
+      
+      if (error) throw error;
+      const uniqueCategories = [...new Set(data.map(p => p.category).filter(Boolean))];
+      return uniqueCategories as string[];
     },
   });
 
@@ -81,7 +106,32 @@ export default function Blog() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-10 space-y-12">
+      <main className="container mx-auto px-4 py-10 space-y-8">
+        {/* Category Filter */}
+        {categories && categories.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={selectedCategory === null ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => setSelectedCategory(null)}
+            >
+              All
+            </Badge>
+            {categories.map((category) => (
+              <Badge
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Newsletter Subscription */}
+        <NewsletterSubscribe />
         {/* Featured */}
         <section>
           <div className="grid lg:grid-cols-2 gap-6 items-stretch">

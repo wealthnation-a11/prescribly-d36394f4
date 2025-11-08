@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Eye, Calendar, Tag } from "lucide-react";
 import { format } from "date-fns";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 interface BlogPost {
   id: string;
@@ -25,6 +27,9 @@ interface BlogPost {
   published_at: string | null;
   category: string | null;
   tags: string[] | null;
+  meta_description: string | null;
+  meta_keywords: string[] | null;
+  og_image: string | null;
   views: number;
   created_at: string;
   updated_at: string;
@@ -42,6 +47,9 @@ const BlogManagement = () => {
     cover_image: "",
     category: "",
     tags: "",
+    meta_description: "",
+    meta_keywords: "",
+    og_image: "",
     published: false,
   });
 
@@ -67,6 +75,7 @@ const BlogManagement = () => {
         ...data,
         author_id: user.id,
         tags: data.tags ? data.tags.split(",").map((t: string) => t.trim()) : [],
+        meta_keywords: data.meta_keywords ? data.meta_keywords.split(",").map((k: string) => k.trim()) : [],
         published_at: data.published ? new Date().toISOString() : null,
       });
       
@@ -90,6 +99,7 @@ const BlogManagement = () => {
         .update({
           ...data,
           tags: data.tags ? data.tags.split(",").map((t: string) => t.trim()) : [],
+          meta_keywords: data.meta_keywords ? data.meta_keywords.split(",").map((k: string) => k.trim()) : [],
           published_at: data.published && !editingPost?.published 
             ? new Date().toISOString() 
             : editingPost?.published_at,
@@ -132,6 +142,9 @@ const BlogManagement = () => {
       cover_image: "",
       category: "",
       tags: "",
+      meta_description: "",
+      meta_keywords: "",
+      og_image: "",
       published: false,
     });
     setEditingPost(null);
@@ -147,6 +160,9 @@ const BlogManagement = () => {
       cover_image: post.cover_image || "",
       category: post.category || "",
       tags: post.tags?.join(", ") || "",
+      meta_description: post.meta_description || "",
+      meta_keywords: post.meta_keywords?.join(", ") || "",
+      og_image: post.og_image || "",
       published: post.published,
     });
     setIsDialogOpen(true);
@@ -226,12 +242,22 @@ const BlogManagement = () => {
 
               <div>
                 <Label htmlFor="content">Content *</Label>
-                <Textarea
-                  id="content"
+                <ReactQuill
+                  theme="snow"
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={10}
-                  required
+                  onChange={(content) => setFormData({ ...formData, content })}
+                  className="bg-background"
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      ["bold", "italic", "underline", "strike"],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                      ["blockquote", "code-block"],
+                      [{ color: [] }, { background: [] }],
+                      ["link", "image"],
+                      ["clean"],
+                    ],
+                  }}
                 />
               </div>
 
@@ -265,6 +291,37 @@ const BlogManagement = () => {
                     placeholder="ai, diagnosis, health"
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="og_image">OG Image URL (for social sharing)</Label>
+                <Input
+                  id="og_image"
+                  value={formData.og_image}
+                  onChange={(e) => setFormData({ ...formData, og_image: e.target.value })}
+                  placeholder="https://example.com/og-image.jpg"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="meta_description">Meta Description (for SEO)</Label>
+                <Input
+                  id="meta_description"
+                  value={formData.meta_description}
+                  onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                  placeholder="Brief description for search engines (160 chars max)"
+                  maxLength={160}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="meta_keywords">Meta Keywords (comma-separated, for SEO)</Label>
+                <Input
+                  id="meta_keywords"
+                  value={formData.meta_keywords}
+                  onChange={(e) => setFormData({ ...formData, meta_keywords: e.target.value })}
+                  placeholder="health, telemedicine, diagnosis"
+                />
               </div>
 
               <div className="flex items-center space-x-2">

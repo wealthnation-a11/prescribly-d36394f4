@@ -10,6 +10,7 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import { RoleManagement } from "@/components/admin/RoleManagement";
 import { SubscriptionManagement } from "@/components/admin/SubscriptionManagement";
 import BlogManagement from "@/components/admin/BlogManagement";
+import CommentModeration from "@/components/admin/CommentModeration";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp } from "lucide-react";
@@ -207,11 +208,22 @@ const AdminDashboard = () => {
               <CardHeader>
                 <CardTitle>Blog Management</CardTitle>
                 <CardDescription>
-                  Create and manage blog posts for the platform
+                  Manage blog posts and moderate comments
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <BlogManagement />
+                <Tabs defaultValue="posts" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="posts">Blog Posts</TabsTrigger>
+                    <TabsTrigger value="comments">Comments</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="posts" className="space-y-4">
+                    <BlogManagement />
+                  </TabsContent>
+                  <TabsContent value="comments" className="space-y-4">
+                    <CommentModeration />
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </TabsContent>

@@ -6,13 +6,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import BlogComments from "@/components/blog/BlogComments";
+import { Helmet } from "react-helmet";
 
 interface BlogPost {
   id: string;
@@ -26,6 +28,9 @@ interface BlogPost {
   published_at: string | null;
   category: string | null;
   tags: string[] | null;
+  meta_description: string | null;
+  meta_keywords: string[] | null;
+  og_image: string | null;
   views: number;
   created_at: string;
 }
@@ -70,9 +75,24 @@ export default function BlogPost() {
 
   usePageSEO({
     title: post ? `${post.title} | Prescribly Blog` : "Blog Post | Prescribly",
-    description: post?.excerpt || "Read our latest blog post",
+    description: post?.meta_description || post?.excerpt || "Read our latest blog post",
     canonicalPath: `/blog/${slug}`,
   });
+
+  // Set meta tags for SEO and social sharing
+  useEffect(() => {
+    if (!post) return;
+
+    const metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement;
+    if (metaKeywords && post.meta_keywords) {
+      metaKeywords.content = post.meta_keywords.join(", ");
+    } else if (post.meta_keywords) {
+      const meta = document.createElement("meta");
+      meta.name = "keywords";
+      meta.content = post.meta_keywords.join(", ");
+      document.head.appendChild(meta);
+    }
+  }, [post]);
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareTitle = post?.title || "";
@@ -129,8 +149,20 @@ export default function BlogPost() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-secondary/30 border-b border-border/50">
+    <>
+      <Helmet>
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={post.meta_description || post.excerpt || ""} />
+        <meta property="og:image" content={post.og_image || post.cover_image || ""} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={shareUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={post.meta_description || post.excerpt || ""} />
+        <meta name="twitter:image" content={post.og_image || post.cover_image || ""} />
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-6">
           <Button variant="ghost" asChild className="mb-4">
             <Link to="/blog">
@@ -192,10 +224,8 @@ export default function BlogPost() {
           
           <div 
             className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-a:text-primary"
-            style={{ whiteSpace: "pre-wrap" }}
-          >
-            {post.content}
-          </div>
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
 
           {post.tags && post.tags.length > 0 && (
             <div className="mt-8 flex gap-2 flex-wrap">
@@ -243,8 +273,14 @@ export default function BlogPost() {
               <p className="text-sm text-muted-foreground">{post.views} views</p>
             </div>
           </div>
+
+          {/* Comments Section */}
+          <div className="mt-16 pt-8 border-t border-border">
+            <BlogComments postId={post.id} />
+          </div>
         </article>
       </main>
-    </div>
+      </div>
+    </>
   );
 }
