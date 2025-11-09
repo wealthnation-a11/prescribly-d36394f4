@@ -57,7 +57,8 @@ serve(async (req) => {
     const endpoint = url.pathname.split('/').pop();
 
     if (action === 'overview' || action === 'dashboard-stats' || endpoint === 'overview') {
-      const { timePeriod, startDate, endDate } = body;
+      const { timePeriod, startDate, endDate, filters = {} } = body;
+      const { doctorId, appointmentType, gender, country } = filters;
       
       // Calculate date range based on timePeriod
       let dateFilter = {};
@@ -74,9 +75,21 @@ serve(async (req) => {
       }
       
       // Get all users with their details
-      const { data: allUsers } = await supabase
+      let usersQuery = supabase
         .from('profiles')
         .select('user_id, gender, created_at, country');
+      
+      // Apply gender filter
+      if (gender) {
+        usersQuery = usersQuery.eq('gender', gender);
+      }
+      
+      // Apply country filter
+      if (country) {
+        usersQuery = usersQuery.eq('country', country);
+      }
+      
+      const { data: allUsers } = await usersQuery;
       
       // Filter users based on time period for new users count
       const filteredUsers = dateFilter.gte 
@@ -91,9 +104,22 @@ serve(async (req) => {
         .from('doctors')
         .select('id, verification_status, created_at');
 
-      const { data: appointments } = await supabase
+      // Get appointments with filters
+      let appointmentsQuery = supabase
         .from('appointments')
-        .select('id, status, created_at');
+        .select('id, status, created_at, doctor_id, patient_id');
+      
+      // Apply doctor filter
+      if (doctorId) {
+        appointmentsQuery = appointmentsQuery.eq('doctor_id', doctorId);
+      }
+      
+      // Apply appointment type filter
+      if (appointmentType) {
+        appointmentsQuery = appointmentsQuery.eq('status', appointmentType);
+      }
+      
+      const { data: appointments } = await appointmentsQuery;
 
       const { data: subscriptions } = await supabase
         .from('user_subscriptions')
@@ -159,6 +185,17 @@ serve(async (req) => {
         };
       });
 
+      // Get list of available countries for filter
+      const { data: allUserCountries } = await supabase
+        .from('profiles')
+        .select('country');
+      
+      const availableCountries = [...new Set(
+        allUserCountries
+          ?.map(u => u.country)
+          .filter(c => c && c !== 'Unknown' && c.trim() !== '')
+      )].sort();
+
       const stats = {
         totalUsers: totalUsers || 0,
         newUsersThisMonth: filteredUsers?.length || 0,
@@ -178,7 +215,8 @@ serve(async (req) => {
         stats, 
         genderData,
         countryData,
-        userGrowthData
+        userGrowthData,
+        availableCountries
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

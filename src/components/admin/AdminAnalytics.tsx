@@ -14,18 +14,64 @@ import {
   CalendarDays,
   Globe,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const AdminAnalytics = () => {
   const [timePeriod, setTimePeriod] = useState<'month' | 'year'>('month');
   const [realTimeUpdate, setRealTimeUpdate] = useState(0);
+  const [selectedDoctor, setSelectedDoctor] = useState<string>('all');
+  const [appointmentType, setAppointmentType] = useState<string>('all');
+  const [selectedGender, setSelectedGender] = useState<string>('all');
+  const [selectedCountry, setSelectedCountry] = useState<string>('all');
+
+  // Fetch available doctors for filter
+  const { data: doctorsData } = useQuery({
+    queryKey: ["admin-doctors-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('doctors')
+        .select('id, user_id')
+        .eq('verification_status', 'approved');
+      
+      if (error) throw error;
+      
+      // Get profiles for each doctor
+      const doctorIds = data?.map(d => d.user_id) || [];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, email')
+        .in('user_id', doctorIds);
+      
+      // Combine doctors with their profiles
+      return data?.map(doctor => {
+        const profile = profiles?.find(p => p.user_id === doctor.user_id);
+        const displayName = profile?.first_name && profile?.last_name 
+          ? `${profile.first_name} ${profile.last_name}`
+          : profile?.email || 'Unnamed Doctor';
+        return {
+          ...doctor,
+          displayName
+        };
+      });
+    },
+  });
 
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ["admin-analytics-overview", timePeriod, realTimeUpdate],
+    queryKey: ["admin-analytics-overview", timePeriod, realTimeUpdate, selectedDoctor, appointmentType, selectedGender, selectedCountry],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("admin-analytics", {
-        body: { action: "overview", timePeriod },
+        body: { 
+          action: "overview", 
+          timePeriod,
+          filters: {
+            doctorId: selectedDoctor !== 'all' ? selectedDoctor : undefined,
+            appointmentType: appointmentType !== 'all' ? appointmentType : undefined,
+            gender: selectedGender !== 'all' ? selectedGender : undefined,
+            country: selectedCountry !== 'all' ? selectedCountry : undefined,
+          }
+        },
       });
       if (error) throw error;
       return data;
@@ -74,33 +120,162 @@ const AdminAnalytics = () => {
   const genderData = analytics?.genderData || [];
   const countryData = analytics?.countryData || [];
   const userGrowthData = analytics?.userGrowthData || [];
+  const availableCountries = analytics?.availableCountries || [];
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+  
+  const hasActiveFilters = selectedDoctor !== 'all' || appointmentType !== 'all' || selectedGender !== 'all' || selectedCountry !== 'all';
+  
+  const clearFilters = () => {
+    setSelectedDoctor('all');
+    setAppointmentType('all');
+    setSelectedGender('all');
+    setSelectedCountry('all');
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-          <p className="text-sm text-muted-foreground">Real-time platform insights</p>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Select value={timePeriod} onValueChange={(value: any) => setTimePeriod(value)}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="year">This Year</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
+            <p className="text-sm text-muted-foreground">Real-time platform insights with advanced filtering</p>
+          </div>
           
-          <Badge variant="outline" className="animate-pulse h-10 px-3 flex items-center gap-2">
-            <Activity className="h-3 w-3" />
-            Live
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Select value={timePeriod} onValueChange={(value: any) => setTimePeriod(value)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="year">This Year</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Badge variant="outline" className="animate-pulse h-10 px-3 flex items-center gap-2">
+              <Activity className="h-3 w-3" />
+              Live
+            </Badge>
+          </div>
         </div>
+
+        {/* Advanced Filters */}
+        <Card className="bg-muted/50">
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Advanced Filters
+                </h3>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    Clear All Filters
+                  </Button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                {/* Doctor Filter */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Doctor</label>
+                  <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Doctors" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Doctors</SelectItem>
+                      {doctorsData?.map((doctor) => (
+                        <SelectItem key={doctor.id} value={doctor.id}>
+                          {doctor.displayName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Appointment Type Filter */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Appointment Status</label>
+                  <Select value={appointmentType} onValueChange={setAppointmentType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Gender Filter */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Gender</label>
+                  <Select value={selectedGender} onValueChange={setSelectedGender}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Genders" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Genders</SelectItem>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="prefer_not_to_say">Prefer Not to Say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Country Filter */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Country</label>
+                  <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Countries" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Countries</SelectItem>
+                      {availableCountries?.map((country: string) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {hasActiveFilters && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+                  <span className="text-xs text-muted-foreground">Active filters:</span>
+                  {selectedDoctor !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      Doctor: {doctorsData?.find(d => d.id === selectedDoctor)?.displayName}
+                    </Badge>
+                  )}
+                  {appointmentType !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      Status: {appointmentType}
+                    </Badge>
+                  )}
+                  {selectedGender !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      Gender: {selectedGender}
+                    </Badge>
+                  )}
+                  {selectedCountry !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      Country: {selectedCountry}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
