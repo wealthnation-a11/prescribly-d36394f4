@@ -23,6 +23,7 @@ import { Logo } from "@/components/Logo";
     phone: "",
     dateOfBirth: "",
     gender: "",
+    country: "",
     emergencyContactName: "",
     emergencyContactPhone: "",
     medicalHistory: "",
@@ -107,20 +108,27 @@ import { Logo } from "@/components/Logo";
               }
               
               if (profileData) {
+                // Update profile with country
+                await supabase
+                  .from('profiles')
+                  .update({ country: formData.country })
+                  .eq('id', profileData.id);
+                
                 const { error: patientError } = await supabase.from('patients').insert({
                   user_id: user.id,
                   profile_id: profileData.id,
                   first_name: formData.firstName,
                   last_name: formData.lastName,
                   email: formData.email,
-                  phone: formData.phone || null,
-                  date_of_birth: formData.dateOfBirth || null,
-                  gender: formData.gender || null,
-                  emergency_contact_name: formData.emergencyContactName || null,
-                  emergency_contact_phone: formData.emergencyContactPhone || null,
-                  medical_history: formData.medicalHistory || null,
-                  allergies: formData.allergies || null,
-                  current_medications: formData.currentMedications || null,
+                  phone: formData.phone,
+                  date_of_birth: formData.dateOfBirth,
+                  gender: formData.gender,
+                  country: formData.country,
+                  emergency_contact_name: formData.emergencyContactName,
+                  emergency_contact_phone: formData.emergencyContactPhone,
+                  medical_history: formData.medicalHistory,
+                  allergies: formData.allergies,
+                  current_medications: formData.currentMedications,
                 });
                 
                 if (patientError) {
@@ -221,7 +229,7 @@ import { Logo } from "@/components/Logo";
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Phone Number *</Label>
               <Input
                 id="phone"
                 name="phone"
@@ -229,24 +237,26 @@ import { Logo } from "@/components/Logo";
                 placeholder="Enter your phone number"
                 value={formData.phone}
                 onChange={handleInputChange}
+                required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
                 <Input
                   id="dateOfBirth"
                   name="dateOfBirth"
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select value={formData.gender} onValueChange={(value) => handleSelectChange('gender', value)}>
+                <Label htmlFor="gender">Gender *</Label>
+                <Select value={formData.gender} onValueChange={(value) => handleSelectChange('gender', value)} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -260,9 +270,22 @@ import { Logo } from "@/components/Logo";
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="country">Country *</Label>
+              <Input
+                id="country"
+                name="country"
+                type="text"
+                placeholder="Enter your country"
+                value={formData.country}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="emergencyContactName">Emergency Contact Name</Label>
+                <Label htmlFor="emergencyContactName">Emergency Contact Name *</Label>
                 <Input
                   id="emergencyContactName"
                   name="emergencyContactName"
@@ -270,11 +293,12 @@ import { Logo } from "@/components/Logo";
                   placeholder="Emergency contact name"
                   value={formData.emergencyContactName}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="emergencyContactPhone">Emergency Contact Phone</Label>
+                <Label htmlFor="emergencyContactPhone">Emergency Contact Phone *</Label>
                 <Input
                   id="emergencyContactPhone"
                   name="emergencyContactPhone"
@@ -282,12 +306,13 @@ import { Logo } from "@/components/Logo";
                   placeholder="Emergency contact phone"
                   value={formData.emergencyContactPhone}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="medicalHistory">Medical History</Label>
+              <Label htmlFor="medicalHistory">Medical History *</Label>
               <Textarea
                 id="medicalHistory"
                 name="medicalHistory"
@@ -295,30 +320,33 @@ import { Logo } from "@/components/Logo";
                 value={formData.medicalHistory}
                 onChange={handleInputChange}
                 rows={3}
+                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="allergies">Allergies</Label>
+              <Label htmlFor="allergies">Allergies *</Label>
               <Textarea
                 id="allergies"
                 name="allergies"
-                placeholder="Any known allergies..."
+                placeholder="Any known allergies (enter 'None' if no allergies)..."
                 value={formData.allergies}
                 onChange={handleInputChange}
                 rows={2}
+                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="currentMedications">Current Medications</Label>
+              <Label htmlFor="currentMedications">Current Medications *</Label>
               <Textarea
                 id="currentMedications"
                 name="currentMedications"
-                placeholder="Current medications you're taking..."
+                placeholder="Current medications you're taking (enter 'None' if not taking any)..."
                 value={formData.currentMedications}
                 onChange={handleInputChange}
                 rows={2}
+                required
               />
             </div>
             

@@ -19,6 +19,7 @@ export const DoctorRegister = () => {
     password: "",
     confirmPassword: "",
     phone: "",
+    country: "",
     specialization: "",
     bio: "",
     licenseNumber: "",
@@ -232,8 +233,8 @@ export const DoctorRegister = () => {
             user_id: user.id,
             profile_id: profileData.id,
             specialization: formData.specialization,
-            bio: formData.bio || null,
-            license_number: formData.licenseNumber || null,
+            bio: formData.bio,
+            license_number: formData.licenseNumber,
             consultation_fee: formData.consultationFee ? parseFloat(formData.consultationFee) : null,
             years_of_experience: formData.yearsOfExperience ? parseInt(formData.yearsOfExperience) : null,
             kyc_documents: {
@@ -242,6 +243,12 @@ export const DoctorRegister = () => {
             },
             verification_status: 'pending'
           });
+        
+        // Update profile with country
+        await supabase
+          .from('profiles')
+          .update({ country: formData.country })
+          .eq('id', profileData.id);
 
         if (doctorError) {
           console.error('Doctor profile creation error:', doctorError);
@@ -397,8 +404,8 @@ export const DoctorRegister = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="specialization">Specialization</Label>
-                    <Select value={formData.specialization} onValueChange={(value) => setFormData({...formData, specialization: value})}>
+                    <Label htmlFor="specialization">Specialization *</Label>
+                    <Select value={formData.specialization} onValueChange={(value) => setFormData({...formData, specialization: value})} required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select your specialization" />
                       </SelectTrigger>
@@ -413,9 +420,22 @@ export const DoctorRegister = () => {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country *</Label>
+                  <Input
+                    id="country"
+                    name="country"
+                    type="text"
+                    placeholder="Enter your country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="licenseNumber">Medical License Number</Label>
+                    <Label htmlFor="licenseNumber">Medical License Number *</Label>
                     <Input
                       id="licenseNumber"
                       name="licenseNumber"
@@ -423,11 +443,12 @@ export const DoctorRegister = () => {
                       placeholder="Enter your license number"
                       value={formData.licenseNumber}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="yearsOfExperience">Years of Experience</Label>
+                    <Label htmlFor="yearsOfExperience">Years of Experience *</Label>
                     <Input
                       id="yearsOfExperience"
                       name="yearsOfExperience"
@@ -436,6 +457,7 @@ export const DoctorRegister = () => {
                       value={formData.yearsOfExperience}
                       onChange={handleInputChange}
                       min="0"
+                      required
                     />
                   </div>
                 </div>
@@ -455,7 +477,7 @@ export const DoctorRegister = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Professional Bio</Label>
+                  <Label htmlFor="bio">Professional Bio *</Label>
                   <Textarea
                     id="bio"
                     name="bio"
@@ -463,6 +485,7 @@ export const DoctorRegister = () => {
                     value={formData.bio}
                     onChange={handleInputChange}
                     rows={4}
+                    required
                   />
                 </div>
               </div>

@@ -131,17 +131,18 @@ serve(async (req) => {
         value
       }));
 
-      // Country distribution
+      // Country distribution - show all countries
       const countryCounts: Record<string, number> = {};
       allUsers?.forEach(user => {
-        const country = user.country || 'Unknown';
-        countryCounts[country] = (countryCounts[country] || 0) + 1;
+        if (user.country && user.country !== 'Unknown' && user.country.trim() !== '') {
+          const country = user.country.trim();
+          countryCounts[country] = (countryCounts[country] || 0) + 1;
+        }
       });
       
       const countryData = Object.entries(countryCounts)
         .map(([country, count]) => ({ country, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
+        .sort((a, b) => b.count - a.count); // Show all countries sorted by count
 
       // User growth over time (last 30 days)
       const last30Days = Array.from({ length: 30 }, (_, i) => {

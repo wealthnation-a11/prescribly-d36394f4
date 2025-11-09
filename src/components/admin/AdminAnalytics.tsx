@@ -308,7 +308,7 @@ const AdminAnalytics = () => {
               Users by Country
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={countryData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -319,6 +319,24 @@ const AdminAnalytics = () => {
                 <Bar dataKey="count" fill="hsl(var(--primary))" />
               </BarChart>
             </ResponsiveContainer>
+            
+            {/* Country List */}
+            <div className="border-t border-border pt-4">
+              <h4 className="text-sm font-semibold mb-4">All Countries with Users</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {countryData.map((item: any) => (
+                  <div key={item.country} className="flex justify-between items-center p-3 bg-secondary/20 rounded-lg">
+                    <span className="text-sm font-medium">{item.country}</span>
+                    <Badge variant="outline">{item.count} user{item.count !== 1 ? 's' : ''}</Badge>
+                  </div>
+                ))}
+              </div>
+              {countryData.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No country data available yet
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
