@@ -1,11 +1,22 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schema
+const prescribeRequestSchema = z.object({
+  condition_id: z.number().int().positive({ message: "Invalid condition ID" }),
+  user_profile: z.object({
+    age: z.number().int().min(0).max(150).optional(),
+    pregnant: z.boolean().optional(),
+    allergies: z.array(z.string().max(200)).max(50).optional()
+  }).optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,13 +29,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { condition_id, user_profile } = await req.json();
+    const body = await req.json();
     
-    if (!condition_id) {
+    // Validate input using Zod
+    const validation = prescribeRequestSchema.safeParse(body);
+    if (!validation.success) {
       return new Response(
         JSON.stringify({ 
-          prescribeAllowed: false, 
-          message: 'Condition ID is required' 
+          prescribeAllowed: false,
+          error: 'Validation failed', 
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
         }),
         { 
           status: 400,
@@ -32,6 +46,8 @@ serve(async (req) => {
         }
       );
     }
+
+    const { condition_id, user_profile } = validation.data;
 
     console.log('Getting prescription for condition:', condition_id);
 

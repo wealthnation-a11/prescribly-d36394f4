@@ -1,11 +1,24 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schemas
+const doctorVerificationSchema = z.object({
+  status: z.enum(['approved', 'rejected'], { message: "Status must be 'approved' or 'rejected'" }),
+  notes: z.string().max(1000, "Notes too long").optional()
+});
+
+const paginationSchema = z.object({
+  page: z.string().optional().transform(val => val ? parseInt(val) : 1).pipe(z.number().int().positive()),
+  limit: z.string().optional().transform(val => val ? parseInt(val) : 20).pipe(z.number().int().min(1).max(100)),
+  status: z.enum(['pending', 'approved', 'rejected']).optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -59,11 +72,38 @@ serve(async (req) => {
     const doctorId = isSpecificDoctorRequest ? pathParts[pathParts.length - 2] : null;
     const action = isSpecificDoctorRequest ? pathParts[pathParts.length - 1] : null;
 
+    // Validate doctor ID if present
+    if (doctorId) {
+      const uuidSchema = z.string().uuid();
+      const validation = uuidSchema.safeParse(doctorId);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ error: 'Invalid doctor ID format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     if (method === 'GET' && !isSpecificDoctorRequest) {
-      // Get all doctors with filtering
-      const status = url.searchParams.get('status');
-      const page = parseInt(url.searchParams.get('page') || '1');
-      const limit = parseInt(url.searchParams.get('limit') || '20');
+      // Validate pagination parameters
+      const paginationData = {
+        status: url.searchParams.get('status'),
+        page: url.searchParams.get('page'),
+        limit: url.searchParams.get('limit')
+      };
+
+      const validation = paginationSchema.safeParse(paginationData);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ 
+          error: 'Validation failed', 
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { status, page, limit } = validation.data;
       
       const offset = (page - 1) * limit;
       

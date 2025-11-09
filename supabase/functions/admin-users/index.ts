@@ -1,11 +1,26 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schemas
+const paginationSchema = z.object({
+  page: z.union([z.string(), z.number()]).optional().transform(val => typeof val === 'string' ? parseInt(val) : val).pipe(z.number().int().positive()).optional(),
+  limit: z.union([z.string(), z.number()]).optional().transform(val => typeof val === 'string' ? parseInt(val) : val).pipe(z.number().int().min(1).max(100)).optional(),
+  role: z.enum(['admin', 'doctor', 'patient']).optional(),
+  search: z.string().max(200).optional()
+});
+
+const updateUserSchema = z.object({
+  first_name: z.string().min(1).max(100).optional(),
+  last_name: z.string().min(1).max(100).optional(),
+  role: z.enum(['admin', 'doctor', 'patient']).optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -58,12 +73,43 @@ serve(async (req) => {
     const { action, userId, search } = body;
     const urlUserId = url.pathname.split('/').pop();
 
+    // Validate UUID if provided
+    if (urlUserId && urlUserId !== 'admin-users') {
+      const uuidSchema = z.string().uuid();
+      const validation = uuidSchema.safeParse(urlUserId);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ error: 'Invalid user ID format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     if ((method === 'POST' && action === 'list') || (method === 'GET' && !urlUserId)) {
-      // Get all users with pagination and filtering
-      const page = parseInt(url.searchParams.get('page') || body.page || '1');
-      const limit = parseInt(url.searchParams.get('limit') || body.limit || '50');
-      const role = url.searchParams.get('role') || body.role;
-      const searchQuery = url.searchParams.get('search') || search;
+      // Validate pagination parameters
+      const paginationData = {
+        page: url.searchParams.get('page') || body.page,
+        limit: url.searchParams.get('limit') || body.limit,
+        role: url.searchParams.get('role') || body.role,
+        search: url.searchParams.get('search') || search
+      };
+
+      const validation = paginationSchema.safeParse(paginationData);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ 
+          error: 'Validation failed', 
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const validatedData = validation.data;
+      const page = validatedData.page || 1;
+      const limit = validatedData.limit || 50;
+      const role = validatedData.role;
+      const searchQuery = validatedData.search;
       
       const offset = (page - 1) * limit;
       

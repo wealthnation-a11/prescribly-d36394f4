@@ -1,11 +1,29 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schemas
+const medicationSchema = z.object({
+  name: z.string().min(1).max(200, "Medication name too long"),
+  dosage: z.string().min(1).max(100, "Dosage too long"),
+  frequency: z.string().max(100).optional(),
+  duration: z.string().max(50).optional(),
+  instructions: z.string().max(500).optional()
+});
+
+const doctorActionSchema = z.object({
+  medications: z.array(medicationSchema).max(10, "Too many medications").optional(),
+  diagnosis: z.string().max(500).optional(),
+  instructions: z.string().max(2000).optional(),
+  notes: z.string().max(2000).optional(),
+  reason: z.string().max(1000).optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -53,10 +71,42 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/');
-    const sessionId = pathParts[pathParts.length - 2]; // Get session ID from URL
-    const action = pathParts[pathParts.length - 1]; // Get action from URL
+    const sessionId = pathParts[pathParts.length - 2];
+    const action = pathParts[pathParts.length - 1];
 
-    const { medications, diagnosis, instructions, notes, reason } = await req.json();
+    // Validate action
+    if (!['approve', 'modify', 'reject'].includes(action)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid action. Must be approve, modify, or reject' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate session ID
+    const sessionIdSchema = z.string().uuid();
+    const sessionValidation = sessionIdSchema.safeParse(sessionId);
+    if (!sessionValidation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid session ID format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const body = await req.json();
+
+    // Validate request body
+    const validation = doctorActionSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validation failed', 
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { medications, diagnosis, instructions, notes, reason } = validation.data;
 
     console.log(`Doctor ${user.id} performing ${action} on session ${sessionId}`);
 

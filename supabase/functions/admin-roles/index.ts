@@ -1,10 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Validation schemas
+const assignRoleSchema = z.object({
+  userId: z.string().uuid({ message: "Invalid user ID format" }),
+  role: z.enum(['admin', 'doctor', 'patient'], { message: "Invalid role. Must be admin, doctor, or patient" })
+});
+
+const removeRoleSchema = z.object({
+  userId: z.string().uuid({ message: "Invalid user ID format" }),
+  role: z.enum(['admin', 'doctor', 'patient'], { message: "Invalid role" })
+});
+
+const legacyActionSchema = z.object({
+  userId: z.string().uuid({ message: "Invalid user ID format" })
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -48,6 +64,14 @@ serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
+    // Validate action
+    if (!action || !['list', 'assign', 'remove', 'grant-legacy', 'revoke-legacy'].includes(action)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid action' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // GET - List all user roles
     if (method === "GET" && action === "list") {
       const { data: roles, error } = await supabase
@@ -72,14 +96,20 @@ serve(async (req) => {
 
     // POST - Assign role to user
     if (method === "POST" && action === "assign") {
-      const { userId, role } = await req.json();
-
-      if (!userId || !role) {
+      const body = await req.json();
+      
+      const validation = assignRoleSchema.safeParse(body);
+      if (!validation.success) {
         return new Response(
-          JSON.stringify({ error: "userId and role are required" }),
+          JSON.stringify({ 
+            error: 'Validation failed', 
+            details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+          }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      const { userId, role } = validation.data;
 
       const { data, error } = await supabase
         .from("user_roles")
@@ -97,14 +127,20 @@ serve(async (req) => {
 
     // DELETE - Remove role from user
     if (method === "DELETE" && action === "remove") {
-      const { userId, role } = await req.json();
-
-      if (!userId || !role) {
+      const body = await req.json();
+      
+      const validation = removeRoleSchema.safeParse(body);
+      if (!validation.success) {
         return new Response(
-          JSON.stringify({ error: "userId and role are required" }),
+          JSON.stringify({ 
+            error: 'Validation failed', 
+            details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+          }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      const { userId, role } = validation.data;
 
       const { error } = await supabase
         .from("user_roles")
@@ -122,14 +158,20 @@ serve(async (req) => {
 
     // POST - Grant legacy status
     if (method === "POST" && action === "grant-legacy") {
-      const { userId } = await req.json();
-
-      if (!userId) {
+      const body = await req.json();
+      
+      const validation = legacyActionSchema.safeParse(body);
+      if (!validation.success) {
         return new Response(
-          JSON.stringify({ error: "userId is required" }),
+          JSON.stringify({ 
+            error: 'Validation failed', 
+            details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+          }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      const { userId } = validation.data;
 
       const { error } = await supabase
         .from("profiles")
@@ -146,14 +188,20 @@ serve(async (req) => {
 
     // POST - Revoke legacy status
     if (method === "POST" && action === "revoke-legacy") {
-      const { userId } = await req.json();
-
-      if (!userId) {
+      const body = await req.json();
+      
+      const validation = legacyActionSchema.safeParse(body);
+      if (!validation.success) {
         return new Response(
-          JSON.stringify({ error: "userId is required" }),
+          JSON.stringify({ 
+            error: 'Validation failed', 
+            details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+          }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      const { userId } = validation.data;
 
       const { error } = await supabase
         .from("profiles")

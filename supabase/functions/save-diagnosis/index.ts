@@ -1,11 +1,19 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schema
+const saveDiagnosisSchema = z.object({
+  sessionId: z.string().uuid({ message: "Invalid session ID format" }),
+  diagnosis: z.any(), // Can be array or object
+  symptoms: z.array(z.string().max(500)).max(20, "Too many symptoms").optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -37,22 +45,21 @@ serve(async (req) => {
       );
     }
 
-    const { sessionId, diagnosis, symptoms } = await req.json();
+    const body = await req.json();
 
-    // Input validation
-    if (!sessionId) {
+    // Validate input using Zod
+    const validation = saveDiagnosisSchema.safeParse(body);
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: 'Session ID is required' }),
+        JSON.stringify({ 
+          error: 'Validation failed', 
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!diagnosis) {
-      return new Response(
-        JSON.stringify({ error: 'Diagnosis data is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { sessionId, diagnosis, symptoms } = validation.data;
 
     console.log('Saving diagnosis for session:', sessionId);
 

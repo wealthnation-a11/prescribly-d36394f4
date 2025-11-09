@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,11 +26,19 @@ serve(async (req) => {
 
     console.log('Getting drug recommendations for condition ID:', conditionId);
 
-    if (!conditionId || conditionId === 'recommend-drug') {
+    // Validate condition ID
+    const conditionIdSchema = z.union([
+      z.string().regex(/^\d+$/, "Condition ID must be numeric"),
+      z.number().int().positive()
+    ]);
+
+    const validation = conditionIdSchema.safeParse(conditionId);
+    if (!validation.success || conditionId === 'recommend-drug') {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Condition ID is required',
+          error: 'Valid condition ID is required',
+          details: validation.success ? [] : validation.error.issues.map(i => i.message),
           recommendations: []
         }),
         { 

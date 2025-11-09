@@ -1,11 +1,28 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.1";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Validation schema
+const diagnosisRequestSchema = z.object({
+  symptomText: z.string().max(2000, "Symptom text too long").optional().default(''),
+  selectedSymptoms: z.array(z.string().max(200)).max(20, "Too many symptoms").optional().default([]),
+  answers: z.array(z.object({
+    id: z.string().max(50),
+    value: z.string().max(100)
+  })).max(10, "Too many answers").optional().default([]),
+  options: z.object({
+    threshold: z.number().min(0.1).max(1.0).optional().default(0.75),
+    max_questions: z.number().int().min(1).max(10).optional().default(6)
+  }).optional().default({}),
+  visitId: z.string().uuid().nullable().optional().default(null),
+  pregnancy_status: z.boolean().nullable().optional().default(null)
+});
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -122,7 +139,7 @@ serve(async (req) => {
       });
     }
 
-    // Validate request body
+    // Validate and parse request body
     let body;
     try {
       body = await req.json();
@@ -135,17 +152,33 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-    const {
-      symptomText = '',
-      selectedSymptoms = [],
-      answers = [], // [{ id: string, value: 'yes'|'no'|'mild'|'severe' }]
-      options = { threshold: 0.75, max_questions: 6 },
-      visitId = null,
-      pregnancy_status = null as null | boolean,
-    } = body || {};
 
-    const threshold = typeof options?.threshold === 'number' ? options.threshold : 0.75;
-    const maxQuestions = typeof options?.max_questions === 'number' ? options.max_questions : 6;
+    // Validate input using Zod
+    const validation = diagnosisRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(JSON.stringify({
+        statusCode: 400,
+        body: JSON.stringify({ 
+          error: 'Validation failed', 
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+        })
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const {
+      symptomText,
+      selectedSymptoms,
+      answers,
+      options,
+      visitId,
+      pregnancy_status
+    } = validation.data;
+
+    const threshold = options?.threshold || 0.75;
+    const maxQuestions = options?.max_questions || 6;
 
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData?.user?.id) {

@@ -1,11 +1,20 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schema
+const appointmentSchema = z.object({
+  doctor_id: z.string().uuid({ message: "Invalid doctor ID format" }),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format. Use YYYY-MM-DD"),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format. Use HH:MM"),
+  reason: z.string().min(10, "Reason too short").max(1000, "Reason too long")
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -32,33 +41,21 @@ serve(async (req) => {
       });
     }
 
-    const { doctor_id, date, time, reason } = await req.json();
+    const body = await req.json();
 
-    // Validate required fields
-    if (!doctor_id || !date || !time || !reason) {
-      return new Response(JSON.stringify({ error: 'Please fill in all required fields' }), {
+    // Validate input using Zod
+    const validation = appointmentSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(JSON.stringify({ 
+        error: 'Validation failed', 
+        details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Validate date format
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(date)) {
-      return new Response(JSON.stringify({ error: 'Invalid date format' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Validate time format
-    const timeRegex = /^\d{2}:\d{2}$/;
-    if (!timeRegex.test(time)) {
-      return new Response(JSON.stringify({ error: 'Invalid time format' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const { doctor_id, date, time, reason } = validation.data;
 
     // Combine date and time for scheduled_time
     const scheduledTime = new Date(`${date}T${time}`);

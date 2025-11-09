@@ -1,11 +1,27 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schemas
+const drugSchema = z.object({
+  name: z.string().min(1, "Drug name required").max(200, "Drug name too long"),
+  dosage: z.string().min(1, "Dosage required").max(100, "Dosage too long"),
+  frequency: z.string().max(100).optional(),
+  duration: z.string().max(50).optional(),
+  instructions: z.string().max(500).optional()
+});
+
+const doctorActionRequestSchema = z.object({
+  drugs: z.array(drugSchema).min(1, "At least one drug required").max(10, "Too many drugs").optional(),
+  doctorNotes: z.string().max(2000, "Doctor notes too long").optional(),
+  reason: z.string().max(1000, "Reason too long").optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -54,10 +70,10 @@ serve(async (req) => {
     // Parse URL to get action and sessionId
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/');
-    const action = pathParts[pathParts.length - 1]; // approve, modify, or reject
+    const action = pathParts[pathParts.length - 1];
     const sessionId = pathParts[pathParts.length - 2];
 
-    // Input validation
+    // Validate action
     if (!['approve', 'modify', 'reject'].includes(action)) {
       return new Response(
         JSON.stringify({ error: 'Invalid action. Must be approve, modify, or reject' }),
@@ -65,14 +81,31 @@ serve(async (req) => {
       );
     }
 
-    if (!sessionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
+    // Validate session ID format
+    const sessionIdSchema = z.string().uuid();
+    const sessionValidation = sessionIdSchema.safeParse(sessionId);
+    if (!sessionValidation.success) {
       return new Response(
         JSON.stringify({ error: 'Invalid session ID format' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const requestData = await req.json();
+    const body = await req.json();
+
+    // Validate request body
+    const validation = doctorActionRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validation failed', 
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const requestData = validation.data;
 
     // Validate diagnosis session exists and is pending
     const { data: session, error: sessionError } = await supabase

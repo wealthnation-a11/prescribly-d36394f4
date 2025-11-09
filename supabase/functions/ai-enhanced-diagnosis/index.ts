@@ -1,11 +1,21 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schema
+const diagnosisRequestSchema = z.object({
+  symptoms: z.string().min(3, "Symptoms too short").max(2000, "Symptoms too long"),
+  userId: z.string().uuid().optional(),
+  age: z.number().int().min(0, "Age cannot be negative").max(150, "Invalid age").optional(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  additionalContext: z.string().max(1000, "Additional context too long").optional()
+});
 
 interface DiagnosisRequest {
   symptoms: string;
@@ -59,14 +69,22 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const { symptoms, userId, age, gender, additionalContext }: DiagnosisRequest = await req.json();
+    const body = await req.json();
     
-    if (!symptoms || typeof symptoms !== 'string') {
+    // Validate input using Zod
+    const validation = diagnosisRequestSchema.safeParse(body);
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ status: 'error', message: 'Symptoms are required' }),
+        JSON.stringify({ 
+          status: 'error', 
+          message: 'Validation failed',
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    const { symptoms, userId, age, gender, additionalContext } = validation.data;
 
     console.log('Processing diagnosis for symptoms:', symptoms);
 
