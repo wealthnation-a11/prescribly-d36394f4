@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18n";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";
@@ -55,6 +59,7 @@ import Privacy from "./pages/Privacy";
 import Cookies from "./pages/Cookies";
 import HipaaCompliance from "./pages/HipaaCompliance";
 import AdminDashboard from "./pages/AdminDashboard";
+import InstallPWA from "./pages/InstallPWA";
 
 const queryClient = new QueryClient();
 
@@ -67,12 +72,15 @@ const App = () => (
         enableSystem
         disableTransitionOnChange
       >
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
+        <I18nextProvider i18n={i18n}>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <PWAInstallPrompt />
+              <OfflineIndicator />
+              <BrowserRouter>
+                <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -93,6 +101,7 @@ const App = () => (
             <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/payment-callback" element={<PaymentCallback />} />
+            <Route path="/install" element={<InstallPWA />} />
             
             {/* Role-based Dashboard Routes */}
         <Route path="/user-dashboard" element={
@@ -256,6 +265,7 @@ const App = () => (
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
+        </I18nextProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>

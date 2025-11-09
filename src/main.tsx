@@ -3,4 +3,7 @@ import App from './App.tsx'
 import './index.css'
 import './i18n';
 
+// Register service worker for PWA
+import './registerSW';
+
 createRoot(document.getElementById("root")!).render(<App />);
