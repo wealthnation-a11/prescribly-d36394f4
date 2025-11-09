@@ -26,14 +26,23 @@ export const LandingPage = () => {
   const { user, userProfile, loading } = useAuth();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
 
-  // Auto-redirect logged-in users to their dashboard
+  // Don't auto-redirect admins if they want to visit landing page
   useEffect(() => {
     if (!loading && user && userProfile) {
       const role = userProfile.role;
+      const currentPath = window.location.pathname;
+      
+      // Don't redirect if already on landing page or signing out
+      if (currentPath === '/' || currentPath === '/login') {
+        return;
+      }
       
       // Redirect based on user role
       if (role === 'admin') {
-        navigate('/admin-dashboard');
+        // Allow admins to visit landing page without redirect
+        if (currentPath !== '/admin-dashboard' && currentPath !== '/') {
+          navigate('/admin-dashboard');
+        }
       } else if (role === 'doctor') {
         navigate('/doctor-dashboard');
       } else {

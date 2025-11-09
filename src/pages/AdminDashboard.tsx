@@ -1,8 +1,10 @@
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import DoctorApplicationsManagement from "@/components/admin/DoctorApplicationsManagement";
 import UserManagement from "@/components/admin/UserManagement";
 import AppointmentManagement from "@/components/admin/AppointmentManagement";
@@ -15,7 +17,7 @@ import BlogManagement from "@/components/admin/BlogManagement";
 import CommentModeration from "@/components/admin/CommentModeration";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Clock, TrendingUp } from "lucide-react";
+import { Users, UserCheck, Clock, TrendingUp, Home } from "lucide-react";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getAdminDashboardSteps } from "@/components/DashboardTour";
 
@@ -61,6 +63,15 @@ const AdminDashboard = () => {
       
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
+          <div className="mb-6">
+            <Link to="/">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Home className="h-4 w-4" />
+                View Landing Page
+              </Button>
+            </Link>
+          </div>
+          
           <div className="mb-8">
             <WelcomeMessage 
               onStartTour={() => setRunTour(true)}
