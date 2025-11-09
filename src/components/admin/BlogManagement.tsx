@@ -45,6 +45,7 @@ const BlogManagement = () => {
     excerpt: "",
     content: "",
     cover_image: "",
+    cover_image_file: null as File | null,
     category: "",
     tags: "",
     meta_description: "",
@@ -71,12 +72,40 @@ const BlogManagement = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      let coverImageUrl = data.cover_image;
+
+      // Upload image file if provided
+      if (data.cover_image_file) {
+        const fileExt = data.cover_image_file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError, data: uploadData } = await supabase.storage
+          .from('blog-images')
+          .upload(fileName, data.cover_image_file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(fileName);
+        
+        coverImageUrl = publicUrl;
+      }
+
       const { error } = await supabase.from("blog_posts").insert({
-        ...data,
+        title: data.title,
+        slug: data.slug,
+        excerpt: data.excerpt,
+        content: data.content,
+        cover_image: coverImageUrl,
+        category: data.category,
         author_id: user.id,
         tags: data.tags ? data.tags.split(",").map((t: string) => t.trim()) : [],
         meta_keywords: data.meta_keywords ? data.meta_keywords.split(",").map((k: string) => k.trim()) : [],
+        meta_description: data.meta_description,
+        og_image: data.og_image,
         published_at: data.published ? new Date().toISOString() : null,
+        published: data.published,
       });
       
       if (error) throw error;
@@ -94,15 +123,43 @@ const BlogManagement = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      let coverImageUrl = data.cover_image;
+
+      // Upload image file if provided
+      if (data.cover_image_file) {
+        const fileExt = data.cover_image_file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('blog-images')
+          .upload(fileName, data.cover_image_file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(fileName);
+        
+        coverImageUrl = publicUrl;
+      }
+
       const { error } = await supabase
         .from("blog_posts")
         .update({
-          ...data,
+          title: data.title,
+          slug: data.slug,
+          excerpt: data.excerpt,
+          content: data.content,
+          cover_image: coverImageUrl,
+          category: data.category,
           tags: data.tags ? data.tags.split(",").map((t: string) => t.trim()) : [],
           meta_keywords: data.meta_keywords ? data.meta_keywords.split(",").map((k: string) => k.trim()) : [],
+          meta_description: data.meta_description,
+          og_image: data.og_image,
           published_at: data.published && !editingPost?.published 
             ? new Date().toISOString() 
             : editingPost?.published_at,
+          published: data.published,
         })
         .eq("id", id);
       
@@ -140,6 +197,7 @@ const BlogManagement = () => {
       excerpt: "",
       content: "",
       cover_image: "",
+      cover_image_file: null,
       category: "",
       tags: "",
       meta_description: "",
@@ -158,6 +216,7 @@ const BlogManagement = () => {
       excerpt: post.excerpt || "",
       content: post.content,
       cover_image: post.cover_image || "",
+      cover_image_file: null,
       category: post.category || "",
       tags: post.tags?.join(", ") || "",
       meta_description: post.meta_description || "",
@@ -262,13 +321,38 @@ const BlogManagement = () => {
               </div>
 
               <div>
-                <Label htmlFor="cover_image">Cover Image URL</Label>
-                <Input
-                  id="cover_image"
-                  value={formData.cover_image}
-                  onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                />
+                <Label htmlFor="cover_image">Cover Image</Label>
+                <div className="space-y-3">
+                  <Input
+                    id="cover_image"
+                    value={formData.cover_image}
+                    onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
+                    placeholder="https://example.com/image.jpg (or upload below)"
+                  />
+                  <div className="text-sm text-muted-foreground">OR</div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormData({ ...formData, cover_image_file: file, cover_image: "" });
+                      }
+                    }}
+                  />
+                  {formData.cover_image_file && (
+                    <p className="text-sm text-success-green">
+                      ✓ Image file selected: {formData.cover_image_file.name}
+                    </p>
+                  )}
+                  {formData.cover_image && !formData.cover_image_file && (
+                    <img 
+                      src={formData.cover_image} 
+                      alt="Preview" 
+                      className="w-full h-32 object-cover rounded"
+                    />
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

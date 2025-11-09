@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import BlogComments from "@/components/blog/BlogComments";
 import { Helmet } from "react-helmet";
+import DOMPurify from "dompurify";
 
 interface BlogPost {
   id: string;
@@ -39,9 +40,10 @@ export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const [hasIncrementedView, setHasIncrementedView] = useState(false);
 
-  const { data: post, isLoading } = useQuery({
+  const { data: post, isLoading, error } = useQuery({
     queryKey: ["blog-post", slug],
     queryFn: async () => {
+      console.log('Fetching blog post with slug:', slug);
       const { data, error } = await supabase
         .from("blog_posts")
         .select("*")
@@ -49,7 +51,12 @@ export default function BlogPost() {
         .eq("published", true)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching blog post:', error);
+        throw error;
+      }
+      
+      console.log('Blog post data:', data);
       return data as BlogPost;
     },
     enabled: !!slug,
@@ -129,7 +136,24 @@ export default function BlogPost() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading blog post...</p>
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading blog post...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error('Blog post error:', error);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-foreground mb-4">Error Loading Post</h1>
+          <p className="text-muted-foreground mb-6">There was an error loading this blog post.</p>
+          <Button asChild>
+            <Link to="/blog">Back to Blog</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -219,13 +243,20 @@ export default function BlogPost() {
               src={post.cover_image} 
               alt={post.title} 
               className="w-full h-96 object-cover rounded-lg mb-8" 
+              loading="lazy"
             />
           )}
           
-          <div 
-            className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-a:text-primary"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          {post.content && (
+            <div 
+              className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-a:text-primary prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground"
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+            />
+          )}
+
+          {!post.content && (
+            <p className="text-muted-foreground">No content available for this post.</p>
+          )}
 
           {post.tags && post.tags.length > 0 && (
             <div className="mt-8 flex gap-2 flex-wrap">
