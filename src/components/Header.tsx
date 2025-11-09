@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { UserTypeModal } from "./UserTypeModal";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { X, Menu } from "lucide-react";
+import { X, Menu, LayoutDashboard } from "lucide-react";
 
 export const Header = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, userProfile } = useAuth();
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -28,6 +30,18 @@ export const Header = () => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const goToDashboard = () => {
+    const role = userProfile?.role;
+    if (role === 'admin') {
+      navigate('/admin-dashboard');
+    } else if (role === 'doctor') {
+      navigate('/doctor-dashboard');
+    } else {
+      navigate('/user-dashboard');
+    }
+    closeMobileMenu();
   };
 
   return (
@@ -54,7 +68,18 @@ export const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
             {user ? (
-              <NotificationBell />
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={goToDashboard}
+                  className="gap-2"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Button>
+                <NotificationBell />
+              </>
             ) : (
               <>
                 <Button variant="outline" size="sm" asChild>
@@ -107,9 +132,20 @@ export const Header = () => {
                   <ThemeToggle showText={true} variant="outline" size="sm" />
                 </div>
                 {user ? (
-                  <div className="flex justify-center">
-                    <NotificationBell size="lg" />
-                  </div>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full hover-scale gap-2"
+                      onClick={goToDashboard}
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Button>
+                    <div className="flex justify-center">
+                      <NotificationBell size="lg" />
+                    </div>
+                  </>
                 ) : (
                   <>
                     <Button variant="outline" size="sm" className="w-full hover-scale" asChild>

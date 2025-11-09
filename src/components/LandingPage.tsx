@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,10 +21,27 @@ import hipaaCertification from "@/assets/hipaa-certification.png";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 export const LandingPage = () => {
-  const {
-    t
-  } = useTranslation();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user, userProfile, loading } = useAuth();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
+
+  // Auto-redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (!loading && user && userProfile) {
+      const role = userProfile.role;
+      
+      // Redirect based on user role
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (role === 'doctor') {
+        navigate('/doctor-dashboard');
+      } else {
+        navigate('/user-dashboard');
+      }
+    }
+  }, [user, userProfile, loading, navigate]);
+
   const features = [{
     icon: Bot,
     title: "AI Symptom Checker",
@@ -99,12 +118,34 @@ export const LandingPage = () => {
                 Prescribly connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start fade-in-up stagger-2 max-w-md mx-auto lg:mx-0">
-                <Button variant="cta" size="lg" className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" asChild>
-                  <Link to="/register">Get Started</Link>
-                </Button>
-                <Button variant="medical" size="lg" className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" asChild>
-                  <Link to="/register">Book a Doctor</Link>
-                </Button>
+                {user ? (
+                  <Button 
+                    variant="cta" 
+                    size="lg" 
+                    className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" 
+                    onClick={() => {
+                      const role = userProfile?.role;
+                      if (role === 'admin') {
+                        navigate('/admin-dashboard');
+                      } else if (role === 'doctor') {
+                        navigate('/doctor-dashboard');
+                      } else {
+                        navigate('/user-dashboard');
+                      }
+                    }}
+                  >
+                    Go to Dashboard
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="cta" size="lg" className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" asChild>
+                      <Link to="/register">Get Started</Link>
+                    </Button>
+                    <Button variant="medical" size="lg" className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" asChild>
+                      <Link to="/register">Book a Doctor</Link>
+                    </Button>
+                  </>
+                )}
               </div>
               <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground fade-in-up stagger-3 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 sm:p-5 border border-prescribly-accent/20 backdrop-blur-sm max-w-2xl mx-auto lg:mx-0">
                 <div className="flex items-center gap-2">
