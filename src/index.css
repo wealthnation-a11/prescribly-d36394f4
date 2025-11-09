@@ -410,19 +410,23 @@ html[dir="rtl"] .rtl\:ml-auto {
 
   .button-enhanced {
     width: 100%;
-    min-height: 3.5rem;
-    font-size: 1.125rem;
+    min-height: 3rem;
+    font-size: 1rem;
     font-weight: 600;
-    border-radius: 1rem;
+    border-radius: 0.75rem;
     position: relative;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    touch-action: manipulation;
   }
 
   @media (min-width: 640px) {
     .button-enhanced {
       width: auto;
       min-width: 10rem;
+      min-height: 3.5rem;
+      font-size: 1.125rem;
+      border-radius: 1rem;
     }
   }
 
@@ -482,10 +486,19 @@ html[dir="rtl"] .rtl\:ml-auto {
     border: 1px solid hsl(var(--border));
   }
   
-  .card-hover:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    box-shadow: var(--shadow-card);
-    transform: translateY(-2px);
+  @media (hover: hover) {
+    .card-hover:hover {
+      border-color: hsl(var(--primary) / 0.3);
+      box-shadow: var(--shadow-card);
+      transform: translateY(-2px);
+    }
+  }
+  
+  @media (hover: none) {
+    .card-hover:active {
+      border-color: hsl(var(--primary) / 0.3);
+      transform: scale(0.98);
+    }
   }
   
   .welcome-banner {

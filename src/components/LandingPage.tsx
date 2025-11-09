@@ -84,73 +84,73 @@ export const LandingPage = () => {
   return <div className="min-h-screen bg-background">
       <Header />
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-12 px-4 sm:px-6">
         <FloatingIcons />
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 animate-fade-in">
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground fade-in-up">
+        <div className="container mx-auto relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-6 sm:space-y-8 animate-fade-in text-center lg:text-left">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground fade-in-up leading-tight">
                 Real Doctors. Real Care.{" "}
                 <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   Anytime, Anywhere.
                 </span>
               </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground fade-in-up stagger-1 leading-relaxed">
+              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground fade-in-up stagger-1 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Prescribly connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
               </p>
-              <div className="flex flex-row gap-3 justify-center sm:justify-start fade-in-up stagger-2">
-                <Button variant="cta" size="sm" className="button-enhanced text-sm px-6 py-2" asChild>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start fade-in-up stagger-2 max-w-md mx-auto lg:mx-0">
+                <Button variant="cta" size="lg" className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" asChild>
                   <Link to="/register">Get Started</Link>
                 </Button>
-                <Button variant="medical" size="sm" className="button-enhanced text-sm px-6 py-2" asChild>
+                <Button variant="medical" size="lg" className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" asChild>
                   <Link to="/register">Book a Doctor</Link>
                 </Button>
               </div>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm text-muted-foreground fade-in-up stagger-3 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 border border-prescribly-accent/20 backdrop-blur-sm">
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground fade-in-up stagger-3 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 sm:p-5 border border-prescribly-accent/20 backdrop-blur-sm max-w-2xl mx-auto lg:mx-0">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-success-green animate-pulse"></div>
-                  <Check className="w-4 h-4 text-success-green" />
-                  <span className="font-medium">Licensed Professionals</span>
+                  <Check className="w-4 h-4 text-success-green flex-shrink-0" />
+                  <span className="font-medium whitespace-nowrap">Licensed Professionals</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-muted-foreground/30 hidden sm:block"></div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-success-green animate-pulse"></div>
-                  <Check className="w-4 h-4 text-success-green" />
-                  <span className="font-medium">Secure & Private</span>
+                  <Check className="w-4 h-4 text-success-green flex-shrink-0" />
+                  <span className="font-medium whitespace-nowrap">Secure & Private</span>
                 </div>
               </div>
             </div>
-            <div className="relative fade-in-up stagger-2">
-              <img src={heroImage} alt="Professional healthcare consultation" width={1200} height={800} className="w-full h-auto rounded-2xl medical-shadow floating-animation" />
+            <div className="relative fade-in-up stagger-2 mt-8 lg:mt-0">
+              <img src={heroImage} alt="Professional healthcare consultation" width={1200} height={800} className="w-full h-auto rounded-xl lg:rounded-2xl medical-shadow floating-animation" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="offer" className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
+      <section id="offer" className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4 fade-in-up px-4">
               {t('features')}
             </h2>
-            <p className="text-xl text-muted-foreground fade-in-up stagger-1">
+            <p className="text-lg sm:text-xl text-muted-foreground fade-in-up stagger-1 px-4">
               Comprehensive healthcare solutions at your fingertips
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {features.map((feature, index) => <FeatureCard key={feature.title} icon={feature.icon} title={feature.title} description={feature.description} details={feature.details} delay={`stagger-${index + 1}`} />)}
           </div>
         </div>
       </section>
 
       {/* Why Prescribly Section */}
-      <section id="why-prescribly" className="py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
+      <section id="why-prescribly" className="py-12 sm:py-16 lg:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-12 sm:mb-16 fade-in-up px-4">
             Why Patients Choose Prescribly
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up text-center">
               <CardHeader>
                 <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -191,67 +191,67 @@ export const LandingPage = () => {
       </section>
 
       {/* How it Works Section */}
-      <section id="how-it-works" className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
+      <section id="how-it-works" className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
+        <div className="container mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-12 sm:mb-16 fade-in-up px-4">
             How Prescribly Works
           </h2>
-          <div className="grid md:grid-cols-5 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 max-w-6xl mx-auto">
             <div className="text-center fade-in-up">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 1
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Sign Up</h3>
-              <p className="text-sm text-muted-foreground">Create your secure account</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Sign Up</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Create your secure account</p>
             </div>
             
             <div className="text-center fade-in-up stagger-1">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 2
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Choose Subscription</h3>
-              <p className="text-sm text-muted-foreground">Select your healthcare plan</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Choose Subscription</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Select your healthcare plan</p>
             </div>
 
             <div className="text-center fade-in-up stagger-2">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 3
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Select from any of our service</h3>
-              <p className="text-sm text-muted-foreground">Make your selection</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Select Service</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Make your selection</p>
             </div>
 
             <div className="text-center fade-in-up stagger-3">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 4
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Connect to a Doctor</h3>
-              <p className="text-sm text-muted-foreground">Schedule with licensed professionals</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Connect to a Doctor</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Schedule with licensed professionals</p>
             </div>
 
             <div className="text-center fade-in-up stagger-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 text-2xl font-bold">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 5
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Receive Care & Prescription</h3>
-              <p className="text-sm text-muted-foreground">Get treatment and medications</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Receive Care</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Get treatment and medications</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Our Promise Section */}
-      <section id="our-promise" className="py-20">
-        <div className="container mx-auto px-4">
+      <section id="our-promise" className="py-12 sm:py-16 lg:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-foreground mb-8 fade-in-up">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 sm:mb-8 fade-in-up px-4">
               Our Promise to You
             </h2>
-            <div className="prose prose-lg mx-auto text-muted-foreground fade-in-up stagger-1">
-              <p className="text-lg leading-relaxed">
+            <div className="prose prose-lg mx-auto text-muted-foreground fade-in-up stagger-1 px-4">
+              <p className="text-base sm:text-lg leading-relaxed">
                 At Prescribly, we believe health care should be human first. Our platform connects you with compassionate, licensed healthcare professionals who truly care about your well-being. 
               </p>
-              <p className="text-lg leading-relaxed mt-6">
+              <p className="text-base sm:text-lg leading-relaxed mt-4 sm:mt-6">
                 We promise transparent pricing, secure data handling, and healthcare that puts your needs first. Every consultation is designed to make you feel heard, understood, and cared for—because your health deserves nothing less.
               </p>
             </div>
@@ -260,12 +260,12 @@ export const LandingPage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
+      <section className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
+        <div className="container mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-12 sm:mb-16 fade-in-up px-4">
             What Our Patients Say
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, index) => <div key={testimonial.author} className={`fade-in-up stagger-${index + 1}`}>
                 <TestimonialCard {...testimonial} />
               </div>)}
@@ -275,13 +275,13 @@ export const LandingPage = () => {
 
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
+      <section id="pricing" className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4 fade-in-up px-4">
               {t('pricing')}
             </h2>
-            <p className="text-xl text-muted-foreground fade-in-up stagger-1">
+            <p className="text-lg sm:text-xl text-muted-foreground fade-in-up stagger-1 px-4">
               Flexible pricing options for individuals and organizations
             </p>
           </div>
@@ -294,8 +294,8 @@ export const LandingPage = () => {
               </TabsList>
             </div>
             
-            <TabsContent value="monthly" className="space-y-8">
-              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <TabsContent value="monthly" className="space-y-6 sm:space-y-8">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
                 {/* Individual Plan */}
                 <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up relative">
                   <CardHeader className="text-center pb-8">
