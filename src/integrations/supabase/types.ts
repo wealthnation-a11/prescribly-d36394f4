@@ -1575,6 +1575,7 @@ export type Database = {
           avatar_url: string | null
           country: string | null
           created_at: string
+          dashboard_tour_completed: boolean | null
           date_of_birth: string | null
           email: string
           first_name: string | null
@@ -1582,11 +1583,14 @@ export type Database = {
           id: string
           is_blocked: boolean | null
           is_legacy: boolean | null
+          last_login: string | null
           last_name: string | null
           location_country: string | null
           location_state: string | null
           medical_history: string | null
+          onboarding_completed: boolean | null
           phone: string | null
+          previous_login: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           user_id: string
@@ -1595,6 +1599,7 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          dashboard_tour_completed?: boolean | null
           date_of_birth?: string | null
           email: string
           first_name?: string | null
@@ -1602,11 +1607,14 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           is_legacy?: boolean | null
+          last_login?: string | null
           last_name?: string | null
           location_country?: string | null
           location_state?: string | null
           medical_history?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
+          previous_login?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id: string
@@ -1615,6 +1623,7 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          dashboard_tour_completed?: boolean | null
           date_of_birth?: string | null
           email?: string
           first_name?: string | null
@@ -1622,11 +1631,14 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           is_legacy?: boolean | null
+          last_login?: string | null
           last_name?: string | null
           location_country?: string | null
           location_state?: string | null
           medical_history?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
+          previous_login?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string

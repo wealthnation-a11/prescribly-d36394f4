@@ -1,4 +1,6 @@
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DoctorApplicationsManagement from "@/components/admin/DoctorApplicationsManagement";
@@ -14,8 +16,24 @@ import CommentModeration from "@/components/admin/CommentModeration";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp } from "lucide-react";
+import { WelcomeMessage } from "@/components/WelcomeMessage";
+import { DashboardTour, getAdminDashboardSteps } from "@/components/DashboardTour";
 
 const AdminDashboard = () => {
+  const { userProfile } = useAuth();
+  const [runTour, setRunTour] = useState(false);
+
+  useEffect(() => {
+    if (userProfile && !userProfile.dashboard_tour_completed) {
+      setTimeout(() => {
+        const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+        if (!hasSeenWelcome) {
+          // Tour will be triggered by welcome message button
+        }
+      }, 1000);
+    }
+  }, [userProfile]);
+
   usePageSEO({
     title: "Admin Dashboard - Prescribly",
     description: "Administrative dashboard for managing the entire platform",
@@ -33,16 +51,31 @@ const AdminDashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Comprehensive platform management and oversight
-          </p>
-        </div>
+    <>
+      <DashboardTour
+        run={runTour}
+        onComplete={() => setRunTour(false)}
+        steps={getAdminDashboardSteps()}
+        userRole="admin"
+      />
+      
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <div className="mb-8">
+            <WelcomeMessage 
+              onStartTour={() => setRunTour(true)}
+              showTourButton={!userProfile?.dashboard_tour_completed}
+            />
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              Comprehensive platform management and oversight
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" data-tour="stats">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Doctors</CardTitle>
@@ -88,8 +121,8 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="analytics" className="w-full">
-          <TabsList className="grid w-full grid-cols-9">
+        <Tabs defaultValue="analytics" className="w-full" data-tour="tabs">
+          <TabsList className="grid w-full grid-cols-9" data-tour="tabs-list">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="roles">Roles</TabsTrigger>
@@ -230,6 +263,7 @@ const AdminDashboard = () => {
         </Tabs>
       </div>
     </div>
+    </>
   );
 };
 

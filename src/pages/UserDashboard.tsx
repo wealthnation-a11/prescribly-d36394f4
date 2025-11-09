@@ -31,6 +31,8 @@ import { AppointmentCard } from "@/components/AppointmentCard";
 import { DailyHealthTip } from "@/components/DailyHealthTip";
 import { useUserDashboardStats } from '@/hooks/useUserDashboardStats';
 import { FeatureAccessGuard } from "@/components/FeatureAccessGuard";
+import { WelcomeMessage } from "@/components/WelcomeMessage";
+import { DashboardTour, getUserDashboardSteps } from "@/components/DashboardTour";
 
 import { 
   SidebarProvider, 
@@ -47,6 +49,7 @@ export const UserDashboard = () => {
   const { stats, loading: statsLoading, error } = useUserDashboardStats();
   const { subscription, hasActiveSubscription, getDaysUntilExpiry, loading: subscriptionLoading, isLegacyUser, refreshSubscription } = useSubscription();
   const [searchParams] = useSearchParams();
+  const [runTour, setRunTour] = useState(false);
   
   // Real-time subscriptions
   useRealtimeAppointments('patient');
@@ -54,6 +57,19 @@ export const UserDashboard = () => {
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
 
   const loading = statsLoading || appointmentsLoading;
+
+  // Check if user should see tour
+  useEffect(() => {
+    if (userProfile && !userProfile.dashboard_tour_completed) {
+      // Wait a bit before starting tour to let page load
+      setTimeout(() => {
+        const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+        if (!hasSeenWelcome) {
+          // Tour will be triggered by welcome message button
+        }
+      }, 1000);
+    }
+  }, [userProfile]);
 
   const quickActions = [
     {
@@ -347,56 +363,53 @@ export const UserDashboard = () => {
   const statsCards = getStatsCards();
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        
-        <SidebarInset className="flex-1">
-          <MobileHeader title="Dashboard" />
+    <>
+      <DashboardTour
+        run={runTour}
+        onComplete={() => setRunTour(false)}
+        steps={getUserDashboardSteps()}
+        userRole="patient"
+      />
+      
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-background">
+          <AppSidebar data-tour="sidebar" />
+          
+          <SidebarInset className="flex-1">
+            <MobileHeader title="Dashboard" />
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto">
-            {/* Welcome Banner */}
-            <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-8">
-              <div className="container mx-auto relative z-10">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur">
-                    <User className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold mb-1">
-                      Welcome back, {userProfile?.first_name || user?.user_metadata?.first_name || "User"}!
-                    </h1>
-                    <p className="text-white/90 text-content">
-                      Manage your health journey with our comprehensive platform
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="container mx-auto p-6 space-y-8">
-              {/* Subscription Status */}
-              {getSubscriptionStatus() && (
-                <div>
-                  {getSubscriptionStatus()}
-                </div>
-              )}
-
-              {/* Subscription Countdown Timer for New Users */}
-              {!isLegacyUser && hasActiveSubscription && subscription && (
-                <SubscriptionCountdownTimer 
-                  expirationDate={subscription.expires_at}
-                  daysRemaining={getDaysUntilExpiry}
-                  isActive={hasActiveSubscription}
+            {/* Main Content */}
+            <main className="flex-1 overflow-auto">
+              <div className="container mx-auto p-6 space-y-6">
+                {/* Welcome Message */}
+                <WelcomeMessage 
+                  onStartTour={() => setRunTour(true)}
+                  showTourButton={!userProfile?.dashboard_tour_completed}
                 />
-              )}
 
-              {/* Daily Health Tip */}
-              <DailyHealthTip />
+                {/* Subscription Status */}
+                {getSubscriptionStatus() && (
+                  <div>
+                    {getSubscriptionStatus()}
+                  </div>
+                )}
 
-              {/* Stats Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Subscription Countdown Timer for New Users */}
+                {!isLegacyUser && hasActiveSubscription && subscription && (
+                  <SubscriptionCountdownTimer 
+                    expirationDate={subscription.expires_at}
+                    daysRemaining={getDaysUntilExpiry}
+                    isActive={hasActiveSubscription}
+                  />
+                )}
+
+                {/* Daily Health Tip */}
+                <div data-tour="health-tip">
+                  <DailyHealthTip />
+                </div>
+
+                {/* Stats Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-tour="stats-overview">
                 {statsCards.map((stat, index) => (
                   <Card 
                     key={stat.title} 
@@ -465,7 +478,7 @@ export const UserDashboard = () => {
               </div>
 
               {/* Quick Actions */}
-              <div>
+              <div data-tour="quick-actions">
                 <h2 className="text-heading text-foreground mb-6">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                   {quickActions.map((action, index) => (
@@ -502,7 +515,7 @@ export const UserDashboard = () => {
 
               {/* Recent Appointments */}
               {!appointmentsLoading && appointments.length > 0 && (
-                <div>
+                <div data-tour="appointments">
                   <h2 className="text-heading text-foreground mb-6">Recent Appointments</h2>
                   <div className="grid gap-4">
                     {appointments.slice(0, 3).map((appointment, index) => (
@@ -537,6 +550,7 @@ export const UserDashboard = () => {
         </SidebarInset>
       </div>
     </SidebarProvider>
+    </>
   );
 };
 

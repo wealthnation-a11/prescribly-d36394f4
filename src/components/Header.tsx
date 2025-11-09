@@ -78,7 +78,9 @@ export const Header = () => {
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Button>
-                <NotificationBell />
+                <div data-tour="notifications">
+                  <NotificationBell />
+                </div>
               </>
             ) : (
               <>

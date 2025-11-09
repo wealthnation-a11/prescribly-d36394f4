@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useDoctorEarnings } from "@/hooks/useDoctorEarnings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,8 @@ import { DoctorSidebar } from "@/components/DoctorSidebar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatUSD } from "@/utils/currency";
+import { WelcomeMessage } from "@/components/WelcomeMessage";
+import { DashboardTour, getDoctorDashboardSteps } from "@/components/DashboardTour";
 
 import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
 import { useRealtimePrescriptions } from "@/hooks/useRealtimePrescriptions";
@@ -17,9 +20,22 @@ import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
 
 
 export const DoctorDashboard = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { role, isDoctor, loading: roleLoading } = useUserRole();
   const { earnings, loading: earningsLoading } = useDoctorEarnings();
+  const [runTour, setRunTour] = useState(false);
+  
+  // Check if user should see tour
+  useEffect(() => {
+    if (userProfile && !userProfile.dashboard_tour_completed) {
+      setTimeout(() => {
+        const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+        if (!hasSeenWelcome) {
+          // Tour will be triggered by welcome message button
+        }
+      }, 1000);
+    }
+  }, [userProfile]);
   
   // Real-time subscriptions
   useRealtimeAppointments('doctor');
@@ -125,9 +141,17 @@ export const DoctorDashboard = () => {
   }
 
   return (
-    <SidebarProvider defaultOpen>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-indigo-100">
-        <DoctorSidebar />
+    <>
+      <DashboardTour
+        run={runTour}
+        onComplete={() => setRunTour(false)}
+        steps={getDoctorDashboardSteps()}
+        userRole="doctor"
+      />
+      
+      <SidebarProvider defaultOpen>
+        <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-indigo-100">
+          <DoctorSidebar data-tour="sidebar" />
         
         <div className="flex-1 flex flex-col">
           {/* Enhanced Welcome Header */}
@@ -175,7 +199,14 @@ export const DoctorDashboard = () => {
 
           {/* Main Content */}
           <main className="flex-1 p-6 overflow-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Welcome Message */}
+              <WelcomeMessage 
+                onStartTour={() => setRunTour(true)}
+                showTourButton={!userProfile?.dashboard_tour_completed}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               
               {/* Today's Appointments */}
               <Card className="backdrop-blur-sm bg-blue-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -202,7 +233,7 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* My Patients */}
-              <Card className="backdrop-blur-sm bg-blue-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-blue-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-tour="patients">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
                     <div className="p-2 bg-green-100 rounded-lg">
@@ -298,7 +329,7 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* Availability */}
-              <Card className="backdrop-blur-sm bg-orange-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-orange-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-tour="availability">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -346,7 +377,7 @@ export const DoctorDashboard = () => {
               </Card>
 
               {/* Earnings */}
-              <Card className="backdrop-blur-sm bg-teal-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="backdrop-blur-sm bg-teal-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-tour="earnings">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
                     <div className="p-2 bg-teal-100 rounded-lg">
@@ -369,6 +400,7 @@ export const DoctorDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+            </div>
             
             {/* Recent Activity Section */}
             <div className="mt-8 max-w-7xl mx-auto">
@@ -383,6 +415,7 @@ export const DoctorDashboard = () => {
         </div>
       </div>
     </SidebarProvider>
+    </>
   );
 };
 
