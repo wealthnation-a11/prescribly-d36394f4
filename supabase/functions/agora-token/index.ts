@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const tokenRequestSchema = z.object({
+  appointmentId: z.string().uuid(),
+  userId: z.string().uuid(),
+  role: z.enum(['publisher', 'subscriber']).optional()
+});
 
 // Agora RTC Token Builder implementation
 class RtcTokenBuilder {
@@ -70,7 +78,62 @@ serve(async (req) => {
   }
 
   try {
-    const { appointmentId, userId, role } = await req.json();
+    // Authenticate user
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const body = await req.json();
+    
+    // Validate input
+    const validation = tokenRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid input',
+        details: validation.error.errors 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { appointmentId, userId, role } = validation.data;
+
+    // Verify user is part of the appointment
+    const { data: appointment, error: appointmentError } = await supabase
+      .from('appointments')
+      .select('patient_id, doctor_id')
+      .eq('id', appointmentId)
+      .single();
+
+    if (appointmentError || !appointment) {
+      return new Response(JSON.stringify({ error: 'Appointment not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (user.id !== appointment.patient_id && user.id !== appointment.doctor_id) {
+      return new Response(JSON.stringify({ error: 'Access denied' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!appointmentId || !userId) {
       throw new Error('appointmentId and userId are required');

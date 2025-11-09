@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const tokenRequestSchema = z.object({
+  channelName: z.string().min(1).max(255),
+  uid: z.union([z.string(), z.number()])
+});
 
 // Agora RTC Token Builder implementation
 class RtcTokenBuilder {
@@ -70,11 +77,41 @@ serve(async (req) => {
   }
 
   try {
-    const { channelName, uid } = await req.json();
+    // Authenticate user
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    );
 
-    if (!channelName || !uid) {
-      throw new Error('channelName and uid are required');
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    const body = await req.json();
+    
+    // Validate input
+    const validation = tokenRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid input',
+        details: validation.error.errors 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { channelName, uid } = validation.data;
 
     // Agora credentials
     const appId = '8ee6e205f1f64de3948517556c475527';

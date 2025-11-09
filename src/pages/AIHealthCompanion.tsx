@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { 
   Brain, 
   Send, 
@@ -208,9 +209,15 @@ const AIHealthCompanion = () => {
   };
 
   const formatMessageText = (text: string) => {
-    return text
+    const formatted = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br/>');
+    
+    // Sanitize HTML to prevent XSS attacks
+    return DOMPurify.sanitize(formatted, {
+      ALLOWED_TAGS: ['strong', 'br'],
+      ALLOWED_ATTR: []
+    });
   };
 
   return (

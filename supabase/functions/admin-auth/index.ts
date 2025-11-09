@@ -1,11 +1,17 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const loginSchema = z.object({
+  email: z.string().email().max(255),
+  password: z.string().min(1).max(255)
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,7 +25,21 @@ serve(async (req) => {
     );
 
     if (req.method === 'POST') {
-      const { email, password } = await req.json();
+      const body = await req.json();
+      
+      // Validate input
+      const validation = loginSchema.safeParse(body);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ 
+          error: 'Invalid input',
+          details: validation.error.errors 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { email, password } = validation.data;
 
       // Authenticate user
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -44,26 +64,27 @@ serve(async (req) => {
         });
       }
 
-      // Check if user is admin
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, first_name, last_name, email')
+      // Check if user has admin role in user_roles table
+      const { data: userRole, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
         .eq('user_id', authData.user.id)
+        .eq('role', 'admin')
         .single();
 
-      if (profileError || !profile) {
-        return new Response(JSON.stringify({ error: 'Profile not found' }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      if (profile.role !== 'admin') {
+      if (roleError || !userRole) {
         return new Response(JSON.stringify({ error: 'Admin access required' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
+
+      // Get profile info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', authData.user.id)
+        .single();
 
       return new Response(JSON.stringify({
         access_token: authData.session.access_token,
@@ -71,10 +92,10 @@ serve(async (req) => {
         user: {
           id: authData.user.id,
           email: authData.user.email,
-          first_name: profile.first_name,
-          last_name: profile.last_name
+          first_name: profile?.first_name,
+          last_name: profile?.last_name
         },
-        role: profile.role,
+        role: userRole.role,
         expires_at: authData.session.expires_at
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -100,29 +121,37 @@ serve(async (req) => {
         });
       }
 
-      // Verify admin role
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, first_name, last_name, email')
+      // Verify admin role in user_roles table
+      const { data: userRole, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
         .eq('user_id', user.id)
+        .eq('role', 'admin')
         .single();
 
-      if (!profile || profile.role !== 'admin') {
+      if (roleError || !userRole) {
         return new Response(JSON.stringify({ error: 'Admin access required' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
+      // Get profile info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', user.id)
+        .single();
+
       return new Response(JSON.stringify({
         valid: true,
         user: {
           id: user.id,
           email: user.email,
-          first_name: profile.first_name,
-          last_name: profile.last_name
+          first_name: profile?.first_name,
+          last_name: profile?.last_name
         },
-        role: profile.role
+        role: userRole.role
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });

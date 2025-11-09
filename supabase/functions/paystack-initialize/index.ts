@@ -1,10 +1,21 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+const paymentSchema = z.object({
+  email: z.string().email().max(255),
+  amount: z.number().positive().max(1000000),
+  type: z.enum(['subscription', 'consultation']),
+  plan: z.enum(['monthly', 'yearly']).optional(),
+  currency: z.string().length(3).optional(),
+  local_amount: z.number().positive().max(1000000).optional(),
+  exchange_rate_used: z.number().positive().optional()
+})
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -13,7 +24,41 @@ serve(async (req) => {
   }
 
   try {
-    const { email, amount, user_id, type, plan, currency = 'NGN', local_amount, exchange_rate_used } = await req.json();
+    // Authenticate user
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const body = await req.json();
+    
+    // Validate input
+    const validation = paymentSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid input',
+        details: validation.error.errors 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { email, amount, type, plan, currency = 'NGN', local_amount, exchange_rate_used } = validation.data;
     
     const paystackSecret = Deno.env.get('PAYSTACK_SECRET');
     if (!paystackSecret) {
@@ -32,7 +77,7 @@ serve(async (req) => {
         amount: (local_amount || amount) * 100, // Convert to kobo/cents
         currency: currency || 'NGN',
         metadata: {
-          user_id,
+          user_id: user.id, // Use authenticated user ID
           type,
           plan: plan || 'monthly',
           base_usd_amount: amount,
