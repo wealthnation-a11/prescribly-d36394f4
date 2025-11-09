@@ -21,9 +21,7 @@ export const NotificationBell = ({
   const { unreadCount, loading } = useNotificationCount();
 
   const handleClick = () => {
-    // For now, navigate to user dashboard where notifications are shown
-    // You could also create a dedicated notifications page or modal
-    navigate('/user-dashboard');
+    navigate('/notifications');
   };
 
   const iconSizes = {

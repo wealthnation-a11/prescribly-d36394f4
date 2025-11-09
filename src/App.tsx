@@ -60,6 +60,7 @@ import Cookies from "./pages/Cookies";
 import HipaaCompliance from "./pages/HipaaCompliance";
 import AdminDashboard from "./pages/AdminDashboard";
 import InstallPWA from "./pages/InstallPWA";
+import NotificationHistory from "./pages/NotificationHistory";
 
 const queryClient = new QueryClient();
 
@@ -175,6 +176,11 @@ const App = () => (
             <Route path="/profile" element={
               <ProtectedRoute>
                 <UserProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <NotificationHistory />
               </ProtectedRoute>
             } />
             <Route path="/appointments" element={
