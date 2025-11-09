@@ -14,6 +14,7 @@ import {
   SidebarInset 
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { NotificationSettings } from "@/components/NotificationSettings";
 
 const UserProfile = () => {
   const { user, signOut, userProfile } = useAuth();
@@ -374,6 +375,9 @@ const UserProfile = () => {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Notification Settings */}
+              <NotificationSettings />
 
               {/* Action Buttons */}
               {isEditing ? (
