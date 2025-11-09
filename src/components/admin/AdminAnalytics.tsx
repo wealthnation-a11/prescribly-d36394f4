@@ -2,14 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Users,
   UserCheck,
-  Calendar as CalendarIcon,
   DollarSign,
   TrendingUp,
   Activity,
@@ -19,26 +15,17 @@ import {
   Globe,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const AdminAnalytics = () => {
-  const [timePeriod, setTimePeriod] = useState<'month' | 'year' | 'custom'>('month');
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [timePeriod, setTimePeriod] = useState<'month' | 'year'>('month');
   const [realTimeUpdate, setRealTimeUpdate] = useState(0);
 
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ["admin-analytics-overview", timePeriod, dateRange, realTimeUpdate],
+    queryKey: ["admin-analytics-overview", timePeriod, realTimeUpdate],
     queryFn: async () => {
-      const body: any = { action: "overview", timePeriod };
-      
-      if (timePeriod === 'custom' && dateRange.from && dateRange.to) {
-        body.startDate = dateRange.from.toISOString();
-        body.endDate = dateRange.to.toISOString();
-      }
-      
       const { data, error } = await supabase.functions.invoke("admin-analytics", {
-        body,
+        body: { action: "overview", timePeriod },
       });
       if (error) throw error;
       return data;
@@ -106,39 +93,8 @@ const AdminAnalytics = () => {
             <SelectContent>
               <SelectItem value="month">This Month</SelectItem>
               <SelectItem value="year">This Year</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
           </Select>
-          
-          {timePeriod === 'custom' && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start text-left font-normal">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
-                      </>
-                    ) : (
-                      format(dateRange.from, "LLL dd, y")
-                    )
-                  ) : (
-                    "Pick a date range"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-50" align="start" side="bottom" sideOffset={5}>
-                <Calendar
-                  mode="range"
-                  selected={dateRange as any}
-                  onSelect={(range: any) => setDateRange(range || {})}
-                  numberOfMonths={2}
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          )}
           
           <Badge variant="outline" className="animate-pulse h-10 px-3 flex items-center gap-2">
             <Activity className="h-3 w-3" />
@@ -177,7 +133,7 @@ const AdminAnalytics = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalAppointments || 0}</div>
