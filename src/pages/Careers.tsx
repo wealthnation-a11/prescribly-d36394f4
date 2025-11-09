@@ -17,9 +17,9 @@ export default function Careers() {
       slug: "doctor-onboarding-specialist"
     },
     {
-      title: "Frontend Developer",
-      desc: "Build elegant, performant interfaces that clinicians and patients love.",
-      slug: "frontend-developer"
+      title: "Full Stack Developer(React/React Native)",
+      desc: "Build elegant, performant interfaces and backend systems that clinicians and patients love.",
+      slug: "fullstack-developer-react"
     },
     {
       title: "Patient Support Agent",
