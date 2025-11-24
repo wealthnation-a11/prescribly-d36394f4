@@ -64,13 +64,6 @@ export const HerbalMedicine = () => {
       icon: Heart,
       color: "text-rose-600",
       badge: "Coming Soon"
-    },
-    {
-      title: "Certification Programs",
-      description: "Learn about herbalism through our certified educational courses",
-      icon: Award,
-      color: "text-amber-600",
-      badge: "Coming Soon"
     }
   ];
 
