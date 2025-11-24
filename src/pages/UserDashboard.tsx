@@ -23,7 +23,8 @@ import {
   Brain,
   Trophy,
   Crown,
-  HelpCircle
+  HelpCircle,
+  Leaf
 } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
@@ -89,6 +90,14 @@ export const UserDashboard = () => {
       color: "text-purple-600"
     },
     {
+      title: "Herbal Medicine",
+      description: "Explore natural remedies and traditional healing practices.",
+      icon: Leaf,
+      href: "/herbal-medicine",
+      variant: "outline" as const,
+      color: "text-green-700"
+    },
+    {
       title: "Health Challenges",
       description: "Join community wellness challenges, track progress, and earn points.",
       icon: Trophy,
@@ -102,7 +111,7 @@ export const UserDashboard = () => {
       icon: MessageCircle,
       href: "/chat",
       variant: "outline" as const,
-      color: "text-green-600"
+      color: "text-blue-600"
     }
   ];
 
