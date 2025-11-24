@@ -65,7 +65,12 @@ export const LandingPage = () => {
     icon: Heart,
     title: "Personalized Prescriptions",
     description: "Receive tailored treatment plans",
-    details: "Get customized medication recommendations and treatment plans based on your specific condition."
+    details: "Get customized medication recommendations and treatment plans based on your specific condition, including herbal alternatives."
+  }, {
+    icon: Globe,
+    title: "Herbal & Natural Medicine",
+    description: "Access traditional healing wisdom",
+    details: "Explore evidence-based herbal remedies and natural treatments, integrated with modern medical care for holistic wellness."
   }, {
     icon: Bot,
     title: "Medical Record History",
@@ -290,8 +295,69 @@ export const LandingPage = () => {
         </div>
       </section>
 
+      {/* Holistic Healthcare Section */}
+      <section id="holistic-care" className="py-12 sm:py-16 lg:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-6 sm:mb-8 fade-in-up px-4">
+              Bridging Traditional & Modern Medicine
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
+              <div className="space-y-4 sm:space-y-6 fade-in-up px-4">
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                  At Prescribly, we honor the wisdom of traditional herbal medicine while embracing the precision of modern healthcare. Our integrated approach offers you the best of both worlds.
+                </p>
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                  Whether you're seeking conventional treatments, herbal remedies, or a combination tailored to your needs, our licensed practitioners guide you with evidence-based recommendations rooted in centuries of healing knowledge.
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
+                    <p className="text-sm sm:text-base text-foreground">Evidence-based herbal formulations from trusted sources</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
+                    <p className="text-sm sm:text-base text-foreground">Integration with conventional treatments when needed</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
+                    <p className="text-sm sm:text-base text-foreground">Personalized herbal prescriptions based on your unique health profile</p>
+                  </div>
+                </div>
+              </div>
+              <Card className="card-gradient border-0 medical-shadow fade-in-up stagger-1">
+                <CardHeader>
+                  <CardTitle className="text-xl sm:text-2xl">Natural Healing Traditions</CardTitle>
+                  <CardDescription className="text-sm sm:text-base">
+                    Our herbal medicine program includes:
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Traditional Chinese Medicine herbs</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Ayurvedic herbal formulations</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Western herbal medicine remedies</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
+                    <span className="text-sm sm:text-base">African traditional medicine practices</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Our Promise Section */}
-      <section id="our-promise" className="py-12 sm:py-16 lg:py-20">
+      <section id="our-promise" className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 sm:mb-8 fade-in-up px-4">
@@ -302,7 +368,7 @@ export const LandingPage = () => {
                 At Prescribly, we believe health care should be human first. Our platform connects you with compassionate, licensed healthcare professionals who truly care about your well-being. 
               </p>
               <p className="text-base sm:text-lg leading-relaxed mt-4 sm:mt-6">
-                We promise transparent pricing, secure data handling, and healthcare that puts your needs first. Every consultation is designed to make you feel heard, understood, and cared for—because your health deserves nothing less.
+                We promise transparent pricing, secure data handling, and healthcare that puts your needs first—whether you choose conventional medicine, herbal remedies, or an integrated approach. Every consultation is designed to make you feel heard, understood, and cared for—because your health deserves nothing less.
               </p>
             </div>
           </div>
