@@ -61,6 +61,7 @@ import HipaaCompliance from "./pages/HipaaCompliance";
 import AdminDashboard from "./pages/AdminDashboard";
 import InstallPWA from "./pages/InstallPWA";
 import NotificationHistory from "./pages/NotificationHistory";
+import HerbalMedicine from "./pages/HerbalMedicine";
 
 const queryClient = new QueryClient();
 
@@ -181,6 +182,13 @@ const App = () => (
             <Route path="/notifications" element={
               <ProtectedRoute>
                 <NotificationHistory />
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal-medicine" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <HerbalMedicine />
+                </SubscriptionGuard>
               </ProtectedRoute>
             } />
             <Route path="/appointments" element={
