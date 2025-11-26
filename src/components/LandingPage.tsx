@@ -365,6 +365,11 @@ export const LandingPage = () => {
                     <Heart className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-sm sm:text-base">African traditional medicine practices</span>
                   </div>
+                  <div className="pt-4 mt-4 border-t border-border/20">
+                    <Button variant="medical" className="w-full" asChild>
+                      <Link to="/herbal-practitioner-register">Register as a Herbal Practitioner</Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
