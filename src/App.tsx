@@ -62,6 +62,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import InstallPWA from "./pages/InstallPWA";
 import NotificationHistory from "./pages/NotificationHistory";
 import HerbalMedicine from "./pages/HerbalMedicine";
+import HerbalPractitionerDashboard from "./pages/herbal/HerbalPractitionerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -273,6 +274,14 @@ const App = () => (
                 <DoctorEarnings />
               </ProtectedRoute>
             } />
+
+            {/* Herbal Practitioner Routes */}
+            <Route path="/herbal-dashboard" element={
+              <ProtectedRoute>
+                <HerbalPractitionerDashboard />
+              </ProtectedRoute>
+            } />
+
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
