@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle, Shield, Lock, FileText } from "lucide-react";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle, Shield, Lock, FileText, Leaf, Users } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
@@ -15,6 +15,7 @@ import { Header } from "./Header";
 import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
+import { HerbalPractitionerRegisterModal } from "./HerbalPractitionerRegisterModal";
 import heroImage from "@/assets/hero-doctors-team.jpg";
 import gdprCertification from "@/assets/gdpr-certification.png";
 import hipaaCertification from "@/assets/hipaa-certification.png";
@@ -31,6 +32,7 @@ export const LandingPage = () => {
     loading
   } = useAuth();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
+  const [showHerbalRegister, setShowHerbalRegister] = useState(false);
 
   // Don't auto-redirect admins if they want to visit landing page
   useEffect(() => {
@@ -899,5 +901,9 @@ export const LandingPage = () => {
       </footer>
       
       <EnterpriseDemoModal open={isEnterpriseDemoModalOpen} onOpenChange={setIsEnterpriseDemoModalOpen} />
+      <HerbalPractitionerRegisterModal
+        isOpen={showHerbalRegister}
+        onClose={() => setShowHerbalRegister(false)}
+      />
     </div>;
 };
