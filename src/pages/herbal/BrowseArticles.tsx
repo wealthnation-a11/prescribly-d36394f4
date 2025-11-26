@@ -4,14 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { FileText, Search, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, Search, Calendar, BookOpen } from 'lucide-react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileHeader } from '@/components/MobileHeader';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import DOMPurify from 'dompurify';
 
 export default function BrowseArticles() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
 
   const { data: articles, isLoading } = useQuery({
     queryKey: ['published-articles'],
@@ -108,10 +112,18 @@ export default function BrowseArticles() {
                           )}
                         </div>
                       </CardHeader>
-                      <CardContent className="px-4 sm:px-6">
+                      <CardContent className="px-4 sm:px-6 space-y-3">
                         <div className="prose prose-sm max-w-none line-clamp-4 text-xs sm:text-sm text-muted-foreground">
-                          {article.content}
+                          {article.content.substring(0, 200)}...
                         </div>
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2 h-9 text-sm"
+                          onClick={() => setSelectedArticle(article)}
+                        >
+                          <BookOpen className="h-4 w-4" />
+                          Read Full Article
+                        </Button>
                       </CardContent>
                     </Card>
                   ))
@@ -121,6 +133,32 @@ export default function BrowseArticles() {
           </main>
         </SidebarInset>
       </div>
+
+      <Dialog open={!!selectedArticle} onOpenChange={() => setSelectedArticle(null)}>
+        <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl sm:text-2xl">{selectedArticle?.title}</DialogTitle>
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-2">
+              <span>By {selectedArticle?.herbal_practitioners?.first_name} {selectedArticle?.herbal_practitioners?.last_name}</span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {selectedArticle?.published_at && new Date(selectedArticle.published_at).toLocaleDateString()}
+              </span>
+              {selectedArticle?.category && (
+                <>
+                  <span>•</span>
+                  <Badge variant="secondary" className="text-xs">{selectedArticle.category}</Badge>
+                </>
+              )}
+            </div>
+          </DialogHeader>
+          <div 
+            className="prose prose-sm max-w-none mt-4 text-sm"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedArticle?.content || '') }}
+          />
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }
