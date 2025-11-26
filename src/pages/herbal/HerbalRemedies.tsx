@@ -87,13 +87,13 @@ export default function HerbalRemedies() {
 
   return (
     <HerbalPractitionerLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Remedies</h1>
-            <p className="text-muted-foreground">Manage your herbal remedies and submissions</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">My Remedies</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage your herbal remedies and submissions</p>
           </div>
-          <Button onClick={() => setIsAdding(!isAdding)} className="gap-2">
+          <Button onClick={() => setIsAdding(!isAdding)} className="gap-2 w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             Add New Remedy
           </Button>
@@ -101,51 +101,55 @@ export default function HerbalRemedies() {
 
         {isAdding && (
           <Card>
-            <CardHeader>
-              <CardTitle>Submit New Remedy</CardTitle>
-              <CardDescription>Your remedy will be reviewed by admins before approval</CardDescription>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl">Submit New Remedy</CardTitle>
+              <CardDescription className="text-sm">Your remedy will be reviewed by admins before approval</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Remedy Name</Label>
+                <Label htmlFor="name" className="text-sm">Remedy Name</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Healing Herbal Tea"
+                  className="h-11 sm:h-10"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-sm">Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe the remedy and its benefits"
                   rows={3}
+                  className="text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ingredients">Ingredients (comma-separated)</Label>
+                <Label htmlFor="ingredients" className="text-sm">Ingredients (comma-separated)</Label>
                 <Input
                   id="ingredients"
                   value={formData.ingredients}
                   onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
                   placeholder="Ginger, Turmeric, Honey"
+                  className="h-11 sm:h-10"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="usage">Usage Instructions</Label>
+                <Label htmlFor="usage" className="text-sm">Usage Instructions</Label>
                 <Textarea
                   id="usage"
                   value={formData.usage_instructions}
                   onChange={(e) => setFormData({ ...formData, usage_instructions: e.target.value })}
                   placeholder="How to prepare and use this remedy"
                   rows={3}
+                  className="text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Price (USD)</Label>
+                <Label htmlFor="price" className="text-sm">Price (USD)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -153,13 +157,14 @@ export default function HerbalRemedies() {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="29.99"
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button onClick={() => createRemedy.mutate(formData)} disabled={createRemedy.isPending}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={() => createRemedy.mutate(formData)} disabled={createRemedy.isPending} className="w-full sm:w-auto h-11 sm:h-10">
                   Submit for Approval
                 </Button>
-                <Button variant="outline" onClick={() => setIsAdding(false)}>
+                <Button variant="outline" onClick={() => setIsAdding(false)} className="w-full sm:w-auto h-11 sm:h-10">
                   Cancel
                 </Button>
               </div>
@@ -167,34 +172,34 @@ export default function HerbalRemedies() {
           </Card>
         )}
 
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {isLoading ? (
             <Card>
-              <CardContent className="p-6">Loading remedies...</CardContent>
+              <CardContent className="p-6 text-sm">Loading remedies...</CardContent>
             </Card>
           ) : remedies?.length === 0 ? (
             <Card>
-              <CardContent className="p-6 text-center">
-                <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No remedies yet. Add your first remedy!</p>
+              <CardContent className="p-6 sm:p-8 text-center">
+                <Package className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+                <p className="text-sm sm:text-base text-muted-foreground">No remedies yet. Add your first remedy!</p>
               </CardContent>
             </Card>
           ) : (
             remedies?.map((remedy) => (
               <Card key={remedy.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {remedy.name}
+                <CardHeader className="px-4 sm:px-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                        <span className="truncate">{remedy.name}</span>
                         {getStatusIcon(remedy.approval_status)}
                       </CardTitle>
-                      <CardDescription>{remedy.description}</CardDescription>
+                      <CardDescription className="text-sm mt-1">{remedy.description}</CardDescription>
                     </div>
                     {getStatusBadge(remedy.approval_status)}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-2 px-4 sm:px-6 text-sm">
                   <div>
                     <strong>Ingredients:</strong> {Array.isArray(remedy.ingredients) ? remedy.ingredients.join(', ') : 'N/A'}
                   </div>
@@ -205,9 +210,9 @@ export default function HerbalRemedies() {
                     <strong>Price:</strong> ${remedy.price?.toFixed(2)}
                   </div>
                   {remedy.rejection_reason && (
-                    <div className="mt-4 p-3 bg-destructive/10 rounded-lg">
-                      <strong className="text-destructive">Rejection Reason:</strong>
-                      <p className="text-sm mt-1">{remedy.rejection_reason}</p>
+                    <div className="mt-3 sm:mt-4 p-3 bg-destructive/10 rounded-lg">
+                      <strong className="text-destructive text-sm">Rejection Reason:</strong>
+                      <p className="text-xs sm:text-sm mt-1">{remedy.rejection_reason}</p>
                     </div>
                   )}
                 </CardContent>
