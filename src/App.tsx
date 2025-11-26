@@ -62,6 +62,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import InstallPWA from "./pages/InstallPWA";
 import NotificationHistory from "./pages/NotificationHistory";
 import HerbalMedicine from "./pages/HerbalMedicine";
+import BrowseRemedies from "./pages/herbal/BrowseRemedies";
+import BrowseArticles from "./pages/herbal/BrowseArticles";
+import FindPractitioners from "./pages/herbal/FindPractitioners";
 import HerbalPractitionerDashboard from "./pages/herbal/HerbalPractitionerDashboard";
 import HerbalRemedies from "./pages/herbal/HerbalRemedies";
 import HerbalArticles from "./pages/herbal/HerbalArticles";
@@ -199,6 +202,27 @@ const App = () => (
               <ProtectedRoute requirePatient={true}>
                 <SubscriptionGuard>
                   <HerbalMedicine />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/browse-remedies" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <BrowseRemedies />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/browse-articles" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <BrowseArticles />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/find-practitioners" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <FindPractitioners />
                 </SubscriptionGuard>
               </ProtectedRoute>
             } />
