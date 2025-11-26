@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,64 +18,54 @@ import {
   SidebarInset 
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 export const HerbalMedicine = () => {
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const navigate = useNavigate();
 
   const features = [
     {
-      title: "Herbal Consultation",
+      title: "Browse Remedies",
+      description: "Explore authentic, lab-tested herbs and supplements from verified practitioners",
+      icon: ShoppingBag,
+      color: "text-teal-600",
+      href: "/herbal/browse-remedies"
+    },
+    {
+      title: "Read Articles",
+      description: "Access knowledge from TCM, Ayurveda, and traditional medicine experts",
+      icon: BookOpen,
+      color: "text-green-600",
+      href: "/herbal/browse-articles"
+    },
+    {
+      title: "Find Practitioners",
       description: "Connect with certified herbalists and traditional medicine practitioners",
       icon: Users,
       color: "text-emerald-600",
-      badge: "Coming Soon"
-    },
-    {
-      title: "Natural Remedies Library",
-      description: "Explore our comprehensive database of herbs, supplements, and natural treatments",
-      icon: BookOpen,
-      color: "text-green-600",
-      badge: "Coming Soon"
-    },
-    {
-      title: "Herbal Shop",
-      description: "Purchase authentic, lab-tested herbs and supplements from verified suppliers",
-      icon: ShoppingBag,
-      color: "text-teal-600",
-      badge: "Coming Soon"
+      href: "/herbal/find-practitioners"
     },
     {
       title: "Personalized Plans",
       description: "Get customized herbal treatment plans based on your health profile",
       icon: Sparkles,
       color: "text-purple-600",
-      badge: "Coming Soon"
+      badge: "Coming Soon",
+      href: "#"
     },
     {
-      title: "Traditional Medicine",
-      description: "Access knowledge from TCM, Ayurveda, African traditional medicine, and more",
+      title: "Wellness Programs",
+      description: "Join holistic wellness programs combining herbs, nutrition, and lifestyle",
       icon: Heart,
       color: "text-rose-600",
-      badge: "Coming Soon"
+      badge: "Coming Soon",
+      href: "#"
     }
   ];
 
-  const handleFeatureClick = () => {
-    setShowComingSoon(true);
-  };
-
   return (
-    <>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background">
-          <AppSidebar />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
           
           <SidebarInset className="flex-1">
             <MobileHeader title="Herbal Medicine" />
@@ -102,7 +92,7 @@ export const HerbalMedicine = () => {
                       <Button 
                         size="lg" 
                         className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto h-12 sm:h-11 text-base"
-                        onClick={handleFeatureClick}
+                        onClick={() => navigate('/herbal/browse-remedies')}
                       >
                         <Pill className="mr-2 h-4 w-4" />
                         Explore Remedies
@@ -111,7 +101,7 @@ export const HerbalMedicine = () => {
                         size="lg" 
                         variant="outline"
                         className="w-full sm:w-auto h-12 sm:h-11 text-base"
-                        onClick={handleFeatureClick}
+                        onClick={() => navigate('/herbal/browse-articles')}
                       >
                         <BookOpen className="mr-2 h-4 w-4" />
                         Learn More
@@ -128,7 +118,7 @@ export const HerbalMedicine = () => {
                     <Card 
                       key={feature.title}
                       className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-emerald-200"
-                      onClick={handleFeatureClick}
+                      onClick={() => feature.href !== '#' && navigate(feature.href)}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       <CardHeader className="pb-3 sm:pb-6">
@@ -136,9 +126,11 @@ export const HerbalMedicine = () => {
                           <div className={`p-2 sm:p-3 rounded-lg bg-background ${feature.color} flex-shrink-0`}>
                             <feature.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                           </div>
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">
-                            {feature.badge}
-                          </Badge>
+                          {feature.badge && (
+                            <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100 text-xs">
+                              {feature.badge}
+                            </Badge>
+                          )}
                         </div>
                         <CardTitle className="text-lg sm:text-xl">{feature.title}</CardTitle>
                         <CardDescription className="text-sm leading-relaxed">
@@ -151,10 +143,12 @@ export const HerbalMedicine = () => {
                           className="w-full h-10 sm:h-9 text-sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleFeatureClick();
+                            if (feature.href !== '#') {
+                              navigate(feature.href);
+                            }
                           }}
                         >
-                          Access Feature
+                          {feature.badge ? 'Coming Soon' : 'Explore'}
                         </Button>
                       </CardContent>
                     </Card>
@@ -194,45 +188,13 @@ export const HerbalMedicine = () => {
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </main>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-
-      {/* Coming Soon Dialog */}
-      <Dialog open={showComingSoon} onOpenChange={setShowComingSoon}>
-        <DialogContent className="sm:max-w-md max-w-[90vw] rounded-lg">
-          <DialogHeader>
-            <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center mb-3 sm:mb-4">
-              <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600" />
-            </div>
-            <DialogTitle className="text-center text-xl sm:text-2xl">Coming Soon!</DialogTitle>
-            <DialogDescription className="text-center text-sm sm:text-base pt-2 leading-relaxed px-2">
-              We're working hard to bring you the best herbal medicine experience. 
-              This feature will be available soon with exciting new capabilities.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-2.5 sm:gap-3 mt-2 sm:mt-4">
-            <Button 
-              onClick={() => setShowComingSoon(false)}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 sm:h-10 text-base sm:text-sm"
-            >
-              Got it, thanks!
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => setShowComingSoon(false)}
-              className="w-full h-11 sm:h-10 text-base sm:text-sm"
-            >
-              Notify me when ready
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 
