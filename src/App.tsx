@@ -63,6 +63,8 @@ import InstallPWA from "./pages/InstallPWA";
 import NotificationHistory from "./pages/NotificationHistory";
 import HerbalMedicine from "./pages/HerbalMedicine";
 import HerbalPractitionerDashboard from "./pages/herbal/HerbalPractitionerDashboard";
+import HerbalPractitionerLogin from "./pages/HerbalPractitionerLogin";
+import HerbalPractitionerRegister from "./pages/HerbalPractitionerRegister";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +93,8 @@ const App = () => (
             <Route path="/doctor-login" element={<DoctorLogin />} />
             <Route path="/doctor-register" element={<DoctorRegister />} />
             <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
+            <Route path="/herbal-login" element={<HerbalPractitionerLogin />} />
+            <Route path="/herbal-register" element={<HerbalPractitionerRegister />} />
             <Route path="/doctor-pending-approval" element={<DoctorPendingApproval />} />
             <Route path="/about" element={<About />} />
             <Route path="/blog" element={<Blog />} />

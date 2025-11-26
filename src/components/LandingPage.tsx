@@ -160,14 +160,21 @@ export const LandingPage = () => {
                   </>}
               </div>
               {!user && (
-                <div className="text-center lg:text-left fade-in-up stagger-3">
-                  <button
-                    onClick={() => setShowHerbalRegister(true)}
+                <div className="text-center lg:text-left fade-in-up stagger-3 flex flex-col gap-2">
+                  <Link
+                    to="/herbal-register"
                     className="text-primary hover:text-primary/80 underline text-sm sm:text-base font-medium transition-colors flex items-center gap-2 mx-auto lg:mx-0"
                   >
                     <Leaf className="h-4 w-4" />
-                    I am a Herbal Practitioner
-                  </button>
+                    Register as Herbal Practitioner
+                  </Link>
+                  <Link
+                    to="/herbal-login"
+                    className="text-muted-foreground hover:text-foreground underline text-sm transition-colors flex items-center gap-2 mx-auto lg:mx-0"
+                  >
+                    <Leaf className="h-4 w-4" />
+                    Login as Herbal Practitioner
+                  </Link>
                 </div>
               )}
               <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground fade-in-up stagger-4 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 sm:p-5 border border-prescribly-accent/20 backdrop-blur-sm max-w-2xl mx-auto lg:mx-0">
