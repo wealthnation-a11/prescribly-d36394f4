@@ -63,6 +63,12 @@ import InstallPWA from "./pages/InstallPWA";
 import NotificationHistory from "./pages/NotificationHistory";
 import HerbalMedicine from "./pages/HerbalMedicine";
 import HerbalPractitionerDashboard from "./pages/herbal/HerbalPractitionerDashboard";
+import HerbalRemedies from "./pages/herbal/HerbalRemedies";
+import HerbalArticles from "./pages/herbal/HerbalArticles";
+import HerbalConsultations from "./pages/herbal/HerbalConsultations";
+import HerbalMessages from "./pages/herbal/HerbalMessages";
+import HerbalProfile from "./pages/herbal/HerbalProfile";
+import HerbalEarnings from "./pages/herbal/HerbalEarnings";
 import HerbalPractitionerLogin from "./pages/HerbalPractitionerLogin";
 import HerbalPractitionerRegister from "./pages/HerbalPractitionerRegister";
 
@@ -283,6 +289,36 @@ const App = () => (
             <Route path="/herbal-dashboard" element={
               <ProtectedRoute>
                 <HerbalPractitionerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal-remedies" element={
+              <ProtectedRoute>
+                <HerbalRemedies />
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal-articles" element={
+              <ProtectedRoute>
+                <HerbalArticles />
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal-consultations" element={
+              <ProtectedRoute>
+                <HerbalConsultations />
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal-messages" element={
+              <ProtectedRoute>
+                <HerbalMessages />
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal-profile" element={
+              <ProtectedRoute>
+                <HerbalProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal-earnings" element={
+              <ProtectedRoute>
+                <HerbalEarnings />
               </ProtectedRoute>
             } />
 
