@@ -159,7 +159,18 @@ export const LandingPage = () => {
                     </Button>
                   </>}
               </div>
-              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground fade-in-up stagger-3 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 sm:p-5 border border-prescribly-accent/20 backdrop-blur-sm max-w-2xl mx-auto lg:mx-0">
+              {!user && (
+                <div className="text-center lg:text-left fade-in-up stagger-3">
+                  <button
+                    onClick={() => setShowHerbalRegister(true)}
+                    className="text-primary hover:text-primary/80 underline text-sm sm:text-base font-medium transition-colors flex items-center gap-2 mx-auto lg:mx-0"
+                  >
+                    <Leaf className="h-4 w-4" />
+                    I am a Herbal Practitioner
+                  </button>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground fade-in-up stagger-4 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 sm:p-5 border border-prescribly-accent/20 backdrop-blur-sm max-w-2xl mx-auto lg:mx-0">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-success-green animate-pulse"></div>
                   <Check className="w-4 h-4 text-success-green flex-shrink-0" />
