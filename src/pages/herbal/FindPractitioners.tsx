@@ -5,14 +5,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Users, Search, Calendar, MapPin, Award, Briefcase } from 'lucide-react';
+import { Users, Search, Calendar, MapPin, Award, Briefcase, MessageCircle } from 'lucide-react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileHeader } from '@/components/MobileHeader';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function FindPractitioners() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPractitioner, setSelectedPractitioner] = useState<any>(null);
+  const [bookingDate, setBookingDate] = useState('');
+  const [bookingTime, setBookingTime] = useState('');
+  const [bookingNotes, setBookingNotes] = useState('');
+  const { user } = useAuth();
+
+  const handleBookConsultation = async () => {
+    if (!user || !selectedPractitioner) return;
+    
+    if (!bookingDate || !bookingTime) {
+      toast.error('Please select a date and time');
+      return;
+    }
+
+    const scheduledTime = `${bookingDate}T${bookingTime}:00`;
+    
+    const { error } = await supabase
+      .from('herbal_consultations')
+      .insert({
+        practitioner_id: selectedPractitioner.id,
+        patient_id: user.id,
+        scheduled_time: scheduledTime,
+        notes: bookingNotes,
+        status: 'scheduled',
+      });
+
+    if (error) {
+      toast.error('Failed to book consultation');
+      return;
+    }
+
+    toast.success('Consultation booked successfully!');
+    setSelectedPractitioner(null);
+    setBookingDate('');
+    setBookingTime('');
+    setBookingNotes('');
+  };
 
   const { data: practitioners, isLoading } = useQuery({
     queryKey: ['approved-practitioners'],
@@ -120,10 +160,18 @@ export default function FindPractitioners() {
                             {practitioner.bio}
                           </p>
                         )}
-                        <Button className="w-full gap-2 h-10 sm:h-9 text-sm mt-4">
-                          <Calendar className="h-4 w-4" />
-                          Book Consultation
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          <Button 
+                            className="flex-1 gap-2 h-10 sm:h-9 text-sm"
+                            onClick={() => setSelectedPractitioner(practitioner)}
+                          >
+                            <Calendar className="h-4 w-4" />
+                            Book Consultation
+                          </Button>
+                          <Button variant="outline" size="icon" className="h-10 sm:h-9 w-10 sm:w-9 flex-shrink-0">
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))
@@ -133,6 +181,52 @@ export default function FindPractitioners() {
           </main>
         </SidebarInset>
       </div>
+
+      <Dialog open={!!selectedPractitioner} onOpenChange={() => setSelectedPractitioner(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Book Consultation</DialogTitle>
+            <DialogDescription>
+              Schedule a consultation with {selectedPractitioner?.first_name} {selectedPractitioner?.last_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Date</label>
+              <Input
+                type="date"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Time</label>
+              <Input
+                type="time"
+                value={bookingTime}
+                onChange={(e) => setBookingTime(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Notes (Optional)</label>
+              <Input
+                placeholder="Any specific concerns or questions..."
+                value={bookingNotes}
+                onChange={(e) => setBookingNotes(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setSelectedPractitioner(null)}>
+                Cancel
+              </Button>
+              <Button className="flex-1" onClick={handleBookConsultation}>
+                Confirm Booking
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }
