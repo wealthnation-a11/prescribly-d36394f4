@@ -75,6 +75,18 @@ export const HerbalArticlesModeration = () => {
 
       if (updateError) throw updateError;
 
+      // If approved, publish to blog
+      if (status === 'approved') {
+        const { error: publishError } = await supabase.functions.invoke('publish-herbal-article', {
+          body: { article_id: articleId },
+        });
+        
+        if (publishError) {
+          console.error('Error publishing to blog:', publishError);
+          // Don't throw - article is still approved even if blog publish fails
+        }
+      }
+
       // Create audit log
       const { error: auditError } = await supabase
         .from('herbal_article_audit')
@@ -89,7 +101,7 @@ export const HerbalArticlesModeration = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['herbal-articles-moderation'] });
-      toast.success('Article status updated successfully');
+      toast.success('Article status updated and published to blog');
       setSelectedArticle(null);
       setActionType(null);
       setNotes('');

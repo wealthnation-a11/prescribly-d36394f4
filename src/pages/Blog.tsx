@@ -24,6 +24,13 @@ interface BlogPost {
   tags: string[] | null;
   views: number;
   created_at: string;
+  source_type: string | null;
+  source_id: string | null;
+  profiles?: {
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export default function Blog() {
@@ -47,10 +54,28 @@ export default function Blog() {
         query = query.eq("category", selectedCategory);
       }
       
-      const { data, error } = await query.order("published_at", { ascending: false });
+      const { data: blogData, error } = await query.order("published_at", { ascending: false });
       
       if (error) throw error;
-      return data as BlogPost[];
+      
+      // Fetch author profiles separately
+      if (blogData && blogData.length > 0) {
+        const authorIds = [...new Set(blogData.map(p => p.author_id))];
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, avatar_url')
+          .in('user_id', authorIds);
+        
+        // Merge profiles with blog posts
+        const postsWithProfiles = blogData.map(post => ({
+          ...post,
+          profiles: profilesData?.find(p => p.user_id === post.author_id) || null,
+        }));
+        
+        return postsWithProfiles as BlogPost[];
+      }
+      
+      return blogData as BlogPost[];
     },
   });
 
