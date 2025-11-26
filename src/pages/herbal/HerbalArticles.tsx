@@ -84,13 +84,13 @@ export default function HerbalArticles() {
 
   return (
     <HerbalPractitionerLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Articles</h1>
-            <p className="text-muted-foreground">Share your knowledge and expertise</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">My Articles</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Share your knowledge and expertise</p>
           </div>
-          <Button onClick={() => setIsAdding(!isAdding)} className="gap-2">
+          <Button onClick={() => setIsAdding(!isAdding)} className="gap-2 w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             Write New Article
           </Button>
@@ -98,27 +98,28 @@ export default function HerbalArticles() {
 
         {isAdding && (
           <Card>
-            <CardHeader>
-              <CardTitle>Submit New Article</CardTitle>
-              <CardDescription>Your article will be reviewed by admins before publication</CardDescription>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl">Submit New Article</CardTitle>
+              <CardDescription className="text-sm">Your article will be reviewed by admins before publication</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Article Title</Label>
+                <Label htmlFor="title" className="text-sm">Article Title</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., The Benefits of Traditional Herbal Medicine"
+                  className="h-11 sm:h-10"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="text-sm">Category</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 sm:h-10">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background z-50">
                     <SelectItem value="Herbal Medicine">Herbal Medicine</SelectItem>
                     <SelectItem value="Wellness Tips">Wellness Tips</SelectItem>
                     <SelectItem value="Traditional Remedies">Traditional Remedies</SelectItem>
@@ -128,21 +129,21 @@ export default function HerbalArticles() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="content">Article Content</Label>
+                <Label htmlFor="content" className="text-sm">Article Content</Label>
                 <Textarea
                   id="content"
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   placeholder="Write your article content here..."
-                  rows={12}
-                  className="font-mono text-sm"
+                  rows={10}
+                  className="font-mono text-xs sm:text-sm"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button onClick={() => createArticle.mutate(formData)} disabled={createArticle.isPending}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={() => createArticle.mutate(formData)} disabled={createArticle.isPending} className="w-full sm:w-auto h-11 sm:h-10">
                   Submit for Approval
                 </Button>
-                <Button variant="outline" onClick={() => setIsAdding(false)}>
+                <Button variant="outline" onClick={() => setIsAdding(false)} className="w-full sm:w-auto h-11 sm:h-10">
                   Cancel
                 </Button>
               </div>
@@ -150,43 +151,43 @@ export default function HerbalArticles() {
           </Card>
         )}
 
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {isLoading ? (
             <Card>
-              <CardContent className="p-6">Loading articles...</CardContent>
+              <CardContent className="p-6 text-sm">Loading articles...</CardContent>
             </Card>
           ) : articles?.length === 0 ? (
             <Card>
-              <CardContent className="p-6 text-center">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No articles yet. Write your first article!</p>
+              <CardContent className="p-6 sm:p-8 text-center">
+                <FileText className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+                <p className="text-sm sm:text-base text-muted-foreground">No articles yet. Write your first article!</p>
               </CardContent>
             </Card>
           ) : (
             articles?.map((article) => (
               <Card key={article.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
-                        {article.title}
+                <CardHeader className="px-4 sm:px-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                        <span className="line-clamp-2">{article.title}</span>
                         {getStatusIcon(article.approval_status)}
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-xs sm:text-sm mt-1">
                         {article.category} • {new Date(article.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
                     {getStatusBadge(article.approval_status)}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="prose prose-sm max-w-none line-clamp-3">
+                <CardContent className="space-y-2 px-4 sm:px-6">
+                  <div className="prose prose-sm max-w-none line-clamp-3 text-xs sm:text-sm">
                     {article.content}
                   </div>
                   {article.rejection_reason && (
-                    <div className="mt-4 p-3 bg-destructive/10 rounded-lg">
-                      <strong className="text-destructive">Rejection Reason:</strong>
-                      <p className="text-sm mt-1">{article.rejection_reason}</p>
+                    <div className="mt-3 sm:mt-4 p-3 bg-destructive/10 rounded-lg">
+                      <strong className="text-destructive text-sm">Rejection Reason:</strong>
+                      <p className="text-xs sm:text-sm mt-1">{article.rejection_reason}</p>
                     </div>
                   )}
                 </CardContent>
