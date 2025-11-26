@@ -1127,6 +1127,101 @@ export type Database = {
         }
         Relationships: []
       }
+      herbal_practitioners: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          license_number: string | null
+          phone: string | null
+          practice_location: string | null
+          qualifications: Json | null
+          specialization: string
+          updated_at: string | null
+          user_id: string
+          verification_status:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          years_of_experience: number | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          license_number?: string | null
+          phone?: string | null
+          practice_location?: string | null
+          qualifications?: Json | null
+          specialization: string
+          updated_at?: string | null
+          user_id: string
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          years_of_experience?: number | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          license_number?: string | null
+          phone?: string | null
+          practice_location?: string | null
+          qualifications?: Json | null
+          specialization?: string
+          updated_at?: string | null
+          user_id?: string
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
+      herbal_verification_audit: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          practitioner_id: string
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          practitioner_id: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          practitioner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "herbal_verification_audit_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_practitioners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string

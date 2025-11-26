@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import DoctorApplicationsManagement from "@/components/admin/DoctorApplicationsManagement";
+import { HerbalPractitionersManagement } from "@/components/admin/HerbalPractitionersManagement";
 import UserManagement from "@/components/admin/UserManagement";
 import AppointmentManagement from "@/components/admin/AppointmentManagement";
 import PaymentManagement from "@/components/admin/PaymentManagement";
@@ -139,6 +140,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="roles">Roles</TabsTrigger>
             <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
             <TabsTrigger value="doctors">Doctors</TabsTrigger>
+            <TabsTrigger value="herbal">Herbal Practitioners</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="ai-logs">AI Diagnosis</TabsTrigger>
@@ -201,6 +203,20 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <DoctorApplicationsManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="herbal" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Herbal Practitioners Management</CardTitle>
+                <CardDescription>
+                  Review and manage herbal practitioner applications
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <HerbalPractitionersManagement />
               </CardContent>
             </Card>
           </TabsContent>
