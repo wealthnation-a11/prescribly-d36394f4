@@ -43,40 +43,40 @@ export function HerbalPractitionerSidebar() {
   
   const getNavCls = ({ isActive }: { isActive: boolean }, hoverColor: string) =>
     isActive 
-      ? "bg-white/10 text-white font-medium border-r-4 border-white" 
-      : `text-gray-300 hover:text-white transition-all duration-200 ${hoverColor}`;
+      ? "bg-primary/20 text-primary font-medium border-r-4 border-primary" 
+      : `text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200`;
 
   return (
-    <Sidebar className={`bg-gradient-to-b from-green-800 to-emerald-900 text-white rounded-r-2xl shadow-lg h-screen flex flex-col justify-between transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"}`}>
-      <SidebarContent className="bg-transparent text-white flex flex-col h-full">
+    <Sidebar className={`bg-sidebar border-r shadow-lg h-screen flex flex-col justify-between transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"}`}>
+      <SidebarContent className="bg-transparent flex flex-col h-full">
         {/* Header */}
-        <div className="p-4 border-b border-green-700">
+        <div className="p-4 border-b border-border">
           <NavLink to="/" end className="flex items-center gap-3" aria-label="Go to home">
             <Logo size="sm" />
             {!isCollapsed && (
               <div className="flex-1">
-                <h2 className="font-bold text-lg text-white">Prescribly</h2>
-                <p className="text-xs text-green-100">Herbal Portal</p>
+                <h2 className="font-bold text-lg text-sidebar-foreground">Prescribly</h2>
+                <p className="text-xs text-muted-foreground">Herbal Portal</p>
               </div>
             )}
           </NavLink>
           {!isCollapsed && (
             <div className="mt-3 flex justify-center gap-2">
-              <NotificationBell variant="outline" className="border-green-600 text-white hover:bg-green-800" />
-              <ThemeToggle variant="outline" className="border-green-600 text-white hover:bg-green-800" />
+              <NotificationBell variant="outline" className="border-border hover:bg-sidebar-accent" />
+              <ThemeToggle variant="outline" className="border-border hover:bg-sidebar-accent" />
             </div>
           )}
           {isCollapsed && (
             <div className="mt-2 space-y-2 flex flex-col items-center">
-              <NotificationBell variant="outline" size="sm" className="border-green-600 text-white hover:bg-green-800" />
-              <ThemeToggle variant="outline" size="sm" className="border-green-600 text-white hover:bg-green-800" />
+              <NotificationBell variant="outline" size="sm" className="border-border hover:bg-sidebar-accent" />
+              <ThemeToggle variant="outline" size="sm" className="border-border hover:bg-sidebar-accent" />
             </div>
           )}
         </div>
 
         {/* Menu Items */}
         <SidebarGroup className="flex-1 px-2 py-4">
-          <SidebarGroupLabel className={`px-4 mb-2 text-green-200 ${isCollapsed ? "sr-only" : ""}`}>
+          <SidebarGroupLabel className={`px-4 mb-2 text-muted-foreground ${isCollapsed ? "sr-only" : ""}`}>
             Practitioner Menu
           </SidebarGroupLabel>
 
@@ -106,11 +106,11 @@ export function HerbalPractitionerSidebar() {
         </SidebarGroup>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-green-700">
+        <div className="p-4 border-t border-border">
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="w-full border border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-lg p-2 transition-all duration-200"
+            className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-lg p-2 transition-all duration-200"
           >
             <LogOut className="w-4 h-4 mr-2" />
             {!isCollapsed && "Logout"}
