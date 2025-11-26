@@ -1127,6 +1127,144 @@ export type Database = {
         }
         Relationships: []
       }
+      herbal_article_audit: {
+        Row: {
+          action: string
+          admin_id: string
+          article_id: string
+          created_at: string
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          article_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          article_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "herbal_article_audit_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      herbal_articles: {
+        Row: {
+          approval_status: Database["public"]["Enums"]["verification_status"]
+          approved_at: string | null
+          approved_by: string | null
+          category: string | null
+          content: string
+          cover_image: string | null
+          created_at: string
+          id: string
+          practitioner_id: string
+          published_at: string | null
+          rejection_reason: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approval_status?: Database["public"]["Enums"]["verification_status"]
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
+          content: string
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          practitioner_id: string
+          published_at?: string | null
+          rejection_reason?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approval_status?: Database["public"]["Enums"]["verification_status"]
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
+          content?: string
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          practitioner_id?: string
+          published_at?: string | null
+          rejection_reason?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "herbal_articles_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_practitioners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      herbal_consultations: {
+        Row: {
+          consultation_fee: number | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          patient_id: string
+          practitioner_id: string
+          scheduled_time: string
+          status: Database["public"]["Enums"]["appointment_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          consultation_fee?: number | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          practitioner_id: string
+          scheduled_time: string
+          status?: Database["public"]["Enums"]["appointment_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          consultation_fee?: number | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          practitioner_id?: string
+          scheduled_time?: string
+          status?: Database["public"]["Enums"]["appointment_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "herbal_consultations_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_practitioners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       herbal_practitioners: {
         Row: {
           bio: string | null
@@ -1186,6 +1324,100 @@ export type Database = {
           years_of_experience?: number | null
         }
         Relationships: []
+      }
+      herbal_remedies: {
+        Row: {
+          approval_status: Database["public"]["Enums"]["verification_status"]
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          images: Json | null
+          ingredients: Json | null
+          name: string
+          practitioner_id: string
+          price: number | null
+          rejection_reason: string | null
+          updated_at: string
+          usage_instructions: string | null
+        }
+        Insert: {
+          approval_status?: Database["public"]["Enums"]["verification_status"]
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: Json | null
+          ingredients?: Json | null
+          name: string
+          practitioner_id: string
+          price?: number | null
+          rejection_reason?: string | null
+          updated_at?: string
+          usage_instructions?: string | null
+        }
+        Update: {
+          approval_status?: Database["public"]["Enums"]["verification_status"]
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: Json | null
+          ingredients?: Json | null
+          name?: string
+          practitioner_id?: string
+          price?: number | null
+          rejection_reason?: string | null
+          updated_at?: string
+          usage_instructions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "herbal_remedies_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_practitioners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      herbal_remedy_audit: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          remedy_id: string
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          remedy_id: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          remedy_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "herbal_remedy_audit_remedy_id_fkey"
+            columns: ["remedy_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_remedies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       herbal_verification_audit: {
         Row: {

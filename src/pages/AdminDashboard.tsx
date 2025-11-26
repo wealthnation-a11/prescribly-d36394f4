@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import DoctorApplicationsManagement from "@/components/admin/DoctorApplicationsManagement";
 import { HerbalPractitionersManagement } from "@/components/admin/HerbalPractitionersManagement";
+import { HerbalRemediesModeration } from "@/components/admin/HerbalRemediesModeration";
+import { HerbalArticlesModeration } from "@/components/admin/HerbalArticlesModeration";
 import UserManagement from "@/components/admin/UserManagement";
 import AppointmentManagement from "@/components/admin/AppointmentManagement";
 import PaymentManagement from "@/components/admin/PaymentManagement";
@@ -134,13 +136,15 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="analytics" className="w-full" data-tour="tabs">
-          <TabsList className="grid w-full grid-cols-9" data-tour="tabs-list">
+          <TabsList className="grid w-full grid-cols-11" data-tour="tabs-list">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="roles">Roles</TabsTrigger>
             <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
             <TabsTrigger value="doctors">Doctors</TabsTrigger>
             <TabsTrigger value="herbal">Herbal Practitioners</TabsTrigger>
+            <TabsTrigger value="herbal-remedies">Herbal Remedies</TabsTrigger>
+            <TabsTrigger value="herbal-articles">Herbal Articles</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="ai-logs">AI Diagnosis</TabsTrigger>
@@ -219,6 +223,14 @@ const AdminDashboard = () => {
                 <HerbalPractitionersManagement />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="herbal-remedies" className="mt-6">
+            <HerbalRemediesModeration />
+          </TabsContent>
+
+          <TabsContent value="herbal-articles" className="mt-6">
+            <HerbalArticlesModeration />
           </TabsContent>
 
           <TabsContent value="appointments" className="mt-6">
