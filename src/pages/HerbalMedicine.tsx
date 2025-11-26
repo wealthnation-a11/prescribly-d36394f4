@@ -81,27 +81,27 @@ export const HerbalMedicine = () => {
             <MobileHeader title="Herbal Medicine" />
 
             <main className="flex-1 overflow-auto">
-              <div className="container mx-auto p-6 space-y-6">
+              <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
                 {/* Hero Section */}
-                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500/10 via-green-500/10 to-teal-500/10 p-8 md:p-12">
+                <div className="relative overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500/10 via-green-500/10 to-teal-500/10 p-6 sm:p-8 md:p-12">
                   <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Leaf className="h-8 w-8 text-emerald-600" />
-                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600 flex-shrink-0" />
+                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 text-xs sm:text-sm">
                         Natural Healing
                       </Badge>
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4 leading-tight">
                       Herbal Medicine & Natural Remedies
                     </h1>
-                    <p className="text-lg text-muted-foreground max-w-2xl mb-6">
+                    <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mb-4 sm:mb-6 leading-relaxed">
                       Discover the power of nature with our comprehensive herbal medicine platform. 
                       Combining ancient wisdom with modern science for holistic wellness.
                     </p>
-                    <div className="flex flex-wrap gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       <Button 
                         size="lg" 
-                        className="bg-emerald-600 hover:bg-emerald-700"
+                        className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto h-12 sm:h-11 text-base"
                         onClick={handleFeatureClick}
                       >
                         <Pill className="mr-2 h-4 w-4" />
@@ -110,6 +110,7 @@ export const HerbalMedicine = () => {
                       <Button 
                         size="lg" 
                         variant="outline"
+                        className="w-full sm:w-auto h-12 sm:h-11 text-base"
                         onClick={handleFeatureClick}
                       >
                         <BookOpen className="mr-2 h-4 w-4" />
@@ -117,12 +118,12 @@ export const HerbalMedicine = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl"></div>
-                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-500/20 rounded-full blur-3xl"></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-emerald-500/20 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 sm:w-64 sm:h-64 bg-green-500/20 rounded-full blur-3xl"></div>
                 </div>
 
                 {/* Features Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {features.map((feature, index) => (
                     <Card 
                       key={feature.title}
@@ -130,24 +131,24 @@ export const HerbalMedicine = () => {
                       onClick={handleFeatureClick}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <CardHeader>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className={`p-3 rounded-lg bg-background ${feature.color}`}>
-                            <feature.icon className="h-6 w-6" />
+                      <CardHeader className="pb-3 sm:pb-6">
+                        <div className="flex items-start sm:items-center justify-between mb-2 gap-2">
+                          <div className={`p-2 sm:p-3 rounded-lg bg-background ${feature.color} flex-shrink-0`}>
+                            <feature.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                           </div>
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">
                             {feature.badge}
                           </Badge>
                         </div>
-                        <CardTitle className="text-xl">{feature.title}</CardTitle>
-                        <CardDescription className="text-sm">
+                        <CardTitle className="text-lg sm:text-xl">{feature.title}</CardTitle>
+                        <CardDescription className="text-sm leading-relaxed">
                           {feature.description}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="pt-0">
                         <Button 
                           variant="outline" 
-                          className="w-full"
+                          className="w-full h-10 sm:h-9 text-sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleFeatureClick();
@@ -161,32 +162,32 @@ export const HerbalMedicine = () => {
                 </div>
 
                 {/* Info Section */}
-                <Card className="border-emerald-200 bg-emerald-50/50">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-lg bg-emerald-100">
-                        <Sparkles className="h-6 w-6 text-emerald-600" />
+                <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                      <div className="p-2.5 sm:p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex-shrink-0">
+                        <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                      <div className="flex-1 w-full">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                           Why Choose Herbal Medicine?
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-sm text-muted-foreground mb-3 sm:mb-4 leading-relaxed">
                           Our platform bridges traditional healing practices with modern healthcare, 
                           offering you access to time-tested natural remedies verified by both ancient 
                           wisdom and contemporary research. We're building a comprehensive ecosystem 
                           that includes consultations, education, and authentic products.
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="border-emerald-300 text-emerald-700">
+                          <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400 text-xs">
                             <Leaf className="mr-1 h-3 w-3" />
                             100% Natural
                           </Badge>
-                          <Badge variant="outline" className="border-emerald-300 text-emerald-700">
+                          <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400 text-xs">
                             <Award className="mr-1 h-3 w-3" />
                             Certified Practitioners
                           </Badge>
-                          <Badge variant="outline" className="border-emerald-300 text-emerald-700">
+                          <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400 text-xs">
                             <Heart className="mr-1 h-3 w-3" />
                             Holistic Approach
                           </Badge>
@@ -203,28 +204,28 @@ export const HerbalMedicine = () => {
 
       {/* Coming Soon Dialog */}
       <Dialog open={showComingSoon} onOpenChange={setShowComingSoon}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-w-[90vw] rounded-lg">
           <DialogHeader>
-            <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center mb-4">
-              <Sparkles className="h-8 w-8 text-emerald-600" />
+            <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center mb-3 sm:mb-4">
+              <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600" />
             </div>
-            <DialogTitle className="text-center text-2xl">Coming Soon!</DialogTitle>
-            <DialogDescription className="text-center text-base pt-2">
+            <DialogTitle className="text-center text-xl sm:text-2xl">Coming Soon!</DialogTitle>
+            <DialogDescription className="text-center text-sm sm:text-base pt-2 leading-relaxed px-2">
               We're working hard to bring you the best herbal medicine experience. 
               This feature will be available soon with exciting new capabilities.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-3 mt-4">
+          <div className="flex flex-col gap-2.5 sm:gap-3 mt-2 sm:mt-4">
             <Button 
               onClick={() => setShowComingSoon(false)}
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 sm:h-10 text-base sm:text-sm"
             >
               Got it, thanks!
             </Button>
             <Button 
               variant="outline"
               onClick={() => setShowComingSoon(false)}
-              className="w-full"
+              className="w-full h-11 sm:h-10 text-base sm:text-sm"
             >
               Notify me when ready
             </Button>

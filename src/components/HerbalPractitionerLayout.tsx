@@ -14,7 +14,7 @@ export const HerbalPractitionerLayout = ({ children }: HerbalPractitionerLayoutP
         <HerbalPractitionerSidebar />
         <main className="flex-1 flex flex-col w-full">
           <MobileHeader title="Herbal Practitioner Portal" />
-          <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+          <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-auto">
             {children}
           </div>
         </main>
