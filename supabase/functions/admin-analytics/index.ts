@@ -121,9 +121,10 @@ serve(async (req) => {
       
       const { data: appointments } = await appointmentsQuery;
 
-      const { data: subscriptions } = await supabase
-        .from('user_subscriptions')
-        .select('id, status');
+      // Note: user_subscriptions table not yet implemented
+      // const { data: subscriptions } = await supabase
+      //   .from('user_subscriptions')
+      //   .select('id, status');
 
       const { data: diagnoses } = await supabase
         .from('ai_confidence_logs')
@@ -139,7 +140,8 @@ serve(async (req) => {
       const totalAppointments = appointments?.length || 0;
       const completedAppointments = appointments?.filter(a => a.status === 'completed').length || 0;
       
-      const activeSubscriptions = subscriptions?.filter(s => s.status === 'active').length || 0;
+      // Note: user_subscriptions table not yet implemented
+      const activeSubscriptions = 0; // subscriptions?.filter(s => s.status === 'active').length || 0;
       
       const totalDiagnoses = diagnoses?.length || 0;
       const diagnosesThisMonth = diagnoses?.filter(d => new Date(d.created_at) >= monthStart).length || 0;
