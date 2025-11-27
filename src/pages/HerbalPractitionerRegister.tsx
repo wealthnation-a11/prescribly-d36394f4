@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Leaf, ArrowLeft } from 'lucide-react';
 import { usePageSEO } from '@/hooks/usePageSEO';
+import { Logo } from '@/components/Logo';
 
 export const HerbalPractitionerRegister = () => {
   const [formData, setFormData] = useState({
@@ -123,6 +124,9 @@ export const HerbalPractitionerRegister = () => {
 
         <Card>
           <CardHeader className="space-y-1">
+            <div className="flex justify-center mb-4">
+              <Logo size="lg" priority />
+            </div>
             <div className="flex items-center justify-center mb-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Leaf className="h-6 w-6 text-primary" />
