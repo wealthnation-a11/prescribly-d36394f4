@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { DoctorSidebar } from "./DoctorSidebar";
+import { Logo } from "./Logo";
 
 interface DoctorLayoutProps {
   children: ReactNode;
@@ -22,6 +23,9 @@ export function DoctorLayout({ children, title, subtitle, showBackButton = true 
           {/* Header */}
           <header className="h-16 border-b bg-white flex items-center px-6 shadow-sm">
             <SidebarTrigger className="mr-4" />
+            <div className="lg:hidden mr-4">
+              <Logo size="sm" withLink />
+            </div>
             <div className="flex-1 flex items-center gap-4">
               {showBackButton && (
                 <Link to="/doctor-dashboard">

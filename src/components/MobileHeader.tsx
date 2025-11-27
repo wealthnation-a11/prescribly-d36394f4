@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { NotificationBell } from "./NotificationBell";
+import { Logo } from "./Logo";
 import { HelpCircle, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -17,6 +18,11 @@ export const MobileHeader = ({ title, showSupportButton = true }: MobileHeaderPr
         <Menu className="h-5 w-5" />
         <span className="sr-only">Toggle sidebar</span>
       </SidebarTrigger>
+      
+      {/* Logo - visible when sidebar is hidden (mobile/collapsed) */}
+      <div className="lg:hidden">
+        <Logo size="sm" withLink />
+      </div>
       
       {/* Desktop spacer when sidebar is visible */}
       <div className="hidden lg:block lg:w-4" />
