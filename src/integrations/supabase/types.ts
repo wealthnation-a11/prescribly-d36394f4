@@ -1293,6 +1293,51 @@ export type Database = {
           },
         ]
       }
+      herbal_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          patient_id: string
+          practitioner_id: string
+          read: boolean
+          sender_type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          patient_id: string
+          practitioner_id: string
+          read?: boolean
+          sender_type: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+          practitioner_id?: string
+          read?: boolean
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "herbal_messages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "herbal_messages_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_practitioners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       herbal_practitioners: {
         Row: {
           bio: string | null
@@ -1622,6 +1667,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      orders: {
+        Row: {
+          admin_commission: number
+          created_at: string
+          id: string
+          items: Json
+          notes: string | null
+          payment_reference: string | null
+          practitioner_earnings: number
+          practitioner_id: string
+          shipping_address: Json | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_commission: number
+          created_at?: string
+          id?: string
+          items: Json
+          notes?: string | null
+          payment_reference?: string | null
+          practitioner_earnings: number
+          practitioner_id: string
+          shipping_address?: Json | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_commission?: number
+          created_at?: string
+          id?: string
+          items?: Json
+          notes?: string | null
+          payment_reference?: string | null
+          practitioner_earnings?: number
+          practitioner_id?: string
+          shipping_address?: Json | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_practitioners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       patient_prescriptions: {
         Row: {
@@ -2170,34 +2278,82 @@ export type Database = {
         }
         Relationships: []
       }
+      shopping_cart: {
+        Row: {
+          created_at: string
+          id: string
+          quantity: number
+          remedy_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          remedy_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          remedy_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_cart_remedy_id_fkey"
+            columns: ["remedy_id"]
+            isOneToOne: false
+            referencedRelation: "herbal_remedies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_cart_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
+          authorization_code: string | null
           created_at: string
           expires_at: string | null
           id: string
           plan: string
           started_at: string | null
           status: string
+          subscription_code: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          authorization_code?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
           plan?: string
           started_at?: string | null
           status?: string
+          subscription_code?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          authorization_code?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
           plan?: string
           started_at?: string | null
           status?: string
+          subscription_code?: string | null
           updated_at?: string
           user_id?: string
         }
