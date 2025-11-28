@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, Pill, Stethoscope, Phone, Mail, Calendar } from "lucide-react";
+import { DoctorLayout } from "@/components/DoctorLayout";
 
 interface Profile {
   user_id: string;
@@ -99,18 +100,13 @@ export default function PatientDetails() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Patient Records</h1>
-          <p className="text-muted-foreground">View patient bio, notes, and prescriptions</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <DoctorLayout
+      title="Patient Records"
+      subtitle="View patient bio, notes, and prescriptions"
+      showBackButton={true}
+    >
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -182,9 +178,9 @@ export default function PatientDetails() {
                   </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </CardContent>
+      </Card>
       </div>
 
       <Card>
@@ -222,6 +218,7 @@ export default function PatientDetails() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DoctorLayout>
   );
 }
