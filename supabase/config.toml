@@ -89,3 +89,9 @@ verify_jwt = false
 
 [functions.paystack-verify]
 verify_jwt = false
+
+[functions.charge-recurring]
+verify_jwt = false
+
+[functions.subscription-reminders]
+verify_jwt = false

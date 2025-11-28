@@ -31,58 +31,52 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || cartItems.length === 0) return;
+    
+    if (!user?.email) {
+      toast.error('User email not found');
+      return;
+    }
 
     setProcessing(true);
-    
+
     try {
-      // Group items by practitioner
-      const itemsByPractitioner = cartItems.reduce((acc, item) => {
-        const practitionerId = item.remedy.practitioner_id;
-        if (!acc[practitionerId]) {
-          acc[practitionerId] = [];
-        }
-        acc[practitionerId].push(item);
-        return acc;
-      }, {} as Record<string, typeof cartItems>);
+      const totalAmount = getTotalAmount();
 
-      // Create separate order for each practitioner
-      for (const [practitionerId, items] of Object.entries(itemsByPractitioner)) {
-        const orderTotal = items.reduce((sum, item) => 
-          sum + (item.remedy.price * item.quantity), 0
-        );
-        const adminCommission = orderTotal * 0.1;
-        const practitionerEarnings = orderTotal * 0.9;
-
-        const { error } = await supabase
-          .from('orders')
-          .insert({
-            user_id: user.id,
-            practitioner_id: practitionerId,
-            status: 'pending',
-            items: items.map(item => ({
+      // Initialize Paystack payment
+      const { data: initData, error: initError } = await supabase.functions.invoke('paystack-initialize', {
+        body: {
+          email: user.email,
+          amount: totalAmount,
+          type: 'order',
+          metadata: {
+            shipping_info: shippingInfo,
+            cart_items: cartItems.map(item => ({
               remedy_id: item.remedy_id,
-              name: item.remedy.name,
-              price: item.remedy.price,
               quantity: item.quantity,
-            })),
-            total_amount: orderTotal,
-            admin_commission: adminCommission,
-            practitioner_earnings: practitionerEarnings,
-            shipping_address: shippingInfo,
-          });
+              price: item.remedy.price,
+              practitioner_id: item.remedy.practitioner_id
+            }))
+          }
+        }
+      });
 
-        if (error) throw error;
+      if (initError || !initData.status) {
+        throw new Error(initData?.message || 'Payment initialization failed');
       }
 
-      await clearCart();
-      toast.success('Order placed successfully!');
-      navigate('/herbal/my-orders');
+      // Store order info in localStorage for completion after payment
+      localStorage.setItem('pending_order', JSON.stringify({
+        shipping_info: shippingInfo,
+        cart_items: cartItems,
+        payment_reference: initData.reference
+      }));
+
+      // Redirect to Paystack
+      window.location.href = initData.authorization_url;
       
     } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Failed to place order. Please try again.');
-    } finally {
+      console.error('Order error:', error);
+      toast.error('Failed to initialize payment');
       setProcessing(false);
     }
   };
