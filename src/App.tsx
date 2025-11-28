@@ -76,6 +76,7 @@ import HerbalEarnings from "./pages/herbal/HerbalEarnings";
 import ShoppingCartPage from "./pages/herbal/ShoppingCartPage";
 import CheckoutPage from "./pages/herbal/CheckoutPage";
 import MyOrders from "./pages/herbal/MyOrders";
+import PatientHerbalMessages from "./pages/herbal/PatientHerbalMessages";
 import HerbalPractitionerLogin from "./pages/HerbalPractitionerLogin";
 import HerbalPractitionerRegister from "./pages/HerbalPractitionerRegister";
 
@@ -255,6 +256,13 @@ const App = () => (
               <ProtectedRoute requirePatient={true}>
                 <SubscriptionGuard>
                   <MyOrders />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/patient-messages" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <PatientHerbalMessages />
                 </SubscriptionGuard>
               </ProtectedRoute>
             } />

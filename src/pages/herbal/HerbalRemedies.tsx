@@ -179,9 +179,18 @@ export default function HerbalRemedies() {
             </Card>
           ) : remedies?.length === 0 ? (
             <Card>
-              <CardContent className="p-6 sm:p-8 text-center">
-                <Package className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
-                <p className="text-sm sm:text-base text-muted-foreground">No remedies yet. Add your first remedy!</p>
+              <CardContent className="p-6 sm:p-8 text-center space-y-4">
+                <Package className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-muted-foreground" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">No Remedies Yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Start building your herbal remedy catalog! Add your first remedy and it will be reviewed by our admin team.
+                  </p>
+                  <Button onClick={() => setIsAdding(true)} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Add Your First Remedy
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ) : (
