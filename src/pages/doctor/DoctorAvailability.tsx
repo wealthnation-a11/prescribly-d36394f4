@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DoctorLayout } from "@/components/DoctorLayout";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -146,23 +147,21 @@ export const DoctorAvailability = () => {
 
   if (!user) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <Card className="max-w-xl w-full">
-          <CardContent className="p-8 text-center space-y-3">
-            <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
-            <p className="text-slate-700">Please log in to manage your availability.</p>
+      <DoctorLayout title="Availability" subtitle="Set your weekly availability">
+        <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
+          <CardContent className="p-12 text-center">
+            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">Please log in</h3>
+            <p className="text-slate-600">You must be logged in to manage your availability.</p>
           </CardContent>
         </Card>
-      </div>
+      </DoctorLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Availability</h1>
-        <p className="text-slate-600">Set your weekly availability</p>
-      </div>
+    <DoctorLayout title="Availability" subtitle="Set your weekly availability and working hours">
+      <div className="space-y-6">
 
       <Card>
         <CardHeader className="pb-3">
@@ -243,7 +242,8 @@ export const DoctorAvailability = () => {
             </CardContent>
           </Card>
         )}
-    </div>
+      </div>
+    </DoctorLayout>
   );
 };
 
