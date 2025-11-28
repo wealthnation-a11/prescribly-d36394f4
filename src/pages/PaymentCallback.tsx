@@ -52,6 +52,14 @@ export const PaymentCallback = () => {
           } else {
             setTimeout(() => navigate('/chat'), 2000);
           }
+        } else if (verifyData.data.type === 'order') {
+          setMessage('Order placed successfully!');
+          toast.success('Your order has been confirmed.');
+          
+          // Clear pending order from localStorage
+          localStorage.removeItem('pending_order');
+          
+          setTimeout(() => navigate('/herbal/my-orders'), 2000);
         }
         
       } catch (error) {

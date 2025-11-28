@@ -119,7 +119,11 @@ export default function BrowseRemedies() {
                             {remedy.usage_instructions}
                           </p>
                         </div>
-                        <Button className="w-full gap-2 h-10 sm:h-9 text-sm" variant="outline">
+                        <Button 
+                          onClick={() => addToCart(remedy.id)}
+                          className="w-full gap-2 h-10 sm:h-9 text-sm" 
+                          variant="outline"
+                        >
                           <ShoppingCart className="h-4 w-4" />
                           Add to Cart
                         </Button>

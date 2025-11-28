@@ -55,7 +55,7 @@ export const useHerbalMessaging = () => {
             )
           `)
           .eq('practitioner_id', practitionerData.id)
-          .eq('status', 'approved');
+          .in('status', ['approved', 'scheduled']);
 
         if (consultations) {
           const uniquePatients = Array.from(
@@ -89,7 +89,7 @@ export const useHerbalMessaging = () => {
             )
           `)
           .eq('patient_id', user.id)
-          .eq('status', 'approved');
+          .in('status', ['approved', 'scheduled']);
 
         if (consultations) {
           const uniquePractitioners = Array.from(

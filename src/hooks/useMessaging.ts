@@ -43,7 +43,7 @@ export const useMessaging = () => {
           .from('appointments')
           .select('patient_id')
           .eq('doctor_id', user.id)
-          .eq('status', 'approved');
+          .in('status', ['approved', 'scheduled', 'pending']);
 
         if (appointmentsError) throw appointmentsError;
 
@@ -73,7 +73,7 @@ export const useMessaging = () => {
           .from('appointments')
           .select('id, doctor_id')
           .eq('patient_id', user.id)
-          .eq('status', 'approved');
+          .in('status', ['approved', 'scheduled', 'pending']);
 
         if (appointmentsError) throw appointmentsError;
 

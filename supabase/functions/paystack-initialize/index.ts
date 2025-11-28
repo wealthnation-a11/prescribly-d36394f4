@@ -10,11 +10,12 @@ const corsHeaders = {
 const paymentSchema = z.object({
   email: z.string().email().max(255),
   amount: z.number().positive().max(1000000),
-  type: z.enum(['subscription', 'consultation']),
+  type: z.enum(['subscription', 'consultation', 'order']),
   plan: z.enum(['monthly', 'yearly']).optional(),
   currency: z.string().length(3).optional(),
   local_amount: z.number().positive().max(1000000).optional(),
-  exchange_rate_used: z.number().positive().optional()
+  exchange_rate_used: z.number().positive().optional(),
+  metadata: z.any().optional()
 })
 
 serve(async (req) => {
@@ -58,12 +59,24 @@ serve(async (req) => {
       });
     }
 
-    const { email, amount, type, plan, currency = 'NGN', local_amount, exchange_rate_used } = validation.data;
+    const { email, amount, type, plan, currency = 'NGN', local_amount, exchange_rate_used, metadata: extraMetadata } = validation.data;
     
     const paystackSecret = Deno.env.get('PAYSTACK_SECRET');
     if (!paystackSecret) {
       throw new Error('Paystack secret not configured');
     }
+
+    // Build metadata
+    const paymentMetadata = {
+      user_id: user.id,
+      type,
+      plan: plan || 'monthly',
+      base_usd_amount: amount,
+      currency,
+      local_amount,
+      exchange_rate_used,
+      ...(extraMetadata || {})
+    };
 
     // Initialize transaction with Paystack
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -76,15 +89,7 @@ serve(async (req) => {
         email,
         amount: (local_amount || amount) * 100, // Convert to kobo/cents
         currency: currency || 'NGN',
-        metadata: {
-          user_id: user.id, // Use authenticated user ID
-          type,
-          plan: plan || 'monthly',
-          base_usd_amount: amount,
-          currency,
-          local_amount,
-          exchange_rate_used
-        },
+        metadata: paymentMetadata,
         callback_url: `${req.headers.get('origin')}/payment-callback`
       })
     });
