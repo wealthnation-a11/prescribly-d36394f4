@@ -6,6 +6,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
+import { MobileHeader } from '@/components/MobileHeader';
 
 export default function UserHerbalConsultations() {
   const { user } = useAuth();
@@ -34,21 +37,28 @@ export default function UserHerbalConsultations() {
   });
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
-      completed: 'default',
-      scheduled: 'secondary',
-      cancelled: 'destructive',
+    const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive', label: string }> = {
+      completed: { variant: 'default', label: 'Completed' },
+      approved: { variant: 'default', label: 'Approved' },
+      pending: { variant: 'secondary', label: 'Pending Approval' },
+      cancelled: { variant: 'destructive', label: 'Cancelled' },
     };
-    return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
+    const config = variants[status] || { variant: 'secondary', label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
-      <div className="space-y-4 sm:space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">My Herbal Consultations</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">View your scheduled and past consultations with herbal practitioners</p>
-        </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <SidebarInset className="flex-1">
+          <MobileHeader title="My Consultations" />
+          <main className="flex-1 overflow-auto">
+            <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">My Herbal Consultations</h1>
+                <p className="text-sm sm:text-base text-muted-foreground">View your scheduled and past consultations with herbal practitioners</p>
+              </div>
 
         <div className="grid gap-3 sm:gap-4">
           {isLoading ? (
@@ -105,12 +115,20 @@ export default function UserHerbalConsultations() {
                       <p className="text-xs sm:text-sm mt-1 break-words">{consultation.notes}</p>
                     </div>
                   )}
-                  {(consultation.status === 'scheduled' || consultation.status === 'approved') && (
+                  {consultation.status === 'pending' && (
+                    <div className="mt-3 sm:mt-4 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200">
+                        <strong>⏳ Waiting for practitioner approval</strong>
+                        <br />
+                        You'll be able to message them once they approve your consultation request.
+                      </p>
+                    </div>
+                  )}
+                  {consultation.status === 'approved' && (
                     <div className="mt-3 sm:mt-4">
                       <Button
                         onClick={() => navigate('/herbal/patient-messages', { state: { practitionerId: consultation.practitioner_id } })}
                         className="w-full sm:w-auto gap-2"
-                        variant="outline"
                       >
                         <MessageCircle className="w-4 h-4" />
                         Message Practitioner
@@ -121,8 +139,11 @@ export default function UserHerbalConsultations() {
               </Card>
             ))
           )}
-        </div>
+              </div>
+            </div>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

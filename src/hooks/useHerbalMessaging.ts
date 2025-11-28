@@ -42,7 +42,7 @@ export const useHerbalMessaging = () => {
 
         if (!practitionerData) return;
 
-        // Get patients who have consultations
+        // Get patients who have approved or completed consultations only
         const { data: consultations } = await supabase
           .from('herbal_consultations')
           .select(`
@@ -55,7 +55,7 @@ export const useHerbalMessaging = () => {
             )
           `)
           .eq('practitioner_id', practitionerData.id)
-          .in('status', ['approved', 'scheduled']);
+          .in('status', ['approved', 'completed']);
 
         if (consultations) {
           const uniquePatients = Array.from(
@@ -76,7 +76,7 @@ export const useHerbalMessaging = () => {
           setParticipants(uniquePatients);
         }
       } else {
-        // Get practitioners patient has consultations with
+        // Get practitioners patient has approved or completed consultations with
         const { data: consultations } = await supabase
           .from('herbal_consultations')
           .select(`
@@ -89,7 +89,7 @@ export const useHerbalMessaging = () => {
             )
           `)
           .eq('patient_id', user.id)
-          .in('status', ['approved', 'scheduled']);
+          .in('status', ['approved', 'completed']);
 
         if (consultations) {
           const uniquePractitioners = Array.from(

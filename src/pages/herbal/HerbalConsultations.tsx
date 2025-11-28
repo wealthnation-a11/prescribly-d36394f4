@@ -1,13 +1,16 @@
 import { HerbalPractitionerLayout } from '@/components/HerbalPractitionerLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, User } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, User, Check, X } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useHerbalPractitioner } from '@/hooks/useHerbalPractitioner';
+import { toast } from 'sonner';
 
 export default function HerbalConsultations() {
   const { practitioner } = useHerbalPractitioner();
+  const queryClient = useQueryClient();
 
   const { data: consultations, isLoading } = useQuery({
     queryKey: ['herbal-consultations', practitioner?.id],
@@ -24,10 +27,45 @@ export default function HerbalConsultations() {
     enabled: !!practitioner?.id,
   });
 
+  const approveConsultation = useMutation({
+    mutationFn: async (consultationId: string) => {
+      const { error } = await supabase
+        .from('herbal_consultations')
+        .update({ status: 'approved' })
+        .eq('id', consultationId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Consultation approved! You can now message the patient.');
+      queryClient.invalidateQueries({ queryKey: ['herbal-consultations'] });
+    },
+    onError: () => {
+      toast.error('Failed to approve consultation');
+    },
+  });
+
+  const rejectConsultation = useMutation({
+    mutationFn: async (consultationId: string) => {
+      const { error } = await supabase
+        .from('herbal_consultations')
+        .update({ status: 'cancelled' })
+        .eq('id', consultationId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Consultation request declined');
+      queryClient.invalidateQueries({ queryKey: ['herbal-consultations'] });
+    },
+    onError: () => {
+      toast.error('Failed to decline consultation');
+    },
+  });
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
       completed: 'default',
-      scheduled: 'secondary',
+      approved: 'default',
+      pending: 'secondary',
       cancelled: 'destructive',
     };
     return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
@@ -84,6 +122,29 @@ export default function HerbalConsultations() {
                     <div className="mt-3 sm:mt-4 p-3 bg-muted rounded-lg">
                       <strong className="text-xs sm:text-sm">Notes:</strong>
                       <p className="text-xs sm:text-sm mt-1 break-words">{consultation.notes}</p>
+                    </div>
+                  )}
+                  {consultation.status === 'pending' && (
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        size="sm"
+                        className="flex-1 gap-2"
+                        onClick={() => approveConsultation.mutate(consultation.id)}
+                        disabled={approveConsultation.isPending}
+                      >
+                        <Check className="w-4 h-4" />
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="flex-1 gap-2"
+                        onClick={() => rejectConsultation.mutate(consultation.id)}
+                        disabled={rejectConsultation.isPending}
+                      >
+                        <X className="w-4 h-4" />
+                        Decline
+                      </Button>
                     </div>
                   )}
                 </CardContent>
