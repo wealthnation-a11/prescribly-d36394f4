@@ -311,37 +311,37 @@ const App = () => (
 
             {/* Herbal Practitioner Routes */}
             <Route path="/herbal-dashboard" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireHerbalPractitioner={true}>
                 <HerbalPractitionerDashboard />
               </ProtectedRoute>
             } />
             <Route path="/herbal-remedies" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireHerbalPractitioner={true}>
                 <HerbalRemedies />
               </ProtectedRoute>
             } />
             <Route path="/herbal-articles" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireHerbalPractitioner={true}>
                 <HerbalArticles />
               </ProtectedRoute>
             } />
             <Route path="/herbal-consultations" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireHerbalPractitioner={true}>
                 <HerbalConsultations />
               </ProtectedRoute>
             } />
             <Route path="/herbal-messages" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireHerbalPractitioner={true}>
                 <HerbalMessages />
               </ProtectedRoute>
             } />
             <Route path="/herbal-profile" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireHerbalPractitioner={true}>
                 <HerbalProfile />
               </ProtectedRoute>
             } />
             <Route path="/herbal-earnings" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireHerbalPractitioner={true}>
                 <HerbalEarnings />
               </ProtectedRoute>
             } />

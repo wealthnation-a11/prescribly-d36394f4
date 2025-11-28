@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useHerbalPractitioner } from '@/hooks/useHerbalPractitioner';
 
 
 interface ProtectedRouteProps {
@@ -9,6 +10,7 @@ interface ProtectedRouteProps {
   requireDoctor?: boolean;
   requirePatient?: boolean;
   requireApprovedDoctor?: boolean;
+  requireHerbalPractitioner?: boolean;
 }
 
 export const ProtectedRoute = ({ 
@@ -17,13 +19,15 @@ export const ProtectedRoute = ({
   requireDoctor = false, 
   requirePatient = false,
   requireApprovedDoctor = false,
+  requireHerbalPractitioner = false,
 }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { role, isAdmin, isDoctor, isPatient, loading: roleLoading } = useUserRole();
+  const { isApproved: isApprovedHerbalPractitioner, isLoading: herbalLoading } = useHerbalPractitioner();
   const location = useLocation();
 
   // Show loading while authentication is being checked
-  if (authLoading || roleLoading) {
+  if (authLoading || roleLoading || (requireHerbalPractitioner && herbalLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -95,6 +99,21 @@ export const ProtectedRoute = ({
           <p className="text-slate-600 mb-4">This page is only accessible to patients.</p>
           <a href="/" className="text-primary hover:underline">
             Go back to home
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (requireHerbalPractitioner && !isApprovedHerbalPractitioner) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="text-6xl text-slate-400 mb-4">403</div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
+          <p className="text-slate-600 mb-4">This page is only accessible to approved herbal practitioners.</p>
+          <a href="/herbal-login" className="text-primary hover:underline">
+            Go to herbal practitioner login
           </a>
         </div>
       </div>
