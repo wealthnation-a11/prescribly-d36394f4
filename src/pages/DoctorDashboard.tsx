@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, Navigate } from "react-router-dom";
 import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Brain } from "lucide-react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { DoctorSidebar } from "@/components/DoctorSidebar";
+import { DoctorLayout } from "@/components/DoctorLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatUSD } from "@/utils/currency";
@@ -149,64 +148,19 @@ export const DoctorDashboard = () => {
         userRole="doctor"
       />
       
-      <SidebarProvider defaultOpen>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-indigo-100">
-          <DoctorSidebar data-tour="sidebar" />
-        
-          <div className="flex-1 flex flex-col">
-            {/* Enhanced Welcome Header */}
-            <header className="relative h-32 border-b bg-gradient-to-br from-primary/10 via-blue-50 to-teal-50 backdrop-blur-sm flex items-center px-6 shadow-lg overflow-hidden">
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-teal-500/5 to-purple-500/5"></div>
-              <div className="absolute top-0 left-0 w-full h-full opacity-10">
-                <div className="absolute top-6 right-20 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-                <div className="absolute top-10 right-40 w-24 h-24 bg-teal-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-                <div className="absolute bottom-6 right-60 w-20 h-20 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-2000"></div>
-              </div>
-              
-              <SidebarTrigger className="mr-6 z-10 hover:scale-110 transition-transform duration-200" />
-              
-              <div className="flex-1 z-10">
-                {/* Main Welcome Message */}
-                <div className="mb-3">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-teal-600 to-purple-600 bg-clip-text text-transparent animate-fade-in flex items-center gap-3">
-                    Welcome back, Dr. {user?.user_metadata?.first_name || "Doctor"}!
-                    <span className="text-3xl animate-bounce">👋</span>
-                  </h1>
-                </div>
-                
-                {/* Subtitle with Enhanced Styling */}
-                <div className="flex items-center gap-2 text-slate-600">
-                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full animate-pulse"></div>
-                  <p className="text-base font-medium">
-                    Ready to provide excellent patient care today
-                  </p>
-                  <span className="text-slate-400">•</span>
-                  <p className="text-base font-medium text-blue-600">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Enhanced Time Display */}
-              <div className="hidden md:flex items-center gap-4 z-10">
-                <div className="text-right bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/30 shadow-lg">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Current Time</p>
-                  <p className="text-lg font-bold text-slate-700">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
-                </div>
-              </div>
-            </header>
+      <DoctorLayout 
+        title={`Welcome back, Dr. ${user?.user_metadata?.first_name || "Doctor"}!`}
+        subtitle="Ready to provide excellent patient care today"
+        showBackButton={false}
+      >
+        <div className="space-y-6">
+          {/* Welcome Message */}
+          <WelcomeMessage 
+            onStartTour={() => setRunTour(true)}
+            showTourButton={!userProfile?.dashboard_tour_completed}
+          />
 
-            {/* Main Content */}
-            <main className="flex-1 p-6 overflow-auto">
-              <div className="max-w-7xl mx-auto space-y-6">
-              {/* Welcome Message */}
-              <WelcomeMessage 
-                onStartTour={() => setRunTour(true)}
-                showTourButton={!userProfile?.dashboard_tour_completed}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               
               {/* Today's Appointments */}
               <Card className="backdrop-blur-sm bg-blue-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -399,22 +353,15 @@ export const DoctorDashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
-            </div>
-            </div>
-            
-            {/* Recent Activity Section */}
-            <div className="mt-8 max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 gap-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-                  <EnhancedRecentActivity />
-                </div>
-                </div>
-              </div>
-            </main>
+          </div>
+          
+          {/* Recent Activity Section */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
+            <EnhancedRecentActivity />
           </div>
         </div>
-      </SidebarProvider>
+      </DoctorLayout>
     </>
   );
 };
