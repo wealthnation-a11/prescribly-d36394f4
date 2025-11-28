@@ -73,6 +73,9 @@ import HerbalConsultations from "./pages/herbal/HerbalConsultations";
 import HerbalMessages from "./pages/herbal/HerbalMessages";
 import HerbalProfile from "./pages/herbal/HerbalProfile";
 import HerbalEarnings from "./pages/herbal/HerbalEarnings";
+import ShoppingCartPage from "./pages/herbal/ShoppingCartPage";
+import CheckoutPage from "./pages/herbal/CheckoutPage";
+import MyOrders from "./pages/herbal/MyOrders";
 import HerbalPractitionerLogin from "./pages/HerbalPractitionerLogin";
 import HerbalPractitionerRegister from "./pages/HerbalPractitionerRegister";
 
@@ -231,6 +234,27 @@ const App = () => (
               <ProtectedRoute requirePatient={true}>
                 <SubscriptionGuard>
                   <FindPractitioners />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/cart" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <ShoppingCartPage />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/checkout" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <CheckoutPage />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/my-orders" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <MyOrders />
                 </SubscriptionGuard>
               </ProtectedRoute>
             } />
