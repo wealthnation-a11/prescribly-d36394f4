@@ -32,6 +32,7 @@ export function AppSidebar() {
     { title: "Health Diagnostic", url: "/health-diagnostic", icon: Brain, requiresSubscription: true },
     { title: "Herbal Medicine", url: "/herbal-medicine", icon: Leaf, requiresSubscription: false },
     { title: "My Herbal Consultations", url: "/herbal/my-consultations", icon: Calendar, requiresSubscription: false },
+    { title: "Herbal Messages", url: "/herbal/patient-messages", icon: MessageCircle, requiresSubscription: false },
     { title: "Shopping Cart", url: "/herbal/cart", icon: ShoppingCart, requiresSubscription: false },
     { title: "My Orders", url: "/herbal/my-orders", icon: Package, requiresSubscription: false },
     { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText, requiresSubscription: true },

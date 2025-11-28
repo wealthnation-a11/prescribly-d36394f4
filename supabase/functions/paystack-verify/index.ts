@@ -39,7 +39,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { user_id, type, plan, base_usd_amount, currency, local_amount, exchange_rate_used } = data.data.metadata;
+    const { user_id, type, plan, base_usd_amount, currency, local_amount, exchange_rate_used, cart_items, shipping_info, practitioner_id } = data.data.metadata;
     const amount = base_usd_amount || (data.data.amount / 100); // Use base USD amount or convert from kobo/cents
 
     // Insert payment record
@@ -98,6 +98,34 @@ serve(async (req) => {
         });
 
       if (consultationError) throw consultationError;
+    } else if (type === 'order') {
+      // Create order from cart items
+      const adminCommission = amount * 0.10;
+      const practitionerEarnings = amount * 0.90;
+
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id,
+          practitioner_id,
+          total_amount: amount,
+          admin_commission: adminCommission,
+          practitioner_earnings: practitionerEarnings,
+          items: cart_items,
+          shipping_address: shipping_info,
+          payment_reference: reference,
+          status: 'pending',
+        });
+
+      if (orderError) throw orderError;
+
+      // Clear shopping cart after successful order
+      const { error: cartClearError } = await supabase
+        .from('shopping_cart')
+        .delete()
+        .eq('user_id', user_id);
+
+      if (cartClearError) console.error('Failed to clear cart:', cartClearError);
     }
 
     return new Response(

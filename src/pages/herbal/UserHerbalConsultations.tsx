@@ -1,12 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, User, Leaf } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, User, Leaf, MessageCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function UserHerbalConsultations() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: consultations, isLoading } = useQuery({
     queryKey: ['user-herbal-consultations', user?.id],
@@ -100,6 +103,18 @@ export default function UserHerbalConsultations() {
                     <div className="mt-3 sm:mt-4 p-3 bg-muted rounded-lg">
                       <strong className="text-xs sm:text-sm">Your Notes:</strong>
                       <p className="text-xs sm:text-sm mt-1 break-words">{consultation.notes}</p>
+                    </div>
+                  )}
+                  {(consultation.status === 'scheduled' || consultation.status === 'approved') && (
+                    <div className="mt-3 sm:mt-4">
+                      <Button
+                        onClick={() => navigate('/herbal/patient-messages', { state: { practitionerId: consultation.practitioner_id } })}
+                        className="w-full sm:w-auto gap-2"
+                        variant="outline"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Message Practitioner
+                      </Button>
                     </div>
                   )}
                 </CardContent>
