@@ -39,7 +39,7 @@ export default function FindPractitioners() {
         patient_id: user.id,
         scheduled_time: scheduledTime,
         notes: bookingNotes,
-        status: 'scheduled',
+        status: 'pending',
       });
 
     if (error) {
@@ -47,7 +47,7 @@ export default function FindPractitioners() {
       return;
     }
 
-    toast.success('Consultation booked successfully!');
+    toast.success('Consultation request sent! Waiting for practitioner approval.');
     setSelectedPractitioner(null);
     setBookingDate('');
     setBookingTime('');
