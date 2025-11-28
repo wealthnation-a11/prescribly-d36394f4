@@ -68,6 +68,7 @@ import FindPractitioners from "./pages/herbal/FindPractitioners";
 import HerbalPractitionerDashboard from "./pages/herbal/HerbalPractitionerDashboard";
 import HerbalRemedies from "./pages/herbal/HerbalRemedies";
 import HerbalArticles from "./pages/herbal/HerbalArticles";
+import UserHerbalConsultations from "./pages/herbal/UserHerbalConsultations";
 import HerbalConsultations from "./pages/herbal/HerbalConsultations";
 import HerbalMessages from "./pages/herbal/HerbalMessages";
 import HerbalProfile from "./pages/herbal/HerbalProfile";
@@ -202,6 +203,13 @@ const App = () => (
               <ProtectedRoute requirePatient={true}>
                 <SubscriptionGuard>
                   <HerbalMedicine />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/herbal/my-consultations" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <UserHerbalConsultations />
                 </SubscriptionGuard>
               </ProtectedRoute>
             } />
