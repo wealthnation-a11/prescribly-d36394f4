@@ -77,6 +77,8 @@ serve(async (req) => {
           plan,
           started_at: startedAt.toISOString(),
           expires_at: expiresAt.toISOString(),
+          authorization_code: data.data.authorization?.authorization_code || null,
+          subscription_code: data.data.subscription_code || null,
         });
 
       if (subError) throw subError;

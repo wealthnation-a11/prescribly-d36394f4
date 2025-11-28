@@ -10,9 +10,11 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileHeader } from '@/components/MobileHeader';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useShoppingCart } from '@/hooks/useShoppingCart';
 
 export default function BrowseRemedies() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { addToCart } = useShoppingCart();
 
   const { data: remedies, isLoading } = useQuery({
     queryKey: ['approved-remedies'],
