@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
-import { Stethoscope, Loader2 } from "lucide-react";
+import { Stethoscope, Loader2, Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 export const DoctorLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signOut, user } = useAuth();
   const { isDoctor, loading: roleLoading } = useUserRole();
@@ -82,20 +83,20 @@ export const DoctorLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-6">
             <Logo size="lg" priority />
           </div>
-          <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-            <Stethoscope className="w-8 h-8 text-white" />
+          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+            <Stethoscope className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Doctor Portal</h1>
-          <p className="text-slate-600 mt-2">Access your professional dashboard</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Doctor Portal</h1>
+          <p className="text-slate-600">Sign in to access your professional dashboard</p>
         </div>
 
-        <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-xl">
+        <Card className="backdrop-blur-sm bg-white/95 border border-slate-200 shadow-2xl rounded-2xl">
           <CardHeader className="text-center">
             <CardTitle>Welcome Back</CardTitle>
             <CardDescription>
@@ -119,15 +120,28 @@ export const DoctorLogin = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-white/50"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white/50 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <Button 
