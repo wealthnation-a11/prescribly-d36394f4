@@ -34,6 +34,7 @@ import { useUserDashboardStats } from '@/hooks/useUserDashboardStats';
 import { FeatureAccessGuard } from "@/components/FeatureAccessGuard";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getUserDashboardSteps } from "@/components/DashboardTour";
+import { NativeAd } from "@/components/ads/NativeAd";
 
 import { 
   SidebarProvider, 
@@ -415,6 +416,11 @@ export const UserDashboard = () => {
                 {/* Daily Health Tip */}
                 <div data-tour="health-tip">
                   <DailyHealthTip />
+                </div>
+
+                {/* Ad Native */}
+                <div className="mt-6">
+                  <NativeAd />
                 </div>
 
                 {/* Stats Overview */}
