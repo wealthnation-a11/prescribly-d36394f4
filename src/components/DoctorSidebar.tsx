@@ -36,7 +36,8 @@ export function DoctorSidebar() {
   const { isApproved } = useDoctorApproval();
   const { handleLogout } = useLogout();
 
-  const visibleItems = isApproved ? items : items.filter((i) => i.title === "My Profile");
+  // Always show all menu items
+  const visibleItems = items;
 
   const isActive = (path: string) => currentPath === path;
   const isExpanded = items.some((i) => isActive(i.url));
