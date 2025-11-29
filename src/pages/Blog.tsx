@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import NewsletterSubscribe from "@/components/blog/NewsletterSubscribe";
+import { NativeAd } from "@/components/ads/NativeAd";
 
 interface BlogPost {
   id: string;
@@ -157,6 +158,12 @@ export default function Blog() {
 
         {/* Newsletter Subscription */}
         <NewsletterSubscribe />
+
+        {/* Native Ad */}
+        <div className="my-8">
+          <NativeAd />
+        </div>
+
         {/* Featured */}
         <section>
           <div className="grid lg:grid-cols-2 gap-6 items-stretch">

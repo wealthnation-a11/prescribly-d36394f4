@@ -16,6 +16,8 @@ import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
 import { HerbalPractitionerRegisterModal } from "./HerbalPractitionerRegisterModal";
+import { AdMobBanner } from "@/components/ads/AdMobBanner";
+import { BannerAdPosition } from "@capacitor-community/admob";
 import heroImage from "@/assets/hero-doctors-team.jpg";
 import gdprCertification from "@/assets/gdpr-certification.png";
 import hipaaCertification from "@/assets/hipaa-certification.png";
@@ -212,6 +214,13 @@ export const LandingPage = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {features.map((feature, index) => <FeatureCard key={feature.title} icon={feature.icon} title={feature.title} description={feature.description} details={feature.details} delay={`stagger-${index + 1}`} />)}
           </div>
+        </div>
+      </section>
+
+      {/* Ad Banner */}
+      <section className="py-8 bg-background">
+        <div className="container mx-auto px-4 sm:px-6">
+          <AdMobBanner position={BannerAdPosition.TOP_CENTER} />
         </div>
       </section>
 
