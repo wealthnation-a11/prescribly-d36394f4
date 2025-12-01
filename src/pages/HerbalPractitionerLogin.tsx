@@ -9,13 +9,11 @@ import { toast } from 'sonner';
 import { Leaf, ArrowLeft } from 'lucide-react';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { Logo } from '@/components/Logo';
-import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 export const HerbalPractitionerLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
@@ -84,16 +82,7 @@ export const HerbalPractitionerLogin = () => {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -118,11 +107,6 @@ export const HerbalPractitionerLogin = () => {
             </div>
           </CardContent>
         </Card>
-
-        <ForgotPasswordModal 
-          open={showForgotPassword} 
-          onOpenChange={setShowForgotPassword} 
-        />
       </div>
     </div>
   );

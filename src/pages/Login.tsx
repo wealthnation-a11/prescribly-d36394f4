@@ -7,12 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { Stethoscope, User, Mail } from "lucide-react";
+import { Stethoscope, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
-import { toast } from "sonner";
 
 export const Login = () => {
   const { t } = useTranslation();
@@ -20,9 +18,8 @@ export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn } = useAuth();
-  const { toast: showToast } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -30,7 +27,7 @@ export const Login = () => {
     
     // Block doctors from logging in through patient login
     if (userType === "doctor") {
-      showToast({
+      toast({
         title: "Access Denied",
         description: "Doctors must use the Doctor Login section.",
         variant: "destructive",
@@ -56,13 +53,13 @@ export const Login = () => {
           errorMessage = "Too many login attempts. Please wait a moment and try again.";
         }
         
-        showToast({
+        toast({
           title: "Login Failed",
           description: errorMessage,
           variant: "destructive",
         });
       } else {
-        showToast({
+        toast({
           title: "Login Successful",
           description: "Welcome back!",
         });
@@ -71,7 +68,7 @@ export const Login = () => {
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
-      showToast({
+      toast({
         title: "Login Failed",
         description: "An unexpected error occurred. Please check your connection and try again.",
         variant: "destructive",
@@ -82,45 +79,12 @@ export const Login = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      
-      if (error) {
-        toast.error(error.message || 'Failed to sign in with Google');
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'An unexpected error occurred');
-    }
-  };
-
-  const handleMagicLinkSignIn = async () => {
-    if (!email) {
-      toast.error('Please enter your email address');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-
-      if (error) throw error;
-
-      toast.success('Check your email for the magic link!');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send magic link');
-    } finally {
-      setLoading(false);
-    }
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
   };
 
   return (
@@ -173,16 +137,7 @@ export const Login = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -203,16 +158,7 @@ export const Login = () => {
                 </Button>
               </form>
 
-              <div className="space-y-3 mt-4">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                  </div>
-                </div>
-
+              <div className="mt-3">
                 <Button
                   type="button"
                   variant="oauth"
@@ -227,17 +173,6 @@ export const Login = () => {
                     <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 2.9-3.3 5.1-6.7 6.6l6.3 5.2C38.1 37.7 44 33 44 24c0-1.3-.1-2.7-.4-3.5z"/>
                   </svg>
                   Continue with Google
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleMagicLinkSignIn}
-                  disabled={loading}
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Send Magic Link to Email
                 </Button>
               </div>
 
@@ -293,11 +228,6 @@ export const Login = () => {
           </Tabs>
         </CardContent>
       </Card>
-
-      <ForgotPasswordModal 
-        open={showForgotPassword} 
-        onOpenChange={setShowForgotPassword} 
-      />
     </div>
   );
 };
