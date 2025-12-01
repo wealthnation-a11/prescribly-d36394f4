@@ -9,12 +9,14 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
 import { Stethoscope, Loader2, Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
 
 export const DoctorLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signOut, user } = useAuth();
   const { isDoctor, loading: roleLoading } = useUserRole();
   const { toast } = useToast();
@@ -119,7 +121,16 @@ export const DoctorLogin = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"
@@ -201,6 +212,11 @@ export const DoctorLogin = () => {
             </div>
           </CardContent>
         </Card>
+
+        <ForgotPasswordModal 
+          open={showForgotPassword} 
+          onOpenChange={setShowForgotPassword} 
+        />
       </div>
     </div>
   );
