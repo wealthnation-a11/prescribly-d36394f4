@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PasswordValidator } from "@/components/PasswordValidator";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import { OTPVerification } from "@/components/OTPVerification";
  
  export const Register = () => {
   const [formData, setFormData] = useState({
@@ -32,7 +33,8 @@ import { Logo } from "@/components/Logo";
   });
   const [loading, setLoading] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
-  const { signUp } = useAuth();
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const { signUpWithOTP, resendOTP } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -65,88 +67,27 @@ import { Logo } from "@/components/Logo";
     setLoading(true);
 
     try {
-      const { error } = await signUp(formData.email, formData.password, {
+      const { error } = await signUpWithOTP(formData.email, formData.password, {
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone: formData.phone,
         role: "patient",
+        ...formData,
       });
       
       if (error) {
         console.error('Registration error:', error);
-        let errorMessage = error.message;
-        
-        // Handle specific error cases
-        if (error.message?.includes('User already registered')) {
-          errorMessage = "An account with this email already exists. Please try logging in instead.";
-        } else if (error.message?.includes('Invalid email')) {
-          errorMessage = "Please enter a valid email address.";
-        } else if (error.message?.includes('Password')) {
-          errorMessage = "Password does not meet security requirements.";
-        }
-
         toast({
           title: "Registration Failed",
-          description: errorMessage,
+          description: error.message || "Failed to send verification code.",
           variant: "destructive",
         });
       } else {
-        // Wait for profile creation, then create patient record
-        setTimeout(async () => {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('user_id', user.id)
-                .single();
-              
-              if (profileError) {
-                console.error('Profile fetch error:', profileError);
-                return;
-              }
-              
-              if (profileData) {
-                // Update profile with country
-                await supabase
-                  .from('profiles')
-                  .update({ country: formData.country })
-                  .eq('id', profileData.id);
-                
-                const { error: patientError } = await supabase.from('patients').insert({
-                  user_id: user.id,
-                  profile_id: profileData.id,
-                  first_name: formData.firstName,
-                  last_name: formData.lastName,
-                  email: formData.email,
-                  phone: formData.phone,
-                  date_of_birth: formData.dateOfBirth,
-                  gender: formData.gender,
-                  country: formData.country,
-                  emergency_contact_name: formData.emergencyContactName,
-                  emergency_contact_phone: formData.emergencyContactPhone,
-                  medical_history: formData.medicalHistory,
-                  allergies: formData.allergies,
-                  current_medications: formData.currentMedications,
-                });
-                
-                if (patientError) {
-                  console.error('Patient profile creation error:', patientError);
-                }
-              }
-            }
-          } catch (err) {
-            console.error('Patient profile creation error:', err);
-          }
-        }, 2000);
-
         toast({
-          title: "Registration Successful!",
-          description: "Welcome to Prescribly! Your account has been created successfully.",
+          title: "Verification Code Sent",
+          description: "Please check your email for the verification code.",
         });
-        // Redirect based on role - patients need subscription, doctors go to dashboard
-        navigate("/subscription");
+        setShowOTPVerification(true);
       }
     } catch (error: any) {
       console.error('Unexpected registration error:', error);
@@ -160,6 +101,82 @@ import { Logo } from "@/components/Logo";
     setLoading(false);
   };
 
+  const handleOTPVerified = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Create profile with password
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: formData.password,
+        });
+
+        if (updateError) {
+          console.error('Password update error:', updateError);
+        }
+
+        // Wait for profile creation
+        setTimeout(async () => {
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('user_id', user.id)
+              .single();
+            
+            if (profileError) {
+              console.error('Profile fetch error:', profileError);
+              return;
+            }
+            
+            if (profileData) {
+              await supabase
+                .from('profiles')
+                .update({ country: formData.country })
+                .eq('id', profileData.id);
+              
+              const { error: patientError } = await supabase.from('patients').insert({
+                user_id: user.id,
+                profile_id: profileData.id,
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+                date_of_birth: formData.dateOfBirth,
+                gender: formData.gender,
+                country: formData.country,
+                emergency_contact_name: formData.emergencyContactName,
+                emergency_contact_phone: formData.emergencyContactPhone,
+                medical_history: formData.medicalHistory,
+                allergies: formData.allergies,
+                current_medications: formData.currentMedications,
+              });
+              
+              if (patientError) {
+                console.error('Patient profile creation error:', patientError);
+              }
+            }
+          } catch (err) {
+            console.error('Patient profile creation error:', err);
+          }
+        }, 2000);
+
+        toast({
+          title: "Registration Successful!",
+          description: "Welcome to Prescribly! Your account has been created successfully.",
+        });
+        navigate("/subscription");
+      }
+    } catch (error) {
+      console.error('Error after OTP verification:', error);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    const { error } = await resendOTP(formData.email);
+    if (error) throw error;
+  };
+
   const handleGoogleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -168,6 +185,16 @@ import { Logo } from "@/components/Logo";
       },
     });
   };
+
+  if (showOTPVerification) {
+    return (
+      <OTPVerification
+        email={formData.email}
+        onVerified={handleOTPVerified}
+        onResend={handleResendOTP}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
