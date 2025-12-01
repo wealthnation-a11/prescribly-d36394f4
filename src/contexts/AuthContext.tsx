@@ -10,6 +10,8 @@ interface AuthContextType {
   profileLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
+  signUpWithOTP: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
+  resendOTP: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -131,6 +133,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUpWithOTP = async (email: string, password: string, userData?: any) => {
+    try {
+      console.debug('Auth: signUpWithOTP attempted');
+      
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          data: {
+            ...userData,
+            password, // Store password temporarily for after OTP verification
+          },
+        },
+      });
+      
+      console.debug('Auth: signUpWithOTP completed');
+      return { error };
+    } catch (err) {
+      console.error('Sign up with OTP error:', err);
+      return { error: err };
+    }
+  };
+
+  const resendOTP = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+      });
+      return { error };
+    } catch (err) {
+      console.error('Resend OTP error:', err);
+      return { error: err };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -143,6 +179,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profileLoading,
     signIn,
     signUp,
+    signUpWithOTP,
+    resendOTP,
     signOut,
   };
 
