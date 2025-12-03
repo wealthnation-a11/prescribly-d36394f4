@@ -225,7 +225,7 @@ export function AdminSidebar({
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-200 ease-in-out lg:hidden",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-150 ease-out lg:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -235,7 +235,7 @@ export function AdminSidebar({
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col h-screen bg-card border-r border-border sticky top-0 transition-all duration-200",
+          "hidden lg:flex flex-col h-screen bg-card border-r border-border sticky top-0 transition-all duration-150",
           collapsed ? "w-16" : "w-64"
         )}
       >
