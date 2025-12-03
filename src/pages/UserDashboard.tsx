@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useSubscription } from "@/hooks/useSubscription";
 import { SubscriptionCountdownTimer } from "@/components/SubscriptionCountdownTimer";
+import { SubscriptionRenewalCelebration } from "@/components/SubscriptionRenewalCelebration";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,7 @@ export const UserDashboard = () => {
   const { subscription, hasActiveSubscription, getDaysUntilExpiry, loading: subscriptionLoading, isLegacyUser, refreshSubscription } = useSubscription();
   const [searchParams] = useSearchParams();
   const [runTour, setRunTour] = useState(false);
+  const [showRenewalCelebration, setShowRenewalCelebration] = useState(false);
   
   // Real-time subscriptions
   useRealtimeAppointments('patient');
@@ -189,13 +191,11 @@ export const UserDashboard = () => {
             throw new Error(verifyData?.message || 'Payment verification failed');
           }
 
-          toast({
-            title: "Payment Successful",
-            description: "Your subscription has been activated!",
-          });
-
-          // Refresh subscription data
+          // Refresh subscription data first
           await refreshSubscription();
+          
+          // Show renewal celebration
+          setShowRenewalCelebration(true);
           
           // Clear URL parameters
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -374,6 +374,14 @@ export const UserDashboard = () => {
 
   return (
     <>
+      {/* Subscription Renewal Celebration Modal */}
+      <SubscriptionRenewalCelebration
+        isVisible={showRenewalCelebration}
+        onClose={() => setShowRenewalCelebration(false)}
+        newExpirationDate={subscription?.expires_at || ''}
+        plan={subscription?.plan || 'monthly'}
+      />
+      
       <DashboardTour
         run={runTour}
         onComplete={() => setRunTour(false)}
@@ -410,6 +418,7 @@ export const UserDashboard = () => {
                     expirationDate={subscription.expires_at}
                     daysRemaining={getDaysUntilExpiry}
                     isActive={hasActiveSubscription}
+                    plan={subscription.plan}
                   />
                 )}
 
