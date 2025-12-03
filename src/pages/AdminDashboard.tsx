@@ -17,9 +17,10 @@ import { RoleManagement } from "@/components/admin/RoleManagement";
 import { SubscriptionManagement } from "@/components/admin/SubscriptionManagement";
 import BlogManagement from "@/components/admin/BlogManagement";
 import CommentModeration from "@/components/admin/CommentModeration";
+import { AdminProfile } from "@/components/admin/AdminProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Clock, TrendingUp, Activity } from "lucide-react";
+import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle } from "lucide-react";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getAdminDashboardSteps } from "@/components/DashboardTour";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -203,12 +204,27 @@ const AdminDashboard = () => {
                 </TabsContent>
                 <TabsContent value="comments" className="space-y-4 mt-4">
                   <CommentModeration />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        );
-      default:
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      );
+    case "profile":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <UserCircle className="h-5 w-5 text-rose-500" />
+              My Profile
+            </CardTitle>
+            <CardDescription>Manage your admin profile and account settings</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <AdminProfile />
+          </CardContent>
+        </Card>
+      );
+    default:
         return null;
     }
   };
