@@ -22,7 +22,6 @@ interface Payment {
   type: string;
 }
 
-// Default exchange rate (NGN per USD) - will be updated from DB
 const DEFAULT_EXCHANGE_RATE = 1550;
 
 const PaymentManagement = () => {
@@ -52,11 +51,7 @@ const PaymentManagement = () => {
 
   const rate = exchangeRate || DEFAULT_EXCHANGE_RATE;
 
-  // Convert NGN to USD
   const toUSD = (amountNGN: number) => amountNGN / rate;
-  // Convert USD to NGN
-  const toNGN = (amountUSD: number) => amountUSD * rate;
-
   const formatUSD = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const formatNGN = (amount: number) => `₦${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
@@ -139,39 +134,62 @@ const PaymentManagement = () => {
 
   const { payments = [], stats = {} } = paymentsData || {};
 
-  // Stats are in NGN, convert to USD for display
   const totalRevenueNGN = stats.totalRevenue || 0;
   const monthlyRevenueNGN = stats.monthlyRevenue || 0;
 
+  // Mobile payment card
+  const MobilePaymentCard = ({ payment }: { payment: Payment }) => (
+    <Card className="mb-3">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <p className="font-medium text-sm">{payment.user_name}</p>
+            <p className="text-xs text-muted-foreground capitalize">{payment.type}</p>
+          </div>
+          {getStatusBadge(payment.status)}
+        </div>
+        <div className="flex justify-between items-center text-sm">
+          <div>
+            <p className="font-semibold">{formatUSD(toUSD(payment.amount))}</p>
+            <p className="text-xs text-muted-foreground">{formatNGN(payment.amount)}</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {new Date(payment.created_at).toLocaleDateString()}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3">
         <p className="text-xs text-muted-foreground">
-          Exchange Rate: ₦{rate.toLocaleString()}/USD • Hover amounts for NGN
+          Exchange Rate: ₦{rate.toLocaleString()}/USD • Hover/tap amounts for NGN
         </p>
         <div className="flex gap-2">
-          <Button onClick={downloadExcel} variant="outline" size="sm">
+          <Button onClick={downloadExcel} variant="outline" size="sm" className="flex-1 sm:flex-none">
             <Download className="h-4 w-4 mr-2" />
             Excel
           </Button>
-          <Button onClick={downloadPDF} variant="outline" size="sm">
+          <Button onClick={downloadPDF} variant="outline" size="sm" className="flex-1 sm:flex-none">
             <Download className="h-4 w-4 mr-2" />
             PDF
           </Button>
         </div>
       </div>
       
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 pb-3">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="text-2xl font-bold cursor-help">
+                  <div className="text-lg sm:text-2xl font-bold cursor-help">
                     {formatUSD(toUSD(totalRevenueNGN))}
                   </div>
                 </TooltipTrigger>
@@ -184,25 +202,25 @@ const PaymentManagement = () => {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium">Transactions</CardTitle>
+            <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTransactions || 0}</div>
+          <CardContent className="px-3 pb-3">
+            <div className="text-lg sm:text-2xl font-bold">{stats.totalTransactions || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium">This Month</CardTitle>
+            <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 pb-3">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="text-2xl font-bold cursor-help">
+                  <div className="text-lg sm:text-2xl font-bold cursor-help">
                     {formatUSD(toUSD(monthlyRevenueNGN))}
                   </div>
                 </TooltipTrigger>
@@ -215,17 +233,29 @@ const PaymentManagement = () => {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paying Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium">Paying Users</CardTitle>
+            <Users className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.payingUsers || 0}</div>
+          <CardContent className="px-3 pb-3">
+            <div className="text-lg sm:text-2xl font-bold">{stats.payingUsers || 0}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
+      {/* Mobile View */}
+      <div className="block md:hidden">
+        {payments.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No payment records found</p>
+        ) : (
+          payments.map((payment: Payment) => (
+            <MobilePaymentCard key={payment.id} payment={payment} />
+          ))
+        )}
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden md:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

@@ -239,10 +239,10 @@ export function AdminSidebar({
       <Button
         variant="outline"
         size="icon"
-        className="fixed top-4 left-4 z-50 lg:hidden shadow-lg bg-background/95 backdrop-blur-sm"
+        className="fixed top-3 left-3 z-50 lg:hidden shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
-        {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
       {/* Mobile Overlay */}
