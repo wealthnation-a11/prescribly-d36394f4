@@ -18,7 +18,7 @@ export const Logo = ({ size = "md", withLink = false, className, priority = fals
       height={286}
       className={cn("w-auto", heightCls, className)}
       loading={priority ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : undefined}
+      {...(priority ? { fetchPriority: "high" as const } : {})}
       decoding="async"
     />
   );
