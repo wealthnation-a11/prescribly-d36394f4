@@ -7,12 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Link, useNavigate } from "react-router-dom";
-import { Stethoscope, User } from "lucide-react";
+import { User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PasswordValidator } from "@/components/PasswordValidator";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import { OTPVerification } from "@/components/OTPVerification";
  
  export const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,8 +32,7 @@ import { OTPVerification } from "@/components/OTPVerification";
   });
   const [loading, setLoading] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
-  const [showOTPVerification, setShowOTPVerification] = useState(false);
-  const { signUpWithOTP, resendOTP } = useAuth();
+  const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -67,114 +65,77 @@ import { OTPVerification } from "@/components/OTPVerification";
     setLoading(true);
 
     try {
-      const { error } = await signUpWithOTP(formData.email, formData.password, {
+      const { error } = await signUp(formData.email, formData.password, {
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone: formData.phone,
         role: "patient",
-        ...formData,
       });
       
       if (error) {
         console.error('Registration error:', error);
         toast({
           title: "Registration Failed",
-          description: error.message || "Failed to send verification code.",
+          description: error.message || "Failed to create account.",
           variant: "destructive",
         });
-      } else {
+        setLoading(false);
+        return;
+      }
+
+      // Wait for auth to complete and create patient profile
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Wait for profile to be created by trigger
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profileData) {
+          await supabase
+            .from('profiles')
+            .update({ country: formData.country })
+            .eq('id', profileData.id);
+          
+          await supabase.from('patients').insert({
+            user_id: user.id,
+            profile_id: profileData.id,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            date_of_birth: formData.dateOfBirth,
+            gender: formData.gender,
+            country: formData.country,
+            emergency_contact_name: formData.emergencyContactName,
+            emergency_contact_phone: formData.emergencyContactPhone,
+            medical_history: formData.medicalHistory,
+            allergies: formData.allergies,
+            current_medications: formData.currentMedications,
+          });
+        }
+
         toast({
-          title: "Verification Code Sent",
-          description: "Please check your email for the verification code.",
+          title: "Registration Successful!",
+          description: "Redirecting to subscription page...",
         });
-        setShowOTPVerification(true);
+        navigate("/subscription");
       }
     } catch (error: any) {
       console.error('Unexpected registration error:', error);
       toast({
         title: "Registration Failed",
-        description: "An unexpected error occurred. Please check your connection and try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }
 
     setLoading(false);
-  };
-
-  const handleOTPVerified = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        // Create profile with password
-        const { error: updateError } = await supabase.auth.updateUser({
-          password: formData.password,
-        });
-
-        if (updateError) {
-          console.error('Password update error:', updateError);
-        }
-
-        // Wait for profile creation
-        setTimeout(async () => {
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('user_id', user.id)
-              .single();
-            
-            if (profileError) {
-              console.error('Profile fetch error:', profileError);
-              return;
-            }
-            
-            if (profileData) {
-              await supabase
-                .from('profiles')
-                .update({ country: formData.country })
-                .eq('id', profileData.id);
-              
-              const { error: patientError } = await supabase.from('patients').insert({
-                user_id: user.id,
-                profile_id: profileData.id,
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                email: formData.email,
-                phone: formData.phone,
-                date_of_birth: formData.dateOfBirth,
-                gender: formData.gender,
-                country: formData.country,
-                emergency_contact_name: formData.emergencyContactName,
-                emergency_contact_phone: formData.emergencyContactPhone,
-                medical_history: formData.medicalHistory,
-                allergies: formData.allergies,
-                current_medications: formData.currentMedications,
-              });
-              
-              if (patientError) {
-                console.error('Patient profile creation error:', patientError);
-              }
-            }
-          } catch (err) {
-            console.error('Patient profile creation error:', err);
-          }
-        }, 2000);
-
-        toast({
-          title: "Registration Successful!",
-          description: "Welcome to Prescribly! Your account has been created successfully.",
-        });
-        navigate("/subscription");
-      }
-    } catch (error) {
-      console.error('Error after OTP verification:', error);
-    }
-  };
-
-  const handleResendOTP = async () => {
-    const { error } = await resendOTP(formData.email);
-    if (error) throw error;
   };
 
   const handleGoogleSignIn = async () => {
@@ -185,16 +146,6 @@ import { OTPVerification } from "@/components/OTPVerification";
       },
     });
   };
-
-  if (showOTPVerification) {
-    return (
-      <OTPVerification
-        email={formData.email}
-        onVerified={handleOTPVerified}
-        onResend={handleResendOTP}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
