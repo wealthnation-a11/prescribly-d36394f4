@@ -18,7 +18,7 @@ declare global {
 
 const Subscription = () => {
   const { user, userProfile } = useAuth();
-  const { subscription, hasActiveSubscription, loading, getDaysUntilExpiry } = useSubscription();
+  const { subscription, hasActiveSubscription, isSubscriptionExpired, loading, getDaysUntilExpiry } = useSubscription();
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
 
@@ -136,10 +136,26 @@ const Subscription = () => {
               </div>
             ) : (
               <div className="space-y-6">
+                {/* Show expired message if subscription expired */}
+                {isSubscriptionExpired && subscription && (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-center">
+                    <p className="text-destructive font-medium">
+                      Your subscription has expired!
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Renew now to continue accessing all premium features.
+                    </p>
+                  </div>
+                )}
+
                 <div className="text-center space-y-2">
-                  <h3 className="text-2xl font-bold">Choose Your Plan</h3>
+                  <h3 className="text-2xl font-bold">
+                    {isSubscriptionExpired ? 'Renew Your Subscription' : 'Choose Your Plan'}
+                  </h3>
                   <p className="text-muted-foreground">
-                    Get access to all premium features
+                    {isSubscriptionExpired 
+                      ? 'Your access has been paused. Renew to continue.'
+                      : 'Subscribe to access all premium features'}
                   </p>
                 </div>
 

@@ -2,13 +2,15 @@ import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const Dashboard = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const { role, isAdmin, isDoctor, isPatient, loading: roleLoading } = useUserRole();
+  const { needsSubscription, loading: subLoading, isLegacyUser } = useSubscription();
 
-  // Show loading while checking authentication and role
-  if (authLoading || roleLoading) {
+  // Show loading while checking authentication, role and subscription
+  if (authLoading || roleLoading || subLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -51,6 +53,9 @@ const Dashboard = () => {
   
   if (isPatient) {
     // Check if patient needs subscription before accessing dashboard
+    if (needsSubscription && !isLegacyUser) {
+      return <Navigate to="/subscription" replace />;
+    }
     return <Navigate to="/user-dashboard" replace />;
   }
 

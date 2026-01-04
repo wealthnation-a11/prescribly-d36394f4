@@ -45,10 +45,23 @@ export const useSubscription = () => {
   const hasActiveSubscription = () => {
     if (!subscription) return false;
     
+    // Check if subscription exists and is active
+    if (subscription.status !== 'active') return false;
+    
+    // Check if subscription has expired
     const now = new Date();
     const expiresAt = new Date(subscription.expires_at);
     
-    return subscription.status === 'active' && expiresAt > now;
+    return expiresAt > now;
+  };
+
+  const isSubscriptionExpired = () => {
+    if (!subscription) return false;
+    
+    const now = new Date();
+    const expiresAt = new Date(subscription.expires_at);
+    
+    return expiresAt <= now;
   };
 
   const needsSubscription = () => {
@@ -58,11 +71,14 @@ export const useSubscription = () => {
     // Doctors don't need subscription
     if (userProfile?.role === 'doctor') return false;
     
+    // Herbal practitioners don't need subscription
+    if (userProfile?.role === 'herbal_practitioner') return false;
+    
     // Legacy users don't need subscription
     if (userProfile?.is_legacy) return false;
     
-    // New patients need active subscription
-    return userProfile?.role === 'patient' && !userProfile?.is_legacy && !hasActiveSubscription();
+    // New patients need active subscription (not expired)
+    return userProfile?.role === 'patient' && !hasActiveSubscription();
   };
 
   const isLegacyUser = () => {
@@ -85,6 +101,7 @@ export const useSubscription = () => {
     loading,
     hasActiveSubscription: hasActiveSubscription(),
     needsSubscription: needsSubscription(),
+    isSubscriptionExpired: isSubscriptionExpired(),
     getDaysUntilExpiry: getDaysUntilExpiry(),
     refreshSubscription: fetchSubscription,
     isLegacyUser: isLegacyUser(),
