@@ -1731,6 +1731,39 @@ export type Database = {
           },
         ]
       }
+      patient_data_access_log: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          accessor_role: string
+          appointment_id: string | null
+          created_at: string
+          id: string
+          patient_id: string
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          accessor_role: string
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          patient_id: string
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          accessor_role?: string
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          patient_id?: string
+        }
+        Relationships: []
+      }
       patient_prescriptions: {
         Row: {
           created_at: string
@@ -3197,6 +3230,10 @@ export type Database = {
         Returns: boolean
       }
       check_system_health: { Args: never; Returns: Json }
+      doctor_has_active_appointment_with_patient: {
+        Args: { _doctor_user_id: string; _patient_user_id: string }
+        Returns: boolean
+      }
       get_challenge_leaderboard: {
         Args: { challenge_uuid: string }
         Returns: {
