@@ -12,11 +12,21 @@ interface SubscriptionGuardProps {
 
 export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
   const { user, userProfile, loading: authLoading } = useAuth();
-  const { needsSubscription, loading: subLoading } = useSubscription();
+  const { needsSubscription, loading: subLoading, isLegacyUser } = useSubscription();
   const location = useLocation();
 
   // Admins have full access without subscription checks
   if (userProfile?.role === 'admin') {
+    return <>{children}</>;
+  }
+
+  // Doctors don't need subscription
+  if (userProfile?.role === 'doctor') {
+    return <>{children}</>;
+  }
+
+  // Legacy users have full access
+  if (isLegacyUser) {
     return <>{children}</>;
   }
 
@@ -37,9 +47,11 @@ export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Allow dashboard access for all users, but individual features will be guarded
-  // The FeatureAccessGuard component will handle feature-level subscription checks
+  // If user needs subscription, redirect to subscription page
+  if (needsSubscription) {
+    return <Navigate to="/subscription" state={{ from: location }} replace />;
+  }
 
-  // User has access, render children
+  // User has active subscription, render children
   return <>{children}</>;
 };

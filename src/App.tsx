@@ -124,7 +124,11 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
-            <Route path="/subscription" element={<Subscription />} />
+            <Route path="/subscription" element={
+              <ProtectedRoute>
+                <Subscription />
+              </ProtectedRoute>
+            } />
             <Route path="/payment-callback" element={<PaymentCallback />} />
             <Route path="/install" element={<InstallPWA />} />
             
