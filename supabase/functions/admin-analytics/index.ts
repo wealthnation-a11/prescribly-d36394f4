@@ -224,7 +224,8 @@ serve(async (req) => {
       });
 
     } else if (action === 'ai-logs') {
-      const { data: logs, error } = await supabase
+      // Get AI confidence logs
+      const { data: confidenceLogs, error: logsError } = await supabase
         .from('ai_confidence_logs')
         .select(`
           id,
@@ -233,28 +234,111 @@ serve(async (req) => {
           average_confidence,
           passed_threshold,
           conditions_analyzed,
-          created_at
+          created_at,
+          diagnosis_session_id
         `)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(50);
 
-      if (error) throw error;
+      if (logsError) throw logsError;
 
-      const formattedLogs = logs.map(log => ({
+      // Get chat sessions with user info
+      const { data: chatSessions, error: chatError } = await supabase
+        .from('chat_sessions')
+        .select('id, user_id, status, confidence_score, diagnosis_result, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (chatError) throw chatError;
+
+      // Get user diagnosis history
+      const { data: diagnosisHistory, error: historyError } = await supabase
+        .from('user_diagnosis_history')
+        .select('id, user_id, symptoms, diagnosis, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (historyError) throw historyError;
+
+      // Get user profiles for names
+      const userIds = new Set<string>();
+      chatSessions?.forEach(s => s.user_id && userIds.add(s.user_id));
+      diagnosisHistory?.forEach(h => h.user_id && userIds.add(h.user_id));
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, email')
+        .in('user_id', Array.from(userIds));
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      // Format confidence logs
+      const formattedLogs = confidenceLogs?.map(log => ({
         ...log,
-        user_name: 'User',
-      }));
+        user_name: 'AI System',
+        type: 'confidence_log'
+      })) || [];
+
+      // Format chat sessions as diagnosis logs
+      const formattedChatSessions = chatSessions?.map(session => {
+        const profile = profileMap.get(session.user_id);
+        const userName = profile 
+          ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
+          : 'Unknown User';
+        return {
+          id: session.id,
+          user_name: userName,
+          user_id: session.user_id,
+          ai_model: 'Chat Diagnosis',
+          highest_confidence: session.confidence_score || 0,
+          average_confidence: session.confidence_score || 0,
+          passed_threshold: (session.confidence_score || 0) > 0.6,
+          conditions_analyzed: session.diagnosis_result || {},
+          created_at: session.created_at,
+          status: session.status,
+          type: 'chat_session'
+        };
+      }) || [];
+
+      // Format diagnosis history
+      const formattedHistory = diagnosisHistory?.map(history => {
+        const profile = profileMap.get(history.user_id);
+        const userName = profile 
+          ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
+          : 'Unknown User';
+        return {
+          id: history.id,
+          user_name: userName,
+          user_id: history.user_id,
+          ai_model: 'AI Diagnosis',
+          symptoms: history.symptoms,
+          diagnosis: history.diagnosis,
+          highest_confidence: 0.75,
+          average_confidence: 0.75,
+          passed_threshold: true,
+          conditions_analyzed: { symptoms: history.symptoms, diagnosis: history.diagnosis },
+          created_at: history.created_at,
+          type: 'diagnosis_history'
+        };
+      }) || [];
+
+      // Combine all logs and sort by date
+      const allLogs = [...formattedLogs, ...formattedChatSessions, ...formattedHistory]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 100);
 
       const stats = {
-        totalDiagnoses: logs.length,
-        avgConfidence: logs.length
-          ? (logs.reduce((sum, log) => sum + Number(log.average_confidence), 0) / logs.length) * 100
+        totalDiagnoses: allLogs.length,
+        avgConfidence: allLogs.length
+          ? (allLogs.reduce((sum, log) => sum + Number(log.average_confidence || 0), 0) / allLogs.length) * 100
           : 0,
-        highConfidence: logs.filter(log => log.passed_threshold).length,
-        lowConfidence: logs.filter(log => !log.passed_threshold).length,
+        highConfidence: allLogs.filter(log => log.passed_threshold).length,
+        lowConfidence: allLogs.filter(log => !log.passed_threshold).length,
+        chatSessions: formattedChatSessions.length,
+        historyRecords: formattedHistory.length,
       };
 
-      return new Response(JSON.stringify({ logs: formattedLogs, stats }), {
+      return new Response(JSON.stringify({ logs: allLogs, stats }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
 

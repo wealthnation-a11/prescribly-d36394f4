@@ -54,7 +54,7 @@ export const RoleManagement = () => {
   });
 
   // Fetch all users for role assignment
-  const { data: allUsers } = useQuery({
+  const { data: allUsers, isLoading: usersLoading } = useQuery({
     queryKey: ["admin-all-users"],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("admin-users", {
@@ -63,7 +63,11 @@ export const RoleManagement = () => {
       });
 
       if (error) throw error;
-      return data.users || [];
+      // Map user_id to id for Select component compatibility
+      return (data.users || []).map((user: any) => ({
+        ...user,
+        id: user.user_id || user.id
+      }));
     },
   });
 

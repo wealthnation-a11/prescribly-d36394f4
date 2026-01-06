@@ -42,30 +42,33 @@ const EnhancedRecentActivity = () => {
     queryFn: async () => {
       if (!user?.id || isDoctor) return [];
       
+      const activities: ActivityItem[] = [];
+      
       // Query user_history for diagnosis activities
-      const { data: historyData, error: historyError } = await supabase
+      const { data: historyData } = await supabase
         .from('user_history')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
+      // Query user_diagnosis_history for detailed diagnosis records
+      const { data: diagnosisHistoryData } = await supabase
+        .from('user_diagnosis_history')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
       // Query chat_sessions for AI diagnostic activities
-      const { data: chatData, error: chatError } = await supabase
+      const { data: chatData } = await supabase
         .from('chat_sessions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
       
-      if (historyError && chatError) {
-        console.error('Error fetching diagnostics:', historyError || chatError);
-        return [];
-      }
-      
-      const activities = [];
-      
-      // Add history data
+      // Add user_history data
       if (historyData) {
         activities.push(...historyData.map(item => ({
           id: item.id,
@@ -73,6 +76,20 @@ const EnhancedRecentActivity = () => {
           description: Array.isArray(item.suggested_conditions) && item.suggested_conditions.length > 0
             ? `AI diagnosis: ${(item.suggested_conditions[0] as any)?.condition || 'Condition analyzed'}`
             : item.input_text || 'Health diagnostic session completed',
+          timestamp: item.created_at,
+          status: 'completed',
+          icon: <Brain className="h-4 w-4 text-purple-600" />
+        })));
+      }
+
+      // Add user_diagnosis_history data
+      if (diagnosisHistoryData) {
+        activities.push(...diagnosisHistoryData.map(item => ({
+          id: item.id,
+          title: 'AI Diagnosis Completed',
+          description: item.diagnosis 
+            ? `Diagnosis: ${typeof item.diagnosis === 'string' ? item.diagnosis : JSON.stringify(item.diagnosis).substring(0, 50)}`
+            : (Array.isArray(item.symptoms) ? item.symptoms.join(', ') : item.symptoms) || 'Health assessment completed',
           timestamp: item.created_at,
           status: 'completed',
           icon: <Brain className="h-4 w-4 text-purple-600" />
@@ -93,12 +110,18 @@ const EnhancedRecentActivity = () => {
         })));
       }
 
-      // Sort by timestamp and limit to 10
-      return activities
+      // Sort by timestamp, remove duplicates, and limit to 10
+      const uniqueActivities = activities
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .filter((activity, index, self) => 
+          index === self.findIndex(a => a.id === activity.id)
+        )
         .slice(0, 10);
+
+      return uniqueActivities;
     },
     enabled: !!user?.id && !isDoctor,
+    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
   });
 
   // Fetch Prescriptions for patients
