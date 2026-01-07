@@ -53,7 +53,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
             probability,
             reasoning,
             session_id,
-            conditions!inner(name, description)
+            conditions(name, description)
           `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
