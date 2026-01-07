@@ -62,7 +62,26 @@ serve(async (req) => {
 
     const { method } = req;
     const url = new URL(req.url);
-    const action = url.searchParams.get("action");
+    
+    // Parse body for non-GET requests, or try to get action from URL params
+    let body: Record<string, unknown> = {};
+    let action: string | null = url.searchParams.get("action");
+    
+    // For POST/DELETE requests, read action from body
+    if (method !== 'GET') {
+      try {
+        const text = await req.text();
+        if (text) {
+          body = JSON.parse(text);
+          // Action in body takes precedence
+          if (body.action) {
+            action = body.action as string;
+          }
+        }
+      } catch {
+        // Body parsing failed, continue with URL action
+      }
+    }
 
     // Validate action
     if (!action || !['list', 'assign', 'remove', 'grant-legacy', 'revoke-legacy'].includes(action)) {
@@ -96,7 +115,7 @@ serve(async (req) => {
 
     // POST - Assign role to user
     if (method === "POST" && action === "assign") {
-      const body = await req.json();
+      // Body already parsed above
       
       const validation = assignRoleSchema.safeParse(body);
       if (!validation.success) {
@@ -127,7 +146,7 @@ serve(async (req) => {
 
     // DELETE - Remove role from user
     if (method === "DELETE" && action === "remove") {
-      const body = await req.json();
+      // Body already parsed above
       
       const validation = removeRoleSchema.safeParse(body);
       if (!validation.success) {
@@ -158,7 +177,7 @@ serve(async (req) => {
 
     // POST - Grant legacy status
     if (method === "POST" && action === "grant-legacy") {
-      const body = await req.json();
+      // Body already parsed above
       
       const validation = legacyActionSchema.safeParse(body);
       if (!validation.success) {
@@ -188,7 +207,7 @@ serve(async (req) => {
 
     // POST - Revoke legacy status
     if (method === "POST" && action === "revoke-legacy") {
-      const body = await req.json();
+      // Body already parsed above
       
       const validation = legacyActionSchema.safeParse(body);
       if (!validation.success) {
