@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'Prescribly - Doctor in Your Pocket',
         short_name: 'Prescribly',
@@ -29,6 +29,12 @@ export default defineConfig(({ mode }) => ({
         start_url: '/',
         icons: [
           {
+            src: '/pwa-icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
             src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
@@ -39,12 +45,6 @@ export default defineConfig(({ mode }) => ({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
-          },
-          {
-            src: '/apple-touch-icon.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
           }
         ],
         categories: ['health', 'medical', 'lifestyle'],
@@ -54,14 +54,14 @@ export default defineConfig(({ mode }) => ({
             short_name: 'Book',
             description: 'Book a doctor appointment',
             url: '/book-appointment',
-            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+            icons: [{ src: '/pwa-icon.png', sizes: '512x512' }]
           },
           {
             name: 'AI Diagnosis',
             short_name: 'Diagnose',
             description: 'Get AI symptom analysis',
             url: '/health-diagnostic',
-            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+            icons: [{ src: '/pwa-icon.png', sizes: '512x512' }]
           }
         ]
       },

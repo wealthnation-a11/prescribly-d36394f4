@@ -113,9 +113,11 @@ export const PWAInstallPrompt = () => {
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Download className="w-6 h-6 text-primary" />
-              </div>
+              <img 
+                src="/pwa-icon.png" 
+                alt="Prescribly" 
+                className="w-12 h-12 rounded-xl shadow-md"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground mb-1">
