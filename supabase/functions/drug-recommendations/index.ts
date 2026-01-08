@@ -1,11 +1,18 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const drugRecommendationSchema = z.object({
+  symptoms: z.array(z.string().min(1).max(200)).max(30, "Too many symptoms").optional().default([]),
+  conditionId: z.string().max(50).optional()
+});
 
 // RxNorm API base URL (for future integration)
 const RXNORM_API_BASE = 'https://rxnav.nlm.nih.gov/REST';
@@ -101,12 +108,41 @@ serve(async (req) => {
     // Handle both URL parameter (legacy) and POST body (new approach)
     if (req.method === 'POST') {
       const body = await req.json();
-      symptoms = body.symptoms || [];
+      
+      // Validate input using Zod
+      const validation = drugRecommendationSchema.safeParse(body);
+      if (!validation.success) {
+        console.log('Validation failed:', validation.error.issues);
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'Validation failed',
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message })),
+          recommendations: []
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      symptoms = validation.data.symptoms;
+      conditionId = validation.data.conditionId || null;
       console.log('Getting drug recommendations for symptoms:', symptoms);
     } else {
       // Legacy GET approach with condition ID
       const url = new URL(req.url);
-      conditionId = url.pathname.split('/').pop();
+      const pathConditionId = url.pathname.split('/').pop();
+      // Validate legacy condition ID format
+      if (pathConditionId && pathConditionId.length > 50) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'Invalid condition ID',
+          recommendations: []
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      conditionId = pathConditionId || null;
       console.log('Getting drug recommendations for condition:', conditionId);
     }
 

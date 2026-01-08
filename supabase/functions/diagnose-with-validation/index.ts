@@ -1,21 +1,23 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface DiagnosisRequest {
-  symptoms: string[];
-  severity?: number;
-  duration?: string;
-  age?: number;
-  gender?: string;
-  medicalHistory?: string;
-  confidenceThreshold?: number;
-}
+// Input validation schema using Zod
+const diagnosisRequestSchema = z.object({
+  symptoms: z.array(z.string().min(1).max(300, "Symptom too long")).min(1, "At least one symptom required").max(10, "Maximum 10 symptoms"),
+  severity: z.number().int().min(1, "Severity must be 1-10").max(10, "Severity must be 1-10").optional(),
+  duration: z.string().max(100).optional(),
+  age: z.number().int().min(0, "Age cannot be negative").max(150, "Invalid age").optional(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  medicalHistory: z.string().max(2000, "Medical history too long").optional(),
+  confidenceThreshold: z.number().min(0, "Threshold must be 0-1").max(1, "Threshold must be 0-1").optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -84,25 +86,27 @@ serve(async (req) => {
       );
     }
 
-    const requestData: DiagnosisRequest = await req.json();
+    const body = await req.json();
 
-    // Input validation
-    const validationErrors = validateDiagnosisInput(requestData);
-    if (validationErrors.length > 0) {
+    // Input validation using Zod
+    const validation = diagnosisRequestSchema.safeParse(body);
+    if (!validation.success) {
       await logMonitoringEvent(supabase, 'api_call', user.id, {
         endpoint: 'diagnose-with-validation',
         error: 'validation_failed',
-        validation_errors: validationErrors
+        validation_errors: validation.error.issues
       }, false, 'Input validation failed');
       
       return new Response(
         JSON.stringify({ 
           error: 'Input validation failed',
-          details: validationErrors
+          details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const requestData = validation.data;
 
     // Sanitize inputs
     const sanitizedSymptoms = requestData.symptoms
@@ -321,43 +325,8 @@ serve(async (req) => {
   }
 });
 
-function validateDiagnosisInput(data: DiagnosisRequest): string[] {
-  const errors: string[] = [];
-  
-  if (!data.symptoms || !Array.isArray(data.symptoms)) {
-    errors.push('Symptoms must be an array');
-  } else if (data.symptoms.length === 0) {
-    errors.push('At least one symptom is required');
-  } else if (data.symptoms.length > 10) {
-    errors.push('Maximum 10 symptoms allowed');
-  }
-  
-  if (data.symptoms) {
-    for (let i = 0; i < data.symptoms.length; i++) {
-      if (typeof data.symptoms[i] !== 'string') {
-        errors.push(`Symptom ${i + 1} must be a string`);
-      } else if (data.symptoms[i].trim().length === 0) {
-        errors.push(`Symptom ${i + 1} cannot be empty`);
-      } else if (data.symptoms[i].length > 300) {
-        errors.push(`Symptom ${i + 1} cannot exceed 300 characters`);
-      }
-    }
-  }
-  
-  if (data.severity !== undefined && (typeof data.severity !== 'number' || data.severity < 1 || data.severity > 10)) {
-    errors.push('Severity must be a number between 1 and 10');
-  }
-  
-  if (data.age !== undefined && (typeof data.age !== 'number' || data.age < 0 || data.age > 150)) {
-    errors.push('Age must be a valid number between 0 and 150');
-  }
-  
-  if (data.confidenceThreshold !== undefined && (typeof data.confidenceThreshold !== 'number' || data.confidenceThreshold < 0 || data.confidenceThreshold > 1)) {
-    errors.push('Confidence threshold must be a number between 0 and 1');
-  }
-  
-  return errors;
-}
+// Helper type for validated request data
+type DiagnosisRequest = z.infer<typeof diagnosisRequestSchema>;
 
 async function generateAIDiagnosis(symptoms: string[], requestData: DiagnosisRequest) {
   const openaiApiKey = Deno.env.get('OPENAI_API_KEY');

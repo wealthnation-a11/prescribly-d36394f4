@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -12,6 +13,18 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const healthCompanionSchema = z.object({
+  message: z.string().min(1, "Message is required").max(2000, "Message too long"),
+  sessionId: z.string().uuid("Invalid session ID").optional().nullable(),
+  userId: z.string().uuid("Invalid user ID").optional().nullable(),
+  conversationHistory: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string().max(5000)
+  })).max(50, "Conversation history too long").default([]),
+  currentSymptoms: z.array(z.string().max(200)).max(30, "Too many symptoms").default([])
+});
 
 // Bayesian inference for symptom-condition matching
 function calculateProbabilities(symptoms: string[], conditions: any[]) {
@@ -86,15 +99,30 @@ serve(async (req) => {
   }
 
   try {
+    const body = await req.json();
+    
+    // Validate input using Zod
+    const validation = healthCompanionSchema.safeParse(body);
+    if (!validation.success) {
+      console.log('Validation failed:', validation.error.issues);
+      return new Response(JSON.stringify({ 
+        error: 'Validation failed',
+        details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { 
       message, 
       sessionId, 
       userId,
-      conversationHistory = [],
-      currentSymptoms = []
-    } = await req.json();
+      conversationHistory,
+      currentSymptoms
+    } = validation.data;
 
-    console.log('AI Health Companion request:', { message, sessionId, userId });
+    console.log('AI Health Companion request:', { message: message.substring(0, 100), sessionId, userId });
 
     // Extract symptoms from user message using simple keyword matching
     const extractedSymptoms = message.toLowerCase().match(
