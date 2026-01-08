@@ -1,23 +1,32 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface SymptomInput {
-  text: string;
-  confidence?: number;
-}
+// Input validation schemas
+const symptomInputSchema = z.object({
+  text: z.string().min(1).max(500),
+  confidence: z.number().min(0).max(1).optional()
+});
 
-interface UserDemographics {
-  age?: number;
-  gender?: string;
-  location?: string;
-  medicalHistory?: string[];
-}
+const demographicsSchema = z.object({
+  age: z.number().int().min(0).max(150).optional(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  location: z.string().max(200).optional(),
+  medicalHistory: z.array(z.string().max(200)).max(20).optional()
+});
+
+const bayesianRequestSchema = z.object({
+  symptoms: z.array(symptomInputSchema).max(30, "Too many symptoms").optional().default([]),
+  demographics: demographicsSchema.optional().default({}),
+  sessionId: z.string().uuid("Invalid session ID").optional(),
+  freeTextInput: z.string().max(5000, "Free text too long").optional()
+});
 
 interface BayesianResult {
   condition: string;
@@ -36,19 +45,24 @@ serve(async (req) => {
   }
 
   try {
-    const { 
-      symptoms, 
-      demographics, 
-      sessionId,
-      freeTextInput 
-    }: { 
-      symptoms: SymptomInput[];
-      demographics: UserDemographics;
-      sessionId: string;
-      freeTextInput?: string;
-    } = await req.json();
+    const body = await req.json();
+    
+    // Validate input using Zod
+    const validation = bayesianRequestSchema.safeParse(body);
+    if (!validation.success) {
+      console.log('Validation failed:', validation.error.issues);
+      return new Response(JSON.stringify({ 
+        error: 'Validation failed',
+        details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
-    console.log('Bayesian diagnosis request:', { symptoms, demographics, sessionId });
+    const { symptoms, demographics, sessionId, freeTextInput } = validation.data;
+
+    console.log('Bayesian diagnosis request:', { symptomCount: symptoms.length, sessionId });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
