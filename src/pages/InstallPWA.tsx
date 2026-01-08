@@ -100,8 +100,12 @@ const InstallPWA = () => {
       <div className="container mx-auto max-w-4xl">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
-            <Download className="w-10 h-10 text-primary" />
+          <div className="inline-flex items-center justify-center mb-6">
+            <img 
+              src="/pwa-icon.png" 
+              alt="Prescribly" 
+              className="w-24 h-24 rounded-2xl shadow-lg"
+            />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
             Install Prescribly
