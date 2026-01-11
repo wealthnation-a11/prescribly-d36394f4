@@ -37,7 +37,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Crown, Ban, Search, ShieldCheck, CreditCard, XCircle } from "lucide-react";
+import { Crown, Ban, Search, ShieldCheck, CreditCard, XCircle, Trash2 } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
 
 interface User {
@@ -67,7 +67,7 @@ export const SubscriptionManagement = () => {
   const [accessFilter, setAccessFilter] = useState<AccessFilter>("all");
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
-    type: "grant" | "revoke";
+    type: "grant" | "revoke" | "cancel-subscription";
     user: User | null;
   }>({ open: false, type: "grant", user: null });
 
@@ -135,6 +135,26 @@ export const SubscriptionManagement = () => {
     },
     onError: (error: Error) => {
       toast.error(`Failed to revoke access: ${error.message}`);
+    },
+  });
+
+  // Cancel subscription mutation
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({ status: "cancelled" })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Subscription cancelled successfully");
+      queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-subscription-users"] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to cancel subscription: ${error.message}`);
     },
   });
 
@@ -258,8 +278,10 @@ export const SubscriptionManagement = () => {
 
     if (confirmDialog.type === "grant") {
       grantAccessMutation.mutate(confirmDialog.user.id);
-    } else {
+    } else if (confirmDialog.type === "revoke") {
       revokeAccessMutation.mutate(confirmDialog.user.id);
+    } else if (confirmDialog.type === "cancel-subscription") {
+      cancelSubscriptionMutation.mutate(confirmDialog.user.id);
     }
     setConfirmDialog({ open: false, type: "grant", user: null });
   };
@@ -361,51 +383,77 @@ export const SubscriptionManagement = () => {
                       {format(new Date(user.created_at), "MMM dd, yyyy")}
                     </TableCell>
                     <TableCell>
-                      {user.is_legacy ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  setConfirmDialog({ open: true, type: "revoke", user })
-                                }
-                                disabled={revokeAccessMutation.isPending}
-                                className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <Ban className="h-4 w-4" />
-                                Revoke Access
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Remove free access - user will need a subscription
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  setConfirmDialog({ open: true, type: "grant", user })
-                                }
-                                disabled={grantAccessMutation.isPending}
-                                className="gap-2 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
-                              >
-                                <Crown className="h-4 w-4" />
-                                Grant Free Access
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Give permanent free access to all features
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
+                      <div className="flex gap-2">
+                        {user.is_legacy ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setConfirmDialog({ open: true, type: "revoke", user })
+                                  }
+                                  disabled={revokeAccessMutation.isPending}
+                                  className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Ban className="h-4 w-4" />
+                                  Revoke Access
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Remove free access - user will need a subscription
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setConfirmDialog({ open: true, type: "grant", user })
+                                  }
+                                  disabled={grantAccessMutation.isPending}
+                                  className="gap-2 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
+                                >
+                                  <Crown className="h-4 w-4" />
+                                  Grant Free Access
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Give permanent free access to all features
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        {/* Cancel Subscription Button - show for paid users */}
+                        {getAccessStatus(user) === "paid" && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setConfirmDialog({ open: true, type: "cancel-subscription", user })
+                                  }
+                                  disabled={cancelSubscriptionMutation.isPending}
+                                  className="gap-2 text-orange-600 hover:text-orange-600 hover:bg-orange-500/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Cancel Subscription
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Cancel the user's paid subscription
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -426,7 +474,9 @@ export const SubscriptionManagement = () => {
               <AlertDialogTitle>
                 {confirmDialog.type === "grant"
                   ? "Grant Free Access?"
-                  : "Revoke Free Access?"}
+                  : confirmDialog.type === "revoke"
+                  ? "Revoke Free Access?"
+                  : "Cancel Subscription?"}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {confirmDialog.type === "grant" ? (
@@ -434,10 +484,15 @@ export const SubscriptionManagement = () => {
                     This will give <strong>{confirmDialog.user?.first_name} {confirmDialog.user?.last_name}</strong>{" "}
                     permanent free access to all app features without requiring a subscription.
                   </>
-                ) : (
+                ) : confirmDialog.type === "revoke" ? (
                   <>
                     This will remove free access for <strong>{confirmDialog.user?.first_name} {confirmDialog.user?.last_name}</strong>.
                     They will need to purchase a subscription to continue using premium features.
+                  </>
+                ) : (
+                  <>
+                    This will cancel the paid subscription for <strong>{confirmDialog.user?.first_name} {confirmDialog.user?.last_name}</strong>.
+                    They will lose access to premium features immediately.
                   </>
                 )}
               </AlertDialogDescription>
@@ -449,10 +504,16 @@ export const SubscriptionManagement = () => {
                 className={
                   confirmDialog.type === "grant"
                     ? "bg-emerald-600 hover:bg-emerald-700"
+                    : confirmDialog.type === "cancel-subscription"
+                    ? "bg-orange-600 hover:bg-orange-700"
                     : "bg-destructive hover:bg-destructive/90"
                 }
               >
-                {confirmDialog.type === "grant" ? "Grant Access" : "Revoke Access"}
+                {confirmDialog.type === "grant" 
+                  ? "Grant Access" 
+                  : confirmDialog.type === "revoke" 
+                  ? "Revoke Access" 
+                  : "Cancel Subscription"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
