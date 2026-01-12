@@ -151,6 +151,52 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
+    } else if (action === 'grant-full-access' && userId) {
+      // Grant full access (legacy status) to user
+      const uuidSchema = z.string().uuid();
+      const validation = uuidSchema.safeParse(userId);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ error: 'Invalid user ID format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_legacy: true })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Full access granted successfully' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
+    } else if (action === 'revoke-full-access' && userId) {
+      // Revoke full access (legacy status) from user
+      const uuidSchema = z.string().uuid();
+      const validation = uuidSchema.safeParse(userId);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ error: 'Invalid user ID format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_legacy: false })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Full access revoked successfully' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
     } else if (method === 'GET' && urlUserId) {
       // Get specific user
       const { data: userProfile, error } = await supabase
