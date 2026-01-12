@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Download, Trash2, UserX, UserCheck } from "lucide-react";
+import { Download, Trash2, UserX, UserCheck, Shield, ShieldOff } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import * as XLSX from 'xlsx';
@@ -31,6 +31,7 @@ interface UserProfile {
   created_at: string;
   subscription_tier: string | null;
   subscription_status: string | null;
+  is_legacy?: boolean;
 }
 
 const UserManagement = () => {
@@ -81,6 +82,24 @@ const UserManagement = () => {
     },
     onError: () => {
       toast.error("Failed to delete user");
+    },
+  });
+
+  const toggleFullAccessMutation = useMutation({
+    mutationFn: async ({ userId, grant }: { userId: string; grant: boolean }) => {
+      const action = grant ? "grant-full-access" : "revoke-full-access";
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action, userId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success(variables.grant ? "Full access granted successfully" : "Full access revoked successfully");
+    },
+    onError: () => {
+      toast.error("Failed to update user access");
     },
   });
 
@@ -144,7 +163,12 @@ const UserManagement = () => {
             <p className="font-medium">{user.first_name} {user.last_name}</p>
             <p className="text-sm text-muted-foreground truncate max-w-[200px]">{user.email}</p>
           </div>
-          {getRoleBadge(user.role)}
+          <div className="flex gap-1 items-center">
+            {user.is_legacy && (
+              <Badge variant="default" className="bg-green-600">Full Access</Badge>
+            )}
+            {getRoleBadge(user.role)}
+          </div>
         </div>
         <div className="flex justify-between items-center text-sm mb-3">
           <span className="text-muted-foreground">
@@ -154,24 +178,41 @@ const UserManagement = () => {
             {new Date(user.created_at).toLocaleDateString()}
           </span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {user.is_legacy ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={() => toggleFullAccessMutation.mutate({ userId: user.user_id, grant: false })}
+            >
+              <ShieldOff className="h-4 w-4 mr-1" />
+              Revoke Access
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="default"
+              className="flex-1 bg-green-600 hover:bg-green-700"
+              onClick={() => toggleFullAccessMutation.mutate({ userId: user.user_id, grant: true })}
+            >
+              <Shield className="h-4 w-4 mr-1" />
+              Grant Full Access
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
-            className="flex-1"
             onClick={() => updateUserMutation.mutate({ userId: user.user_id, action: "suspend" })}
           >
-            <UserX className="h-4 w-4 mr-1" />
-            Suspend
+            <UserX className="h-4 w-4" />
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="flex-1"
             onClick={() => updateUserMutation.mutate({ userId: user.user_id, action: "activate" })}
           >
-            <UserCheck className="h-4 w-4 mr-1" />
-            Activate
+            <UserCheck className="h-4 w-4" />
           </Button>
           <Button
             size="sm"
@@ -223,6 +264,7 @@ const UserManagement = () => {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Access</TableHead>
               <TableHead>Subscription</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead>Actions</TableHead>
@@ -231,7 +273,7 @@ const UserManagement = () => {
           <TableBody>
             {users?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No users found
                 </TableCell>
               </TableRow>
@@ -244,6 +286,13 @@ const UserManagement = () => {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{getRoleBadge(user.role)}</TableCell>
                   <TableCell>
+                    {user.is_legacy ? (
+                      <Badge variant="default" className="bg-green-600">Full Access</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">Standard</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {user.subscription_tier ? (
                       <Badge variant="outline">
                         {user.subscription_tier} - {user.subscription_status}
@@ -255,11 +304,31 @@ const UserManagement = () => {
                   <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
+                      {user.is_legacy ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleFullAccessMutation.mutate({ userId: user.user_id, grant: false })}
+                          title="Revoke Full Access"
+                        >
+                          <ShieldOff className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => toggleFullAccessMutation.mutate({ userId: user.user_id, grant: true })}
+                          title="Grant Full Access"
+                        >
+                          <Shield className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => updateUserMutation.mutate({ userId: user.user_id, action: "suspend" })}
-                        title="Disable Access"
+                        title="Suspend"
                       >
                         <UserX className="h-4 w-4" />
                       </Button>
@@ -267,7 +336,7 @@ const UserManagement = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => updateUserMutation.mutate({ userId: user.user_id, action: "activate" })}
-                        title="Grant Access"
+                        title="Activate"
                       >
                         <UserCheck className="h-4 w-4" />
                       </Button>
