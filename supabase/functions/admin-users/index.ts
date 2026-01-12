@@ -197,6 +197,31 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
+    } else if (action === 'delete' && userId) {
+      // Delete user via action
+      const uuidSchema = z.string().uuid();
+      const validation = uuidSchema.safeParse(userId);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ error: 'Invalid user ID format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      
+      if (authError) {
+        console.error('Error deleting auth user:', authError);
+        throw authError;
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'User deleted successfully'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+
     } else if (method === 'GET' && urlUserId) {
       // Get specific user
       const { data: userProfile, error } = await supabase
