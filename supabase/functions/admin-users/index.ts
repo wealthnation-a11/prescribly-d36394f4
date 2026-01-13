@@ -153,24 +153,41 @@ serve(async (req) => {
 
     } else if (action === 'grant-full-access' && userId) {
       // Grant full access (legacy status) to user
+      console.log('Granting full access to user:', userId);
+      
       const uuidSchema = z.string().uuid();
       const validation = uuidSchema.safeParse(userId);
       if (!validation.success) {
+        console.error('Invalid user ID format:', userId);
         return new Response(JSON.stringify({ error: 'Invalid user ID format' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
-      const { error } = await supabase
+      const { data: updateData, error } = await supabase
         .from('profiles')
         .update({ is_legacy: true })
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select();
 
-      if (error) throw error;
+      console.log('Update result:', { updateData, error });
+
+      if (error) {
+        console.error('Error granting full access:', error);
+        throw error;
+      }
+
+      if (!updateData || updateData.length === 0) {
+        console.error('No profile found for user:', userId);
+        return new Response(JSON.stringify({ error: 'User not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
 
       return new Response(
-        JSON.stringify({ success: true, message: 'Full access granted successfully' }),
+        JSON.stringify({ success: true, message: 'Full access granted successfully', user: updateData[0] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
