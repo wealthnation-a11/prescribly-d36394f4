@@ -14,8 +14,9 @@ export const useHerbalPractitioner = () => {
         .from('herbal_practitioners')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
+      // maybeSingle returns null if no rows found, only throws on actual errors
       if (error) throw error;
       return data;
     },
