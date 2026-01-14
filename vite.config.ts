@@ -29,12 +29,6 @@ export default defineConfig(({ mode }) => ({
         start_url: '/',
         icons: [
           {
-            src: '/pwa-icon.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
             src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
@@ -45,6 +39,12 @@ export default defineConfig(({ mode }) => ({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
+          },
+          {
+            src: '/pwa-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ],
         categories: ['health', 'medical', 'lifestyle'],
