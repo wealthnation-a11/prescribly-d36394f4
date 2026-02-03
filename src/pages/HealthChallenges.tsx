@@ -336,6 +336,10 @@ const HealthChallenges = () => {
                         navigate('/health-challenges/hydration');
                       } else if (challenge.title.toLowerCase().includes('step')) {
                         navigate('/health-challenges/steps');
+                      } else if (challenge.title.toLowerCase().includes('sleep')) {
+                        navigate('/health-challenges/sleep');
+                      } else if (challenge.title.toLowerCase().includes('mindfulness') || challenge.title.toLowerCase().includes('meditation')) {
+                        navigate('/health-challenges/mindfulness');
                       } else {
                         setSelectedChallenge(challenge);
                         fetchLeaderboard(challenge.id);

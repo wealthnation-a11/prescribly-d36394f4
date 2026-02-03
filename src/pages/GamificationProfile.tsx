@@ -33,7 +33,8 @@ interface Achievement {
   id: string;
   badge_type: string;
   badge_name: string;
-  earned_at: string;
+  badge_description: string;
+  date_awarded: string;
 }
 
 interface UserStats {
@@ -151,16 +152,16 @@ const GamificationProfile = () => {
         .from('user_achievements')
         .select('*')
         .eq('user_id', user!.id)
-        .order('earned_at', { ascending: false });
+        .order('date_awarded', { ascending: false });
 
       // Fetch steps stats
       const { data: stepsData } = await supabase
         .from('user_steps')
-        .select('steps, goal_reached, date')
+        .select('step_count, goal_reached, date')
         .eq('user_id', user!.id)
         .order('date', { ascending: false });
 
-      const totalSteps = stepsData?.reduce((sum, day) => sum + (day.steps || 0), 0) || 0;
+      const totalSteps = stepsData?.reduce((sum, day) => sum + (day.step_count || 0), 0) || 0;
 
       // Calculate streaks
       let currentStreak = 0;
@@ -228,7 +229,10 @@ const GamificationProfile = () => {
         currentStreak,
         totalSteps,
         totalGlasses,
-        achievements: achievementsData || []
+        achievements: (achievementsData || []).map(a => ({
+          ...a,
+          date_awarded: a.date_awarded
+        })) as Achievement[]
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -398,7 +402,7 @@ const GamificationProfile = () => {
                           </div>
                           <div className="font-semibold text-sm">{achievement.badge_name}</div>
                           <div className="text-xs opacity-70">
-                            {new Date(achievement.earned_at).toLocaleDateString()}
+                            {new Date(achievement.date_awarded).toLocaleDateString()}
                           </div>
                         </div>
                       );

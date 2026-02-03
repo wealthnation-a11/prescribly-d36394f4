@@ -36,6 +36,7 @@ import { FeatureAccessGuard } from "@/components/FeatureAccessGuard";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getUserDashboardSteps } from "@/components/DashboardTour";
 import { NativeAd } from "@/components/ads/NativeAd";
+import { DashboardGamificationWidget } from "@/components/DashboardGamificationWidget";
 
 import { 
   SidebarProvider, 
@@ -425,6 +426,11 @@ export const UserDashboard = () => {
                 {/* Daily Health Tip */}
                 <div data-tour="health-tip">
                   <DailyHealthTip />
+                </div>
+
+                {/* Gamification Widget */}
+                <div data-tour="gamification">
+                  <DashboardGamificationWidget />
                 </div>
 
                 {/* Ad Native */}

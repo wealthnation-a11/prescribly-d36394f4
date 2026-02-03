@@ -1,4 +1,4 @@
-import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain, HelpCircle, Leaf, ShoppingCart, Package } from "lucide-react";
+import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain, HelpCircle, Leaf, ShoppingCart, Package, Trophy, Target } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
@@ -30,6 +30,8 @@ export function AppSidebar() {
     { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus, requiresSubscription: true },
     { title: "Health Companion", url: "/ai-health-companion", icon: MessageCircle, requiresSubscription: true },
     { title: "Health Diagnostic", url: "/health-diagnostic", icon: Brain, requiresSubscription: true },
+    { title: "Health Challenges", url: "/health-challenges", icon: Target, requiresSubscription: true },
+    { title: "My Wellness Profile", url: "/gamification-profile", icon: Trophy, requiresSubscription: true },
     { title: "Herbal Medicine", url: "/herbal-medicine", icon: Leaf, requiresSubscription: false },
     { title: "My Herbal Consultations", url: "/herbal/my-consultations", icon: Calendar, requiresSubscription: false },
     { title: "Herbal Messages", url: "/herbal/patient-messages", icon: MessageCircle, requiresSubscription: false },

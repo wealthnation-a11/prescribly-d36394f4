@@ -41,6 +41,9 @@ import HealthDiagnostic from "./pages/HealthDiagnostic";
 import HealthChallenges from "./pages/HealthChallenges";
 import HydrationChallenge from "./pages/HydrationChallenge";
 import StepsChallenge from "./pages/StepsChallenge";
+import SleepChallenge from "./pages/SleepChallenge";
+import MindfulnessChallenge from "./pages/MindfulnessChallenge";
+import GamificationProfile from "./pages/GamificationProfile";
 import HealthTrendsDashboard from "./pages/HealthTrendsDashboard";
 import MyPrescriptions from "./pages/MyPrescriptions";
 import Subscription from "./pages/Subscription";
@@ -191,6 +194,27 @@ const App = () => (
               <ProtectedRoute requirePatient={true}>
                 <SubscriptionGuard>
                   <StepsChallenge />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/health-challenges/sleep" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <SleepChallenge />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/health-challenges/mindfulness" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <MindfulnessChallenge />
+                </SubscriptionGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/gamification-profile" element={
+              <ProtectedRoute requirePatient={true}>
+                <SubscriptionGuard>
+                  <GamificationProfile />
                 </SubscriptionGuard>
               </ProtectedRoute>
             } />

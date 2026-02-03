@@ -66,28 +66,31 @@ const SleepChallenge = () => {
       weekAgo.setDate(weekAgo.getDate() - 7);
       const weekAgoStr = weekAgo.toISOString().split('T')[0];
 
-      // Fetch today's log
+      // Fetch today's log using raw query since table is new
       const { data: todayData } = await supabase
-        .from('user_sleep_log')
+        .from('user_sleep_log' as any)
         .select('*')
         .eq('user_id', user!.id)
         .eq('date', today)
         .single();
 
-      setTodaySleep(todayData);
+      if (todayData) {
+        setTodaySleep(todayData as unknown as SleepLog);
+      }
 
       // Fetch weekly logs
       const { data: weeklyData } = await supabase
-        .from('user_sleep_log')
+        .from('user_sleep_log' as any)
         .select('*')
         .eq('user_id', user!.id)
         .gte('date', weekAgoStr)
         .order('date', { ascending: false });
 
-      setWeeklyLogs(weeklyData || []);
+      const logs = (weeklyData || []) as unknown as SleepLog[];
+      setWeeklyLogs(logs);
 
       // Calculate streak
-      const sortedLogs = (weeklyData || [])
+      const sortedLogs = logs
         .filter(log => log.goal_reached)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -106,7 +109,7 @@ const SleepChallenge = () => {
       setStreak(currentStreak);
 
       // Check for badge
-      const consecutiveDays = weeklyData?.filter(log => log.goal_reached).length || 0;
+      const consecutiveDays = logs.filter(log => log.goal_reached).length || 0;
       setBadgeEarned(consecutiveDays >= 7);
 
     } catch (error) {
@@ -140,7 +143,7 @@ const SleepChallenge = () => {
       const goalReached = sleepHours >= 7 && sleepHours <= 9;
 
       const { error } = await supabase
-        .from('user_sleep_log')
+        .from('user_sleep_log' as any)
         .upsert({
           user_id: user.id,
           date: today,
