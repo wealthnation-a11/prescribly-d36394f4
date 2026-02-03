@@ -84,7 +84,7 @@ export const DashboardGamificationWidget = () => {
       // Fetch today's steps
       const { data: stepsData } = await supabase
         .from('user_steps')
-        .select('steps, goal_reached')
+        .select('step_count, goal_reached')
         .eq('user_id', user!.id)
         .eq('date', today)
         .single();
@@ -109,7 +109,7 @@ export const DashboardGamificationWidget = () => {
         .from('user_achievements')
         .select('badge_type, badge_name')
         .eq('user_id', user!.id)
-        .order('earned_at', { ascending: false })
+        .order('date_awarded', { ascending: false })
         .limit(1)
         .single();
 
@@ -147,7 +147,7 @@ export const DashboardGamificationWidget = () => {
         currentStreak,
         todayGoals: {
           steps: {
-            current: stepsData?.steps || 0,
+            current: stepsData?.step_count || 0,
             goal: 10000,
             completed: stepsData?.goal_reached || false
           },

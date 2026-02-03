@@ -2971,6 +2971,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_levels: {
+        Row: {
+          created_at: string
+          id: string
+          level: number
+          level_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level?: number
+          level_name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: number
+          level_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mindfulness_log: {
+        Row: {
+          created_at: string
+          date: string
+          goal_reached: boolean
+          id: string
+          minutes: number
+          sessions: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          goal_reached?: boolean
+          id?: string
+          minutes?: number
+          sessions?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          goal_reached?: boolean
+          id?: string
+          minutes?: number
+          sessions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_points: {
         Row: {
           created_at: string | null
@@ -3097,6 +3154,42 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_sleep_log: {
+        Row: {
+          bedtime: string
+          created_at: string
+          date: string
+          goal_reached: boolean
+          id: string
+          sleep_hours: number
+          sleep_quality: number
+          user_id: string
+          wake_time: string
+        }
+        Insert: {
+          bedtime: string
+          created_at?: string
+          date: string
+          goal_reached?: boolean
+          id?: string
+          sleep_hours: number
+          sleep_quality?: number
+          user_id: string
+          wake_time: string
+        }
+        Update: {
+          bedtime?: string
+          created_at?: string
+          date?: string
+          goal_reached?: boolean
+          id?: string
+          sleep_hours?: number
+          sleep_quality?: number
+          user_id?: string
+          wake_time?: string
         }
         Relationships: []
       }
