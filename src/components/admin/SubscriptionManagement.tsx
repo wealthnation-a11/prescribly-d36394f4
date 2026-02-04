@@ -110,7 +110,7 @@ export const SubscriptionManagement = () => {
       return data;
     },
     onSuccess: () => {
-      toast.success("Free access granted successfully");
+      toast.success("Free access granted successfully. User will see changes on next login.");
       queryClient.invalidateQueries({ queryKey: ["admin-subscription-users"] });
     },
     onError: (error: Error) => {
@@ -130,7 +130,7 @@ export const SubscriptionManagement = () => {
       return data;
     },
     onSuccess: () => {
-      toast.success("Free access revoked successfully");
+      toast.success("Free access revoked successfully. User will see changes on next login.");
       queryClient.invalidateQueries({ queryKey: ["admin-subscription-users"] });
     },
     onError: (error: Error) => {
