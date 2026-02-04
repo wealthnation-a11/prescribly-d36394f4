@@ -13,6 +13,7 @@ interface AuthContextType {
   signUpWithOTP: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
   resendOTP: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,8 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
-    if (userProfile?.user_id === userId) return; // Already cached
+  const fetchUserProfile = async (userId: string, force = false) => {
+    if (!force && userProfile?.user_id === userId) return; // Already cached
     
     setProfileLoading(true);
     try {
@@ -82,6 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error fetching user profile:', error);
     } finally {
       setProfileLoading(false);
+    }
+  };
+
+  const refreshUserProfile = async () => {
+    if (user?.id) {
+      await fetchUserProfile(user.id, true);
     }
   };
 
@@ -182,6 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUpWithOTP,
     resendOTP,
     signOut,
+    refreshUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

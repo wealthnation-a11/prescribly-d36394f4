@@ -96,7 +96,11 @@ const UserManagement = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-      toast.success(variables.grant ? "Full access granted successfully" : "Full access revoked successfully");
+      toast.success(
+        variables.grant 
+          ? "Full access granted successfully. User will see changes on next login." 
+          : "Full access revoked successfully. User will see changes on next login."
+      );
     },
     onError: () => {
       toast.error("Failed to update user access");
