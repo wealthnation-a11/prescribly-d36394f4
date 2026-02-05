@@ -3306,7 +3306,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      patient_call_logs: {
+        Row: {
+          call_date: string | null
+          call_session_id: string | null
+          created_at: string | null
+          doctor_id: string | null
+          duration_minutes: number | null
+          id: string | null
+          patient_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          call_date?: string | null
+          call_session_id?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          patient_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          call_date?: string | null
+          call_session_id?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          patient_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_logs_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_and_award_step_achievements: {
@@ -3325,6 +3368,15 @@ export type Database = {
       check_system_health: { Args: never; Returns: Json }
       doctor_has_active_appointment_with_patient: {
         Args: { _doctor_user_id: string; _patient_user_id: string }
+        Returns: boolean
+      }
+      enforce_rate_limit: {
+        Args: {
+          endpoint_name: string
+          max_requests?: number
+          user_uuid: string
+          window_minutes?: number
+        }
         Returns: boolean
       }
       get_challenge_leaderboard: {
