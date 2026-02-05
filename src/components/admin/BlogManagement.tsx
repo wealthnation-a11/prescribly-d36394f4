@@ -14,6 +14,7 @@ import { Plus, Edit, Trash2, Eye, Calendar, Tag } from "lucide-react";
 import { format } from "date-fns";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import DOMPurify from "dompurify";
 
 interface BlogPost {
   id: string;
@@ -96,7 +97,7 @@ const BlogManagement = () => {
         title: data.title,
         slug: data.slug,
         excerpt: data.excerpt,
-        content: data.content,
+        content: DOMPurify.sanitize(data.content),
         cover_image: coverImageUrl,
         category: data.category,
         author_id: user.id,
@@ -149,7 +150,7 @@ const BlogManagement = () => {
           title: data.title,
           slug: data.slug,
           excerpt: data.excerpt,
-          content: data.content,
+          content: DOMPurify.sanitize(data.content),
           cover_image: coverImageUrl,
           category: data.category,
           tags: data.tags ? data.tags.split(",").map((t: string) => t.trim()) : [],
