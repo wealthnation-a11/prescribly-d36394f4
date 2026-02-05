@@ -12,8 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Eye, Calendar, Tag } from "lucide-react";
 import { format } from "date-fns";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import DOMPurify from "dompurify";
 
 interface BlogPost {
@@ -302,22 +301,10 @@ const BlogManagement = () => {
 
               <div>
                 <Label htmlFor="content">Content *</Label>
-                <ReactQuill
-                  theme="snow"
+                <RichTextEditor
                   value={formData.content}
                   onChange={(content) => setFormData({ ...formData, content })}
                   className="bg-background"
-                  modules={{
-                    toolbar: [
-                      [{ header: [1, 2, 3, false] }],
-                      ["bold", "italic", "underline", "strike"],
-                      [{ list: "ordered" }, { list: "bullet" }],
-                      ["blockquote", "code-block"],
-                      [{ color: [] }, { background: [] }],
-                      ["link", "image"],
-                      ["clean"],
-                    ],
-                  }}
                 />
               </div>
 
