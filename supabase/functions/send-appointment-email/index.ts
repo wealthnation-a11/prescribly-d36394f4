@@ -1,11 +1,17 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  appointment_id: z.string().uuid(),
+  notification_type: z.enum(['appointment_request', 'appointment_approved']),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,9 +24,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { appointment_id, notification_type } = await req.json();
+    const body = await req.json();
+    const validation = requestSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validation.error.errors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Fetch appointment details with user information
+    const { appointment_id, notification_type } = validation.data;
+
     const { data: appointment, error: appointmentError } = await supabase
       .from('appointments')
       .select(`
@@ -34,15 +48,13 @@ serve(async (req) => {
     if (appointmentError || !appointment) {
       console.error('Error fetching appointment:', appointmentError);
       return new Response(JSON.stringify({ error: 'Appointment not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
     let emailData = {};
     
     if (notification_type === 'appointment_request') {
-      // Email to doctor
       emailData = {
         to_email: appointment.doctor_profile?.email || '',
         subject: 'New Appointment Request - Prescribly',
@@ -50,7 +62,6 @@ serve(async (req) => {
         notification_type: 'appointment_request'
       };
     } else if (notification_type === 'appointment_approved') {
-      // Email to patient
       emailData = {
         to_email: appointment.patient_profile?.email || '',
         subject: 'Appointment Approved - Prescribly',
@@ -59,7 +70,6 @@ serve(async (req) => {
       };
     }
 
-    // Call the email notification function
     const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-email-notification', {
       body: emailData
     });
@@ -69,25 +79,15 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Appointment email notification processed',
-        email_result: emailResult
-      }),
+      JSON.stringify({ success: true, message: 'Appointment email notification processed', email_result: emailResult }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in send-appointment-email:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

@@ -1,6 +1,20 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const bodySchema = z.object({
+  action: z.string().max(100).optional(),
+  timePeriod: z.string().max(50).optional(),
+  startDate: z.string().max(100).optional(),
+  endDate: z.string().max(100).optional(),
+  filters: z.object({
+    doctorId: z.string().uuid().optional(),
+    appointmentType: z.string().max(50).optional(),
+    gender: z.string().max(20).optional(),
+    country: z.string().max(100).optional(),
+  }).optional(),
+}).passthrough();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,7 +66,14 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const method = req.method;
-    const body = method !== 'GET' ? await req.json() : {};
+    const rawBody = method !== 'GET' ? await req.json() : {};
+    const validation = bodySchema.safeParse(rawBody);
+    if (!validation.success) {
+      return new Response(JSON.stringify({ error: 'Invalid input', details: validation.error.errors }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const body = validation.data;
     const { action } = body;
     const endpoint = url.pathname.split('/').pop();
 

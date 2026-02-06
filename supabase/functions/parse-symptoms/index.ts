@@ -1,11 +1,17 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  text: z.string().min(1).max(10000),
+  locale: z.string().max(10).default('en'),
+});
 
 interface ParsedSymptom {
   id: string;
@@ -24,27 +30,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { text, locale = 'en' } = await req.json();
-    
-    if (!text) {
+    const body = await req.json();
+    const validation = requestSchema.safeParse(body);
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: 'Text input required' }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'Invalid input', details: validation.error.errors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const { text, locale } = validation.data;
     console.log('Parsing symptoms for text:', text);
 
-    // Normalize input text
     const normalizedText = text.toLowerCase().trim();
     const tokens = normalizedText.split(/\s+/);
-    
     const parsedSymptoms: ParsedSymptom[] = [];
 
-    // Direct symptom matching
     const { data: symptoms, error: symptomsError } = await supabase
       .from('symptoms')
       .select('id, name, description')
@@ -55,19 +56,15 @@ serve(async (req) => {
       throw symptomsError;
     }
 
-    // Match symptoms by name and aliases
     for (const symptom of symptoms || []) {
       const symptomName = symptom.name.toLowerCase();
       let score = 0;
 
-      // Exact match
       if (normalizedText.includes(symptomName)) {
         score = 1.0;
       } else {
-        // Fuzzy matching - check for partial matches
         const symptomTokens = symptomName.split(/\s+/);
         let matchCount = 0;
-        
         for (const token of tokens) {
           for (const symptomToken of symptomTokens) {
             if (token.includes(symptomToken) || symptomToken.includes(token)) {
@@ -76,22 +73,16 @@ serve(async (req) => {
             }
           }
         }
-        
         if (matchCount > 0) {
           score = matchCount / Math.max(tokens.length, symptomTokens.length);
         }
       }
 
-      if (score > 0.3) { // Threshold for relevance
-        parsedSymptoms.push({
-          id: symptom.id,
-          name: symptom.name,
-          score: Math.round(score * 100) / 100
-        });
+      if (score > 0.3) {
+        parsedSymptoms.push({ id: symptom.id, name: symptom.name, score: Math.round(score * 100) / 100 });
       }
     }
 
-    // Check condition aliases for additional matches
     const { data: aliases, error: aliasError } = await supabase
       .from('condition_aliases')
       .select('id, condition_id, alias')
@@ -100,12 +91,7 @@ serve(async (req) => {
     if (!aliasError && aliases) {
       for (const alias of aliases) {
         const aliasName = alias.alias.toLowerCase();
-        let score = 0;
-
         if (normalizedText.includes(aliasName)) {
-          score = 0.8; // High score for condition alias matches
-          
-          // Find related symptoms for this condition
           const { data: conditionSymptoms } = await supabase
             .from('condition_symptoms')
             .select('symptom_id, symptoms(id, name)')
@@ -117,13 +103,8 @@ serve(async (req) => {
               if (cs.symptoms) {
                 const existingIndex = parsedSymptoms.findIndex(ps => ps.id === cs.symptoms.id);
                 if (existingIndex === -1) {
-                  parsedSymptoms.push({
-                    id: cs.symptoms.id,
-                    name: cs.symptoms.name,
-                    score: score * 0.7 // Slightly lower score for inferred symptoms
-                  });
+                  parsedSymptoms.push({ id: cs.symptoms.id, name: cs.symptoms.name, score: 0.56 });
                 } else {
-                  // Boost existing symptom score
                   parsedSymptoms[existingIndex].score = Math.min(1.0, parsedSymptoms[existingIndex].score + 0.2);
                 }
               }
@@ -133,10 +114,9 @@ serve(async (req) => {
       }
     }
 
-    // Sort by score and remove duplicates
     const uniqueSymptoms = parsedSymptoms
       .sort((a, b) => b.score - a.score)
-      .slice(0, 10); // Return top 10 symptoms
+      .slice(0, 10);
 
     console.log(`Found ${uniqueSymptoms.length} symptoms for input: ${text}`);
 
@@ -149,10 +129,7 @@ serve(async (req) => {
     console.error('Error in parse-symptoms:', error);
     return new Response(
       JSON.stringify({ error: 'Processing failed', symptoms: [] }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

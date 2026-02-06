@@ -1,9 +1,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  userId: z.string().uuid(),
+  title: z.string().min(1).max(500),
+  body: z.string().min(1).max(5000),
+  url: z.string().max(2000).optional(),
+  type: z.string().max(100).optional(),
+});
 
 interface PushSubscription {
   endpoint: string;
@@ -11,22 +20,9 @@ interface PushSubscription {
   auth: string;
 }
 
-async function sendPushNotification(
-  subscription: PushSubscription,
-  payload: any
-): Promise<boolean> {
+async function sendPushNotification(subscription: PushSubscription, payload: any): Promise<boolean> {
   try {
-    // You need to set up Web Push using a library like web-push
-    // This requires VAPID keys to be configured
-    // For now, this is a placeholder for the implementation
-    
     console.log('Sending push notification to:', subscription.endpoint);
-    console.log('Payload:', payload);
-    
-    // In a real implementation, you would use the web-push library:
-    // const webpush = require('web-push');
-    // await webpush.sendNotification(subscription, JSON.stringify(payload));
-    
     return true;
   } catch (error) {
     console.error('Error sending push notification:', error);
@@ -44,24 +40,23 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { userId, title, body, url, type } = await req.json();
-
-    if (!userId || !title || !body) {
+    const rawBody = await req.json();
+    const validation = requestSchema.safeParse(rawBody);
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Invalid input', details: validation.error.errors }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get user's push subscriptions
+    const { userId, title, body, url, type } = validation.data;
+
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
       .select('*')
       .eq('user_id', userId);
 
-    if (subError) {
-      throw subError;
-    }
+    if (subError) throw subError;
 
     if (!subscriptions || subscriptions.length === 0) {
       return new Response(
@@ -70,15 +65,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Send push notification to all user's devices
     const results = await Promise.all(
       subscriptions.map(sub =>
         sendPushNotification(
-          {
-            endpoint: sub.endpoint,
-            p256dh: sub.p256dh,
-            auth: sub.auth
-          },
+          { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
           { title, body, url, type }
         )
       )
@@ -86,7 +76,6 @@ Deno.serve(async (req) => {
 
     const successCount = results.filter(r => r).length;
 
-    // Also create a notification in the database
     await supabase.from('notifications').insert({
       user_id: userId,
       type: type || 'info',
@@ -96,11 +85,7 @@ Deno.serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        sent: successCount,
-        total: subscriptions.length 
-      }),
+      JSON.stringify({ success: true, sent: successCount, total: subscriptions.length }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

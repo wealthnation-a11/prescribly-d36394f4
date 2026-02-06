@@ -1,6 +1,16 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const diagnosisRequestSchema = z.object({
+  symptoms: z.array(z.string().max(500)).min(1).max(20),
+  severity: z.number().int().min(1).max(10).optional(),
+  duration: z.string().max(200).optional(),
+  age: z.number().int().min(0).max(150).optional(),
+  gender: z.string().max(20).optional(),
+  medicalHistory: z.string().max(5000).optional(),
+});
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,16 +74,16 @@ serve(async (req) => {
       );
     }
 
-    const requestData: DiagnosisRequest = await req.json();
-
-    // Security: Input validation and sanitization
-    if (!requestData.symptoms || !Array.isArray(requestData.symptoms) || requestData.symptoms.length === 0) {
+    const rawBody = await req.json();
+    const bodyValidation = diagnosisRequestSchema.safeParse(rawBody);
+    if (!bodyValidation.success) {
       await logSecurityEvent(supabase, 'invalid_input', user.id, req, 'medium');
       return new Response(
-        JSON.stringify({ error: 'Invalid symptoms provided' }),
+        JSON.stringify({ error: 'Invalid input', details: bodyValidation.error.errors }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    const requestData = bodyValidation.data;
 
     // Sanitize inputs
     const sanitizedSymptoms = requestData.symptoms
