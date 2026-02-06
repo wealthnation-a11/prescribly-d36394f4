@@ -1,6 +1,18 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const requestSchema = z.object({
+  symptoms: z.union([z.string().max(10000), z.array(z.string().max(500)).max(50)]),
+  demographicInfo: z.object({
+    age: z.number().int().min(0).max(150).optional(),
+    gender: z.string().max(20).optional(),
+  }).passthrough().optional(),
+  answers: z.record(z.unknown()).optional(),
+  user_id: z.string().uuid().optional(),
+  session_id: z.string().uuid().optional(),
+});
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +54,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { symptoms, demographicInfo, answers, user_id, session_id } = await req.json();
+    const rawBody = await req.json();
+    const validation = requestSchema.safeParse(rawBody);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid input', details: validation.error.errors, diagnoses: [] }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { symptoms, demographicInfo, answers, user_id, session_id } = validation.data;
     
     console.log('Processing diagnosis request:', { symptoms, demographicInfo, answers, user_id, session_id });
 

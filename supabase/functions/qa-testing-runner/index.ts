@@ -1,6 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const requestSchema = z.object({
+  testIds: z.array(z.string().uuid()).max(100).optional(),
+  runAll: z.boolean().optional(),
+});
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,7 +67,15 @@ serve(async (req) => {
       );
     }
 
-    const { testIds, runAll } = await req.json();
+    const rawBody = await req.json();
+    const validation = requestSchema.safeParse(rawBody);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validation.error.errors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { testIds, runAll } = validation.data;
 
     // Get test cases
     let query = supabase.from('test_patients').select('*').eq('is_active', true);

@@ -1,11 +1,21 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  user_id: z.string().uuid(),
+  type: z.string().min(1).max(100),
+  title: z.string().min(1).max(500),
+  message: z.string().min(1).max(5000),
+  data: z.record(z.unknown()).optional(),
+  diagnosis_session_id: z.string().uuid().optional().nullable(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,25 +28,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const {
-      user_id,
-      type,
-      title,
-      message,
-      data,
-      diagnosis_session_id
-    } = await req.json();
+    const body = await req.json();
+    const validation = requestSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validation.error.errors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
+    const { user_id, type, title, message, data, diagnosis_session_id } = validation.data;
     console.log('Creating notification:', { user_id, type, title });
 
-    // Create notification record
     const { data: notification, error } = await supabase
       .from('notifications')
       .insert({
-        user_id,
-        type,
-        title,
-        message,
+        user_id, type, title, message,
         data: data || {},
         diagnosis_session_id,
         read: false,
@@ -48,40 +55,21 @@ serve(async (req) => {
     if (error) {
       console.error('Error creating notification:', error);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: error.message 
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ success: false, error: error.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // TODO: In the future, could integrate with push notifications or email
-    // For now, we just store in database
-
     return new Response(
-      JSON.stringify({
-        success: true,
-        notification_id: notification.id,
-        message: 'Notification created successfully'
-      }),
+      JSON.stringify({ success: true, notification_id: notification.id, message: 'Notification created successfully' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in create-notification:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
