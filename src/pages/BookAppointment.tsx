@@ -296,7 +296,7 @@ export default function BookAppointment() {
         logAppointmentBooked(
           `${selectedDoctorData.profiles.first_name} ${selectedDoctorData.profiles.last_name}`,
           format(selectedDate!, 'PPP') + ' at ' + selectedTime,
-          data[0].id
+          data?.appointment?.id || 'unknown'
         );
       }
 
