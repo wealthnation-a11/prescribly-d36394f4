@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
@@ -298,13 +298,7 @@ const App = () => (
                 </SubscriptionGuard>
               </ProtectedRoute>
             } />
-            <Route path="/appointments" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <div>Appointments Page - Coming Soon</div>
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
+            <Route path="/appointments" element={<Navigate to="/book-appointment" replace />} />
             <Route path="/chat" element={
               <ProtectedRoute requirePatient={true}>
                 <SubscriptionGuard>

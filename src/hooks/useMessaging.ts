@@ -191,11 +191,17 @@ export const useMessaging = () => {
           schema: 'public',
           table: 'messages',
           filter: isDoctor 
-            ? `doctor_id=eq.${user.id},patient_id=eq.${selectedParticipant.id}`
-            : `doctor_id=eq.${selectedParticipant.id},patient_id=eq.${user.id}`
+            ? `doctor_id=eq.${user.id}`
+            : `patient_id=eq.${user.id}`
         },
         (payload) => {
           const newMessage = payload.new as Message;
+          // Client-side filter for the specific conversation
+          const isRelevant = isDoctor
+            ? newMessage.patient_id === selectedParticipant.id
+            : newMessage.doctor_id === selectedParticipant.id;
+          if (!isRelevant) return;
+          
           setMessages(prev => [...prev, newMessage]);
           
           // Show toast for messages from others
