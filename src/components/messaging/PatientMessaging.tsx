@@ -6,14 +6,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Video, Phone, Send, MessageCircle, Calendar, AlertCircle } from 'lucide-react';
 import { useMessaging } from '@/hooks/useMessaging';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ConsultationAccessGuard } from '@/components/ConsultationAccessGuard';
+import { useWebRTCCall } from '@/hooks/useWebRTCCall';
+import { CallInterface } from '@/components/CallInterface';
+import { IncomingCallModal } from '@/components/IncomingCallModal';
 
 const PatientMessaging = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
   const {
     messages,
@@ -26,6 +28,18 @@ const PatientMessaging = () => {
   } = useMessaging();
   
   const [newMessage, setNewMessage] = useState('');
+  const {
+    callState,
+    incomingCall,
+    localStream,
+    remoteStream,
+    startCall: startWebRTCCall,
+    acceptCall,
+    rejectCall,
+    endCall,
+    toggleAudio,
+    toggleVideo,
+  } = useWebRTCCall();
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedParticipant) return;
@@ -34,41 +48,19 @@ const PatientMessaging = () => {
     setNewMessage('');
   };
 
-  const startCall = async (audioOnly: boolean = false) => {
-    if (!selectedParticipant) return;
+  const handleStartCall = async (audioOnly: boolean = false) => {
+    if (!selectedParticipant?.appointmentId || !user?.id) return;
 
     try {
-      // Generate Agora token
-      const channelName = `doctor-patient-${user?.id}`;
-      const uid = Math.floor(Math.random() * 100000);
-      
-      const { data, error } = await supabase.functions.invoke('generate-agora-token', {
-        body: { channelName, uid }
-      });
-
-      if (error) throw error;
-
-      // Log call session
-      if (user?.id) {
-        await supabase.from('call_logs').insert({
-          doctor_id: selectedParticipant.id,
-          patient_id: user.id,
-          channel_name: channelName
-        });
-      }
-
-      // TODO: Implement actual call interface
-      toast({
-        title: 'Call Started',
-        description: `${audioOnly ? 'Voice' : 'Video'} call with Dr. ${selectedParticipant.name}`,
-      });
+      const callerName = userProfile ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() : 'Patient';
+      await startWebRTCCall(
+        selectedParticipant.appointmentId,
+        selectedParticipant.id,
+        audioOnly ? 'voice' : 'video',
+        callerName
+      );
     } catch (error) {
       console.error('Error starting call:', error);
-      toast({
-        title: 'Call Failed',
-        description: 'Unable to start call. Please try again.',
-        variant: 'destructive'
-      });
     }
   };
 
@@ -105,9 +97,39 @@ const PatientMessaging = () => {
     );
   }
 
+  // Show call interface if in a call
+  if (callState.isConnecting || callState.isConnected) {
+    return (
+      <CallInterface
+        callType={callState.callType || 'voice'}
+        localStream={localStream}
+        remoteStream={remoteStream}
+        isAudioEnabled={callState.isAudioEnabled}
+        isVideoEnabled={callState.isVideoEnabled}
+        isConnected={callState.isConnected}
+        onEndCall={endCall}
+        onToggleAudio={toggleAudio}
+        onToggleVideo={toggleVideo}
+        remoteName={selectedParticipant ? `Dr. ${selectedParticipant.name}` : 'Doctor'}
+        remoteAvatar={selectedParticipant?.avatar_url}
+      />
+    );
+  }
+
   return (
-    <div className="w-full max-w-6xl mx-auto">
-      <Card className="h-[600px]">
+    <>
+      {/* Incoming call modal */}
+      {incomingCall && (
+        <IncomingCallModal
+          callerName={incomingCall.callerName}
+          callType={incomingCall.callType}
+          onAccept={acceptCall}
+          onReject={rejectCall}
+        />
+      )}
+
+      <div className="w-full max-w-6xl mx-auto">
+        <Card className="h-[600px]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5" />
@@ -183,7 +205,7 @@ const PatientMessaging = () => {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => startCall(true)}
+                            onClick={() => handleStartCall(true)}
                           >
                             <Phone className="w-4 h-4 mr-2" />
                             Voice Call
@@ -197,7 +219,7 @@ const PatientMessaging = () => {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => startCall(false)}
+                            onClick={() => handleStartCall(false)}
                           >
                             <Video className="w-4 h-4 mr-2" />
                             Video Call
@@ -284,7 +306,8 @@ const PatientMessaging = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 };
 
