@@ -93,17 +93,8 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
     }
   };
 
-  // Show call interface if there's an active call
-  if (activeCall && activeCall.appointment_id === appointment.id) {
-    return (
-      <CallInterface
-        callSession={activeCall}
-        onEndCall={endCall}
-        doctorName={otherPartyName}
-        doctorAvatar={otherPartyAvatar}
-      />
-    );
-  }
+  // Call interface is now handled via WebRTC in the messaging components
+  // The appointment card just shows appointment info and triggers calls from there
 
   return (
     <>

@@ -49,17 +49,7 @@ export function DoctorAppointmentCard({ appointment }: DoctorAppointmentCardProp
     }
   };
 
-  // Show call interface if there's an active call
-  if (activeCall && activeCall.appointment_id === appointment.id) {
-    return (
-      <CallInterface
-        callSession={activeCall}
-        onEndCall={endCall}
-        doctorName={patientName}
-        doctorAvatar={patientAvatar}
-      />
-    );
-  }
+  // Call interface is now handled via WebRTC in the messaging components
 
   if (!canStartCall) {
     return null; // Don't show call button if can't start call
