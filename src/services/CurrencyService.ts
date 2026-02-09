@@ -18,7 +18,7 @@ export interface PricingData {
 }
 
 export class CurrencyService {
-  private static readonly BASE_FEE_USD = 10; // $10 base fee
+  private static readonly BASE_FEE_USD = 7; // $7 base fee
   private static exchangeRates: Map<string, number> = new Map();
   private static lastUpdate: number = 0;
   private static readonly UPDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
