@@ -31,7 +31,7 @@ const Subscription = () => {
     setProcessing(true);
 
     try {
-      const amount = plan === 'yearly' ? 164000 : 15000;
+      const amount = plan === 'yearly' ? 70 : 7;
       
       // Initialize payment with our edge function
       const { data: initData, error: initError } = await supabase.functions.invoke('paystack-initialize', {
@@ -94,7 +94,7 @@ const Subscription = () => {
                     {hasLegacyAccess ? 'Legacy User Access' : 'Monthly Plan'}
                   </h3>
                    <p className="text-2xl font-bold text-primary">
-                     {hasLegacyAccess ? 'FREE' : '₦15,000/month'}
+                     {hasLegacyAccess ? 'FREE' : '$7/month'}
                    </p>
                   {hasLegacyAccess && (
                     <p className="text-sm text-muted-foreground">
@@ -168,7 +168,7 @@ const Subscription = () => {
                         <h4 className="text-lg font-semibold">Monthly Plan</h4>
                       </div>
                        <div className="text-right">
-                         <p className="text-2xl font-bold text-primary">$10</p>
+                       <p className="text-2xl font-bold text-primary">$7</p>
                          <p className="text-sm text-muted-foreground">/month</p>
                        </div>
                     </div>
@@ -185,7 +185,7 @@ const Subscription = () => {
                        className="w-full"
                      >
                        <CreditCard className="h-4 w-4 mr-2" />
-                       {processing ? 'Processing...' : 'Subscribe Monthly - $10'}
+                       {processing ? 'Processing...' : 'Subscribe Monthly - $7'}
                      </Button>
                   </CardContent>
                 </Card>
@@ -205,9 +205,9 @@ const Subscription = () => {
                         <h4 className="text-lg font-semibold">Yearly Plan</h4>
                       </div>
                        <div className="text-right">
-                         <p className="text-2xl font-bold text-secondary">$100</p>
+                         <p className="text-2xl font-bold text-secondary">$70</p>
                          <p className="text-sm text-muted-foreground">/year</p>
-                         <p className="text-xs text-green-600">Save $20!</p>
+                         <p className="text-xs text-green-600">Save $14!</p>
                        </div>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-1">
@@ -223,7 +223,7 @@ const Subscription = () => {
                        variant="secondary"
                      >
                        <CreditCard className="h-4 w-4 mr-2" />
-                       {processing ? 'Processing...' : 'Subscribe Yearly - $100'}
+                       {processing ? 'Processing...' : 'Subscribe Yearly - $70'}
                     </Button>
                   </CardContent>
                 </Card>

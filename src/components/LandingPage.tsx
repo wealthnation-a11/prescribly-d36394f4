@@ -448,7 +448,7 @@ export const LandingPage = () => {
                     <CardTitle className="text-2xl mb-2">Individual</CardTitle>
                     <CardDescription>Perfect for personal healthcare needs</CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$10</span>
+                       <span className="text-4xl font-bold text-primary">$7</span>
                        <span className="text-muted-foreground">/month</span>
                      </div>
                   </CardHeader>
@@ -496,7 +496,7 @@ export const LandingPage = () => {
                       Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
                     </CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$300</span>
+                       <span className="text-4xl font-bold text-primary">$200</span>
                        <span className="text-muted-foreground">/month</span>
                      </div>
                   </CardHeader>
@@ -594,10 +594,10 @@ export const LandingPage = () => {
                     <CardTitle className="text-2xl mb-2">Individual</CardTitle>
                     <CardDescription>Perfect for personal healthcare needs</CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$100</span>
+                       <span className="text-4xl font-bold text-primary">$70</span>
                        <span className="text-muted-foreground">/year</span>
                      </div>
-                     <div className="text-sm text-green-600 font-medium">Save $20 annually</div>
+                     <div className="text-sm text-green-600 font-medium">Save $14 annually</div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -642,7 +642,7 @@ export const LandingPage = () => {
                       Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
                     </CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$300</span>
+                       <span className="text-4xl font-bold text-primary">$200</span>
                        <span className="text-muted-foreground">/month</span>
                      </div>
                   </CardHeader>
