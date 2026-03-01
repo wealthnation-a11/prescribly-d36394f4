@@ -29,6 +29,9 @@ interface Doctor {
   user_id: string;
   specialization: string;
   consultation_fee: number;
+  offers_home_service?: boolean;
+  home_service_fee?: number;
+  service_locations?: any[];
   profiles: {
     first_name: string;
     last_name: string;
@@ -85,6 +88,9 @@ export default function BookAppointment() {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('');
   const [reason, setReason] = useState('');
+  const [appointmentType, setAppointmentType] = useState<'clinic' | 'home_service'>('clinic');
+  const [patientAddress, setPatientAddress] = useState('');
+  const [patientLocation, setPatientLocation] = useState<{ country: string; state: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
@@ -108,6 +114,7 @@ export default function BookAppointment() {
     
     fetchDoctors();
     fetchAppointments();
+    fetchPatientLocation();
     
     // Subscribe to appointment changes for real-time updates
     const appointmentsChannel = supabase
@@ -132,11 +139,27 @@ export default function BookAppointment() {
     };
   }, [user, navigate, diagnosisSessionData]);
 
+  const fetchPatientLocation = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('location_country, location_state')
+        .eq('user_id', user.id)
+        .single();
+      if (data && data.location_country) {
+        setPatientLocation({ country: data.location_country, state: data.location_state || '' });
+      }
+    } catch (err) {
+      console.error('Error fetching patient location:', err);
+    }
+  };
+
   const fetchDoctors = async () => {
     try {
       const { data, error } = await supabase
         .from('public_doctor_profiles')
-        .select('doctor_user_id, specialization, consultation_fee, first_name, last_name, avatar_url');
+        .select('doctor_user_id, specialization, consultation_fee, first_name, last_name, avatar_url, offers_home_service, home_service_fee, service_locations');
 
       if (error) throw error;
 
@@ -144,6 +167,9 @@ export default function BookAppointment() {
         user_id: doc.doctor_user_id,
         specialization: doc.specialization,
         consultation_fee: doc.consultation_fee,
+        offers_home_service: doc.offers_home_service,
+        home_service_fee: doc.home_service_fee,
+        service_locations: doc.service_locations,
         profiles: {
           first_name: doc.first_name || '',
           last_name: doc.last_name || '',
@@ -264,7 +290,9 @@ export default function BookAppointment() {
           date: format(selectedDate, 'yyyy-MM-dd'),
           time: selectedTime,
           reason: reason.trim(),
-          diagnosis_session_id: diagnosisSessionData?.id // Include diagnosis session ID if available
+          diagnosis_session_id: diagnosisSessionData?.id,
+          appointment_type: appointmentType,
+          patient_address: appointmentType === 'home_service' ? patientAddress : undefined,
         }
       });
 
@@ -489,6 +517,38 @@ export default function BookAppointment() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Appointment Type Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Appointment Type</Label>
+                        <Select value={appointmentType} onValueChange={(v: 'clinic' | 'home_service') => setAppointmentType(v)}>
+                          <SelectTrigger className="h-12 text-base">
+                            <SelectValue placeholder="Choose appointment type" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background">
+                            <SelectItem value="clinic">🏥 Clinic Visit</SelectItem>
+                            <SelectItem value="home_service">🏠 Home Service</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {appointmentType === 'home_service' && !patientLocation && (
+                        <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-800">
+                          Please update your profile with your location (country & state) to use home service booking.
+                        </div>
+                      )}
+
+                      {appointmentType === 'home_service' && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Your Address for Home Visit</Label>
+                          <Textarea
+                            value={patientAddress}
+                            onChange={(e) => setPatientAddress(e.target.value)}
+                            placeholder="Enter your full address for the home visit..."
+                            className="min-h-[80px]"
+                          />
+                        </div>
+                      )}
+
                       {/* Doctor Selection */}
                       <div className="space-y-2">
                         <Label htmlFor="doctor" className="text-sm font-medium">Select Doctor</Label>
@@ -497,14 +557,21 @@ export default function BookAppointment() {
                             <SelectValue placeholder="Choose a doctor" />
                           </SelectTrigger>
                           <SelectContent className="bg-background">
-                            {doctors.map((doctor) => (
+                            {(appointmentType === 'home_service'
+                              ? doctors.filter(d => d.offers_home_service && (!patientLocation || (d.service_locations || []).some((loc: any) =>
+                                  loc.country?.toLowerCase() === patientLocation.country?.toLowerCase() &&
+                                  (!loc.state || loc.state.toLowerCase() === patientLocation.state?.toLowerCase())
+                                )))
+                              : doctors
+                            ).map((doctor) => (
                               <SelectItem key={doctor.user_id} value={doctor.user_id}>
                                 <div className="flex flex-col items-start">
                                   <span className="font-medium">
                                     Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
                                   </span>
                                    <span className="text-sm text-muted-foreground">
-                                     {doctor.specialization} • $10 consultation fee
+                                     {doctor.specialization} • ${appointmentType === 'home_service' ? (doctor.home_service_fee || doctor.consultation_fee || 10) : (doctor.consultation_fee || 10)} consultation fee
+                                     {appointmentType === 'home_service' && ' (home service)'}
                                    </span>
                                 </div>
                               </SelectItem>

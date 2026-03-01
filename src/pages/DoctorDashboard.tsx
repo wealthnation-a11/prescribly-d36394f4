@@ -5,7 +5,7 @@ import { useDoctorEarnings } from "@/hooks/useDoctorEarnings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, Navigate } from "react-router-dom";
-import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Brain } from "lucide-react";
+import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Brain, Pill } from "lucide-react";
 import { DoctorLayout } from "@/components/DoctorLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -98,6 +98,23 @@ export const DoctorDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('doctor_id', user.id)
         .gte('created_at', startOfMonth.toISOString());
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch pending drug approvals count
+  const { data: pendingApprovalsCount = 0 } = useQuery({
+    queryKey: ['pending-approvals-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { count, error } = await supabase
+        .from('pending_drug_approvals')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['pending', 'under_review']);
       
       if (error) throw error;
       return count || 0;
@@ -306,26 +323,26 @@ export const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* AI Diagnoses */}
+              {/* AI Diagnoses / Pending Prescriptions */}
               <Card className="backdrop-blur-sm bg-purple-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-slate-900">
                     <div className="p-2 bg-purple-100 rounded-lg">
-                      <Brain className="w-5 h-5 text-purple-600" />
+                      <Pill className="w-5 h-5 text-purple-600" />
                     </div>
-                    AI Diagnoses
+                    Pending Prescriptions
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <p className="text-2xl font-bold text-slate-900">0</p>
+                    <p className="text-2xl font-bold text-slate-900">{pendingApprovalsCount}</p>
                     <p className="text-sm text-slate-600">pending review</p>
                   </div>
                   <p className="text-slate-600 mb-4 text-sm">
-                    Review AI-assisted patient diagnoses.
+                    Review AI-recommended medications for patients.
                   </p>
                   <Button asChild variant="outline" className="w-full">
-                    <Link to="/doctor/ai-diagnoses">Review Cases</Link>
+                    <Link to="/doctor/pending-prescriptions">Review Prescriptions</Link>
                   </Button>
                 </CardContent>
               </Card>

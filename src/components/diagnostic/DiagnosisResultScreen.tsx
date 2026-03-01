@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { PendingPrescriptionCard } from '@/components/PendingPrescriptionCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -47,6 +48,8 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [drugRecommendations, setDrugRecommendations] = useState<any[]>([]);
+  const [pendingSubmitted, setPendingSubmitted] = useState(false);
+  const [sessionId, setSessionId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const inFlightRef = useRef(false);
@@ -86,6 +89,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
           user_id: user?.id,
           session_id: crypto.randomUUID()
         };
+        setSessionId(payload.session_id);
 
         console.log('Calling diagnose-symptoms with payload:', payload);
         
@@ -110,7 +114,17 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
         onComplete(data);
         
-        // Auto-save diagnosis to history after a short delay to ensure data is ready
+        // Save drugs to pending_drug_approvals and auto-save diagnosis
+        if (data.diagnoses && data.diagnoses.length > 0 && user) {
+          const topDiag = data.diagnoses[0];
+          // Load drugs then submit for approval
+          const drugsForApproval = await loadDrugRecommendations(topDiag.condition_id);
+          if (drugsForApproval && drugsForApproval.length > 0) {
+            await submitForDoctorApproval(payload.session_id, topDiag, drugsForApproval);
+          }
+        }
+
+        // Auto-save diagnosis to history
         setTimeout(() => {
           saveDiagnosis();
         }, 1000);
@@ -129,11 +143,10 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
     getDiagnosis();
   }, [symptoms, answers, user?.id]);
 
-  const loadDrugRecommendations = async (conditionId: number) => {
+  const loadDrugRecommendations = async (conditionId: number): Promise<any[]> => {
     try {
       console.log('Loading drug recommendations for condition ID:', conditionId);
       
-      // Fetch drug recommendations from the drugs table
       const { data: drugsData, error: drugsError } = await supabase
         .from('drugs')
         .select('id, drug_name, rxnorm_id, strength, form, dosage, notes')
@@ -144,42 +157,59 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
       if (drugsError) {
         console.error('Error fetching drugs:', drugsError);
-        // Fallback to mock data if database query fails
         const fallbackDrugs = [
           {
-            id: 1,
-            drug_name: 'Acetaminophen',
-            rxnorm_id: '161',
-            strength: '500mg',
-            form: 'Tablet',
-            dosage: '1-2 tablets every 4-6 hours as needed',
+            id: 1, drug_name: 'Acetaminophen', rxnorm_id: '161', strength: '500mg',
+            form: 'Tablet', dosage: '1-2 tablets every 4-6 hours as needed',
             notes: 'For pain and fever relief. Do not exceed 4000mg in 24 hours.'
           }
         ];
         setDrugRecommendations(fallbackDrugs);
-        return;
+        return fallbackDrugs;
       }
 
       if (drugsData && drugsData.length > 0) {
         setDrugRecommendations(drugsData);
+        return drugsData;
       } else {
-        // No drugs found for this condition, use general recommendations
         const generalDrugs = [
           {
-            id: 1,
-            drug_name: 'General Pain Relief',
-            rxnorm_id: '161',
-            strength: '500mg',
-            form: 'Tablet',
-            dosage: 'As directed by physician',
+            id: 1, drug_name: 'General Pain Relief', rxnorm_id: '161', strength: '500mg',
+            form: 'Tablet', dosage: 'As directed by physician',
             notes: 'Consult with healthcare provider for appropriate medication.'
           }
         ];
         setDrugRecommendations(generalDrugs);
+        return generalDrugs;
       }
     } catch (error) {
       console.error('Error loading drug recommendations:', error);
       setDrugRecommendations([]);
+      return [];
+    }
+  };
+
+  const submitForDoctorApproval = async (diagSessionId: string, topDiagnosis: any, drugs: any[]) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('pending_drug_approvals')
+        .insert({
+          patient_id: user.id,
+          diagnosis_session_id: diagSessionId,
+          condition_name: topDiagnosis.condition_name,
+          condition_id: topDiagnosis.condition_id || null,
+          drugs: drugs,
+          status: 'pending'
+        });
+
+      if (error) {
+        console.error('Error submitting for doctor approval:', error);
+      } else {
+        setPendingSubmitted(true);
+      }
+    } catch (err) {
+      console.error('Error submitting for approval:', err);
     }
   };
 
@@ -435,63 +465,13 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
         </Card>
       )}
 
-      {/* Drug Recommendations */}
-      {drugRecommendations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Pill className="h-5 w-5 text-primary" />
-              Recommended Medications
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                These are general recommendations. Always consult with a healthcare provider before taking any medication.
-              </AlertDescription>
-            </Alert>
-            
-            <div className="space-y-3">
-              {drugRecommendations.map((drug) => (
-                <div key={drug.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-semibold text-lg">{drug.drug_name}</h4>
-                    {drug.rxnorm_id && (
-                      <Badge variant="outline" className="text-xs">
-                        RxNorm: {drug.rxnorm_id}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mb-2">
-                    {drug.strength && (
-                      <div>
-                        <span className="font-medium">Strength:</span> {drug.strength}
-                      </div>
-                    )}
-                    {drug.form && (
-                      <div>
-                        <span className="font-medium">Form:</span> {drug.form}
-                      </div>
-                    )}
-                    {drug.dosage && (
-                      <div>
-                        <span className="font-medium">Dosage:</span> {drug.dosage}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {drug.notes && (
-                    <p className="text-sm text-muted-foreground italic">
-                      {drug.notes}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Drug Recommendations - Now requires doctor approval */}
+      {drugRecommendations.length > 0 && topDiagnosis && (
+        <PendingPrescriptionCard
+          sessionId={sessionId}
+          conditionName={topDiagnosis.condition_name}
+          drugs={drugRecommendations}
+        />
       )}
 
       {/* Important Disclaimer */}

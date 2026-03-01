@@ -13,7 +13,10 @@ const appointmentSchema = z.object({
   doctor_id: z.string().uuid({ message: "Invalid doctor ID format" }),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format. Use YYYY-MM-DD"),
   time: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format. Use HH:MM"),
-  reason: z.string().min(10, "Reason too short").max(1000, "Reason too long")
+  reason: z.string().min(10, "Reason too short").max(1000, "Reason too long"),
+  appointment_type: z.enum(['clinic', 'home_service']).default('clinic'),
+  patient_address: z.string().max(500).optional().nullable(),
+  diagnosis_session_id: z.string().optional().nullable(),
 });
 
 serve(async (req) => {
@@ -55,7 +58,7 @@ serve(async (req) => {
       });
     }
 
-    const { doctor_id, date, time, reason } = validation.data;
+    const { doctor_id, date, time, reason, appointment_type, patient_address } = validation.data;
 
     // Combine date and time for scheduled_time
     const scheduledTime = new Date(`${date}T${time}`);
@@ -151,7 +154,7 @@ serve(async (req) => {
     // Get doctor's consultation fee and verify doctor exists
     const { data: doctorData, error: doctorError } = await supabase
       .from('doctors')
-      .select('consultation_fee, verification_status')
+      .select('consultation_fee, verification_status, offers_home_service, home_service_fee, service_locations')
       .eq('user_id', doctor_id)
       .single();
 
@@ -178,8 +181,10 @@ serve(async (req) => {
         doctor_id: doctor_id,
         scheduled_time: scheduledTime.toISOString(),
         notes: reason,
-        consultation_fee: doctorData?.consultation_fee || 0,
-        status: 'pending'
+        consultation_fee: appointment_type === 'home_service' ? (doctorData?.home_service_fee || doctorData?.consultation_fee || 0) : (doctorData?.consultation_fee || 0),
+        status: 'pending',
+        appointment_type: appointment_type,
+        patient_address: patient_address || null
       })
       .select()
       .single();
