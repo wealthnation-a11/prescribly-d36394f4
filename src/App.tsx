@@ -235,69 +235,6 @@ const App = () => (
                 <NotificationHistory />
               </ProtectedRoute>
             } />
-            <Route path="/herbal-medicine" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <HerbalMedicine />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/my-consultations" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <UserHerbalConsultations />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/browse-remedies" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <BrowseRemedies />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/browse-articles" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <BrowseArticles />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/find-practitioners" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <FindPractitioners />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/cart" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <ShoppingCartPage />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/checkout" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <CheckoutPage />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/my-orders" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <MyOrders />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal/patient-messages" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <PatientHerbalMessages />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
             <Route path="/appointments" element={<Navigate to="/book-appointment" replace />} />
             <Route path="/chat" element={
               <ProtectedRoute requirePatient={true}>

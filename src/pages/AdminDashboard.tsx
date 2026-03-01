@@ -5,9 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import DoctorApplicationsManagement from "@/components/admin/DoctorApplicationsManagement";
-import { HerbalPractitionersManagement } from "@/components/admin/HerbalPractitionersManagement";
-import { HerbalRemediesModeration } from "@/components/admin/HerbalRemediesModeration";
-import { HerbalArticlesModeration } from "@/components/admin/HerbalArticlesModeration";
 import UserManagement from "@/components/admin/UserManagement";
 import AppointmentManagement from "@/components/admin/AppointmentManagement";
 import PaymentManagement from "@/components/admin/PaymentManagement";
@@ -61,17 +58,11 @@ const AdminDashboard = () => {
   const { data: pendingCounts } = useQuery({
     queryKey: ["admin-pending-counts"],
     queryFn: async () => {
-      const [doctorsRes, herbalPracRes, remediesRes, articlesRes] = await Promise.all([
+      const [doctorsRes] = await Promise.all([
         supabase.from("doctors").select("id", { count: "exact", head: true }).eq("verification_status", "pending"),
-        supabase.from("herbal_practitioners").select("id", { count: "exact", head: true }).eq("verification_status", "pending"),
-        supabase.from("herbal_remedies").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
-        supabase.from("herbal_articles").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
       ]);
       return {
         doctors: doctorsRes.count || 0,
-        herbalPractitioners: herbalPracRes.count || 0,
-        herbalRemedies: remediesRes.count || 0,
-        herbalArticles: articlesRes.count || 0,
       };
     },
   });
@@ -134,22 +125,6 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         );
-      case "herbal":
-        return (
-          <Card className="border-border/50 shadow-sm">
-            <CardHeader className="border-b border-border/30 bg-muted/30">
-              <CardTitle>Herbal Practitioners Management</CardTitle>
-              <CardDescription>Review and manage herbal practitioner applications</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <HerbalPractitionersManagement />
-            </CardContent>
-          </Card>
-        );
-      case "herbal-remedies":
-        return <HerbalRemediesModeration />;
-      case "herbal-articles":
-        return <HerbalArticlesModeration />;
       case "appointments":
         return (
           <Card className="border-border/50 shadow-sm">
@@ -335,7 +310,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Quick Stats Summary */}
-            {pendingCounts && (pendingCounts.doctors || pendingCounts.herbalPractitioners || pendingCounts.herbalRemedies || pendingCounts.herbalArticles) ? (
+            {pendingCounts && pendingCounts.doctors ? (
               <div className="mb-6 p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                   <Clock className="h-4 w-4" />
@@ -344,21 +319,6 @@ const AdminDashboard = () => {
                     {pendingCounts.doctors ? (
                       <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
                         {pendingCounts.doctors} doctors
-                      </span>
-                    ) : null}
-                    {pendingCounts.herbalPractitioners ? (
-                      <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
-                        {pendingCounts.herbalPractitioners} practitioners
-                      </span>
-                    ) : null}
-                    {pendingCounts.herbalRemedies ? (
-                      <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
-                        {pendingCounts.herbalRemedies} remedies
-                      </span>
-                    ) : null}
-                    {pendingCounts.herbalArticles ? (
-                      <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
-                        {pendingCounts.herbalArticles} articles
                       </span>
                     ) : null}
                   </div>

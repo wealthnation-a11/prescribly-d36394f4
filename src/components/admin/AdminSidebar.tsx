@@ -69,14 +69,11 @@ const navGroups: NavGroup[] = [
     title: "Healthcare Providers",
     items: [
       { id: "doctors", label: "Doctors", icon: Stethoscope, color: "text-cyan-500" },
-      { id: "herbal", label: "Herbal Practitioners", icon: Leaf, color: "text-green-500" },
     ],
   },
   {
     title: "Content Moderation",
     items: [
-      { id: "herbal-remedies", label: "Herbal Remedies", icon: Package, color: "text-amber-500" },
-      { id: "herbal-articles", label: "Herbal Articles", icon: FileText, color: "text-orange-500" },
       { id: "blog", label: "Blog", icon: BookOpen, color: "text-pink-500" },
     ],
   },
@@ -108,12 +105,6 @@ export function AdminSidebar({
     switch (id) {
       case "doctors":
         return pendingCounts.doctors;
-      case "herbal":
-        return pendingCounts.herbalPractitioners;
-      case "herbal-remedies":
-        return pendingCounts.herbalRemedies;
-      case "herbal-articles":
-        return pendingCounts.herbalArticles;
       default:
         return undefined;
     }
