@@ -133,6 +133,7 @@ export type Database = {
       }
       appointments: {
         Row: {
+          appointment_type: string
           consultation_fee: number | null
           consultation_log: string | null
           created_at: string
@@ -140,12 +141,14 @@ export type Database = {
           duration_minutes: number | null
           id: string
           notes: string | null
+          patient_address: string | null
           patient_id: string
           scheduled_time: string
           status: Database["public"]["Enums"]["appointment_status"] | null
           updated_at: string
         }
         Insert: {
+          appointment_type?: string
           consultation_fee?: number | null
           consultation_log?: string | null
           created_at?: string
@@ -153,12 +156,14 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           notes?: string | null
+          patient_address?: string | null
           patient_id: string
           scheduled_time: string
           status?: Database["public"]["Enums"]["appointment_status"] | null
           updated_at?: string
         }
         Update: {
+          appointment_type?: string
           consultation_fee?: number | null
           consultation_log?: string | null
           created_at?: string
@@ -166,6 +171,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           notes?: string | null
+          patient_address?: string | null
           patient_id?: string
           scheduled_time?: string
           status?: Database["public"]["Enums"]["appointment_status"] | null
@@ -920,10 +926,13 @@ export type Database = {
           bio: string | null
           consultation_fee: number | null
           created_at: string
+          home_service_fee: number | null
           id: string
           kyc_documents: Json | null
           license_number: string | null
+          offers_home_service: boolean
           rating: number | null
+          service_locations: Json | null
           specialization: string
           total_reviews: number | null
           updated_at: string
@@ -937,10 +946,13 @@ export type Database = {
           bio?: string | null
           consultation_fee?: number | null
           created_at?: string
+          home_service_fee?: number | null
           id?: string
           kyc_documents?: Json | null
           license_number?: string | null
+          offers_home_service?: boolean
           rating?: number | null
+          service_locations?: Json | null
           specialization: string
           total_reviews?: number | null
           updated_at?: string
@@ -954,10 +966,13 @@ export type Database = {
           bio?: string | null
           consultation_fee?: number | null
           created_at?: string
+          home_service_fee?: number | null
           id?: string
           kyc_documents?: Json | null
           license_number?: string | null
+          offers_home_service?: boolean
           rating?: number | null
+          service_locations?: Json | null
           specialization?: string
           total_reviews?: number | null
           updated_at?: string
@@ -1950,6 +1965,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_drug_approvals: {
+        Row: {
+          approved_drugs: Json | null
+          condition_id: number | null
+          condition_name: string
+          created_at: string
+          diagnosis_session_id: string
+          doctor_id: string | null
+          doctor_notes: string | null
+          drugs: Json
+          id: string
+          patient_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_drugs?: Json | null
+          condition_id?: number | null
+          condition_name: string
+          created_at?: string
+          diagnosis_session_id: string
+          doctor_id?: string | null
+          doctor_notes?: string | null
+          drugs?: Json
+          id?: string
+          patient_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_drugs?: Json | null
+          condition_id?: number | null
+          condition_name?: string
+          created_at?: string
+          diagnosis_session_id?: string
+          doctor_id?: string | null
+          doctor_notes?: string | null
+          drugs?: Json
+          id?: string
+          patient_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_drug_approvals_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pending_drug_approvals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       performance_metrics: {
         Row: {
           created_at: string
@@ -2164,8 +2239,11 @@ export type Database = {
           doctor_id: string
           doctor_user_id: string
           first_name: string | null
+          home_service_fee: number | null
           last_name: string | null
+          offers_home_service: boolean
           rating: number | null
+          service_locations: Json | null
           specialization: string
           total_reviews: number | null
           updated_at: string
@@ -2179,8 +2257,11 @@ export type Database = {
           doctor_id: string
           doctor_user_id: string
           first_name?: string | null
+          home_service_fee?: number | null
           last_name?: string | null
+          offers_home_service?: boolean
           rating?: number | null
+          service_locations?: Json | null
           specialization: string
           total_reviews?: number | null
           updated_at?: string
@@ -2194,8 +2275,11 @@ export type Database = {
           doctor_id?: string
           doctor_user_id?: string
           first_name?: string | null
+          home_service_fee?: number | null
           last_name?: string | null
+          offers_home_service?: boolean
           rating?: number | null
+          service_locations?: Json | null
           specialization?: string
           total_reviews?: number | null
           updated_at?: string

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, CheckCircle, User, CalendarDays, X, Video } from "lucide-react";
+import { Calendar, Clock, Users, CheckCircle, User, CalendarDays, X, Video, Home, Building2 } from "lucide-react";
 import { DoctorAppointmentCard } from "@/components/DoctorAppointmentCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEnhancedActivityLogger } from "@/hooks/useEnhancedActivityLogger";
@@ -40,7 +40,9 @@ export const DoctorAppointments = () => {
           notes,
           consultation_log,
           created_at,
-          updated_at
+          updated_at,
+          appointment_type,
+          patient_address
         `)
         .eq('doctor_id', user.id)
         .gte('scheduled_time', startOfDay.toISOString())
@@ -305,6 +307,15 @@ export const DoctorAppointments = () => {
                             <p className="text-sm text-slate-600 mt-1 truncate">
                               Reason: {appointment.notes}
                             </p>
+                          )}
+                          {(appointment as any).appointment_type === 'home_service' && (
+                            <div className="flex items-center gap-1 text-sm text-blue-600 mt-1">
+                              <Home className="w-3 h-3" />
+                              Home Service
+                              {(appointment as any).patient_address && (
+                                <span className="text-muted-foreground ml-1">— {(appointment as any).patient_address}</span>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>

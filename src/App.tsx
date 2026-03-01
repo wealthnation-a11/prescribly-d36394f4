@@ -24,6 +24,7 @@ import { DoctorPendingApproval } from "./pages/DoctorPendingApproval";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments";
 import DoctorPatients from "./pages/doctor/DoctorPatients";
 import DoctorPrescriptions from "./pages/doctor/DoctorPrescriptions";
+import PendingPrescriptionReview from "./components/doctor/PendingPrescriptionReview";
 import DoctorMessages from "./pages/doctor/DoctorMessages";
 import DoctorProfile from "./pages/doctor/DoctorProfile";
 import DoctorAvailability from "./pages/doctor/DoctorAvailability";
@@ -289,6 +290,11 @@ const App = () => (
             <Route path="/doctor/prescriptions" element={
               <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
                 <DoctorPrescriptions />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/pending-prescriptions" element={
+              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
+                <PendingPrescriptionReview />
               </ProtectedRoute>
             } />
             <Route path="/doctor/messages" element={

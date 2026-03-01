@@ -38,6 +38,9 @@ interface DoctorProfileData {
   verification_status?: 'pending' | 'approved' | 'rejected' | 'suspended';
   rating?: number;
   total_reviews?: number;
+  offers_home_service?: boolean;
+  home_service_fee?: number;
+  service_locations?: any[];
 }
 
 interface AvailabilityData {
@@ -118,7 +121,10 @@ export const DoctorProfile = () => {
       }
 
       if (data) {
-        setProfileData(data);
+        setProfileData({
+          ...data,
+          service_locations: (data.service_locations as any[] | null) || [],
+        });
       }
     } catch (error) {
       console.error('Error:', error);
@@ -425,6 +431,51 @@ export const DoctorProfile = () => {
                         placeholder="Brief introduction about yourself and your practice"
                         rows={4}
                       />
+                    </div>
+
+                    {/* Home Service Section */}
+                    <div className="border-t pt-4 mt-4 space-y-4">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Home Service Settings
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={profileData.offers_home_service || false}
+                          onCheckedChange={(checked) => setProfileData(prev => ({ ...prev, offers_home_service: !!checked }))}
+                        />
+                        <Label>I offer home service visits</Label>
+                      </div>
+                      
+                      {profileData.offers_home_service && (
+                        <>
+                          <div>
+                            <Label htmlFor="home_service_fee">Home Service Fee ($)</Label>
+                            <Input
+                              id="home_service_fee"
+                              type="number"
+                              value={profileData.home_service_fee || ''}
+                              onChange={(e) => setProfileData(prev => ({ ...prev, home_service_fee: parseInt(e.target.value) || 0 }))}
+                              placeholder="Additional fee for home visits"
+                            />
+                          </div>
+                          <div>
+                            <Label>Service Locations (comma-separated: Country-State)</Label>
+                            <Input
+                              value={(profileData.service_locations || []).map((l: any) => `${l.country}-${l.state}`).join(', ')}
+                              onChange={(e) => {
+                                const locations = e.target.value.split(',').map(loc => {
+                                  const [country, state] = loc.trim().split('-');
+                                  return { country: country?.trim() || '', state: state?.trim() || '' };
+                                }).filter(l => l.country);
+                                setProfileData(prev => ({ ...prev, service_locations: locations }));
+                              }}
+                              placeholder="e.g., Nigeria-Lagos, Nigeria-Abuja"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">Format: Country-State, separated by commas</p>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <Button onClick={saveProfile} disabled={loading} className="w-full">
