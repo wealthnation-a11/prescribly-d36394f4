@@ -1,105 +1,169 @@
 
-# Replace Agora with Built-in WebRTC Calling System
+
+# Doctor-Approved Drug Prescriptions + Home Service Booking
 
 ## Overview
-Replace the broken Agora-based calling system with a free, built-in peer-to-peer calling system using the browser's native **WebRTC** API. Signaling (how the two users find each other) will be handled through **Supabase Realtime Broadcast** -- no third-party service needed, no API keys, completely free.
+Two major features:
+1. **Drug recommendations require doctor approval** before being shown to patients after AI diagnosis
+2. **Home service booking** for doctors, filtered by the patient's location
 
-## How It Works
+---
 
-**WebRTC** is built into every modern browser. It allows direct audio/video streaming between two users. The only thing it needs is a "signaling" mechanism to exchange connection details -- we'll use Supabase Realtime for that.
+## Feature 1: Doctor-Approved Drug Prescriptions
+
+### How It Works
+
+Currently, after diagnosis, drug recommendations are shown immediately to the patient. The new flow:
 
 ```text
-Patient                    Supabase Realtime                    Doctor
-   |                              |                               |
-   |-- call_offer (SDP) -------->|-------- call_offer ---------->|
-   |                              |                               |
-   |<-------- call_answer -------|<------ call_answer (SDP) -----|
-   |                              |                               |
-   |-- ice_candidate ----------->|-------- ice_candidate ------->|
-   |<-------- ice_candidate -----|<------ ice_candidate ---------|
-   |                              |                               |
-   |============= Direct P2P Audio/Video Stream =================|
+Patient gets diagnosed
+        |
+        v
+Drug recommendations saved as "pending_review"
+(Patient sees: "Medications pending doctor review")
+        |
+        v
+A doctor is auto-assigned OR patient books an appointment
+        |
+        v
+Doctor sees pending prescriptions on their dashboard
+Doctor approves/modifies/rejects each drug
+        |
+        v
+Patient gets notified, approved drugs are displayed
 ```
 
-## Changes
+### Database Changes
 
-### 1. New Hook: `src/hooks/useWebRTCCall.ts`
-Core WebRTC logic replacing `useAgoraCall.ts`:
-- Creates `RTCPeerConnection` using free Google STUN servers for NAT traversal
-- Manages local/remote media streams (audio + video)
-- Handles offer/answer/ICE candidate exchange via Supabase Realtime Broadcast channel
-- Provides `startCall`, `joinCall`, `endCall`, `toggleAudio`, `toggleVideo`
-- Renders local and remote video into HTML video elements
+**New table: `pending_drug_approvals`**
+- `id` (uuid, PK)
+- `patient_id` (uuid, references profiles.user_id)
+- `doctor_id` (uuid, nullable, references profiles.user_id) -- assigned when a doctor picks it up
+- `diagnosis_session_id` (text) -- links to the AI diagnosis session
+- `condition_name` (text)
+- `condition_id` (integer)
+- `drugs` (jsonb) -- array of recommended drugs from AI
+- `approved_drugs` (jsonb, nullable) -- doctor's approved/modified list
+- `status` (text: 'pending', 'under_review', 'approved', 'rejected')
+- `doctor_notes` (text, nullable)
+- `created_at`, `updated_at` (timestamptz)
 
-### 2. Update `src/components/CallInterface.tsx`
-- Accept WebRTC media streams instead of Agora tracks
-- Use `<video>` elements with `ref` to display local/remote video via `srcObject`
-- Wire mute/camera toggle to actual WebRTC track enable/disable
-- Show real connection status from the `RTCPeerConnection` state
+RLS policies:
+- Patients can SELECT their own rows
+- Doctors can SELECT rows assigned to them or unassigned, and UPDATE status/approved_drugs
+- Service role for inserts from edge functions
 
-### 3. Update `src/components/messaging/PatientMessaging.tsx`
-- Remove `generate-agora-token` edge function call
-- Use `useWebRTCCall` hook to initiate calls
-- Send call offer through Supabase Realtime to the doctor
-- Show incoming call notification and `CallInterface` when active
+### Code Changes
 
-### 4. Update `src/components/messaging/DoctorMessaging.tsx`
-- Remove `generate-agora-token` edge function call
-- Use `useWebRTCCall` hook
-- Listen for incoming call offers via Supabase Realtime
-- Show incoming call UI with accept/reject buttons
-- Display `CallInterface` when call is active
+**`src/components/diagnostic/DiagnosisResultScreen.tsx`**
+- After diagnosis completes, instead of showing drugs directly, save them to `pending_drug_approvals` with status='pending'
+- Show a "Medications Pending Doctor Review" card with a message explaining a doctor needs to confirm the prescription
+- Add a "Book Doctor to Review" button that navigates to `/book-appointment` with diagnosis context
+- If the user already has an approved prescription for this session, show the approved drugs
 
-### 5. Update `src/hooks/useCallSession.tsx`
-- Keep the existing `call_sessions` database logging (start/end call records)
-- Remove any Agora token generation references
+**New component: `src/components/PendingPrescriptionCard.tsx`**
+- Shows the pending status with a nice UI
+- Polls or uses realtime subscription for status changes
+- When status changes to 'approved', displays the approved drugs
 
-### 6. Delete Agora-related files
-- Delete `supabase/functions/generate-agora-token/` (hardcoded credentials, duplicate)
-- Delete `supabase/functions/agora-token/` (fake token algorithm)
-- Delete `src/hooks/useAgoraCall.ts`
-- Remove both entries from `supabase/config.toml`
+**New component: `src/components/doctor/PendingPrescriptionReview.tsx`**
+- Shows doctors a list of pending prescriptions assigned to them
+- Each prescription shows: patient info, diagnosis condition, AI-recommended drugs
+- Doctor can approve all, approve with modifications, or reject with notes
+- On approval, updates `status` to 'approved' and fills `approved_drugs`
+- Creates a notification for the patient
 
-### 7. Remove `agora-rtc-sdk-ng` dependency
-- No longer needed since we use native browser WebRTC APIs
+**`src/pages/doctor/DoctorDashboard.tsx` or `DoctorAppointments.tsx`**
+- Add a "Pending Prescriptions" section/tab showing unreviewed prescriptions
+- Badge count for pending items
 
-## Technical Details
+**`src/components/AppSidebar.tsx`** (user side)
+- Add "My Prescriptions" link if not already prominent -- this already exists
 
-### WebRTC Hook Core Structure
-```typescript
-// Free STUN servers - no account needed
-const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-];
+### Notification Flow
+- When a prescription is submitted for review, notify available doctors
+- When a doctor approves/rejects, notify the patient via the existing notifications table
 
-// Signaling via Supabase Realtime Broadcast
-const channel = supabase.channel(`call:${appointmentId}`);
-channel.on('broadcast', { event: 'offer' }, handleOffer);
-channel.on('broadcast', { event: 'answer' }, handleAnswer);
-channel.on('broadcast', { event: 'ice-candidate' }, handleIceCandidate);
-channel.on('broadcast', { event: 'call-ended' }, handleCallEnded);
-```
+---
 
-### Incoming Call Flow
-When a patient clicks "Call", a broadcast event is sent on the appointment channel. The doctor's messaging component listens on the same channel and shows an incoming call modal with Accept/Reject. On accept, the WebRTC handshake completes and media flows directly peer-to-peer.
+## Feature 2: Home Service Booking
 
-### Limitations (Honest)
-- **No TURN server**: ~85% of connections work with STUN only. Some strict corporate firewalls may block P2P. A TURN server costs money, so we skip it for now.
-- **Browser only**: Works on Chrome, Firefox, Safari, Edge. Not in older WebView containers.
-- **Two-party calls only**: WebRTC P2P is designed for 1-to-1 calls, which is perfect for doctor-patient consultations.
+### How It Works
+- Doctors can opt-in to offer home visits and specify which locations (country + state) they serve
+- When a patient books, they can choose "Clinic Visit" or "Home Service"
+- For home service, only doctors available in the patient's location are shown
+- Patient's location is auto-detected from their profile (`location_country`, `location_state`)
+
+### Database Changes
+
+**Add columns to `doctors` table:**
+- `offers_home_service` (boolean, default false)
+- `home_service_fee` (numeric, nullable) -- additional fee for home visits
+- `service_locations` (jsonb, nullable) -- array of {country, state} objects
+
+**Add columns to `appointments` table:**
+- `appointment_type` (text, default 'clinic') -- 'clinic' or 'home_service'
+- `patient_address` (text, nullable) -- for home service appointments
+
+**Add columns to `public_doctor_profiles` table:**
+- `offers_home_service` (boolean, default false)
+- `home_service_fee` (numeric, nullable)
+- `service_locations` (jsonb, nullable)
+
+Update the `refresh_public_doctor_profile` function to sync these new fields.
+
+### Code Changes
+
+**`src/pages/BookAppointment.tsx`**
+- Add appointment type selector: "Clinic Visit" vs "Home Service"
+- When "Home Service" is selected:
+  - Auto-detect patient location from profile (`location_country`, `location_state`)
+  - Filter doctors list to only show those with `offers_home_service = true` AND whose `service_locations` includes the patient's location
+  - Show address input field for the patient
+  - Display home service fee alongside consultation fee
+- When "Clinic Visit" is selected, show all doctors as before
+
+**`src/pages/doctor/DoctorProfile.tsx`**
+- Add toggle for "Offer Home Service"
+- When enabled, show:
+  - Home service fee input
+  - Service locations picker (country + state multi-select)
+- Save to doctors table
+
+**`supabase/functions/bookAppointment/index.ts`**
+- Accept new fields: `appointment_type`, `patient_address`
+- Validate: if `appointment_type = 'home_service'`, verify doctor offers it and serves patient's location
+- Store the appointment type and address
+
+**`src/pages/doctor/DoctorAppointments.tsx`**
+- Show appointment type badge (Clinic / Home Service)
+- Show patient address for home service appointments
+
+---
+
+## Fix: Build Error in `usePushNotifications.ts`
+
+The TypeScript error about `pushManager` is a type definition issue. Fix by adding a type assertion for the ServiceWorkerRegistration since the Push API types may not be included in the project's TS config.
+
+**`src/hooks/usePushNotifications.ts`**
+- Cast `registration` to `any` for the `pushManager` calls, or add `"lib": ["DOM", "WebWorker"]` -- simplest fix is the cast since Push API is a runtime feature.
+
+---
 
 ## Files Summary
 
 | Action | File |
 |--------|------|
-| Create | `src/hooks/useWebRTCCall.ts` |
-| Rewrite | `src/components/CallInterface.tsx` |
-| Update | `src/components/messaging/PatientMessaging.tsx` |
-| Update | `src/components/messaging/DoctorMessaging.tsx` |
-| Update | `src/hooks/useCallSession.tsx` |
-| Update | `supabase/config.toml` (remove agora entries) |
-| Delete | `supabase/functions/agora-token/` |
-| Delete | `supabase/functions/generate-agora-token/` |
-| Delete | `src/hooks/useAgoraCall.ts` |
-| Remove dep | `agora-rtc-sdk-ng` from package.json |
+| **DB Migration** | Create `pending_drug_approvals` table with RLS |
+| **DB Migration** | Add `offers_home_service`, `home_service_fee`, `service_locations` to `doctors` |
+| **DB Migration** | Add `appointment_type`, `patient_address` to `appointments` |
+| **DB Migration** | Add home service fields to `public_doctor_profiles` + update refresh function |
+| Create | `src/components/PendingPrescriptionCard.tsx` |
+| Create | `src/components/doctor/PendingPrescriptionReview.tsx` |
+| Update | `src/components/diagnostic/DiagnosisResultScreen.tsx` |
+| Update | `src/pages/BookAppointment.tsx` |
+| Update | `src/pages/doctor/DoctorProfile.tsx` |
+| Update | `src/pages/doctor/DoctorAppointments.tsx` |
+| Update | `supabase/functions/bookAppointment/index.ts` |
+| Fix | `src/hooks/usePushNotifications.ts` (build error) |
+
