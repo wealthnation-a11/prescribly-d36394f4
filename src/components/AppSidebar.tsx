@@ -31,7 +31,7 @@ export function AppSidebar() {
     { title: "Health Companion", url: "/ai-health-companion", icon: MessageCircle, requiresSubscription: true },
     { title: "Health Diagnostic", url: "/health-diagnostic", icon: Brain, requiresSubscription: true },
     { title: "Health Challenges", url: "/health-challenges", icon: Target, requiresSubscription: true },
-    { title: "My Wellness Profile", url: "/gamification-profile", icon: Trophy, requiresSubscription: true },
+    
     { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText, requiresSubscription: true },
     { title: t("chat"), url: "/chat", icon: MessageCircle, requiresSubscription: true },
     { title: t("profile"), url: "/profile", icon: User, requiresSubscription: false },

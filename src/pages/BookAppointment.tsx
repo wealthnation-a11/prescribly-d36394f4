@@ -768,6 +768,14 @@ export default function BookAppointment() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => navigate('/chat')}
+                              >
+                                <MessageCircle className="h-4 w-4 mr-1" />
+                                Chat
+                              </Button>
                               {getStatusIcon(appointment.status)}
                               <Badge className={getStatusColor(appointment.status)}>
                                 {appointment.status}
