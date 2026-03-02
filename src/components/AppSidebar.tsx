@@ -34,6 +34,7 @@ export function AppSidebar() {
     
     { title: t("my_prescriptions"), url: "/my-prescriptions", icon: FileText, requiresSubscription: true },
     { title: t("chat"), url: "/chat", icon: MessageCircle, requiresSubscription: true },
+    { title: "Wellness Profile", url: "/gamification-profile", icon: Trophy, requiresSubscription: true },
     { title: t("profile"), url: "/profile", icon: User, requiresSubscription: false },
     { title: "Support", url: "/support", icon: HelpCircle, requiresSubscription: false },
   ];
