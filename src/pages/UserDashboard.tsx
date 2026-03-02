@@ -24,8 +24,7 @@ import {
   Brain,
   Trophy,
   Crown,
-  HelpCircle,
-  Leaf
+  HelpCircle
 } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
@@ -92,14 +91,6 @@ export const UserDashboard = () => {
       href: "/ai-health-companion",
       variant: "primary" as const,
       color: "text-purple-600"
-    },
-    {
-      title: "Herbal Medicine",
-      description: "Explore natural remedies and traditional healing practices.",
-      icon: Leaf,
-      href: "/herbal-medicine",
-      variant: "outline" as const,
-      color: "text-green-700"
     },
     {
       title: "Health Challenges",

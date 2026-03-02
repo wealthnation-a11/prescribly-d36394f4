@@ -76,11 +76,6 @@ export const LandingPage = () => {
     description: "Receive tailored treatment plans",
     details: "Get customized medication recommendations and treatment plans based on your specific condition, including herbal alternatives."
   }, {
-    icon: Globe,
-    title: "Herbal & Natural Medicine",
-    description: "Access traditional healing wisdom",
-    details: "Explore evidence-based herbal remedies and natural treatments, integrated with modern medical care for holistic wellness."
-  }, {
     icon: Bot,
     title: "Medical Record History",
     description: "Secure digital health records",
@@ -161,24 +156,6 @@ export const LandingPage = () => {
                     </Button>
                   </>}
               </div>
-              {!user && (
-                <div className="text-center lg:text-left fade-in-up stagger-3 flex flex-col gap-2">
-                  <Link
-                    to="/herbal-register"
-                    className="text-primary hover:text-primary/80 underline text-sm sm:text-base font-medium transition-colors flex items-center gap-2 mx-auto lg:mx-0"
-                  >
-                    <Leaf className="h-4 w-4" />
-                    Register as Herbal Practitioner
-                  </Link>
-                  <Link
-                    to="/herbal-login"
-                    className="text-muted-foreground hover:text-foreground underline text-sm transition-colors flex items-center gap-2 mx-auto lg:mx-0"
-                  >
-                    <Leaf className="h-4 w-4" />
-                    Login as Herbal Practitioner
-                  </Link>
-                </div>
-              )}
               <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground fade-in-up stagger-4 bg-gradient-to-r from-card/80 to-medical-light/50 rounded-xl p-4 sm:p-5 border border-prescribly-accent/20 backdrop-blur-sm max-w-2xl mx-auto lg:mx-0">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-success-green animate-pulse"></div>
@@ -320,71 +297,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Holistic Healthcare Section */}
-      <section id="holistic-care" className="py-12 sm:py-16 lg:py-20">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-6 sm:mb-8 fade-in-up px-4">
-              Bridging Traditional & Modern Medicine
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
-              <div className="space-y-4 sm:space-y-6 fade-in-up px-4">
-                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-                  At Prescribly, we honor the wisdom of traditional herbal medicine while embracing the precision of modern healthcare. Our integrated approach offers you the best of both worlds.
-                </p>
-                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-                  Whether you're seeking conventional treatments, herbal remedies, or a combination tailored to your needs, our licensed practitioners guide you with evidence-based recommendations rooted in centuries of healing knowledge.
-                </p>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                    <p className="text-sm sm:text-base text-foreground">Evidence-based herbal formulations from trusted sources</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                    <p className="text-sm sm:text-base text-foreground">Integration with conventional treatments when needed</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                    <p className="text-sm sm:text-base text-foreground">Personalized herbal prescriptions based on your unique health profile</p>
-                  </div>
-                </div>
-              </div>
-              <Card className="card-gradient border-0 medical-shadow fade-in-up stagger-1">
-                <CardHeader>
-                  <CardTitle className="text-xl sm:text-2xl">Natural Healing Traditions</CardTitle>
-                  <CardDescription className="text-sm sm:text-base">
-                    Our herbal medicine program includes:
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-sm sm:text-base">Traditional Chinese Medicine herbs</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-sm sm:text-base">Ayurvedic herbal formulations</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-sm sm:text-base">Western herbal medicine remedies</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                    <Heart className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-sm sm:text-base">African traditional medicine practices</span>
-                  </div>
-                  <div className="pt-4 mt-4 border-t border-border/20">
-                    <Button variant="medical" className="w-full" asChild>
-                      <Link to="/herbal-practitioner-register">Register as a Herbal Practitioner</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Our Promise Section */}
       <section id="our-promise" className="py-12 sm:py-16 lg:py-20 bg-secondary/30">

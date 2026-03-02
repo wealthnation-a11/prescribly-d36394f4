@@ -357,6 +357,21 @@ const UserProfile = () => {
                       </div>
                     </div>
 
+                    {!isEditing && formData.location_country && formData.location_state && (
+                      <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          📍 Your location (<strong>{formData.location_state}, {formData.location_country}</strong>) is used to match you with doctors offering home visits in your area.
+                        </p>
+                      </div>
+                    )}
+                    {!isEditing && (!formData.location_country || !formData.location_state) && (
+                      <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <p className="text-sm text-orange-800">
+                          ⚠️ Set your country and state to enable home service doctor bookings. Click "Edit Profile" to update.
+                        </p>
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-content font-medium text-foreground mb-2">
                         Medical History

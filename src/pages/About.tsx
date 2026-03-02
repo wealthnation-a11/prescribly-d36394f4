@@ -51,54 +51,6 @@ export default function About() {
           </Card>
         </section>
 
-        {/* Holistic Approach Section */}
-        <section>
-          <Card className="card-gradient border-0 medical-shadow overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
-              <CardTitle className="text-2xl text-center">Bridging Traditional & Modern Medicine</CardTitle>
-              <CardDescription className="text-center">Honoring ancient wisdom while embracing scientific innovation</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-8">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <p className="text-muted-foreground leading-relaxed">
-                    At Prescribly, we recognize that healing has many paths. Our platform uniquely integrates herbal and traditional medicine with conventional healthcare, offering you comprehensive treatment options tailored to your preferences and cultural background.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Our licensed practitioners are trained in both modern medical protocols and evidence-based herbal therapies from around the world, including Traditional Chinese Medicine, Ayurveda, Western herbalism, and African traditional medicine.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    This integrated approach ensures you receive safe, effective care that respects your personal healing philosophy while maintaining the highest standards of medical safety and efficacy.
-                  </p>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
-                    <Heart className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-1">Natural Remedies</h4>
-                      <p className="text-sm text-muted-foreground">Access authenticated herbal formulations from global healing traditions, sourced from certified suppliers with rigorous quality testing</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
-                    <Stethoscope className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-1">Integrated Care</h4>
-                      <p className="text-sm text-muted-foreground">Seamless combination of conventional and herbal treatments when appropriate, ensuring optimal therapeutic outcomes</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
-                    <Shield className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-1">Quality Assured</h4>
-                      <p className="text-sm text-muted-foreground">All herbal products undergo third-party testing for purity, potency, and safety before recommendation</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
         <section>
           <h2 className="text-2xl font-semibold text-foreground mb-6">Our Values</h2>
           <div className="grid md:grid-cols-4 sm:grid-cols-2 gap-6">
