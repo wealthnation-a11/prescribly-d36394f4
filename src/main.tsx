@@ -1,5 +1,4 @@
 import { createRoot } from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AdProvider } from "@/components/ads/AdProvider";
 import App from './App.tsx'
 import './index.css'
@@ -13,12 +12,8 @@ import { initializeNativePlugins } from './lib/nativePlugins';
 
 initializeNativePlugins();
 
-const queryClient = new QueryClient();
-
 createRoot(document.getElementById("root")!).render(
-  <QueryClientProvider client={queryClient}>
-    <AdProvider>
-      <App />
-    </AdProvider>
-  </QueryClientProvider>
+  <AdProvider>
+    <App />
+  </AdProvider>
 );
