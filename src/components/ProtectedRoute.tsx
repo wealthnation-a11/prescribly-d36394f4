@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useHerbalPractitioner } from '@/hooks/useHerbalPractitioner';
+import { useDoctorApproval } from '@/hooks/useDoctorApproval';
 
 
 interface ProtectedRouteProps {
@@ -24,10 +25,11 @@ export const ProtectedRoute = ({
   const { user, loading: authLoading } = useAuth();
   const { role, isAdmin, isDoctor, isPatient, loading: roleLoading } = useUserRole();
   const { isApproved: isApprovedHerbalPractitioner, isLoading: herbalLoading } = useHerbalPractitioner();
+  const { isApproved: isDoctorApproved, isLoading: doctorApprovalLoading } = useDoctorApproval();
   const location = useLocation();
 
   // Show loading while authentication is being checked
-  if (authLoading || roleLoading || (requireHerbalPractitioner && herbalLoading)) {
+  if (authLoading || roleLoading || (requireHerbalPractitioner && herbalLoading) || (requireApprovedDoctor && doctorApprovalLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -120,7 +122,10 @@ export const ProtectedRoute = ({
     );
   }
 
-  // Note: Approval checking temporarily disabled for testing
+  // Doctor approval check
+  if (requireApprovedDoctor && isDoctor && !isDoctorApproved) {
+    return <Navigate to="/doctor-pending-approval" replace />;
+  }
 
   return <>{children}</>;
 };

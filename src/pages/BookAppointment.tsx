@@ -211,21 +211,21 @@ export default function BookAppointment() {
 
       if (appointmentsError) throw appointmentsError;
 
-      // Then get doctor profiles for each appointment
-      const appointmentsWithProfiles = await Promise.all(
-        (appointmentsData || []).map(async (appointment) => {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, avatar_url')
-            .eq('user_id', appointment.doctor_id)
-            .single();
+      // Batch fetch all doctor profiles in a single query
+      const doctorIds = [...new Set((appointmentsData || []).map(a => a.doctor_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url')
+        .in('user_id', doctorIds);
 
-          return {
-            ...appointment,
-            profiles: profileData
-          };
-        })
+      const profilesMap = new Map(
+        (profilesData || []).map(p => [p.user_id, p])
       );
+
+      const appointmentsWithProfiles = (appointmentsData || []).map(appointment => ({
+        ...appointment,
+        profiles: profilesMap.get(appointment.doctor_id) || null
+      }));
       
       setAppointments(appointmentsWithProfiles as Appointment[]);
     } catch (error) {
@@ -520,34 +520,50 @@ export default function BookAppointment() {
                       {/* Appointment Type Selection */}
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Appointment Type</Label>
-                        <Select value={appointmentType} onValueChange={(v: 'clinic' | 'home_service') => setAppointmentType(v)}>
-                          <SelectTrigger className="h-12 text-base">
-                            <SelectValue placeholder="Choose appointment type" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background">
-                            <SelectItem value="clinic">🏥 Clinic Visit</SelectItem>
-                            <SelectItem value="home_service">🏠 Home Service</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* Chat/Video - Premium */}
+                          <div
+                            className={cn(
+                              "relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md",
+                              appointmentType === 'clinic'
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/50"
+                            )}
+                            onClick={() => setAppointmentType('clinic')}
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">💬</span>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-sm">Chat / Video Call</p>
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary">Premium</Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Consult with your doctor via secure chat or video call
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Home / Clinic Visit - Coming Soon */}
+                          <div
+                            className="relative rounded-lg border-2 border-border p-4 opacity-60 cursor-not-allowed"
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">🏥</span>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-sm">Home / Clinic Visit</p>
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">Coming Soon</Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  In-person consultation at clinic or your home
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-
-                      {appointmentType === 'home_service' && !patientLocation && (
-                        <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-800">
-                          Please update your profile with your location (country & state) to use home service booking.
-                        </div>
-                      )}
-
-                      {appointmentType === 'home_service' && (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Your Address for Home Visit</Label>
-                          <Textarea
-                            value={patientAddress}
-                            onChange={(e) => setPatientAddress(e.target.value)}
-                            placeholder="Enter your full address for the home visit..."
-                            className="min-h-[80px]"
-                          />
-                        </div>
-                      )}
 
                       {/* Doctor Selection */}
                       <div className="space-y-2">
@@ -557,21 +573,14 @@ export default function BookAppointment() {
                             <SelectValue placeholder="Choose a doctor" />
                           </SelectTrigger>
                           <SelectContent className="bg-background">
-                            {(appointmentType === 'home_service'
-                              ? doctors.filter(d => d.offers_home_service && (!patientLocation || (d.service_locations || []).some((loc: any) =>
-                                  loc.country?.toLowerCase() === patientLocation.country?.toLowerCase() &&
-                                  (!loc.state || loc.state.toLowerCase() === patientLocation.state?.toLowerCase())
-                                )))
-                              : doctors
-                            ).map((doctor) => (
+                            {doctors.map((doctor) => (
                               <SelectItem key={doctor.user_id} value={doctor.user_id}>
                                 <div className="flex flex-col items-start">
                                   <span className="font-medium">
                                     Dr. {doctor.profiles.first_name} {doctor.profiles.last_name}
                                   </span>
                                    <span className="text-sm text-muted-foreground">
-                                     {doctor.specialization} • ${appointmentType === 'home_service' ? (doctor.home_service_fee || doctor.consultation_fee || 10) : (doctor.consultation_fee || 10)} consultation fee
-                                     {appointmentType === 'home_service' && ' (home service)'}
+                                     {doctor.specialization} • ${doctor.consultation_fee || 10} consultation fee
                                    </span>
                                 </div>
                               </SelectItem>
