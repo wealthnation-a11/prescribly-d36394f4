@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,94 +10,131 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Support from "./pages/Support";
-import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
-import { ForgotPassword } from "./pages/ForgotPassword";
-import { ResetPassword } from "./pages/ResetPassword";
-import { DoctorLogin } from "./pages/DoctorLogin";
-import { DoctorRegister } from "./pages/DoctorRegister";
-import { UserInfoConfirmation } from "./pages/UserInfoConfirmation";
-import { DoctorInfoConfirmation } from "./pages/DoctorInfoConfirmation";
-import { DoctorPendingApproval } from "./pages/DoctorPendingApproval";
-import DoctorAppointments from "./pages/doctor/DoctorAppointments";
-import DoctorPatients from "./pages/doctor/DoctorPatients";
-import DoctorPrescriptions from "./pages/doctor/DoctorPrescriptions";
-import PendingPrescriptionReview from "./components/doctor/PendingPrescriptionReview";
-import DoctorMessages from "./pages/doctor/DoctorMessages";
-import DoctorProfile from "./pages/doctor/DoctorProfile";
-import DoctorAvailability from "./pages/doctor/DoctorAvailability";
-import DoctorEarnings from "./pages/doctor/DoctorEarnings";
-import PatientDetails from "./pages/doctor/PatientDetails";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import UserDashboard from "./pages/UserDashboard";
-import DoctorDashboard from "./pages/DoctorDashboard";
-import Prescription from "./pages/Prescription";
-
-import AIHealthCompanion from "./pages/AIHealthCompanion";
-import HealthDiagnostic from "./pages/HealthDiagnostic";
-import HealthChallenges from "./pages/HealthChallenges";
-import HydrationChallenge from "./pages/HydrationChallenge";
-import StepsChallenge from "./pages/StepsChallenge";
-import SleepChallenge from "./pages/SleepChallenge";
-import MindfulnessChallenge from "./pages/MindfulnessChallenge";
-import GamificationProfile from "./pages/GamificationProfile";
-import HealthTrendsDashboard from "./pages/HealthTrendsDashboard";
-import MyPrescriptions from "./pages/MyPrescriptions";
-import Subscription from "./pages/Subscription";
-import PaymentCallback from "./pages/PaymentCallback";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 
-import UserProfile from "./pages/UserProfile";
-import BookAppointment from "./pages/BookAppointment";
-import Chat from "./pages/Chat";
-import About from "./pages/About";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import Press from "./pages/Press";
-import Careers from "./pages/Careers";
-import JobApplication from "./pages/JobApplication";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Cookies from "./pages/Cookies";
-import HipaaCompliance from "./pages/HipaaCompliance";
-import AdminDashboard from "./pages/AdminDashboard";
-import InstallPWA from "./pages/InstallPWA";
-import NotificationHistory from "./pages/NotificationHistory";
-import HerbalMedicine from "./pages/HerbalMedicine";
-import BrowseRemedies from "./pages/herbal/BrowseRemedies";
-import BrowseArticles from "./pages/herbal/BrowseArticles";
-import FindPractitioners from "./pages/herbal/FindPractitioners";
-import HerbalPractitionerDashboard from "./pages/herbal/HerbalPractitionerDashboard";
-import HerbalRemedies from "./pages/herbal/HerbalRemedies";
-import HerbalArticles from "./pages/herbal/HerbalArticles";
-import UserHerbalConsultations from "./pages/herbal/UserHerbalConsultations";
-import HerbalConsultations from "./pages/herbal/HerbalConsultations";
-import HerbalMessages from "./pages/herbal/HerbalMessages";
-import HerbalProfile from "./pages/herbal/HerbalProfile";
-import HerbalEarnings from "./pages/herbal/HerbalEarnings";
-import ShoppingCartPage from "./pages/herbal/ShoppingCartPage";
-import CheckoutPage from "./pages/herbal/CheckoutPage";
-import MyOrders from "./pages/herbal/MyOrders";
-import PatientHerbalMessages from "./pages/herbal/PatientHerbalMessages";
-import HerbalPractitionerLogin from "./pages/HerbalPractitionerLogin";
-import HerbalPractitionerRegister from "./pages/HerbalPractitionerRegister";
+// Eagerly load the landing page for fast first paint
+import Index from "./pages/Index";
 
-const queryClient = new QueryClient();
+// Lazy-loaded pages
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Support = lazy(() => import("./pages/Support"));
+const Login = lazy(() => import("./pages/Login").then(m => ({ default: m.Login })));
+const Register = lazy(() => import("./pages/Register").then(m => ({ default: m.Register })));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword").then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import("./pages/ResetPassword").then(m => ({ default: m.ResetPassword })));
+const DoctorLogin = lazy(() => import("./pages/DoctorLogin").then(m => ({ default: m.DoctorLogin })));
+const DoctorRegister = lazy(() => import("./pages/DoctorRegister").then(m => ({ default: m.DoctorRegister })));
+const UserInfoConfirmation = lazy(() => import("./pages/UserInfoConfirmation").then(m => ({ default: m.UserInfoConfirmation })));
+const DoctorInfoConfirmation = lazy(() => import("./pages/DoctorInfoConfirmation").then(m => ({ default: m.DoctorInfoConfirmation })));
+const DoctorPendingApproval = lazy(() => import("./pages/DoctorPendingApproval").then(m => ({ default: m.DoctorPendingApproval })));
+const DoctorAppointments = lazy(() => import("./pages/doctor/DoctorAppointments"));
+const DoctorPatients = lazy(() => import("./pages/doctor/DoctorPatients"));
+const DoctorPrescriptions = lazy(() => import("./pages/doctor/DoctorPrescriptions"));
+const PendingPrescriptionReview = lazy(() => import("./components/doctor/PendingPrescriptionReview"));
+const DoctorMessages = lazy(() => import("./pages/doctor/DoctorMessages"));
+const DoctorProfile = lazy(() => import("./pages/doctor/DoctorProfile"));
+const DoctorAvailability = lazy(() => import("./pages/doctor/DoctorAvailability"));
+const DoctorEarnings = lazy(() => import("./pages/doctor/DoctorEarnings"));
+const PatientDetails = lazy(() => import("./pages/doctor/PatientDetails"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const UserDashboard = lazy(() => import("./pages/UserDashboard"));
+const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
+const Prescription = lazy(() => import("./pages/Prescription"));
+const AIHealthCompanion = lazy(() => import("./pages/AIHealthCompanion"));
+const HealthDiagnostic = lazy(() => import("./pages/HealthDiagnostic"));
+const HealthChallenges = lazy(() => import("./pages/HealthChallenges"));
+const HydrationChallenge = lazy(() => import("./pages/HydrationChallenge"));
+const StepsChallenge = lazy(() => import("./pages/StepsChallenge"));
+const SleepChallenge = lazy(() => import("./pages/SleepChallenge"));
+const MindfulnessChallenge = lazy(() => import("./pages/MindfulnessChallenge"));
+const GamificationProfile = lazy(() => import("./pages/GamificationProfile"));
+const HealthTrendsDashboard = lazy(() => import("./pages/HealthTrendsDashboard"));
+const MyPrescriptions = lazy(() => import("./pages/MyPrescriptions"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const BookAppointment = lazy(() => import("./pages/BookAppointment"));
+const Chat = lazy(() => import("./pages/Chat"));
+const About = lazy(() => import("./pages/About"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Press = lazy(() => import("./pages/Press"));
+const Careers = lazy(() => import("./pages/Careers"));
+const JobApplication = lazy(() => import("./pages/JobApplication"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Cookies = lazy(() => import("./pages/Cookies"));
+const HipaaCompliance = lazy(() => import("./pages/HipaaCompliance"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const InstallPWA = lazy(() => import("./pages/InstallPWA"));
+const NotificationHistory = lazy(() => import("./pages/NotificationHistory"));
+const HerbalMedicine = lazy(() => import("./pages/HerbalMedicine"));
+const BrowseRemedies = lazy(() => import("./pages/herbal/BrowseRemedies"));
+const BrowseArticles = lazy(() => import("./pages/herbal/BrowseArticles"));
+const FindPractitioners = lazy(() => import("./pages/herbal/FindPractitioners"));
+const HerbalPractitionerDashboard = lazy(() => import("./pages/herbal/HerbalPractitionerDashboard"));
+const HerbalRemedies = lazy(() => import("./pages/herbal/HerbalRemedies"));
+const HerbalArticles = lazy(() => import("./pages/herbal/HerbalArticles"));
+const UserHerbalConsultations = lazy(() => import("./pages/herbal/UserHerbalConsultations"));
+const HerbalConsultations = lazy(() => import("./pages/herbal/HerbalConsultations"));
+const HerbalMessages = lazy(() => import("./pages/herbal/HerbalMessages"));
+const HerbalProfile = lazy(() => import("./pages/herbal/HerbalProfile"));
+const HerbalEarnings = lazy(() => import("./pages/herbal/HerbalEarnings"));
+const ShoppingCartPage = lazy(() => import("./pages/herbal/ShoppingCartPage"));
+const CheckoutPage = lazy(() => import("./pages/herbal/CheckoutPage"));
+const MyOrders = lazy(() => import("./pages/herbal/MyOrders"));
+const PatientHerbalMessages = lazy(() => import("./pages/herbal/PatientHerbalMessages"));
+const HerbalPractitionerLogin = lazy(() => import("./pages/HerbalPractitionerLogin"));
+const HerbalPractitionerRegister = lazy(() => import("./pages/HerbalPractitionerRegister"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Shared loading fallback
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-center space-y-4">
+      <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto" />
+      <p className="text-muted-foreground text-sm">Loading...</p>
+    </div>
+  </div>
+);
+
+// Wrapper for subscription-guarded patient routes
+const PatientRoute = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute requirePatient>
+    <SubscriptionGuard>{children}</SubscriptionGuard>
+  </ProtectedRoute>
+);
+
+// Wrapper for approved doctor routes
+const DoctorRoute = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute requireDoctor requireApprovedDoctor>
+    {children}
+  </ProtectedRoute>
+);
+
+// Wrapper for herbal practitioner routes
+const HerbalRoute = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute requireHerbalPractitioner>
+    {children}
+  </ProtectedRoute>
+);
 
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <I18nextProvider i18n={i18n}>
           <AuthProvider>
             <TooltipProvider>
@@ -105,262 +143,88 @@ const App = () => (
               <PWAInstallPrompt />
               <OfflineIndicator />
               <BrowserRouter>
-                <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/register-user-info-confirmation" element={<UserInfoConfirmation />} />
-            <Route path="/doctor-login" element={<DoctorLogin />} />
-            <Route path="/doctor-register" element={<DoctorRegister />} />
-            <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
-            <Route path="/herbal-login" element={<HerbalPractitionerLogin />} />
-            <Route path="/herbal-register" element={<HerbalPractitionerRegister />} />
-            <Route path="/doctor-pending-approval" element={<DoctorPendingApproval />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/press" element={<Press />} />
-          <Route path="/careers" element={<Careers />} />
-          <Route path="/careers/apply/:position" element={<JobApplication />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/cookies" element={<Cookies />} />
-            <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
-            <Route path="/subscription" element={
-              <ProtectedRoute>
-                <Subscription />
-              </ProtectedRoute>
-            } />
-            <Route path="/payment-callback" element={<PaymentCallback />} />
-            <Route path="/install" element={<InstallPWA />} />
-            
-            {/* Role-based Dashboard Routes */}
-        <Route path="/user-dashboard" element={
-          <ProtectedRoute requirePatient={true}>
-            <SubscriptionGuard>
-              <UserDashboard />
-            </SubscriptionGuard>
-          </ProtectedRoute>
-        } />
-            <Route path="/doctor-dashboard" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <DoctorDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin-dashboard" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Legacy Dashboard Route (redirects based on role) */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/register-user-info-confirmation" element={<UserInfoConfirmation />} />
+                    <Route path="/doctor-login" element={<DoctorLogin />} />
+                    <Route path="/doctor-register" element={<DoctorRegister />} />
+                    <Route path="/register-doctor-info-confirmation" element={<DoctorInfoConfirmation />} />
+                    <Route path="/herbal-login" element={<HerbalPractitionerLogin />} />
+                    <Route path="/herbal-register" element={<HerbalPractitionerRegister />} />
+                    <Route path="/doctor-pending-approval" element={<DoctorPendingApproval />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route path="/press" element={<Press />} />
+                    <Route path="/careers" element={<Careers />} />
+                    <Route path="/careers/apply/:position" element={<JobApplication />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/cookies" element={<Cookies />} />
+                    <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
+                    <Route path="/payment-callback" element={<PaymentCallback />} />
+                    <Route path="/install" element={<InstallPWA />} />
 
-            {/* Patient-specific Routes */}
-            <Route path="/ai-health-companion" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <AIHealthCompanion />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/health-diagnostic" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <HealthDiagnostic />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/health-challenges" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <HealthChallenges />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/health-challenges/hydration" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <HydrationChallenge />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/health-challenges/steps" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <StepsChallenge />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/health-challenges/sleep" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <SleepChallenge />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/health-challenges/mindfulness" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <MindfulnessChallenge />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/gamification-profile" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <GamificationProfile />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/health-trends" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <HealthTrendsDashboard />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/notifications" element={
-              <ProtectedRoute>
-                <NotificationHistory />
-              </ProtectedRoute>
-            } />
-            <Route path="/appointments" element={<Navigate to="/book-appointment" replace />} />
-            <Route path="/chat" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <Chat />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/book-appointment" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <BookAppointment />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/prescription" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <Prescription />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/my-prescriptions" element={
-              <ProtectedRoute requirePatient={true}>
-                <SubscriptionGuard>
-                  <MyPrescriptions />
-                </SubscriptionGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/support" element={
-              <ProtectedRoute requirePatient={true}>
-                <Support />
-              </ProtectedRoute>
-            } />
+                    {/* Auth-only Routes */}
+                    <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+                    <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+                    <Route path="/notifications" element={<ProtectedRoute><NotificationHistory /></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
-            {/* Doctor-specific Routes */}
-            <Route path="/doctor/appointments" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <DoctorAppointments />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/patients" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <DoctorPatients />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/patients/:patientId" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <PatientDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/prescriptions" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <DoctorPrescriptions />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/pending-prescriptions" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <PendingPrescriptionReview />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/messages" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <DoctorMessages />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/profile" element={
-              <ProtectedRoute requireDoctor={true}>
-                <DoctorProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/availability" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <DoctorAvailability />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/earnings" element={
-              <ProtectedRoute requireDoctor={true} requireApprovedDoctor={true}>
-                <DoctorEarnings />
-              </ProtectedRoute>
-            } />
+                    {/* Patient Routes */}
+                    <Route path="/user-dashboard" element={<PatientRoute><UserDashboard /></PatientRoute>} />
+                    <Route path="/ai-health-companion" element={<PatientRoute><AIHealthCompanion /></PatientRoute>} />
+                    <Route path="/health-diagnostic" element={<PatientRoute><HealthDiagnostic /></PatientRoute>} />
+                    <Route path="/health-challenges" element={<PatientRoute><HealthChallenges /></PatientRoute>} />
+                    <Route path="/health-challenges/hydration" element={<PatientRoute><HydrationChallenge /></PatientRoute>} />
+                    <Route path="/health-challenges/steps" element={<PatientRoute><StepsChallenge /></PatientRoute>} />
+                    <Route path="/health-challenges/sleep" element={<PatientRoute><SleepChallenge /></PatientRoute>} />
+                    <Route path="/health-challenges/mindfulness" element={<PatientRoute><MindfulnessChallenge /></PatientRoute>} />
+                    <Route path="/gamification-profile" element={<PatientRoute><GamificationProfile /></PatientRoute>} />
+                    <Route path="/health-trends" element={<PatientRoute><HealthTrendsDashboard /></PatientRoute>} />
+                    <Route path="/chat" element={<PatientRoute><Chat /></PatientRoute>} />
+                    <Route path="/book-appointment" element={<PatientRoute><BookAppointment /></PatientRoute>} />
+                    <Route path="/prescription" element={<PatientRoute><Prescription /></PatientRoute>} />
+                    <Route path="/my-prescriptions" element={<PatientRoute><MyPrescriptions /></PatientRoute>} />
+                    <Route path="/appointments" element={<Navigate to="/book-appointment" replace />} />
+                    <Route path="/support" element={<ProtectedRoute requirePatient><Support /></ProtectedRoute>} />
 
-            {/* Herbal Practitioner Routes */}
-            <Route path="/herbal-dashboard" element={
-              <ProtectedRoute requireHerbalPractitioner={true}>
-                <HerbalPractitionerDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal-remedies" element={
-              <ProtectedRoute requireHerbalPractitioner={true}>
-                <HerbalRemedies />
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal-articles" element={
-              <ProtectedRoute requireHerbalPractitioner={true}>
-                <HerbalArticles />
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal-consultations" element={
-              <ProtectedRoute requireHerbalPractitioner={true}>
-                <HerbalConsultations />
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal-messages" element={
-              <ProtectedRoute requireHerbalPractitioner={true}>
-                <HerbalMessages />
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal-profile" element={
-              <ProtectedRoute requireHerbalPractitioner={true}>
-                <HerbalProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/herbal-earnings" element={
-              <ProtectedRoute requireHerbalPractitioner={true}>
-                <HerbalEarnings />
-              </ProtectedRoute>
-            } />
+                    {/* Doctor Routes */}
+                    <Route path="/doctor-dashboard" element={<ProtectedRoute requireDoctor requireApprovedDoctor><DoctorDashboard /></ProtectedRoute>} />
+                    <Route path="/doctor/appointments" element={<DoctorRoute><DoctorAppointments /></DoctorRoute>} />
+                    <Route path="/doctor/patients" element={<DoctorRoute><DoctorPatients /></DoctorRoute>} />
+                    <Route path="/doctor/patients/:patientId" element={<DoctorRoute><PatientDetails /></DoctorRoute>} />
+                    <Route path="/doctor/prescriptions" element={<DoctorRoute><DoctorPrescriptions /></DoctorRoute>} />
+                    <Route path="/doctor/pending-prescriptions" element={<DoctorRoute><PendingPrescriptionReview /></DoctorRoute>} />
+                    <Route path="/doctor/messages" element={<DoctorRoute><DoctorMessages /></DoctorRoute>} />
+                    <Route path="/doctor/profile" element={<ProtectedRoute requireDoctor><DoctorProfile /></ProtectedRoute>} />
+                    <Route path="/doctor/availability" element={<DoctorRoute><DoctorAvailability /></DoctorRoute>} />
+                    <Route path="/doctor/earnings" element={<DoctorRoute><DoctorEarnings /></DoctorRoute>} />
 
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
+                    {/* Admin Routes */}
+                    <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+
+                    {/* Herbal Practitioner Routes */}
+                    <Route path="/herbal-dashboard" element={<HerbalRoute><HerbalPractitionerDashboard /></HerbalRoute>} />
+                    <Route path="/herbal-remedies" element={<HerbalRoute><HerbalRemedies /></HerbalRoute>} />
+                    <Route path="/herbal-articles" element={<HerbalRoute><HerbalArticles /></HerbalRoute>} />
+                    <Route path="/herbal-consultations" element={<HerbalRoute><HerbalConsultations /></HerbalRoute>} />
+                    <Route path="/herbal-messages" element={<HerbalRoute><HerbalMessages /></HerbalRoute>} />
+                    <Route path="/herbal-profile" element={<HerbalRoute><HerbalProfile /></HerbalRoute>} />
+                    <Route path="/herbal-earnings" element={<HerbalRoute><HerbalEarnings /></HerbalRoute>} />
+
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
         </I18nextProvider>
       </ThemeProvider>
     </QueryClientProvider>

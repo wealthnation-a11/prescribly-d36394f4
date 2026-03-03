@@ -5,8 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import DoctorMessaging from '@/components/messaging/DoctorMessaging';
 import PatientMessaging from '@/components/messaging/PatientMessaging';
 import { Card, CardContent } from '@/components/ui/card';
-import { SubscriptionGuard } from '@/components/SubscriptionGuard';
-
 export default function Chat() {
   const { userProfile } = useAuth();
 
@@ -38,17 +36,15 @@ export default function Chat() {
   };
 
   return (
-    <SubscriptionGuard>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background">
-          <AppSidebar />
-          <SidebarInset className="flex-1">
-            <div className="p-6">
-              {renderMessagingComponent()}
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    </SubscriptionGuard>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <SidebarInset className="flex-1">
+          <div className="p-6">
+            {renderMessagingComponent()}
+          </div>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
