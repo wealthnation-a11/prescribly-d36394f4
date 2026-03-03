@@ -1,27 +1,25 @@
-import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CreditCard, Lock } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
 }
 
 export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
-  const { user, userProfile, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, isDoctor, loading: roleLoading } = useUserRole();
   const { needsSubscription, loading: subLoading, isLegacyUser } = useSubscription();
   const location = useLocation();
 
   // Admins have full access without subscription checks
-  if (userProfile?.role === 'admin') {
+  if (isAdmin) {
     return <>{children}</>;
   }
 
   // Doctors don't need subscription
-  if (userProfile?.role === 'doctor') {
+  if (isDoctor) {
     return <>{children}</>;
   }
 
@@ -31,7 +29,7 @@ export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
   }
 
   // Show loading while checking auth and subscription
-  if (authLoading || subLoading) {
+  if (authLoading || roleLoading || subLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
