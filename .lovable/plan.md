@@ -1,169 +1,208 @@
 
 
-# Doctor-Approved Drug Prescriptions + Home Service Booking
+# Prescribly Booking System Overhaul
 
-## Overview
-Two major features:
-1. **Drug recommendations require doctor approval** before being shown to patients after AI diagnosis
-2. **Home service booking** for doctors, filtered by the patient's location
+This is a large, multi-phase feature set. Here is a structured plan covering database, backend, and frontend changes.
 
 ---
 
-## Feature 1: Doctor-Approved Drug Prescriptions
+## Phase 1: Database Schema (Migration)
 
-### How It Works
+Create new tables for hospitals/clinics/pharmacies, home visit requests, and registration codes:
 
-Currently, after diagnosis, drug recommendations are shown immediately to the patient. The new flow:
+```sql
+-- Facilities table (hospitals, clinics, pharmacies)
+CREATE TABLE public.facilities (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('hospital', 'clinic', 'pharmacy')),
+  address TEXT,
+  city TEXT,
+  state TEXT,
+  country TEXT,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
+  phone TEXT,
+  email TEXT,
+  description TEXT,
+  logo_url TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 
-```text
-Patient gets diagnosed
-        |
-        v
-Drug recommendations saved as "pending_review"
-(Patient sees: "Medications pending doctor review")
-        |
-        v
-A doctor is auto-assigned OR patient books an appointment
-        |
-        v
-Doctor sees pending prescriptions on their dashboard
-Doctor approves/modifies/rejects each drug
-        |
-        v
-Patient gets notified, approved drugs are displayed
+-- Home visit requests with medical form data
+CREATE TABLE public.home_visit_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  doctor_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  symptoms TEXT NOT NULL,
+  illness_duration TEXT NOT NULL,
+  age INTEGER NOT NULL,
+  gender TEXT NOT NULL,
+  urgency_level TEXT NOT NULL CHECK (urgency_level IN ('low', 'medium', 'high', 'emergency')),
+  image_url TEXT,
+  address TEXT NOT NULL,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected', 'in_transit', 'completed', 'cancelled')),
+  estimated_arrival TEXT,
+  consultation_fee NUMERIC DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Registration codes for clinic/hospital/pharmacy visits
+CREATE TABLE public.registration_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  facility_id UUID REFERENCES public.facilities(id) ON DELETE CASCADE NOT NULL,
+  code TEXT UNIQUE NOT NULL,
+  qr_data TEXT NOT NULL,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'used', 'expired')),
+  expires_at TIMESTAMPTZ NOT NULL,
+  confirmed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 ```
 
-### Database Changes
+Add `latitude` and `longitude` columns to the existing `profiles` table and `doctors` table (if not present) via ALTER TABLE.
 
-**New table: `pending_drug_approvals`**
-- `id` (uuid, PK)
-- `patient_id` (uuid, references profiles.user_id)
-- `doctor_id` (uuid, nullable, references profiles.user_id) -- assigned when a doctor picks it up
-- `diagnosis_session_id` (text) -- links to the AI diagnosis session
-- `condition_name` (text)
-- `condition_id` (integer)
-- `drugs` (jsonb) -- array of recommended drugs from AI
-- `approved_drugs` (jsonb, nullable) -- doctor's approved/modified list
-- `status` (text: 'pending', 'under_review', 'approved', 'rejected')
-- `doctor_notes` (text, nullable)
-- `created_at`, `updated_at` (timestamptz)
+Create a Postgres function for Haversine distance filtering:
 
-RLS policies:
-- Patients can SELECT their own rows
-- Doctors can SELECT rows assigned to them or unassigned, and UPDATE status/approved_drugs
-- Service role for inserts from edge functions
+```sql
+CREATE OR REPLACE FUNCTION public.nearby_doctors(
+  user_lat DOUBLE PRECISION, user_lon DOUBLE PRECISION, radius_miles DOUBLE PRECISION DEFAULT 25
+)
+RETURNS TABLE(doctor_user_id UUID, distance_miles DOUBLE PRECISION)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public'
+AS $$
+  SELECT d.user_id, 
+    3959 * acos(cos(radians(user_lat)) * cos(radians(p.latitude)) 
+    * cos(radians(p.longitude) - radians(user_lon)) 
+    + sin(radians(user_lat)) * sin(radians(p.latitude))) AS distance_miles
+  FROM doctors d
+  JOIN profiles p ON d.user_id = p.user_id
+  WHERE d.verification_status = 'approved'
+    AND d.offers_home_service = true
+    AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL
+  HAVING 3959 * acos(cos(radians(user_lat)) * cos(radians(p.latitude)) 
+    * cos(radians(p.longitude) - radians(user_lon)) 
+    + sin(radians(user_lat)) * sin(radians(p.latitude))) <= radius_miles
+  ORDER BY distance_miles;
+$$;
 
-### Code Changes
+CREATE OR REPLACE FUNCTION public.nearby_facilities(
+  user_lat DOUBLE PRECISION, user_lon DOUBLE PRECISION, 
+  radius_miles DOUBLE PRECISION DEFAULT 25, facility_type TEXT DEFAULT NULL
+)
+RETURNS TABLE(facility_id UUID, distance_miles DOUBLE PRECISION)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public'
+AS $$
+  SELECT f.id,
+    3959 * acos(cos(radians(user_lat)) * cos(radians(f.latitude)) 
+    * cos(radians(f.longitude) - radians(user_lon)) 
+    + sin(radians(user_lat)) * sin(radians(f.latitude))) AS distance_miles
+  FROM facilities f
+  WHERE f.is_active = true
+    AND f.latitude IS NOT NULL AND f.longitude IS NOT NULL
+    AND (facility_type IS NULL OR f.type = facility_type)
+  HAVING 3959 * acos(cos(radians(user_lat)) * cos(radians(f.latitude)) 
+    * cos(radians(f.longitude) - radians(user_lon)) 
+    + sin(radians(user_lat)) * sin(radians(f.latitude))) <= radius_miles
+  ORDER BY distance_miles;
+$$;
+```
 
-**`src/components/diagnostic/DiagnosisResultScreen.tsx`**
-- After diagnosis completes, instead of showing drugs directly, save them to `pending_drug_approvals` with status='pending'
-- Show a "Medications Pending Doctor Review" card with a message explaining a doctor needs to confirm the prescription
-- Add a "Book Doctor to Review" button that navigates to `/book-appointment` with diagnosis context
-- If the user already has an approved prescription for this session, show the approved drugs
-
-**New component: `src/components/PendingPrescriptionCard.tsx`**
-- Shows the pending status with a nice UI
-- Polls or uses realtime subscription for status changes
-- When status changes to 'approved', displays the approved drugs
-
-**New component: `src/components/doctor/PendingPrescriptionReview.tsx`**
-- Shows doctors a list of pending prescriptions assigned to them
-- Each prescription shows: patient info, diagnosis condition, AI-recommended drugs
-- Doctor can approve all, approve with modifications, or reject with notes
-- On approval, updates `status` to 'approved' and fills `approved_drugs`
-- Creates a notification for the patient
-
-**`src/pages/doctor/DoctorDashboard.tsx` or `DoctorAppointments.tsx`**
-- Add a "Pending Prescriptions" section/tab showing unreviewed prescriptions
-- Badge count for pending items
-
-**`src/components/AppSidebar.tsx`** (user side)
-- Add "My Prescriptions" link if not already prominent -- this already exists
-
-### Notification Flow
-- When a prescription is submitted for review, notify available doctors
-- When a doctor approves/rejects, notify the patient via the existing notifications table
-
----
-
-## Feature 2: Home Service Booking
-
-### How It Works
-- Doctors can opt-in to offer home visits and specify which locations (country + state) they serve
-- When a patient books, they can choose "Clinic Visit" or "Home Service"
-- For home service, only doctors available in the patient's location are shown
-- Patient's location is auto-detected from their profile (`location_country`, `location_state`)
-
-### Database Changes
-
-**Add columns to `doctors` table:**
-- `offers_home_service` (boolean, default false)
-- `home_service_fee` (numeric, nullable) -- additional fee for home visits
-- `service_locations` (jsonb, nullable) -- array of {country, state} objects
-
-**Add columns to `appointments` table:**
-- `appointment_type` (text, default 'clinic') -- 'clinic' or 'home_service'
-- `patient_address` (text, nullable) -- for home service appointments
-
-**Add columns to `public_doctor_profiles` table:**
-- `offers_home_service` (boolean, default false)
-- `home_service_fee` (numeric, nullable)
-- `service_locations` (jsonb, nullable)
-
-Update the `refresh_public_doctor_profile` function to sync these new fields.
-
-### Code Changes
-
-**`src/pages/BookAppointment.tsx`**
-- Add appointment type selector: "Clinic Visit" vs "Home Service"
-- When "Home Service" is selected:
-  - Auto-detect patient location from profile (`location_country`, `location_state`)
-  - Filter doctors list to only show those with `offers_home_service = true` AND whose `service_locations` includes the patient's location
-  - Show address input field for the patient
-  - Display home service fee alongside consultation fee
-- When "Clinic Visit" is selected, show all doctors as before
-
-**`src/pages/doctor/DoctorProfile.tsx`**
-- Add toggle for "Offer Home Service"
-- When enabled, show:
-  - Home service fee input
-  - Service locations picker (country + state multi-select)
-- Save to doctors table
-
-**`supabase/functions/bookAppointment/index.ts`**
-- Accept new fields: `appointment_type`, `patient_address`
-- Validate: if `appointment_type = 'home_service'`, verify doctor offers it and serves patient's location
-- Store the appointment type and address
-
-**`src/pages/doctor/DoctorAppointments.tsx`**
-- Show appointment type badge (Clinic / Home Service)
-- Show patient address for home service appointments
+RLS policies for all new tables (patients see own records, doctors see requests assigned to them, facilities are publicly readable).
 
 ---
 
-## Fix: Build Error in `usePushNotifications.ts`
+## Phase 2: Booking Landing Page (3 Options)
 
-The TypeScript error about `pushManager` is a type definition issue. Fix by adding a type assertion for the ServiceWorkerRegistration since the Push API types may not be included in the project's TS config.
+Replace the current BookAppointment page content with a **mode selector** screen. When a user navigates to `/book-appointment`, they see 3 large, modern, mobile-friendly cards:
 
-**`src/hooks/usePushNotifications.ts`**
-- Cast `registration` to `any` for the `pushManager` calls, or add `"lib": ["DOM", "WebWorker"]` -- simplest fix is the cast since Push API is a runtime feature.
+1. **Chat or Call a Doctor** -- icon: MessageCircle/Video, gradient card
+2. **Home Visit** -- icon: Home, gradient card  
+3. **Clinic / Hospital / Pharmacy Visit** -- icon: Building, gradient card
+
+Clicking each card navigates to a sub-view (using state or nested routes).
+
+### Option 1: Chat or Call a Doctor
+- Reuse existing doctor list and booking flow (current "Book New" tab logic)
+- Show doctor cards with: Name, Specialty, Rating, Price
+- Payment required before consultation
+- Chat/audio/video call options after payment
+- Doctor notification on booking
+
+### Option 2: Home Visit
+- Use browser geolocation to get user lat/lng
+- Call `nearby_doctors()` RPC to find doctors within 25 miles
+- Show doctor cards with: Name, Specialty, Rating, Home Visit Price, Estimated distance
+- On select doctor, show **medical intake form**: Symptoms, Duration, Age, Gender, Urgency, Image upload (optional), Address (auto-filled, editable)
+- Submit creates `home_visit_request` record
+- Doctor reviews form and accepts/rejects
+- On accept: payment processed, booking confirmed, tracking status shown
+
+### Option 3: Clinic / Hospital / Pharmacy Visit
+- Use browser geolocation
+- Call `nearby_facilities()` RPC with optional type filter
+- Show facility cards with filters (Hospital / Clinic / Pharmacy)
+- On select facility: generate unique 6-character registration code + QR code data
+- Store in `registration_codes` table
+- Display code + QR code to user
+- User takes code to facility physically
 
 ---
 
-## Files Summary
+## Phase 3: Landing Page -- "Hospitals Near You" Carousel
 
-| Action | File |
-|--------|------|
-| **DB Migration** | Create `pending_drug_approvals` table with RLS |
-| **DB Migration** | Add `offers_home_service`, `home_service_fee`, `service_locations` to `doctors` |
-| **DB Migration** | Add `appointment_type`, `patient_address` to `appointments` |
-| **DB Migration** | Add home service fields to `public_doctor_profiles` + update refresh function |
-| Create | `src/components/PendingPrescriptionCard.tsx` |
-| Create | `src/components/doctor/PendingPrescriptionReview.tsx` |
-| Update | `src/components/diagnostic/DiagnosisResultScreen.tsx` |
-| Update | `src/pages/BookAppointment.tsx` |
-| Update | `src/pages/doctor/DoctorProfile.tsx` |
-| Update | `src/pages/doctor/DoctorAppointments.tsx` |
-| Update | `supabase/functions/bookAppointment/index.ts` |
-| Fix | `src/hooks/usePushNotifications.ts` (build error) |
+After the Certification section on the landing page:
+- Add a new section titled "Hospitals Near You"
+- Auto-detect user location via existing `useGeolocation` hook
+- Query `nearby_facilities()` for hospitals
+- Horizontal scrollable carousel using `embla-carousel-react` (already installed)
+- Each card: Logo, Name, Distance, Short description, "Book Now" button (links to `/book-appointment` with facility pre-selected)
+
+---
+
+## Phase 4: New Files
+
+| File | Purpose |
+|------|---------|
+| `src/pages/BookingModeSelector.tsx` | The 3-button landing screen |
+| `src/pages/booking/ChatWithDoctor.tsx` | Option 1 flow |
+| `src/pages/booking/HomeVisit.tsx` | Option 2 flow with medical form |
+| `src/pages/booking/FacilityVisit.tsx` | Option 3 flow with code/QR generation |
+| `src/components/booking/DoctorCard.tsx` | Reusable doctor card component |
+| `src/components/booking/FacilityCard.tsx` | Reusable facility card component |
+| `src/components/booking/MedicalIntakeForm.tsx` | Home visit medical form |
+| `src/components/booking/RegistrationCodeDisplay.tsx` | QR + code display |
+| `src/components/landing/NearbyHospitals.tsx` | Landing page carousel section |
+| `src/hooks/useNearbyDoctors.ts` | Hook calling `nearby_doctors()` RPC |
+| `src/hooks/useNearbyFacilities.ts` | Hook calling `nearby_facilities()` RPC |
+
+---
+
+## Phase 5: Route Updates
+
+Update `App.tsx`:
+- `/book-appointment` renders `BookingModeSelector`
+- `/book-appointment/chat` renders `ChatWithDoctor`
+- `/book-appointment/home-visit` renders `HomeVisit`
+- `/book-appointment/facility` renders `FacilityVisit`
+
+All wrapped in `PatientRoute`.
+
+---
+
+## Technical Notes
+
+- QR codes will be generated client-side using a lightweight library or canvas-based approach
+- Registration codes: 6-char alphanumeric, generated via `crypto.randomUUID().slice(0,6).toUpperCase()`
+- Browser geolocation API (`navigator.geolocation`) used for lat/lng with fallback to IP-based detection via existing `GeoLocationService`
+- Image upload for home visit form uses existing `chat-files` storage bucket
+- Existing appointment notification triggers will be extended for home visit requests
+
+This is a substantial feature set. I recommend implementing it in phases, starting with the database schema and the 3-button booking page, then building each option flow incrementally.
 
