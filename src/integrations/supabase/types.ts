@@ -1145,6 +1145,63 @@ export type Database = {
         }
         Relationships: []
       }
+      facilities: {
+        Row: {
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          state: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          state?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          state?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       health_tips: {
         Row: {
           created_at: string | null
@@ -1541,6 +1598,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      home_visit_requests: {
+        Row: {
+          address: string
+          age: number
+          consultation_fee: number | null
+          created_at: string | null
+          doctor_id: string
+          estimated_arrival: string | null
+          gender: string
+          id: string
+          illness_duration: string
+          image_url: string | null
+          latitude: number | null
+          longitude: number | null
+          patient_id: string
+          status: string | null
+          symptoms: string
+          updated_at: string | null
+          urgency_level: string
+        }
+        Insert: {
+          address: string
+          age: number
+          consultation_fee?: number | null
+          created_at?: string | null
+          doctor_id: string
+          estimated_arrival?: string | null
+          gender: string
+          id?: string
+          illness_duration: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          patient_id: string
+          status?: string | null
+          symptoms: string
+          updated_at?: string | null
+          urgency_level: string
+        }
+        Update: {
+          address?: string
+          age?: number
+          consultation_fee?: number | null
+          created_at?: string | null
+          doctor_id?: string
+          estimated_arrival?: string | null
+          gender?: string
+          id?: string
+          illness_duration?: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          patient_id?: string
+          status?: string | null
+          symptoms?: string
+          updated_at?: string | null
+          urgency_level?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -2170,8 +2287,10 @@ export type Database = {
           is_legacy: boolean | null
           last_login: string | null
           last_name: string | null
+          latitude: number | null
           location_country: string | null
           location_state: string | null
+          longitude: number | null
           medical_history: string | null
           onboarding_completed: boolean | null
           phone: string | null
@@ -2194,8 +2313,10 @@ export type Database = {
           is_legacy?: boolean | null
           last_login?: string | null
           last_name?: string | null
+          latitude?: number | null
           location_country?: string | null
           location_state?: string | null
+          longitude?: number | null
           medical_history?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
@@ -2218,8 +2339,10 @@ export type Database = {
           is_legacy?: boolean | null
           last_login?: string | null
           last_name?: string | null
+          latitude?: number | null
           location_country?: string | null
           location_state?: string | null
+          longitude?: number | null
           medical_history?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
@@ -2349,6 +2472,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      registration_codes: {
+        Row: {
+          code: string
+          confirmed_at: string | null
+          created_at: string | null
+          expires_at: string
+          facility_id: string
+          id: string
+          patient_id: string
+          qr_data: string
+          status: string | null
+        }
+        Insert: {
+          code: string
+          confirmed_at?: string | null
+          created_at?: string | null
+          expires_at: string
+          facility_id: string
+          id?: string
+          patient_id: string
+          qr_data: string
+          status?: string | null
+        }
+        Update: {
+          code?: string
+          confirmed_at?: string | null
+          created_at?: string | null
+          expires_at?: string
+          facility_id?: string
+          id?: string
+          patient_id?: string
+          qr_data?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_codes_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_audit: {
         Row: {
@@ -3505,6 +3672,25 @@ export type Database = {
           success_param?: boolean
         }
         Returns: string
+      }
+      nearby_doctors: {
+        Args: { radius_miles?: number; user_lat: number; user_lon: number }
+        Returns: {
+          distance_miles: number
+          doctor_user_id: string
+        }[]
+      }
+      nearby_facilities: {
+        Args: {
+          facility_type?: string
+          radius_miles?: number
+          user_lat: number
+          user_lon: number
+        }
+        Returns: {
+          distance_miles: number
+          facility_id: string
+        }[]
       }
       refresh_public_doctor_profile: {
         Args: { _user_id: string }

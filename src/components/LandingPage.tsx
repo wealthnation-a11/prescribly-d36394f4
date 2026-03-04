@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle, Shield, Lock, FileText, Users } from "lucide-react";
+import { NearbyHospitals } from "./landing/NearbyHospitals";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
@@ -738,6 +739,9 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Nearby Hospitals Carousel */}
+      <NearbyHospitals />
 
       {/* FAQ Section */}
       <section className="py-20">
