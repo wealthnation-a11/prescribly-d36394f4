@@ -70,7 +70,7 @@
     "i18next-browser-languagedetector": "^8.2.0",
     "input-otp": "^1.2.4",
     "jspdf": "3.0.4",
-    "jspdf-autotable": "^5.0.2",
+    "jspdf-autotable": "5.0.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
     "pdf-lib": "^1.17.1",
@@ -96,6 +96,9 @@
     "vite-plugin-pwa": "^1.1.0",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8"
+  },
+  "overrides": {
+    "jspdf": "3.0.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
