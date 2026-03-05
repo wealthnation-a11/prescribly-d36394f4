@@ -15,6 +15,8 @@ import { SubscriptionManagement } from "@/components/admin/SubscriptionManagemen
 import BlogManagement from "@/components/admin/BlogManagement";
 import CommentModeration from "@/components/admin/CommentModeration";
 import { AdminProfile } from "@/components/admin/AdminProfile";
+import FacilityManagement from "@/components/admin/FacilityManagement";
+import RegistrationCodeVerification from "@/components/admin/RegistrationCodeVerification";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle } from "lucide-react";
@@ -181,6 +183,30 @@ const AdminDashboard = () => {
                   <CommentModeration />
               </TabsContent>
             </Tabs>
+          </CardContent>
+        </Card>
+      );
+    case "facilities":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle>Facility Management</CardTitle>
+            <CardDescription>Manage hospitals, clinics, and pharmacies</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <FacilityManagement />
+          </CardContent>
+        </Card>
+      );
+    case "registration-codes":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle>Registration Code Verification</CardTitle>
+            <CardDescription>Look up and confirm patient visit registration codes</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <RegistrationCodeVerification />
           </CardContent>
         </Card>
       );

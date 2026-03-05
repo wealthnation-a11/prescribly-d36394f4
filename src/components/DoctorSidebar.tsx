@@ -1,4 +1,4 @@
-import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Stethoscope, LogOut } from "lucide-react";
+import { Calendar, Users, FileText, MessageCircle, User, Clock, TrendingUp, Stethoscope, LogOut, Home } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useDoctorApproval } from "@/hooks/useDoctorApproval";
 import { useLogout } from "@/hooks/useLogout";
@@ -25,6 +25,7 @@ const items = [
   { title: "Write Prescription", url: "/doctor/prescriptions", icon: FileText, hoverColor: "hover:bg-green-700" },
   { title: "Patient Messages", url: "/doctor/messages", icon: MessageCircle, hoverColor: "hover:bg-purple-700" },
   { title: "My Profile", url: "/doctor/profile", icon: User, hoverColor: "hover:bg-gray-700" },
+  { title: "Home Visits", url: "/doctor/home-visits", icon: Home, hoverColor: "hover:bg-indigo-700" },
   { title: "Availability", url: "/doctor/availability", icon: Clock, hoverColor: "hover:bg-orange-700" },
   { title: "Earnings", url: "/doctor/earnings", icon: TrendingUp, hoverColor: "hover:bg-teal-700" },
 ];

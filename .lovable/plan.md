@@ -4,101 +4,68 @@ After reviewing the entire codebase, here is a comprehensive audit of gaps, inco
 
 ---
 
-## 1. Doctor-Side: No Home Visit Request Management
+## ✅ 1. Doctor-Side: Home Visit Request Management — DONE
 
-**Problem:** Patients can submit home visit requests (`home_visit_requests` table), but doctors have **no UI to view, accept, or reject** these requests. The `MedicalIntakeForm` inserts records, but nothing on the doctor side reads them.
-
-**What's needed:**
-
-- A "Home Visit Requests" section in the Doctor Dashboard or a new page under `/doctor/home-visits`
-- Show pending requests with the medical intake form data (symptoms, urgency, address, image)
-- Accept/reject buttons that update the request status
-- Notification to patient on accept/reject
-- Add link in `DoctorSidebar`
+- Created `/doctor/home-visits` page with full view/accept/reject/in_transit/complete workflow
+- Added "Home Visits" link to DoctorSidebar
+- Patient notifications on accept/reject
 
 ---
 
-## 2. Admin: No Facility Management
+## ✅ 2. Admin: Facility Management — DONE
 
-**Problem:** The `facilities` table exists but there is **no admin UI to add, edit, or delete** hospitals, clinics, and pharmacies. The Facility Visit page and Landing Page carousel will show nothing until facilities are seeded.
-
-**What's needed:**
-
-- Admin dashboard section: "Facility Management" (CRUD for facilities with name, type, address, lat/lng, logo, description, phone)
-- Add to `AdminSidebar`
-- Optionally seed sample facility data via migration
+- Created FacilityManagement component with full CRUD (add/edit/delete)
+- Added "Facilities" section to AdminSidebar and AdminDashboard
+- Search/filter by type, stats display
 
 ---
 
-## 3. Admin: No Registration Code Verification Dashboard
+## ✅ 3. Admin: Registration Code Verification Dashboard — DONE
 
-**Problem:** Facility visit generates registration codes, but there's **no facility/admin dashboard** to look up and confirm visit codes. The `registration_codes` table has a `status` field but no UI to mark codes as "used."
-
-**What's needed:**
-
-- Admin or facility-facing page to search by code and mark as confirmed
-- Show patient info, facility, expiration, and status
+- Created RegistrationCodeVerification component
+- Search by code/patient/facility, confirm as used
+- Added "Reg. Codes" section to AdminSidebar and AdminDashboard
 
 ---
 
----
+## ✅ 5. Doctor Home Visit Tracking Status — DONE
 
-## 5. Doctor Home Visit Tracking Status
-
-**Problem:** The plan specifies showing "tracking status" after a home visit is accepted, but **no tracking UI exists** for patients to see the status progression (pending -> accepted -> in_transit -> completed).
-
-**What's needed:**
-
-- Patient-facing view showing their active home visit requests and current status
-- Could be a section on the user dashboard or under `/book-appointment/home-visit`
+- Created HomeVisitTracker component showing progress steps (pending → accepted → in_transit → completed)
+- Added to patient UserDashboard
 
 ---
 
-## 6. Ratings System Not Connected
+## ✅ 6. Ratings System — DONE
 
-**Problem:** Doctor cards show a `rating` field, but there is **no patient UI to rate a doctor** after a completed consultation. The `doctors` table has `rating` and `total_reviews` columns but no review submission flow.
-
-**What's needed:**
-
-- Post-consultation rating prompt (1-5 stars + optional comment)
-- Update `doctors.rating` and `doctors.total_reviews` on submission
+- Created `doctor_reviews` table with RLS policies
+- Created DoctorRatingModal component (1-5 stars + comment)
+- Updates doctor's average rating and total_reviews
 
 ---
 
 ## 7. Doctor Notification for New Appointments Missing Real-time Push
 
-**Problem:** The `notify_appointment_changes()` trigger inserts into the `notifications` table, but there's no **real-time push notification** (browser/native) sent to the doctor when a new appointment or home visit request arrives.
-
-**What's needed:**
-
-- Trigger the `send-push-notification` edge function from the appointment trigger or call it client-side after booking
+**Status:** Not yet implemented  
+**What's needed:** Trigger send-push-notification edge function client-side after booking
 
 ---
 
-## 8. Landing Page "Hospitals Near You" Has No Data
+## ✅ 8. Landing Page "Hospitals Near You" — DONE
 
-**Problem:** The `NearbyHospitals` carousel on the landing page queries the `facilities` table, which is empty. Without seeded data or an admin facility management tool, this section shows nothing.
-
-**What's needed:**
-
-- Seed sample facilities OR build the admin facility CRUD first
-- Consider showing a fallback message when no facilities are found
+- Seeded 10 sample facilities (hospitals, pharmacies, clinics) in Nigeria
+- NearbyHospitals carousel should now show data
 
 ---
 
 ## Priority Recommendation
 
 
-| Priority | Item                                    | Effort |
+| Priority | Item                                    | Status |
 | -------- | --------------------------------------- | ------ |
-| High     | Doctor home visit request management    | Medium |
-| High     | Admin facility management (CRUD)        | Medium |
-| &nbsp;   | &nbsp;                                  | &nbsp; |
-| Medium   | Registration code verification UI       | Low    |
-| Medium   | Patient home visit tracking             | Low    |
-| Medium   | Seed sample facilities data             | Low    |
-| Low      | Doctor rating system                    | Medium |
-| Low      | Real-time push for doctor notifications | Low    |
-
-
-Would you like me to start implementing these? I'd recommend tackling them in priority order, starting with the doctor home visit management and admin facility CRUD.
+| High     | Doctor home visit request management    | ✅ Done |
+| High     | Admin facility management (CRUD)        | ✅ Done |
+| Medium   | Registration code verification UI       | ✅ Done |
+| Medium   | Patient home visit tracking             | ✅ Done |
+| Medium   | Seed sample facilities data             | ✅ Done |
+| Low      | Doctor rating system                    | ✅ Done |
+| Low      | Real-time push for doctor notifications | Pending |

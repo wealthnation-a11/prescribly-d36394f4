@@ -78,6 +78,13 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    title: "Facilities",
+    items: [
+      { id: "facilities", label: "Facilities", icon: Package, color: "text-orange-500" },
+      { id: "registration-codes", label: "Reg. Codes", icon: FileText, color: "text-sky-500" },
+    ],
+  },
+  {
     title: "Operations",
     items: [
       { id: "appointments", label: "Appointments", icon: Calendar, color: "text-teal-500" },
