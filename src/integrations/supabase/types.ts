@@ -886,6 +886,36 @@ export type Database = {
         }
         Relationships: []
       }
+      doctor_reviews: {
+        Row: {
+          appointment_id: string
+          comment: string | null
+          created_at: string
+          doctor_id: string
+          id: string
+          patient_id: string
+          rating: number
+        }
+        Insert: {
+          appointment_id: string
+          comment?: string | null
+          created_at?: string
+          doctor_id: string
+          id?: string
+          patient_id: string
+          rating: number
+        }
+        Update: {
+          appointment_id?: string
+          comment?: string | null
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          patient_id?: string
+          rating?: number
+        }
+        Relationships: []
+      }
       doctor_verification_audit: {
         Row: {
           action: string

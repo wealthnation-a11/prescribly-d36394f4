@@ -36,6 +36,7 @@ import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getUserDashboardSteps } from "@/components/DashboardTour";
 import { NativeAd } from "@/components/ads/NativeAd";
 import { DashboardGamificationWidget } from "@/components/DashboardGamificationWidget";
+import HomeVisitTracker from "@/components/HomeVisitTracker";
 
 import { 
   SidebarProvider, 
@@ -428,6 +429,9 @@ export const UserDashboard = () => {
                 <div className="mt-6">
                   <NativeAd />
                 </div>
+
+                {/* Home Visit Tracking */}
+                <HomeVisitTracker />
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-tour="stats-overview">
