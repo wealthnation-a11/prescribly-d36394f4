@@ -65,26 +65,89 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const method = req.method;
-    const pathParts = url.pathname.split('/').filter(p => p);
-    
-    // Check if this is a specific doctor action
-    const isSpecificDoctorRequest = pathParts.length > 2;
-    const doctorId = isSpecificDoctorRequest ? pathParts[pathParts.length - 2] : null;
-    const action = isSpecificDoctorRequest ? pathParts[pathParts.length - 1] : null;
 
-    // Validate doctor ID if present
-    if (doctorId) {
-      const uuidSchema = z.string().uuid();
-      const validation = uuidSchema.safeParse(doctorId);
-      if (!validation.success) {
-        return new Response(JSON.stringify({ error: 'Invalid doctor ID format' }), {
-          status: 400,
+    // Handle POST requests with body-based routing
+    if (method === 'POST') {
+      const body = await req.json();
+      
+      if (body.action === 'verify' && body.doctorId) {
+        const doctorId = body.doctorId;
+        const verificationAction = body.verificationAction;
+        const notes = body.notes;
+
+        // Validate doctor ID
+        const uuidSchema = z.string().uuid();
+        const validation = uuidSchema.safeParse(doctorId);
+        if (!validation.success) {
+          return new Response(JSON.stringify({ error: 'Invalid doctor ID format' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const status = verificationAction === 'approve' ? 'approved' : 'rejected';
+
+        const { data: updatedDoctor, error } = await supabase
+          .from('doctors')
+          .update({ 
+            verification_status: status,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', doctorId)
+          .select('id, user_id, verification_status')
+          .single();
+
+        if (error) throw error;
+
+        // Fetch profile data separately
+        const { data: doctorProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email')
+          .eq('user_id', updatedDoctor.user_id)
+          .maybeSingle();
+        
+        const doctorWithProfile = {
+          ...updatedDoctor,
+          profiles: doctorProfile || { first_name: '', last_name: '', email: '' }
+        };
+
+        // Create audit log
+        await supabase.from('doctor_verification_audit').insert({
+          doctor_id: doctorId,
+          admin_id: user.id,
+          action: status === 'approved' ? 'approved' : 'rejected',
+          notes: notes || null
+        });
+
+        // Create notification for doctor
+        await supabase.from('notifications').insert({
+          user_id: doctorWithProfile.user_id,
+          type: 'doctor_verification',
+          title: `Application ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+          message: status === 'approved' 
+            ? 'Congratulations! Your doctor application has been approved.' 
+            : `Your doctor application has been rejected. ${notes || ''}`,
+          data: { verification_status: status, admin_notes: notes }
+        });
+
+        console.log(`Admin ${user.id} ${status} doctor ${doctorId}`);
+
+        return new Response(JSON.stringify({
+          success: true,
+          doctor: doctorWithProfile,
+          message: `Doctor ${verificationAction}d successfully`
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
+
+      return new Response(JSON.stringify({ error: 'Invalid action' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
-    if (method === 'GET' && !isSpecificDoctorRequest) {
+    if (method === 'GET') {
       // Validate pagination parameters
       const paginationData = {
         status: url.searchParams.get('status'),
@@ -152,118 +215,6 @@ serve(async (req) => {
         page,
         totalPages: Math.ceil((count || 0) / limit)
       }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-
-    } else if (method === 'POST' && action === 'verify') {
-      // Approve/Reject doctor
-      const body = await req.json();
-      const { action: verificationAction, notes } = body;
-
-      const status = verificationAction === 'approve' ? 'approved' : 'rejected';
-
-      const { data: updatedDoctor, error } = await supabase
-        .from('doctors')
-        .update({ 
-          verification_status: status,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', doctorId)
-        .select('id, user_id, verification_status')
-        .single();
-
-      if (error) throw error;
-
-      // Fetch profile data separately
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, email')
-        .eq('user_id', updatedDoctor.user_id)
-        .maybeSingle();
-      
-      const doctorWithProfile = {
-        ...updatedDoctor,
-        profiles: profile || { first_name: '', last_name: '', email: '' }
-      };
-
-      // Create audit log
-      await supabase.from('doctor_verification_audit').insert({
-        doctor_id: doctorId,
-        admin_id: user.id,
-        action: status === 'approved' ? 'approved' : 'rejected',
-        notes: notes || null
-      });
-
-      // Create notification for doctor
-      await supabase.from('notifications').insert({
-        user_id: doctorWithProfile.user_id,
-        type: 'doctor_verification',
-        title: `Application ${status === 'approved' ? 'Approved' : 'Rejected'}`,
-        message: status === 'approved' 
-          ? 'Congratulations! Your doctor application has been approved.' 
-          : `Your doctor application has been rejected. ${notes || ''}`,
-        data: { verification_status: status, admin_notes: notes }
-      });
-
-      console.log(`Admin ${user.id} ${status} doctor ${doctorId}`);
-
-      return new Response(JSON.stringify({
-        success: true,
-        doctor: doctorWithProfile,
-        message: `Doctor ${verificationAction}d successfully`
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-
-    } else if (method === 'GET' && action === 'stats' && doctorId) {
-      // Get doctor stats
-      const { data: doctor } = await supabase
-        .from('doctors')
-        .select('user_id')
-        .eq('id', doctorId)
-        .single();
-
-      if (!doctor) {
-        return new Response(JSON.stringify({ error: 'Doctor not found' }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      // Get appointments stats
-      const { data: appointments } = await supabase
-        .from('appointments')
-        .select('status, consultation_fee, created_at')
-        .eq('doctor_id', doctor.user_id);
-
-      // Get call logs for earnings
-      const { data: callLogs } = await supabase
-        .from('call_logs')
-        .select('doctor_earnings, call_date')
-        .eq('doctor_id', doctor.user_id);
-
-      const totalEarnings = callLogs?.reduce((sum, log) => sum + (log.doctor_earnings || 0), 0) || 0;
-      const totalAppointments = appointments?.length || 0;
-      const completedAppointments = appointments?.filter(a => a.status === 'completed').length || 0;
-
-      const stats = {
-        earnings: {
-          total: totalEarnings,
-          thisMonth: callLogs?.filter(log => {
-            const logDate = new Date(log.call_date);
-            const now = new Date();
-            return logDate.getMonth() === now.getMonth() && logDate.getFullYear() === now.getFullYear();
-          }).reduce((sum, log) => sum + (log.doctor_earnings || 0), 0) || 0
-        },
-        appointments: {
-          total: totalAppointments,
-          completed: completedAppointments,
-          pending: appointments?.filter(a => a.status === 'pending').length || 0,
-          cancelled: appointments?.filter(a => a.status === 'cancelled').length || 0
-        }
-      };
-
-      return new Response(JSON.stringify(stats), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
