@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.subscription-reminders]
 verify_jwt = false
+
+[functions.bookAppointment]
+verify_jwt = false
