@@ -648,6 +648,9 @@ export const LandingPage = () => {
         </div>
       </section>
 
+      {/* Hospitals Near You - Location-based */}
+      <NearbyHospitals />
+
       {/* Certifications Section */}
       <section className="py-20 bg-secondary/50">
         <div className="container mx-auto px-4">
@@ -740,8 +743,7 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Nearby Hospitals Carousel */}
-      <NearbyHospitals />
+      {/* Nearby Hospitals - removed from here, moved below pricing */}
 
       {/* FAQ Section */}
       <section className="py-20">
