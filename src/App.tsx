@@ -178,6 +178,7 @@ const App = () => (
                     <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
                     <Route path="/payment-callback" element={<PaymentCallback />} />
                     <Route path="/install" element={<InstallPWA />} />
+                    <Route path="/verify-code" element={<VerifyCode />} />
 
                     {/* Auth-only Routes */}
                     <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
