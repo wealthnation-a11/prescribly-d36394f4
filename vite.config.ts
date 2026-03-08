@@ -105,7 +105,11 @@ export default defineConfig(({ mode }) => ({
       }
     })
   ].filter(Boolean),
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@tanstack/react-query'],
+  },
   resolve: {
+    dedupe: ['react', 'react-dom'],
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
