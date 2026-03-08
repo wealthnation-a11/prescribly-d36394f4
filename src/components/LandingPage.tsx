@@ -505,7 +505,7 @@ export const LandingPage = () => {
             </TabsContent>
             
             <TabsContent value="yearly" className="space-y-8">
-              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
                 {/* Individual Plan - Yearly */}
                 <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up relative">
                   <CardHeader className="text-center pb-8">
@@ -660,29 +660,29 @@ export const LandingPage = () => {
       <NearbyHospitals />
 
       {/* Certifications Section */}
-      <section className="py-20 bg-secondary/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
+      <section className="py-12 sm:py-16 lg:py-20 bg-secondary/50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4 fade-in-up px-4">
               Trusted & Certified
             </h2>
-            <p className="text-xl text-muted-foreground fade-in-up stagger-1 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground fade-in-up stagger-1 max-w-3xl mx-auto px-4">
               Our platform meets the highest standards of data protection and healthcare compliance, 
               ensuring your sensitive health information is always secure and protected.
             </p>
           </div>
           
           <div className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-12 items-center">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 items-center">
               {/* GDPR Certification */}
-              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up p-8 text-center">
-                <div className="flex flex-col items-center space-y-6">
-                  <div className="w-24 h-24 flex items-center justify-center">
+              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up p-6 sm:p-8 text-center">
+                <div className="flex flex-col items-center space-y-4 sm:space-y-6">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
                     <img src={gdprCertification} alt="GDPR Compliance Certification" className="w-full h-full object-contain" />
                   </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-foreground">GDPR Compliant</h3>
-                    <p className="text-muted-foreground">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h3 className="text-xl sm:text-2xl font-bold text-foreground">GDPR Compliant</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Full compliance with European Union General Data Protection Regulation, 
                       ensuring maximum privacy and data protection for all our users.
                     </p>
@@ -695,14 +695,14 @@ export const LandingPage = () => {
               </Card>
 
               {/* HIPAA Certification */}
-              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 p-8 text-center">
-                <div className="flex flex-col items-center space-y-6">
-                  <div className="w-24 h-24 flex items-center justify-center">
+              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 p-6 sm:p-8 text-center">
+                <div className="flex flex-col items-center space-y-4 sm:space-y-6">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
                     <img src={hipaaCertification} alt="HIPAA Compliance Certification" className="w-full h-full object-contain" />
                   </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-foreground">HIPAA Compliant</h3>
-                    <p className="text-muted-foreground">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h3 className="text-xl sm:text-2xl font-bold text-foreground">HIPAA Compliant</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Meets all Health Insurance Portability and Accountability Act requirements, 
                       providing enterprise-grade security for Protected Health Information (PHI).
                     </p>
@@ -715,14 +715,14 @@ export const LandingPage = () => {
               </Card>
 
               {/* CAC Certification */}
-              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-2 p-8 text-center">
-                <div className="flex flex-col items-center space-y-6">
-                  <div className="w-24 h-24 flex items-center justify-center">
+              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-2 p-6 sm:p-8 text-center sm:col-span-2 lg:col-span-1 sm:max-w-md sm:mx-auto lg:max-w-none">
+                <div className="flex flex-col items-center space-y-4 sm:space-y-6">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
                     <img src="/cac-logo.png" alt="Corporate Affairs Commission Nigeria Certification" className="w-full h-full object-contain" />
                   </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-foreground">CAC Registered</h3>
-                    <p className="text-muted-foreground">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h3 className="text-xl sm:text-2xl font-bold text-foreground">CAC Registered</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Registered with Nigeria's Corporate Affairs Commission, ensuring compliance 
                       with local regulations and standards for healthcare service providers.
                     </p>
@@ -736,33 +736,33 @@ export const LandingPage = () => {
             </div>
 
             {/* Additional Security Features */}
-            <div className="mt-16 grid md:grid-cols-3 gap-8 fade-in-up stagger-2">
-              <div className="text-center space-y-3">
+            <div className="mt-10 sm:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 fade-in-up stagger-2">
+              <div className="text-center space-y-2 sm:space-y-3">
                 <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
                   <Shield className="w-6 h-6 text-primary" />
                 </div>
                 <h4 className="font-semibold text-foreground">End-to-End Encryption</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   All data is encrypted in transit and at rest using industry-standard AES-256 encryption
                 </p>
               </div>
               
-              <div className="text-center space-y-3">
+              <div className="text-center space-y-2 sm:space-y-3">
                 <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
                   <Lock className="w-6 h-6 text-primary" />
                 </div>
                 <h4 className="font-semibold text-foreground">Secure Authentication</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Multi-factor authentication and secure access controls protect your account
                 </p>
               </div>
               
-              <div className="text-center space-y-3">
+              <div className="text-center space-y-2 sm:space-y-3 sm:col-span-2 lg:col-span-1">
                 <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
                   <FileText className="w-6 h-6 text-primary" />
                 </div>
                 <h4 className="font-semibold text-foreground">Audit Trails</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Complete audit logging and monitoring for all healthcare data access
                 </p>
               </div>
@@ -774,17 +774,17 @@ export const LandingPage = () => {
       {/* Nearby Hospitals - removed from here, moved below pricing */}
 
       {/* FAQ Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <h2 className="text-4xl font-bold text-center text-foreground mb-16 fade-in-up">
+      <section className="py-12 sm:py-16 lg:py-20">
+        <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-10 sm:mb-16 fade-in-up px-4">
             {t('faq')}
           </h2>
-          <Accordion type="single" collapsible className="space-y-4 fade-in-up">
-            {faqs.map((faq, index) => <AccordionItem key={index} value={`item-${index}`} className="card-gradient border-0 medical-shadow rounded-lg px-6">
-                <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
+          <Accordion type="single" collapsible className="space-y-3 sm:space-y-4 fade-in-up">
+            {faqs.map((faq, index) => <AccordionItem key={index} value={`item-${index}`} className="card-gradient border-0 medical-shadow rounded-lg px-4 sm:px-6">
+                <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline text-sm sm:text-base">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>)}
@@ -793,13 +793,13 @@ export const LandingPage = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4 fade-in-up">
+      <section className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4 fade-in-up px-4">
               Need Help?
             </h2>
-            <p className="text-xl text-muted-foreground fade-in-up stagger-1">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground fade-in-up stagger-1 px-4">
               Our support team is here to assist you
             </p>
           </div>
@@ -813,56 +813,55 @@ export const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section id="demo" className="py-20">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto space-y-8 fade-in-up">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground">
+      <section id="demo" className="py-12 sm:py-16 lg:py-20">
+        <div className="container mx-auto px-4 sm:px-6 text-center">
+          <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 fade-in-up px-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">
               {t('get_started')}{" "}
               <span className="text-primary">{t('app_name')}</span>
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground">
               Join thousands of patients and doctors who trust Prescribly for better healthcare outcomes.
             </p>
-            <Button variant="cta" size="lg" className="text-xl px-12 py-6" asChild aria-label="Navigate to registration page">
+            <Button variant="cta" size="lg" className="text-lg sm:text-xl px-8 sm:px-12 py-5 sm:py-6" asChild aria-label="Navigate to registration page">
               <Link to="/register">Sign Up Now</Link>
             </Button>
-            
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="contact" className="bg-foreground text-background py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-primary">Prescribly</h3>
-              <p className="text-background/80">Doctor in Your Pocket</p>
-              <p className="text-sm text-background/60">
+      <footer id="contact" className="bg-foreground text-background py-10 sm:py-16">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+            <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
+              <h3 className="text-xl sm:text-2xl font-bold text-primary">Prescribly</h3>
+              <p className="text-background/80 text-sm sm:text-base">Doctor in Your Pocket</p>
+              <p className="text-xs sm:text-sm text-background/60">
                 Revolutionizing healthcare with AI-powered solutions for patients and doctors worldwide.
               </p>
             </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-background">Company</h4>
-              <ul className="space-y-2 text-sm text-background/80 list-disc list-inside">
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="font-semibold text-background text-sm sm:text-base">Company</h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-background/80 list-disc list-inside">
                 <li><Link to="/about" className="hover:underline">About</Link></li>
                 <li><Link to="/blog" className="hover:underline">Blog</Link></li>
                 <li><Link to="/press" className="hover:underline">Press</Link></li>
                 <li><Link to="/careers" className="hover:underline">Careers</Link></li>
               </ul>
             </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-background">Legal</h4>
-              <ul className="space-y-2 text-sm text-background/80 list-disc list-inside">
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="font-semibold text-background text-sm sm:text-base">Legal</h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-background/80 list-disc list-inside">
                 <li><Link to="/terms" className="hover:underline">Terms of Use</Link></li>
                 <li><Link to="/privacy" className="hover:underline">Privacy Policy</Link></li>
                 <li><Link to="/cookies" className="hover:underline">Cookies Policy</Link></li>
                 <li><Link to="/hipaa-compliance" className="hover:underline">HIPAA Compliance</Link></li>
               </ul>
             </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-background">Contact</h4>
-              <div className="space-y-3 text-sm text-background/80">
+            <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
+              <h4 className="font-semibold text-background text-sm sm:text-base">Contact</h4>
+              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-background/80">
                 <div>
                   <a href="mailto:prescribly@gmail.com" className="hover:underline">prescribly@gmail.com</a>
                 </div>
@@ -880,7 +879,7 @@ export const LandingPage = () => {
               </div>
             </div>
           </div>
-          <div className="border-t border-background/20 mt-12 pt-8 text-center text-sm text-background/60">
+          <div className="border-t border-background/20 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-background/60">
             © 2025 Prescribly. All rights reserved.
           </div>
         </div>
