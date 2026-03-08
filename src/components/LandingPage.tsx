@@ -399,18 +399,21 @@ export const LandingPage = () => {
                 {/* Healthcare Plans for Organizations (Monthly) */}
                 <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative ring-1 ring-primary/20">
                   <CardHeader className="text-center pb-6 pt-8 space-y-2">
-                    <div className="flex justify-center">
+                    <div className="flex justify-center gap-2">
                       <Badge variant="secondary" className="px-3 py-1 rounded-full">
                         Perfect for Hospitals & Clinics
+                      </Badge>
+                      <Badge className="bg-amber-500 text-white px-3 py-1 rounded-full animate-pulse">
+                        Coming Soon
                       </Badge>
                     </div>
                     <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
                     <CardDescription>
-                      Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
+                      Register your hospital, clinic, or pharmacy to join the Prescribly network and connect with patients.
                     </CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$200</span>
-                       <span className="text-muted-foreground">/month</span>
+                       <span className="text-4xl font-bold text-primary">Free</span>
+                       <span className="text-muted-foreground"> to register</span>
                      </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -454,11 +457,11 @@ export const LandingPage = () => {
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>Direct Line to Medical Support & Engineering Teams</span>
                     </div>
-                    <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
-                      * Extra charges are applied for doctor consultations
+                    <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
+                      Registration is free during our launch period
                     </div>
-                    <Button variant="cta" className="w-full mt-4" aria-label="Request Enterprise Demo" onClick={() => setIsEnterpriseDemoModalOpen(true)}>
-                      Request Enterprise Demo
+                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => setIsHospitalRegistrationOpen(true)}>
+                      Register Your Hospital
                     </Button>
                   </CardContent>
                 </Card>
@@ -545,18 +548,21 @@ export const LandingPage = () => {
                 {/* Healthcare Plans for Organizations (Yearly) */}
                 <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-1 relative ring-1 ring-primary/20">
                   <CardHeader className="text-center pb-6 pt-8 space-y-2">
-                    <div className="flex justify-center">
+                    <div className="flex justify-center gap-2">
                       <Badge variant="secondary" className="px-3 py-1 rounded-full">
                         Perfect for Hospitals & Clinics
+                      </Badge>
+                      <Badge className="bg-amber-500 text-white px-3 py-1 rounded-full animate-pulse">
+                        Coming Soon
                       </Badge>
                     </div>
                     <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
                     <CardDescription>
-                      Built to support hospitals, clinics, and large healthcare teams with powerful tools and enterprise-grade support.
+                      Register your hospital, clinic, or pharmacy to join the Prescribly network and connect with patients.
                     </CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$200</span>
-                       <span className="text-muted-foreground">/month</span>
+                       <span className="text-4xl font-bold text-primary">Free</span>
+                       <span className="text-muted-foreground"> to register</span>
                      </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -600,11 +606,11 @@ export const LandingPage = () => {
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>Direct Line to Medical Support & Engineering Teams</span>
                     </div>
-                    <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
-                      * Extra charges are applied for doctor consultations
+                    <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
+                      Registration is free during our launch period
                     </div>
-                    <Button variant="cta" className="w-full mt-4" aria-label="Request Enterprise Demo" onClick={() => setIsEnterpriseDemoModalOpen(true)}>
-                      Request Enterprise Demo
+                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => setIsHospitalRegistrationOpen(true)}>
+                      Register Your Hospital
                     </Button>
                   </CardContent>
                 </Card>

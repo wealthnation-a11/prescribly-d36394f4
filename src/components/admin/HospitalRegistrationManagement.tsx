@@ -44,7 +44,7 @@ const HospitalRegistrationManagement = () => {
     queryFn: async () => {
       let query = supabase.from('hospital_registrations').select('*').order('created_at', { ascending: false });
       if (activeTab !== 'all') {
-        query = query.eq('status', activeTab);
+        query = query.eq('status', activeTab as 'pending' | 'approved' | 'rejected');
       }
       const { data, error } = await query;
       if (error) throw error;
