@@ -226,18 +226,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       );
-      return (
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader className="border-b border-border/30 bg-muted/30">
-            <CardTitle>Registration Code Verification</CardTitle>
-            <CardDescription>Look up and confirm patient visit registration codes</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <RegistrationCodeVerification />
-          </CardContent>
-        </Card>
-      );
-    case "profile":
+    case "registration-codes":
       return (
         <Card className="border-border/50 shadow-sm">
           <CardHeader className="border-b border-border/30 bg-muted/30">
