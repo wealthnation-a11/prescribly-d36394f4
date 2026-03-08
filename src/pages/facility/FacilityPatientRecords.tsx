@@ -33,13 +33,13 @@ const FacilityPatientRecords = () => {
     queryKey: ["facility-patient-records", facilityId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("facility_patient_records")
+        .from("facility_patient_records" as any)
         .select("*")
         .eq("facility_id", facilityId!)
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      return data;
+      return data as any[];
     },
     enabled: !!facilityId,
   });
@@ -76,7 +76,7 @@ const FacilityPatientRecords = () => {
         }
       }
 
-      const { error } = await supabase.from("facility_patient_records").insert({
+      const { error } = await supabase.from("facility_patient_records" as any).insert({
         facility_id: facilityId,
         patient_id: record.patient_id,
         registration_code_id: record.id,

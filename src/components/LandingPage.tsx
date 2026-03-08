@@ -462,7 +462,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
                     </div>
-                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => setIsHospitalRegistrationOpen(true)}>
+                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => navigate("/hospital")}>
                       Register Your Hospital
                     </Button>
                   </CardContent>
@@ -611,7 +611,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
                     </div>
-                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => setIsHospitalRegistrationOpen(true)}>
+                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => navigate("/hospital")}>
                       Register Your Hospital
                     </Button>
                   </CardContent>

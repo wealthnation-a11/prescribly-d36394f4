@@ -164,8 +164,8 @@ const HospitalPortal = () => {
             <TabsContent value="register" className="mt-4">
               {submitted ? (
                 <div className="text-center py-8 space-y-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <CheckCircle className="h-8 w-8 text-emerald-500" />
+                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <CheckCircle className="h-8 w-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold">Application Submitted!</h3>
                   <p className="text-muted-foreground text-sm">
