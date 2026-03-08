@@ -37,7 +37,7 @@ export const LandingPage = () => {
   } = useAuth();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
   const [showHerbalRegister, setShowHerbalRegister] = useState(false);
-  const [isHospitalRegistrationOpen, setIsHospitalRegistrationOpen] = useState(false);
+  
 
   // Don't auto-redirect admins if they want to visit landing page
   useEffect(() => {
