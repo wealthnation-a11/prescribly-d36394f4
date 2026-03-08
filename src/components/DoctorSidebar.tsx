@@ -19,104 +19,98 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Dashboard", url: "/doctor-dashboard", icon: Stethoscope, hoverColor: "hover:bg-blue-700" },
-  { title: "Today's Appointments", url: "/doctor/appointments", icon: Calendar, hoverColor: "hover:bg-blue-700" },
-  { title: "My Patients", url: "/doctor/patients", icon: Users, hoverColor: "hover:bg-blue-700" },
-  { title: "Write Prescription", url: "/doctor/prescriptions", icon: FileText, hoverColor: "hover:bg-green-700" },
-  { title: "Patient Messages", url: "/doctor/messages", icon: MessageCircle, hoverColor: "hover:bg-purple-700" },
-  { title: "My Profile", url: "/doctor/profile", icon: User, hoverColor: "hover:bg-gray-700" },
-  { title: "Home Visits", url: "/doctor/home-visits", icon: Home, hoverColor: "hover:bg-indigo-700" },
-  { title: "Availability", url: "/doctor/availability", icon: Clock, hoverColor: "hover:bg-orange-700" },
-  { title: "Earnings", url: "/doctor/earnings", icon: TrendingUp, hoverColor: "hover:bg-teal-700" },
+  { title: "Dashboard", url: "/doctor-dashboard", icon: Stethoscope },
+  { title: "Today's Appointments", url: "/doctor/appointments", icon: Calendar },
+  { title: "My Patients", url: "/doctor/patients", icon: Users },
+  { title: "Write Prescription", url: "/doctor/prescriptions", icon: FileText },
+  { title: "Patient Messages", url: "/doctor/messages", icon: MessageCircle },
+  { title: "My Profile", url: "/doctor/profile", icon: User },
+  { title: "Home Visits", url: "/doctor/home-visits", icon: Home },
+  { title: "Availability", url: "/doctor/availability", icon: Clock },
+  { title: "Earnings", url: "/doctor/earnings", icon: TrendingUp },
 ];
 
 export function DoctorSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const { isApproved } = useDoctorApproval();
   const { handleLogout } = useLogout();
 
-  // Always show all menu items
-  const visibleItems = items;
-
-  const isActive = (path: string) => currentPath === path;
-  const isExpanded = items.some((i) => isActive(i.url));
   const isCollapsed = state === "collapsed";
-  
-  const getNavCls = ({ isActive }: { isActive: boolean }, hoverColor: string) =>
-    isActive 
-      ? "bg-white/10 text-white font-medium border-r-4 border-white" 
-      : `text-gray-300 hover:text-white transition-all duration-200 ${hoverColor}`;
 
   return (
-    <Sidebar className={`bg-gray-900 text-white rounded-r-2xl shadow-lg h-screen flex flex-col justify-between transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"}`}>
-      <SidebarContent className="bg-gray-900 text-white flex flex-col h-full">
+    <Sidebar
+      collapsible="offcanvas"
+      className="border-r-0"
+    >
+      <SidebarContent className="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white flex flex-col h-full">
         {/* Header */}
-        <div className="p-4 border-b border-gray-700">
+        <div className="p-4 border-b border-white/10">
           <NavLink to="/" end className="flex items-center gap-3" aria-label="Go to home">
             <Logo size="sm" />
             {!isCollapsed && (
-              <div className="flex-1">
-                <h2 className="font-bold text-lg text-white">Prescribly</h2>
-                <p className="text-xs text-gray-300">Doctor Portal</p>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-bold text-lg text-white truncate">Prescribly</h2>
+                <p className="text-xs text-slate-400">Doctor Portal</p>
               </div>
             )}
           </NavLink>
           {!isCollapsed && (
             <div className="mt-3 flex justify-center gap-2">
-              <NotificationBell variant="outline" className="border-gray-600 text-white hover:bg-gray-800" />
-              <ThemeToggle variant="outline" className="border-gray-600 text-white hover:bg-gray-800" />
-            </div>
-          )}
-          {isCollapsed && (
-            <div className="mt-2 space-y-2 flex flex-col items-center">
-              <NotificationBell variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-800" />
-              <ThemeToggle variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-800" />
+              <NotificationBell variant="outline" className="border-white/20 text-white hover:bg-white/10" />
+              <ThemeToggle variant="outline" className="border-white/20 text-white hover:bg-white/10" />
             </div>
           )}
         </div>
 
         {/* Menu Items */}
-        <SidebarGroup className="flex-1 px-2 py-4">
-          <SidebarGroupLabel className={`px-4 mb-2 text-gray-400 ${isCollapsed ? "sr-only" : ""}`}>
-            Doctor Menu
+        <SidebarGroup className="flex-1 px-2 py-3">
+          <SidebarGroupLabel className={`px-3 mb-1 text-slate-500 uppercase text-[11px] tracking-wider font-semibold ${isCollapsed ? "sr-only" : ""}`}>
+            Menu
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
-              {visibleItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="h-12">
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className={({ isActive }) => `
-                        flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                        ${getNavCls({ isActive }, item.hoverColor)}
-                      `}
-                    >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      {!isCollapsed && (
-                        <span className="font-medium">{item.title}</span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="space-y-0.5">
+              {items.map((item) => {
+                const active = currentPath === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild className="h-11">
+                      <NavLink
+                        to={item.url}
+                        end
+                        onClick={() => setOpenMobile(false)}
+                        className={() => `
+                          flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+                          ${active
+                            ? "bg-primary/20 text-white font-medium shadow-sm shadow-primary/10"
+                            : "text-slate-400 hover:text-white hover:bg-white/5"
+                          }
+                        `}
+                      >
+                        <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${active ? "text-primary" : ""}`} />
+                        {!isCollapsed && (
+                          <span className="text-sm">{item.title}</span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-3 border-t border-white/10">
           <Button
             onClick={handleLogout}
-            variant="outline"
-            className="w-full border border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-lg p-2 transition-all duration-200"
+            variant="ghost"
+            className="w-full justify-start gap-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg h-11"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            {!isCollapsed && "Logout"}
+            <LogOut className="w-[18px] h-[18px]" />
+            {!isCollapsed && <span className="text-sm">Logout</span>}
           </Button>
         </div>
       </SidebarContent>

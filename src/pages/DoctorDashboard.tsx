@@ -170,14 +170,14 @@ export const DoctorDashboard = () => {
         subtitle="Ready to provide excellent patient care today"
         showBackButton={false}
       >
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Welcome Message */}
           <WelcomeMessage 
             onStartTour={() => setRunTour(true)}
             showTourButton={!userProfile?.dashboard_tour_completed}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               
               {/* Today's Appointments */}
               <Card className="backdrop-blur-sm bg-blue-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
