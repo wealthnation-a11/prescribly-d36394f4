@@ -17,7 +17,7 @@ import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
 import { HerbalPractitionerRegisterModal } from "./HerbalPractitionerRegisterModal";
-import { HospitalRegistrationForm } from "./landing/HospitalRegistrationForm";
+
 import { AdMobBanner } from "@/components/ads/AdMobBanner";
 import { BannerAdPosition } from "@capacitor-community/admob";
 import heroImage from "@/assets/hero-doctors-team.jpg";
