@@ -97,7 +97,7 @@ const HospitalPortal = () => {
       if (error) throw error;
       setSubmitted(true);
       toast({ title: "Application Submitted!", description: "Your hospital registration is under review. You'll receive login credentials once approved." });
-      setTimeout(() => setActiveTab("login"), 2000);
+      setTimeout(() => navigate("/hospital"), 2000);
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to submit", variant: "destructive" });
     } finally {
