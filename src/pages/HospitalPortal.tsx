@@ -9,9 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Building2, LogIn, Loader2, MapPin, CheckCircle } from "lucide-react";
+import { Building2, LogIn, Loader2, MapPin, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { useAuth } from "@/contexts/AuthContext";
+import { PasswordValidator } from "@/components/PasswordValidator";
 import { z } from "zod";
 
 const hospitalSchema = z.object({
@@ -25,26 +25,35 @@ const hospitalSchema = z.object({
   email: z.string().email("Valid email required").max(255),
   contact_person: z.string().min(2, "Contact person is required").max(200),
   description: z.string().max(1000).optional(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 const HospitalPortal = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("register");
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Register state
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [formData, setFormData] = useState({
     name: "", type: "hospital", address: "", city: "", state: "", country: "",
     phone: "", email: "", contact_person: "", description: "",
+    password: "", confirmPassword: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -76,8 +85,29 @@ const HospitalPortal = () => {
       return;
     }
 
+    if (!isPasswordValid) {
+      toast({ title: "Invalid Password", description: "Please meet all password requirements.", variant: "destructive" });
+      return;
+    }
+
     setSubmitting(true);
     try {
+      // Create auth account with the provided email and password
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            first_name: formData.contact_person.split(" ")[0],
+            last_name: formData.contact_person.split(" ").slice(1).join(" ") || "",
+            role: "patient",
+          },
+        },
+      });
+
+      if (authError) throw authError;
+
+      // Submit hospital registration
       const { error } = await supabase.from("hospital_registrations").insert({
         name: formData.name,
         type: formData.type,
@@ -91,12 +121,16 @@ const HospitalPortal = () => {
         description: formData.description || null,
         latitude: lat,
         longitude: lng,
-        submitted_by: user?.id || null,
+        submitted_by: authData.user?.id || null,
         status: "pending" as any,
       });
       if (error) throw error;
+
+      // Sign out after registration since they need admin approval
+      await supabase.auth.signOut();
+
       setSubmitted(true);
-      toast({ title: "Application Submitted!", description: "Your hospital registration is under review. You'll receive login credentials once approved." });
+      toast({ title: "Application Submitted!", description: "Your hospital registration is under review. Use your email and password to log in once approved." });
       setTimeout(() => navigate("/hospital"), 2000);
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to submit", variant: "destructive" });
@@ -129,7 +163,7 @@ const HospitalPortal = () => {
         await supabase.auth.signOut();
         toast({
           title: "Access Denied",
-          description: "Your account is not linked to any facility. Contact your administrator.",
+          description: "Your account is not linked to any facility yet. Your registration may still be under review.",
           variant: "destructive",
         });
         return;
@@ -169,7 +203,7 @@ const HospitalPortal = () => {
                   </div>
                   <h3 className="text-xl font-bold">Application Submitted!</h3>
                   <p className="text-muted-foreground text-sm">
-                    Your hospital registration is under review. An admin will approve your application and send you login credentials.
+                    Your hospital registration is under review. Once approved, use your email and password to log in.
                   </p>
                   <Button onClick={() => setActiveTab("login")}>Go to Login</Button>
                 </div>
@@ -226,6 +260,56 @@ const HospitalPortal = () => {
                       <Input value={formData.email} onChange={(e) => handleChange("email", e.target.value)} type="email" />
                       {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                     </div>
+
+                    {/* Password Fields */}
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label>Password *</Label>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={formData.password}
+                          onChange={(e) => handleChange("password", e.target.value)}
+                          placeholder="Create a password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label>Confirm Password *</Label>
+                      <div className="relative">
+                        <Input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={formData.confirmPassword}
+                          onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                          placeholder="Confirm your password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
+                    </div>
+
+                    {/* Password Validator */}
+                    <div className="sm:col-span-2">
+                      <PasswordValidator
+                        password={formData.password}
+                        confirmPassword={formData.confirmPassword}
+                        onValidationChange={setIsPasswordValid}
+                      />
+                    </div>
+
                     {lat && lng && (
                       <div className="sm:col-span-2 flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-2">
                         <MapPin className="h-4 w-4 text-primary" />
@@ -237,7 +321,7 @@ const HospitalPortal = () => {
                       <Textarea value={formData.description} onChange={(e) => handleChange("description", e.target.value)} placeholder="Brief description of your facility..." rows={3} />
                     </div>
                   </div>
-                  <Button onClick={handleRegister} disabled={submitting} className="w-full">
+                  <Button onClick={handleRegister} disabled={submitting || !isPasswordValid} className="w-full">
                     {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Submitting...</> : "Submit Registration"}
                   </Button>
                 </div>
@@ -252,7 +336,23 @@ const HospitalPortal = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input id="login-password" type="password" placeholder="••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      type={showLoginPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loginLoading}>
                   <LogIn className="h-4 w-4 mr-2" />
