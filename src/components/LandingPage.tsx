@@ -672,8 +672,8 @@ export const LandingPage = () => {
             </p>
           </div>
           
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-12 items-center">
               {/* GDPR Certification */}
               <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up p-8 text-center">
                 <div className="flex flex-col items-center space-y-6">
@@ -709,6 +709,26 @@ export const LandingPage = () => {
                     <div className="flex items-center justify-center gap-2 text-sm text-primary font-medium">
                       <Check className="w-4 h-4" />
                       <span>Healthcare Data Security</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* CAC Certification */}
+              <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-2 p-8 text-center">
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="w-24 h-24 flex items-center justify-center">
+                    <img src="/cac-logo.png" alt="Corporate Affairs Commission Nigeria Certification" className="w-full h-full object-contain" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-foreground">CAC Registered</h3>
+                    <p className="text-muted-foreground">
+                      Registered with Nigeria's Corporate Affairs Commission, ensuring compliance 
+                      with local regulations and standards for healthcare service providers.
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-sm text-primary font-medium">
+                      <Check className="w-4 h-4" />
+                      <span>Nigeria Compliance</span>
                     </div>
                   </div>
                 </div>
