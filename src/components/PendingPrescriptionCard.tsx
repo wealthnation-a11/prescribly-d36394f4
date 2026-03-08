@@ -12,12 +12,14 @@ interface PendingPrescriptionCardProps {
   sessionId: string;
   conditionName: string;
   drugs: any[];
+  onStatusChange?: (status: string) => void;
 }
 
 export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = ({
   sessionId,
   conditionName,
-  drugs
+  drugs,
+  onStatusChange
 }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -42,13 +44,13 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
         setStatus(data[0].status);
         setApprovedDrugs(data[0].approved_drugs as any[] | null);
         setDoctorNotes(data[0].doctor_notes);
+        onStatusChange?.(data[0].status);
       }
       setLoading(false);
     };
 
     fetchStatus();
 
-    // Real-time subscription for status changes
     const channel = supabase
       .channel(`pending-approval-${sessionId}`)
       .on(
@@ -64,6 +66,7 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
           setStatus(updated.status);
           setApprovedDrugs(updated.approved_drugs);
           setDoctorNotes(updated.doctor_notes);
+          onStatusChange?.(updated.status);
         }
       )
       .subscribe();
@@ -85,9 +88,9 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
 
   if (status === 'approved' && approvedDrugs) {
     return (
-      <Card className="border-green-200 bg-green-50/50">
+      <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-700">
+          <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
             <CheckCircle className="h-5 w-5" />
             Doctor-Approved Medications
           </CardTitle>
@@ -102,10 +105,10 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
           )}
           <div className="space-y-3">
             {approvedDrugs.map((drug: any, index: number) => (
-              <div key={index} className="p-4 border rounded-lg bg-background">
+              <div key={index} className="p-3 md:p-4 border rounded-lg bg-background">
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold text-lg">{drug.drug_name}</h4>
-                  <Badge variant="outline" className="bg-green-100 text-green-800">Approved</Badge>
+                  <h4 className="font-semibold text-base md:text-lg">{drug.drug_name}</h4>
+                  <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Approved</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mb-2">
                   {drug.strength && <div><span className="font-medium">Strength:</span> {drug.strength}</div>}
@@ -138,7 +141,7 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
               </AlertDescription>
             </Alert>
           )}
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm md:text-base">
             The doctor has reviewed the AI recommendations and determined they are not suitable. 
             Please book a consultation for personalized treatment.
           </p>
@@ -153,9 +156,9 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
 
   // Pending or under_review
   return (
-    <Card className="border-orange-200 bg-orange-50/50">
+    <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-orange-700">
+        <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-400 text-base md:text-lg">
           <Clock className="h-5 w-5" />
           Medications Pending Doctor Review
         </CardTitle>
@@ -163,7 +166,7 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
       <CardContent className="space-y-4">
         <Alert>
           <Pill className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-sm">
             Your AI diagnosis identified potential medications for <strong>{conditionName}</strong>. 
             A doctor needs to review and approve these recommendations before they can be shown to you.
           </AlertDescription>
@@ -176,7 +179,7 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
         </p>
 
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-orange-100 text-orange-800">
+          <Badge variant="outline" className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
             {status === 'under_review' ? 'Under Review' : 'Pending'}
           </Badge>
           <span className="text-sm text-muted-foreground">

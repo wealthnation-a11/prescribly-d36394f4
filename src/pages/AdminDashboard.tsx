@@ -16,10 +16,11 @@ import BlogManagement from "@/components/admin/BlogManagement";
 import CommentModeration from "@/components/admin/CommentModeration";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import FacilityManagement from "@/components/admin/FacilityManagement";
+import HospitalRegistrationManagement from "@/components/admin/HospitalRegistrationManagement";
 import RegistrationCodeVerification from "@/components/admin/RegistrationCodeVerification";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle } from "lucide-react";
+import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2 } from "lucide-react";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getAdminDashboardSteps } from "@/components/DashboardTour";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -199,6 +200,32 @@ const AdminDashboard = () => {
         </Card>
       );
     case "registration-codes":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle>Registration Code Verification</CardTitle>
+            <CardDescription>Look up and confirm patient visit registration codes</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <RegistrationCodeVerification />
+          </CardContent>
+        </Card>
+      );
+    case "hospital-applications":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-amber-500" />
+              Hospital Registration Applications
+            </CardTitle>
+            <CardDescription>Review and approve hospital/clinic registration requests</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <HospitalRegistrationManagement />
+          </CardContent>
+        </Card>
+      );
       return (
         <Card className="border-border/50 shadow-sm">
           <CardHeader className="border-b border-border/30 bg-muted/30">

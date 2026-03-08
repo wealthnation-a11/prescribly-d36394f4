@@ -56,17 +56,17 @@ const DoctorApplicationsManagement = () => {
   const { data: doctors, isLoading } = useQuery({
     queryKey: ['admin-doctors', activeTab],
     queryFn: async () => {
-      const queryParams = new URLSearchParams();
-      if (activeTab !== 'all') {
-        queryParams.append('status', activeTab);
-      }
-      queryParams.append('page', '1');
-      queryParams.append('limit', '50');
-
-      const { data, error } = await supabase.functions.invoke(`admin-doctors?${queryParams.toString()}`, {
-        method: 'GET',
+      const { data, error } = await supabase.functions.invoke('admin-doctors', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: {
+          action: 'list',
+          status: activeTab !== 'all' ? activeTab : undefined,
+          page: 1,
+          limit: 50,
         },
       });
 

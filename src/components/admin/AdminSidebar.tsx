@@ -81,6 +81,7 @@ const navGroups: NavGroup[] = [
     title: "Facilities",
     items: [
       { id: "facilities", label: "Facilities", icon: Package, color: "text-orange-500" },
+      { id: "hospital-applications", label: "Hospital Apps", icon: Home, color: "text-amber-500" },
       { id: "registration-codes", label: "Reg. Codes", icon: FileText, color: "text-sky-500" },
     ],
   },

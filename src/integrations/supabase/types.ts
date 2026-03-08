@@ -1689,6 +1689,72 @@ export type Database = {
         }
         Relationships: []
       }
+      hospital_registrations: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          city: string | null
+          contact_person: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          state: string | null
+          status: Database["public"]["Enums"]["hospital_registration_status"]
+          submitted_by: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["hospital_registration_status"]
+          submitted_by?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["hospital_registration_status"]
+          submitted_by?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -3745,6 +3811,7 @@ export type Database = {
         | "no_show"
         | "pending"
         | "approved"
+      hospital_registration_status: "pending" | "approved" | "rejected"
       prescription_status: "pending" | "dispensed" | "cancelled"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       user_role: "admin" | "doctor" | "patient"
@@ -3884,6 +3951,7 @@ export const Constants = {
         "pending",
         "approved",
       ],
+      hospital_registration_status: ["pending", "approved", "rejected"],
       prescription_status: ["pending", "dispensed", "cancelled"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
       user_role: ["admin", "doctor", "patient"],

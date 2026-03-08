@@ -5,7 +5,7 @@ import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Validation schemas
@@ -70,12 +70,60 @@ serve(async (req) => {
     if (method === 'POST') {
       const body = await req.json();
       
+      // Handle list action (replaces GET with query params)
+      if (body.action === 'list') {
+        const status = body.status;
+        const page = body.page || 1;
+        const limit = Math.min(body.limit || 20, 100);
+        const offset = (page - 1) * limit;
+        
+        let query = supabase
+          .from('doctors')
+          .select(`
+            id, user_id, specialization, license_number, years_of_experience, 
+            consultation_fee, verification_status, bio, rating, total_reviews, created_at
+          `, { count: 'exact' })
+          .range(offset, offset + limit - 1);
+
+        if (status) {
+          query = query.eq('verification_status', status);
+        }
+
+        const { data: doctors, error, count } = await query;
+        if (error) throw error;
+
+        const doctorsWithProfiles = await Promise.all(
+          (doctors || []).map(async (doctor) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email')
+              .eq('user_id', doctor.user_id)
+              .maybeSingle();
+            return { ...doctor, profiles: profile || { first_name: '', last_name: '', email: '' } };
+          })
+        );
+
+        const { count: pendingCount } = await supabase
+          .from('doctors')
+          .select('id', { count: 'exact' })
+          .eq('verification_status', 'pending');
+
+        return new Response(JSON.stringify({
+          doctors: doctorsWithProfiles,
+          total: count || 0,
+          pending_verification: pendingCount || 0,
+          page,
+          totalPages: Math.ceil((count || 0) / limit)
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       if (body.action === 'verify' && body.doctorId) {
         const doctorId = body.doctorId;
         const verificationAction = body.verificationAction;
         const notes = body.notes;
 
-        // Validate doctor ID
         const uuidSchema = z.string().uuid();
         const validation = uuidSchema.safeParse(doctorId);
         if (!validation.success) {
@@ -99,7 +147,6 @@ serve(async (req) => {
 
         if (error) throw error;
 
-        // Fetch profile data separately
         const { data: doctorProfile } = await supabase
           .from('profiles')
           .select('first_name, last_name, email')
@@ -111,7 +158,6 @@ serve(async (req) => {
           profiles: doctorProfile || { first_name: '', last_name: '', email: '' }
         };
 
-        // Create audit log
         await supabase.from('doctor_verification_audit').insert({
           doctor_id: doctorId,
           admin_id: user.id,
@@ -119,7 +165,6 @@ serve(async (req) => {
           notes: notes || null
         });
 
-        // Create notification for doctor
         await supabase.from('notifications').insert({
           user_id: doctorWithProfile.user_id,
           type: 'doctor_verification',
