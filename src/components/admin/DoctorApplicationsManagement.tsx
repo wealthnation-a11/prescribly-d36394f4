@@ -56,12 +56,11 @@ const DoctorApplicationsManagement = () => {
   const { data: doctors, isLoading } = useQuery({
     queryKey: ['admin-doctors', activeTab],
     queryFn: async () => {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+
       const { data, error } = await supabase.functions.invoke('admin-doctors', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
         body: {
           action: 'list',
           status: activeTab !== 'all' ? activeTab : undefined,
@@ -78,11 +77,6 @@ const DoctorApplicationsManagement = () => {
   const verifyDoctorMutation = useMutation({
     mutationFn: async ({ doctorId, action, notes }: { doctorId: string; action: 'approve' | 'reject'; notes?: string }) => {
       const { data, error } = await supabase.functions.invoke('admin-doctors', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
         body: { action: 'verify', doctorId, verificationAction: action, notes },
       });
 

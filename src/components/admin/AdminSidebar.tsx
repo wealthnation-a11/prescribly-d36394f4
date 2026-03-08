@@ -31,6 +31,7 @@ interface AdminSidebarProps {
   onSectionChange: (section: string) => void;
   pendingCounts?: {
     doctors?: number;
+    hospitals?: number;
     herbalPractitioners?: number;
     herbalRemedies?: number;
     herbalArticles?: number;
@@ -113,6 +114,8 @@ export function AdminSidebar({
     switch (id) {
       case "doctors":
         return pendingCounts.doctors;
+      case "hospital-applications":
+        return pendingCounts.hospitals;
       default:
         return undefined;
     }

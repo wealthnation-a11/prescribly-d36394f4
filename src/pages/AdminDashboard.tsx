@@ -61,11 +61,13 @@ const AdminDashboard = () => {
   const { data: pendingCounts } = useQuery({
     queryKey: ["admin-pending-counts"],
     queryFn: async () => {
-      const [doctorsRes] = await Promise.all([
+      const [doctorsRes, hospitalsRes] = await Promise.all([
         supabase.from("doctors").select("id", { count: "exact", head: true }).eq("verification_status", "pending"),
+        supabase.from("hospital_registrations").select("id", { count: "exact", head: true }).eq("status", "pending" as any),
       ]);
       return {
         doctors: doctorsRes.count || 0,
+        hospitals: hospitalsRes.count || 0,
       };
     },
   });
@@ -226,18 +228,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       );
-      return (
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader className="border-b border-border/30 bg-muted/30">
-            <CardTitle>Registration Code Verification</CardTitle>
-            <CardDescription>Look up and confirm patient visit registration codes</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <RegistrationCodeVerification />
-          </CardContent>
-        </Card>
-      );
-    case "profile":
+    case "registration-codes":
       return (
         <Card className="border-border/50 shadow-sm">
           <CardHeader className="border-b border-border/30 bg-muted/30">
@@ -363,7 +354,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Quick Stats Summary */}
-            {pendingCounts && pendingCounts.doctors ? (
+            {pendingCounts && (pendingCounts.doctors || pendingCounts.hospitals) ? (
               <div className="mb-6 p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                   <Clock className="h-4 w-4" />
@@ -372,6 +363,11 @@ const AdminDashboard = () => {
                     {pendingCounts.doctors ? (
                       <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
                         {pendingCounts.doctors} doctors
+                      </span>
+                    ) : null}
+                    {pendingCounts.hospitals ? (
+                      <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
+                        {pendingCounts.hospitals} hospital apps
                       </span>
                     ) : null}
                   </div>
