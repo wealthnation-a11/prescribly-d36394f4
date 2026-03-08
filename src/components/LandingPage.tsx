@@ -17,7 +17,7 @@ import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
 import { HerbalPractitionerRegisterModal } from "./HerbalPractitionerRegisterModal";
-import { HospitalRegistrationForm } from "./landing/HospitalRegistrationForm";
+
 import { AdMobBanner } from "@/components/ads/AdMobBanner";
 import { BannerAdPosition } from "@capacitor-community/admob";
 import heroImage from "@/assets/hero-doctors-team.jpg";
@@ -37,7 +37,7 @@ export const LandingPage = () => {
   } = useAuth();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
   const [showHerbalRegister, setShowHerbalRegister] = useState(false);
-  const [isHospitalRegistrationOpen, setIsHospitalRegistrationOpen] = useState(false);
+  
 
   // Don't auto-redirect admins if they want to visit landing page
   useEffect(() => {
@@ -462,7 +462,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
                     </div>
-                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => setIsHospitalRegistrationOpen(true)}>
+                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => navigate("/hospital")}>
                       Register Your Hospital
                     </Button>
                   </CardContent>
@@ -611,7 +611,7 @@ export const LandingPage = () => {
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
                     </div>
-                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => setIsHospitalRegistrationOpen(true)}>
+                    <Button variant="cta" className="w-full mt-4" aria-label="Register Your Hospital" onClick={() => navigate("/hospital")}>
                       Register Your Hospital
                     </Button>
                   </CardContent>
@@ -871,6 +871,6 @@ export const LandingPage = () => {
         isOpen={showHerbalRegister}
         onClose={() => setShowHerbalRegister(false)}
       />
-      <HospitalRegistrationForm open={isHospitalRegistrationOpen} onOpenChange={setIsHospitalRegistrationOpen} />
+      
     </div>;
 };

@@ -3857,9 +3857,14 @@ export type Database = {
           facility_name: string
           facility_type: string
           id: string
+          patient_country: string
+          patient_dob: string
+          patient_email: string
           patient_first_name: string
+          patient_gender: string
           patient_id: string
           patient_last_name: string
+          patient_phone: string
           status: string
         }[]
       }

@@ -139,6 +139,51 @@ const FacilityCodeVerification = () => {
                     <p className="font-medium">{result.facility_name}</p>
                   </div>
                 </div>
+                {result.patient_email && (
+                  <div className="flex items-start gap-3">
+                    <User className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Email</p>
+                      <p className="font-medium">{result.patient_email}</p>
+                    </div>
+                  </div>
+                )}
+                {result.patient_phone && (
+                  <div className="flex items-start gap-3">
+                    <User className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Phone</p>
+                      <p className="font-medium">{result.patient_phone}</p>
+                    </div>
+                  </div>
+                )}
+                {result.patient_dob && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Date of Birth</p>
+                      <p className="font-medium">{result.patient_dob}</p>
+                    </div>
+                  </div>
+                )}
+                {result.patient_gender && (
+                  <div className="flex items-start gap-3">
+                    <User className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Gender</p>
+                      <p className="font-medium capitalize">{result.patient_gender}</p>
+                    </div>
+                  </div>
+                )}
+                {result.patient_country && (
+                  <div className="flex items-start gap-3">
+                    <Building2 className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Country</p>
+                      <p className="font-medium">{result.patient_country}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-start gap-3">
                   <Calendar className="h-5 w-5 text-primary mt-0.5" />
                   <div>

@@ -96,10 +96,11 @@ const PatientHerbalMessages = lazy(() => import("./pages/herbal/PatientHerbalMes
 const HerbalPractitionerLogin = lazy(() => import("./pages/HerbalPractitionerLogin"));
 const HerbalPractitionerRegister = lazy(() => import("./pages/HerbalPractitionerRegister"));
 const VerifyCode = lazy(() => import("./pages/VerifyCode"));
-const FacilityLogin = lazy(() => import("./pages/FacilityLogin"));
+const HospitalPortal = lazy(() => import("./pages/HospitalPortal"));
 const FacilityDashboard = lazy(() => import("./pages/facility/FacilityDashboard"));
 const FacilityCodeVerification = lazy(() => import("./pages/facility/FacilityCodeVerification"));
 const FacilityVisitHistory = lazy(() => import("./pages/facility/FacilityVisitHistory"));
+const FacilityPatientRecords = lazy(() => import("./pages/facility/FacilityPatientRecords"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -184,12 +185,14 @@ const App = () => (
                     <Route path="/payment-callback" element={<PaymentCallback />} />
                     <Route path="/install" element={<InstallPWA />} />
                     <Route path="/verify-code" element={<VerifyCode />} />
-                    <Route path="/facility-login" element={<FacilityLogin />} />
+                    <Route path="/hospital" element={<HospitalPortal />} />
+                    <Route path="/facility-login" element={<Navigate to="/hospital" replace />} />
 
                     {/* Facility Staff Routes */}
                     <Route path="/facility-dashboard" element={<FacilityRoute><FacilityDashboard /></FacilityRoute>} />
                     <Route path="/facility-dashboard/verify" element={<FacilityRoute><FacilityCodeVerification /></FacilityRoute>} />
                     <Route path="/facility-dashboard/visits" element={<FacilityRoute><FacilityVisitHistory /></FacilityRoute>} />
+                    <Route path="/facility-dashboard/records" element={<FacilityRoute><FacilityPatientRecords /></FacilityRoute>} />
 
                     {/* Auth-only Routes */}
                     <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
