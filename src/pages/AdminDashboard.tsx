@@ -228,7 +228,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       );
-    case "registration-codes":
+    case "profile":
       return (
         <Card className="border-border/50 shadow-sm">
           <CardHeader className="border-b border-border/30 bg-muted/30">
