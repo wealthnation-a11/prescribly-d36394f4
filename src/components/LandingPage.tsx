@@ -421,43 +421,43 @@ export const LandingPage = () => {
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Unlimited Licensed Doctor Access</span>
+                      <span>Appear on Prescribly's Hospital Map for Nearby Patients</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>AI-Powered Triage & Diagnostics</span>
+                      <span>Receive Patient Appointment Bookings Directly</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Multi-Clinic Dashboard</span>
+                      <span>Get Featured in AI-Powered Doctor & Facility Recommendations</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Patient Record Synchronization</span>
+                      <span>Access to a Growing Network of Verified Patients</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>HIPAA / NDPR / GDPR Compliance</span>
+                      <span>Free Digital Profile Page for Your Hospital</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Dedicated Account Manager</span>
+                      <span>Real-Time Appointment & Consultation Notifications</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Custom Analytics & Reporting</span>
+                      <span>Patient Reviews & Ratings to Build Trust</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Integration with Hospital Systems (EHR, EMR, etc.)</span>
+                      <span>Seamless Integration with Prescribly's Booking System</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Priority Deployment & Staff Training</span>
+                      <span>Analytics Dashboard to Track Patient Engagement</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Direct Line to Medical Support & Engineering Teams</span>
+                      <span>Priority Listing During Launch Period</span>
                     </div>
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
@@ -570,43 +570,43 @@ export const LandingPage = () => {
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Unlimited Licensed Doctor Access</span>
+                      <span>Appear on Prescribly's Hospital Map for Nearby Patients</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>AI-Powered Triage & Diagnostics</span>
+                      <span>Receive Patient Appointment Bookings Directly</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Multi-Clinic Dashboard</span>
+                      <span>Get Featured in AI-Powered Doctor & Facility Recommendations</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Patient Record Synchronization</span>
+                      <span>Access to a Growing Network of Verified Patients</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>HIPAA / NDPR / GDPR Compliance</span>
+                      <span>Free Digital Profile Page for Your Hospital</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Dedicated Account Manager</span>
+                      <span>Real-Time Appointment & Consultation Notifications</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Custom Analytics & Reporting</span>
+                      <span>Patient Reviews & Ratings to Build Trust</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Integration with Hospital Systems (EHR, EMR, etc.)</span>
+                      <span>Seamless Integration with Prescribly's Booking System</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Priority Deployment & Staff Training</span>
+                      <span>Analytics Dashboard to Track Patient Engagement</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Direct Line to Medical Support & Engineering Teams</span>
+                      <span>Priority Listing During Launch Period</span>
                     </div>
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
