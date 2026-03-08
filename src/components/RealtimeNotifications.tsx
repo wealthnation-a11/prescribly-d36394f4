@@ -4,6 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
+const showBrowserNotification = (title: string, body: string) => {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(title, {
+        body,
+        icon: '/pwa-192x192.png',
+        badge: '/pwa-192x192.png',
+      });
+    } catch {
+      // Some browsers don't support new Notification() directly
+    }
+  }
+};
+
 export const RealtimeNotifications = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -30,6 +44,7 @@ export const RealtimeNotifications = () => {
               title: "New Message",
               description: "You have received a new message.",
             });
+            showBrowserNotification("New Message", "You have received a new message.");
             queryClient.invalidateQueries({ queryKey: ['messages'] });
           }
         }
@@ -58,6 +73,9 @@ export const RealtimeNotifications = () => {
             description: notification.message,
             variant,
           });
+
+          // Show browser notification for important events
+          showBrowserNotification(notification.title || 'Prescribly', notification.message || '');
 
           // Invalidate relevant queries based on notification type
           if (notification.type?.startsWith('appointment')) {
@@ -92,10 +110,32 @@ export const RealtimeNotifications = () => {
       )
       .subscribe();
 
+    // Subscribe to pending drug approvals (for doctors to see new prescription review requests)
+    const pendingPrescriptionsChannel = supabase
+      .channel('pending-prescription-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'pending_drug_approvals',
+        },
+        () => {
+          toast({
+            title: "New Prescription Review",
+            description: "A new prescription requires your review.",
+          });
+          showBrowserNotification("New Prescription Review", "A new prescription requires your review.");
+          queryClient.invalidateQueries({ queryKey: ['pending-prescriptions'] });
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(notificationsChannel);
       supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(pendingPrescriptionsChannel);
     };
   }, [user?.id, toast, queryClient]);
 

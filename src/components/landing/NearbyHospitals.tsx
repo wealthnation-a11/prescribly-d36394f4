@@ -1,15 +1,14 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, MapPin, Loader2 } from 'lucide-react';
+import { Building2, MapPin, Loader2, MapPinOff } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useBrowserGeolocation } from '@/hooks/useBrowserGeolocation';
 import { useNearbyFacilities } from '@/hooks/useNearbyFacilities';
 
 export const NearbyHospitals = () => {
   const navigate = useNavigate();
-  const { coords, loading: geoLoading } = useBrowserGeolocation();
+  const { coords, loading: geoLoading, error: geoError } = useBrowserGeolocation();
   const { facilities, loading: facilitiesLoading } = useNearbyFacilities(
     coords?.latitude ?? null,
     coords?.longitude ?? null,
@@ -18,8 +17,8 @@ export const NearbyHospitals = () => {
   const [emblaRef] = useEmblaCarousel({ loop: false, align: 'start', dragFree: true });
 
   const loading = geoLoading || facilitiesLoading;
-
-  if (!loading && facilities.length === 0) return null;
+  const geoDenied = geoError || (!geoLoading && !coords);
+  const noResults = !loading && facilities.length === 0;
 
   return (
     <section className="py-20">
@@ -34,6 +33,29 @@ export const NearbyHospitals = () => {
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : noResults || geoDenied ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+              <MapPinOff className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-2 max-w-md">
+              <h3 className="text-lg font-semibold text-foreground">
+                {geoDenied ? 'Location access not available' : 'No hospitals found nearby'}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {geoDenied
+                  ? 'Enable location access in your browser settings to discover hospitals near you, or browse all available facilities.'
+                  : 'We couldn\'t find hospitals in your immediate area. Browse all registered facilities to find one that works for you.'}
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate('/book-appointment/facility')}
+              className="mt-2"
+            >
+              <Building2 className="h-4 w-4 mr-2" />
+              Browse All Hospitals
+            </Button>
           </div>
         ) : (
           <div className="overflow-hidden" ref={emblaRef}>
