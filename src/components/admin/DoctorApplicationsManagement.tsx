@@ -77,11 +77,6 @@ const DoctorApplicationsManagement = () => {
   const verifyDoctorMutation = useMutation({
     mutationFn: async ({ doctorId, action, notes }: { doctorId: string; action: 'approve' | 'reject'; notes?: string }) => {
       const { data, error } = await supabase.functions.invoke('admin-doctors', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
         body: { action: 'verify', doctorId, verificationAction: action, notes },
       });
 
