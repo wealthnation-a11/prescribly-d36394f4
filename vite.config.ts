@@ -107,7 +107,6 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   optimizeDeps: {
     include: ['react', 'react-dom', '@tanstack/react-query'],
-    force: true,
   },
   resolve: {
     dedupe: ['react', 'react-dom'],
