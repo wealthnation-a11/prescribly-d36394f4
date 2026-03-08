@@ -292,6 +292,58 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
+    } else if (action === 'create-facility-staff') {
+      // Create a new auth user and link them as facility staff
+      const staffSchema = z.object({
+        email: z.string().email(),
+        password: z.string().min(6),
+        facilityId: z.string().uuid(),
+        role: z.enum(['receptionist', 'manager']),
+      });
+
+      const validation = staffSchema.safeParse(body);
+      if (!validation.success) {
+        return new Response(JSON.stringify({ error: 'Validation failed', details: validation.error.issues }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { email: staffEmail, password: staffPassword, facilityId: staffFacilityId, role: staffRole } = validation.data;
+
+      // Create the auth user
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: staffEmail,
+        password: staffPassword,
+        email_confirm: true,
+        user_metadata: { first_name: 'Staff', last_name: 'Member', role: 'patient' },
+      });
+
+      if (createError) throw createError;
+
+      // Insert into facility_staff table
+      const { error: staffInsertError } = await supabase
+        .from('facility_staff')
+        .insert({
+          user_id: newUser.user.id,
+          facility_id: staffFacilityId,
+          role: staffRole,
+        });
+
+      if (staffInsertError) {
+        // Rollback: delete the auth user
+        await supabase.auth.admin.deleteUser(newUser.user.id);
+        throw staffInsertError;
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Facility staff account created',
+        userId: newUser.user.id,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+
     } else if (method === 'DELETE' && urlUserId) {
       // Delete user (soft delete by updating status)
       const { error: authError } = await supabase.auth.admin.deleteUser(urlUserId);

@@ -18,9 +18,10 @@ import { AdminProfile } from "@/components/admin/AdminProfile";
 import FacilityManagement from "@/components/admin/FacilityManagement";
 import HospitalRegistrationManagement from "@/components/admin/HospitalRegistrationManagement";
 import RegistrationCodeVerification from "@/components/admin/RegistrationCodeVerification";
+import FacilityStaffManagement from "@/components/admin/FacilityStaffManagement";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2 } from "lucide-react";
+import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2, UserPlus } from "lucide-react";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getAdminDashboardSteps } from "@/components/DashboardTour";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -225,6 +226,21 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent className="pt-6">
             <HospitalRegistrationManagement />
+          </CardContent>
+        </Card>
+      );
+    case "facility-staff":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-teal-500" />
+              Facility Staff Management
+            </CardTitle>
+            <CardDescription>Create and manage hospital/clinic staff accounts</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <FacilityStaffManagement />
           </CardContent>
         </Card>
       );

@@ -13,6 +13,7 @@ import i18n from "./i18n";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
+import { FacilityRoute } from "./components/FacilityRoute";
 import { RealtimeNotifications } from "./components/RealtimeNotifications";
 
 // Eagerly load the landing page for fast first paint
@@ -95,6 +96,10 @@ const PatientHerbalMessages = lazy(() => import("./pages/herbal/PatientHerbalMes
 const HerbalPractitionerLogin = lazy(() => import("./pages/HerbalPractitionerLogin"));
 const HerbalPractitionerRegister = lazy(() => import("./pages/HerbalPractitionerRegister"));
 const VerifyCode = lazy(() => import("./pages/VerifyCode"));
+const FacilityLogin = lazy(() => import("./pages/FacilityLogin"));
+const FacilityDashboard = lazy(() => import("./pages/facility/FacilityDashboard"));
+const FacilityCodeVerification = lazy(() => import("./pages/facility/FacilityCodeVerification"));
+const FacilityVisitHistory = lazy(() => import("./pages/facility/FacilityVisitHistory"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -179,6 +184,12 @@ const App = () => (
                     <Route path="/payment-callback" element={<PaymentCallback />} />
                     <Route path="/install" element={<InstallPWA />} />
                     <Route path="/verify-code" element={<VerifyCode />} />
+                    <Route path="/facility-login" element={<FacilityLogin />} />
+
+                    {/* Facility Staff Routes */}
+                    <Route path="/facility-dashboard" element={<FacilityRoute><FacilityDashboard /></FacilityRoute>} />
+                    <Route path="/facility-dashboard/verify" element={<FacilityRoute><FacilityCodeVerification /></FacilityRoute>} />
+                    <Route path="/facility-dashboard/visits" element={<FacilityRoute><FacilityVisitHistory /></FacilityRoute>} />
 
                     {/* Auth-only Routes */}
                     <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />

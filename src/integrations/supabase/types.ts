@@ -1232,6 +1232,44 @@ export type Database = {
         }
         Relationships: []
       }
+      facility_staff: {
+        Row: {
+          created_at: string
+          facility_id: string
+          id: string
+          is_active: boolean
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          facility_id: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          facility_id?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_staff_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_tips: {
         Row: {
           created_at: string | null
@@ -3745,6 +3783,7 @@ export type Database = {
           question_text: string
         }[]
       }
+      get_staff_facility_id: { Args: { _user_id: string }; Returns: string }
       get_symptom_suggestions: {
         Args: { search_term?: string }
         Returns: {
@@ -3759,6 +3798,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { user_email: string }; Returns: boolean }
+      is_facility_staff: {
+        Args: { _facility_id: string; _user_id: string }
+        Returns: boolean
+      }
       log_monitoring_event: {
         Args: {
           entity_id_param: string

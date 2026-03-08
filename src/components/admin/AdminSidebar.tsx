@@ -24,6 +24,7 @@ import {
   X,
   Shield,
   UserCircle,
+  UserPlus,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -84,6 +85,7 @@ const navGroups: NavGroup[] = [
       { id: "facilities", label: "Facilities", icon: Package, color: "text-orange-500" },
       { id: "hospital-applications", label: "Hospital Apps", icon: Home, color: "text-amber-500" },
       { id: "registration-codes", label: "Reg. Codes", icon: FileText, color: "text-sky-500" },
+      { id: "facility-staff", label: "Facility Staff", icon: UserPlus, color: "text-teal-500" },
     ],
   },
   {
