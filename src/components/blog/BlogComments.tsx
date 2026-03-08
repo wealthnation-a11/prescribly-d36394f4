@@ -36,7 +36,7 @@ export default function BlogComments({ postId }: BlogCommentsProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("blog_comments")
-        .select("*")
+        .select("id, post_id, user_id, author_name, content, approved, created_at")
         .eq("post_id", postId)
         .eq("approved", true)
         .order("created_at", { ascending: false });
