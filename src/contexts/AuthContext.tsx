@@ -41,9 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Fetch profile data when user logs in
-        if (session?.user && event === 'SIGNED_IN') {
-          fetchUserProfile(session.user.id);
+        // Fetch profile data when user logs in or token is refreshed
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          fetchUserProfile(session.user.id, event === 'TOKEN_REFRESHED');
         } else if (!session?.user) {
           setUserProfile(null);
         }

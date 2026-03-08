@@ -21,10 +21,10 @@ export const NotificationSettings = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
-          Push Notifications
+          Browser Notifications
         </CardTitle>
         <CardDescription>
-          Receive appointment reminders and health tips
+          Receive appointment reminders and health tips directly in your browser
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -57,17 +57,18 @@ export const NotificationSettings = () => {
             className="w-full"
           >
             <Bell className="h-4 w-4 mr-2" />
-            Enable Push Notifications
+            Enable Browser Notifications
           </Button>
         )}
 
         <div className="text-xs text-muted-foreground space-y-1">
           <p>You'll receive notifications for:</p>
           <ul className="list-disc list-inside ml-2 space-y-1">
-            <li>Upcoming appointment reminders (1 hour before)</li>
+            <li>Upcoming appointment reminders</li>
             <li>Appointment status updates</li>
             <li>Daily health tips and wellness advice</li>
             <li>Prescription updates</li>
+            <li>New messages from doctors</li>
           </ul>
         </div>
       </CardContent>
