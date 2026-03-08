@@ -1,4 +1,4 @@
-import { Building2, CheckCircle, ClipboardList, LogOut, User } from "lucide-react";
+import { Building2, CheckCircle, ClipboardList, FileText, LogOut, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -20,6 +20,7 @@ const menuItems = [
   { title: "Dashboard", url: "/facility-dashboard", icon: Building2 },
   { title: "Verify Code", url: "/facility-dashboard/verify", icon: CheckCircle },
   { title: "Visit History", url: "/facility-dashboard/visits", icon: ClipboardList },
+  { title: "Patient Records", url: "/facility-dashboard/records", icon: FileText },
 ];
 
 export function FacilitySidebar() {
