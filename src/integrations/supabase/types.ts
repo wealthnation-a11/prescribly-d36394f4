@@ -3836,8 +3836,6 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       update_user_points: {
         Args: { points_to_add: number; user_uuid: string }
         Returns: undefined
