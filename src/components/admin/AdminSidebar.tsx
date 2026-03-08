@@ -31,6 +31,7 @@ interface AdminSidebarProps {
   onSectionChange: (section: string) => void;
   pendingCounts?: {
     doctors?: number;
+    hospitals?: number;
     herbalPractitioners?: number;
     herbalRemedies?: number;
     herbalArticles?: number;
