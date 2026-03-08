@@ -200,7 +200,7 @@ const VerifyCode = () => {
 
                   {result.confirmed_at && (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-primary/20">
-                      <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+                      <CheckCircle className="w-5 h-5 text-primary shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Confirmed at</p>
                         <p className="font-medium text-foreground">
