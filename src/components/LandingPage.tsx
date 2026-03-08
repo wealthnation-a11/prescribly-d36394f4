@@ -17,6 +17,7 @@ import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
 import { HerbalPractitionerRegisterModal } from "./HerbalPractitionerRegisterModal";
+import { HospitalRegistrationForm } from "./landing/HospitalRegistrationForm";
 import { AdMobBanner } from "@/components/ads/AdMobBanner";
 import { BannerAdPosition } from "@capacitor-community/admob";
 import heroImage from "@/assets/hero-doctors-team.jpg";
@@ -36,6 +37,7 @@ export const LandingPage = () => {
   } = useAuth();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
   const [showHerbalRegister, setShowHerbalRegister] = useState(false);
+  const [isHospitalRegistrationOpen, setIsHospitalRegistrationOpen] = useState(false);
 
   // Don't auto-redirect admins if they want to visit landing page
   useEffect(() => {
@@ -869,5 +871,6 @@ export const LandingPage = () => {
         isOpen={showHerbalRegister}
         onClose={() => setShowHerbalRegister(false)}
       />
+      <HospitalRegistrationForm open={isHospitalRegistrationOpen} onOpenChange={setIsHospitalRegistrationOpen} />
     </div>;
 };
