@@ -94,6 +94,7 @@ const MyOrders = lazy(() => import("./pages/herbal/MyOrders"));
 const PatientHerbalMessages = lazy(() => import("./pages/herbal/PatientHerbalMessages"));
 const HerbalPractitionerLogin = lazy(() => import("./pages/HerbalPractitionerLogin"));
 const HerbalPractitionerRegister = lazy(() => import("./pages/HerbalPractitionerRegister"));
+const VerifyCode = lazy(() => import("./pages/VerifyCode"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
