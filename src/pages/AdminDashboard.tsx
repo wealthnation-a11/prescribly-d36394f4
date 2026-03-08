@@ -354,7 +354,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Quick Stats Summary */}
-            {pendingCounts && pendingCounts.doctors ? (
+            {pendingCounts && (pendingCounts.doctors || pendingCounts.hospitals) ? (
               <div className="mb-6 p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                   <Clock className="h-4 w-4" />
@@ -363,6 +363,11 @@ const AdminDashboard = () => {
                     {pendingCounts.doctors ? (
                       <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
                         {pendingCounts.doctors} doctors
+                      </span>
+                    ) : null}
+                    {pendingCounts.hospitals ? (
+                      <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full">
+                        {pendingCounts.hospitals} hospital apps
                       </span>
                     ) : null}
                   </div>

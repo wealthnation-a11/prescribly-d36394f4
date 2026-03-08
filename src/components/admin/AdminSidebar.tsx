@@ -113,6 +113,8 @@ export function AdminSidebar({
     switch (id) {
       case "doctors":
         return pendingCounts.doctors;
+      case "hospital-applications":
+        return pendingCounts.hospitals;
       default:
         return undefined;
     }
