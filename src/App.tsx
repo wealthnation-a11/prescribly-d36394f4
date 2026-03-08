@@ -94,6 +94,7 @@ const MyOrders = lazy(() => import("./pages/herbal/MyOrders"));
 const PatientHerbalMessages = lazy(() => import("./pages/herbal/PatientHerbalMessages"));
 const HerbalPractitionerLogin = lazy(() => import("./pages/HerbalPractitionerLogin"));
 const HerbalPractitionerRegister = lazy(() => import("./pages/HerbalPractitionerRegister"));
+const VerifyCode = lazy(() => import("./pages/VerifyCode"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -177,6 +178,7 @@ const App = () => (
                     <Route path="/hipaa-compliance" element={<HipaaCompliance />} />
                     <Route path="/payment-callback" element={<PaymentCallback />} />
                     <Route path="/install" element={<InstallPWA />} />
+                    <Route path="/verify-code" element={<VerifyCode />} />
 
                     {/* Auth-only Routes */}
                     <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
