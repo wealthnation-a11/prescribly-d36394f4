@@ -97,7 +97,9 @@
     "zod": "^3.23.8"
   },
   "overrides": {
-    "jspdf": "3.0.4"
+    "jspdf": "3.0.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
