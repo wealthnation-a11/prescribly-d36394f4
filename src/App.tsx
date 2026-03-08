@@ -147,6 +147,7 @@ const App = () => (
               <Sonner />
               <PWAInstallPrompt />
               <OfflineIndicator />
+              <RealtimeNotifications />
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
