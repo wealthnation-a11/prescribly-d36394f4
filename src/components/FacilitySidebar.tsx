@@ -32,7 +32,7 @@ export function FacilitySidebar() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({ title: "Logged out" });
-    navigate("/facility-login");
+    navigate("/hospital");
   };
 
   return (
