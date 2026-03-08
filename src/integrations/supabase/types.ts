@@ -3713,6 +3713,7 @@ export type Database = {
         Returns: boolean
       }
       check_system_health: { Args: never; Returns: Json }
+      confirm_registration_code: { Args: { _code: string }; Returns: boolean }
       doctor_has_active_appointment_with_patient: {
         Args: { _doctor_user_id: string; _patient_user_id: string }
         Returns: boolean
@@ -3801,6 +3802,23 @@ export type Database = {
       validate_encrypted_content: {
         Args: { content: string }
         Returns: boolean
+      }
+      verify_registration_code: {
+        Args: { _code: string }
+        Returns: {
+          code: string
+          confirmed_at: string
+          created_at: string
+          expires_at: string
+          facility_id: string
+          facility_name: string
+          facility_type: string
+          id: string
+          patient_first_name: string
+          patient_id: string
+          patient_last_name: string
+          status: string
+        }[]
       }
     }
     Enums: {
