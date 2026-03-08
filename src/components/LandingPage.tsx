@@ -871,6 +871,6 @@ export const LandingPage = () => {
         isOpen={showHerbalRegister}
         onClose={() => setShowHerbalRegister(false)}
       />
-      <HospitalRegistrationForm open={isHospitalRegistrationOpen} onOpenChange={setIsHospitalRegistrationOpen} />
+      
     </div>;
 };
