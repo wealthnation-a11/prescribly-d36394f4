@@ -13,6 +13,7 @@ import i18n from "./i18n";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
+import { RealtimeNotifications } from "./components/RealtimeNotifications";
 
 // Eagerly load the landing page for fast first paint
 import Index from "./pages/Index";
@@ -147,6 +148,7 @@ const App = () => (
               <Sonner />
               <PWAInstallPrompt />
               <OfflineIndicator />
+              <RealtimeNotifications />
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
