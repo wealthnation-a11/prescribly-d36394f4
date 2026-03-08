@@ -61,11 +61,13 @@ const AdminDashboard = () => {
   const { data: pendingCounts } = useQuery({
     queryKey: ["admin-pending-counts"],
     queryFn: async () => {
-      const [doctorsRes] = await Promise.all([
+      const [doctorsRes, hospitalsRes] = await Promise.all([
         supabase.from("doctors").select("id", { count: "exact", head: true }).eq("verification_status", "pending"),
+        supabase.from("hospital_registrations").select("id", { count: "exact", head: true }).eq("status", "pending" as any),
       ]);
       return {
         doctors: doctorsRes.count || 0,
+        hospitals: hospitalsRes.count || 0,
       };
     },
   });
