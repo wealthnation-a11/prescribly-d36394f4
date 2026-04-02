@@ -132,7 +132,14 @@ const HealthChallenges = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      setUserChallenges(data || []);
+      setUserChallenges((data || []).map((d: any) => ({
+        id: d.id,
+        challenge_id: d.id,
+        progress: d.progress || 0,
+        points_earned: (d.progress || 0) * 10,
+        status: d.status,
+        joined_at: d.started_at,
+      })));
     } catch (error: any) {
       console.error('Error fetching user challenges:', error);
     } finally {
