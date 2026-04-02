@@ -44,14 +44,14 @@ const VerifyCode = () => {
     setNotFound(false);
 
     try {
-      const { data, error } = await supabase.rpc("verify_registration_code", { _code: trimmed });
+      const { data, error } = await (supabase.rpc as any)("verify_registration_code", { _code: trimmed });
 
       if (error) throw error;
 
-      if (!data || data.length === 0) {
+      if (!data || (Array.isArray(data) && data.length === 0)) {
         setNotFound(true);
       } else {
-        setResult(data[0] as CodeResult);
+        setResult(Array.isArray(data) ? data[0] as CodeResult : data as CodeResult);
       }
     } catch {
       toast({ title: "Error looking up code", variant: "destructive" });
