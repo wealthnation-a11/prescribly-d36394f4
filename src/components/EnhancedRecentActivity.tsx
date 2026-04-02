@@ -70,16 +70,20 @@ const EnhancedRecentActivity = () => {
       
       // Add user_history data
       if (historyData) {
-        activities.push(...historyData.map(item => ({
-          id: item.id,
-          title: 'Health Diagnostic Completed',
-          description: Array.isArray(item.suggested_conditions) && item.suggested_conditions.length > 0
-            ? `AI diagnosis: ${(item.suggested_conditions[0] as any)?.condition || 'Condition analyzed'}`
-            : item.input_text || 'Health diagnostic session completed',
-          timestamp: item.created_at,
-          status: 'completed',
-          icon: <Brain className="h-4 w-4 text-purple-600" />
-        })));
+        activities.push(...historyData.map(item => {
+          const meta = (item.metadata || {}) as any;
+          const conditions = Array.isArray(meta?.suggested_conditions) ? meta.suggested_conditions : [];
+          return {
+            id: item.id,
+            title: 'Health Diagnostic Completed',
+            description: conditions.length > 0
+              ? `AI diagnosis: ${conditions[0]?.condition || 'Condition analyzed'}`
+              : meta?.input_text || item.description || 'Health diagnostic session completed',
+            timestamp: item.created_at,
+            status: 'completed',
+            icon: <Brain className="h-4 w-4 text-purple-600" />
+          };
+        }));
       }
 
       // Add user_diagnosis_history data
