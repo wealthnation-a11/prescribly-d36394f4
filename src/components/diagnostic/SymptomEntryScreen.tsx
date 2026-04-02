@@ -38,7 +38,7 @@ export const SymptomEntryScreen: React.FC<SymptomEntryScreenProps> = ({
     const timeoutId = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const { data, error } = await supabase.rpc('get_symptom_suggestions', {
+        const { data, error } = await (supabase as any).rpc('get_symptom_suggestions', {
           search_term: searchTerm
         });
 

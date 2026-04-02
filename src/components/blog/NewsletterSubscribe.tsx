@@ -12,7 +12,7 @@ export default function NewsletterSubscribe() {
 
   const subscribeMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("newsletter_subscribers")
         .insert({ email });
       

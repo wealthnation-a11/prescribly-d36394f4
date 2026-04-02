@@ -191,7 +191,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
     setSaving(true);
     try {
       const topDiagnosis = diagnosisResult.diagnoses[0];
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_assessments')
         .insert({
           user_id: user.id,
