@@ -40,16 +40,15 @@ export const HerbalArticlesModeration = () => {
         .select(`
           *,
           herbal_practitioners (
-            first_name,
-            last_name,
+            business_name,
             email
           )
         `)
-        .eq('approval_status', 'pending')
+        .eq('is_approved', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as HerbalArticle[];
+      return (data || []) as unknown as HerbalArticle[];
     },
   });
 
