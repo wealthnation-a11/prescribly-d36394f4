@@ -11,13 +11,12 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
-interface Notification {
+interface NotificationItem {
   id: string;
   type: string;
   title: string;
   message: string;
-  data: any;
-  diagnosis_session_id?: string;
+  metadata: any;
   read: boolean;
   created_at: string;
 }
