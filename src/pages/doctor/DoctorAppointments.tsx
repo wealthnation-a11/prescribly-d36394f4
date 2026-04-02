@@ -51,9 +51,8 @@ export const DoctorAppointments = () => {
       
       if (error) throw error;
       
-      // Fetch patient details separately
       const appointmentsWithPatients = await Promise.all(
-        data.map(async (appointment) => {
+        (data || []).map(async (appointment: any) => {
           const { data: patient } = await supabase
             .from('profiles')
             .select('first_name, last_name, avatar_url')

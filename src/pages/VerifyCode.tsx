@@ -65,7 +65,7 @@ const VerifyCode = () => {
     setConfirming(true);
 
     try {
-      const { data, error } = await supabase.rpc("confirm_registration_code", { _code: result.code });
+      const { data, error } = await (supabase.rpc as any)("confirm_registration_code", { _code: result.code });
 
       if (error) throw error;
 

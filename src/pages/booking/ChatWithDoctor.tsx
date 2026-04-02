@@ -98,17 +98,17 @@ export default function ChatWithDoctor() {
     if (!user) return;
     const { data: appts } = await supabase
       .from('appointments')
-      .select('id, doctor_id, scheduled_time, status, consultation_fee, notes, created_at')
+      .select('*')
       .eq('patient_id', user.id)
-      .order('scheduled_time', { ascending: false });
+      .order('created_at', { ascending: false });
 
-    const doctorIds = [...new Set((appts || []).map((a) => a.doctor_id))];
+    const doctorIds = [...new Set((appts || []).map((a: any) => a.doctor_id))];
     const { data: profiles } = await supabase
       .from('profiles')
       .select('user_id, first_name, last_name, avatar_url')
       .in('user_id', doctorIds);
-    const profilesMap = new Map((profiles || []).map((p) => [p.user_id, p]));
-    setAppointments((appts || []).map((a) => ({ ...a, profiles: profilesMap.get(a.doctor_id) })));
+    const profilesMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+    setAppointments((appts || []).map((a: any) => ({ ...a, profiles: profilesMap.get(a.doctor_id) })));
   };
 
   const handleBook = async (e: React.FormEvent) => {

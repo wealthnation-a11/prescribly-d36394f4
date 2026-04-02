@@ -120,24 +120,16 @@ export const UserDashboard = () => {
 
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          id,
-          scheduled_time,
-          status,
-          doctor_id,
-          notes,
-          consultation_fee
-        `)
+        .select('*')
         .eq('patient_id', user.id)
         .in('status', ['approved', 'completed'])
-        .order('scheduled_time', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(5);
 
       if (error) throw error;
 
-      // Fetch doctor profiles separately
       const appointmentsWithDoctors = await Promise.all(
-        (data || []).map(async (appointment) => {
+        (data || []).map(async (appointment: any) => {
           const { data: doctorProfile } = await supabase
             .from('profiles')
             .select('first_name, last_name, avatar_url')

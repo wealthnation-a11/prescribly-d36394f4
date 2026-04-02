@@ -280,7 +280,7 @@ const MyPrescriptions = () => {
         // Process regular prescriptions
         if (regularPrescriptions.data) {
           const prescriptionsWithDoctors = await Promise.all(
-            regularPrescriptions.data.map(async (prescription) => {
+            (regularPrescriptions.data as any[]).map(async (prescription: any) => {
               const { data: doctorProfile } = await supabase
                 .from('profiles')
                 .select('first_name, last_name')

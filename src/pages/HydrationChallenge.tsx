@@ -149,7 +149,7 @@ const HydrationChallenge = () => {
       setTodayGlasses(newGlassCount);
       
       // Update user points
-      await supabase.rpc('update_user_points', {
+      await (supabase.rpc as any)('update_user_points', {
         user_uuid: user.id,
         points_to_add: 10
       });

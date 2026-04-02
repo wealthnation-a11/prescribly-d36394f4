@@ -163,7 +163,7 @@ export default function StepsChallenge() {
         });
 
         // Award achievements
-        await supabase.rpc('check_and_award_step_achievements', {
+        await (supabase.rpc as any)('check_and_award_step_achievements', {
           user_uuid: user.id
         });
       }
