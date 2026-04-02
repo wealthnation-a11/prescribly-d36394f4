@@ -58,7 +58,7 @@ const MindfulnessChallenge = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (timerActive && timerSeconds < targetSeconds) {
       interval = setInterval(() => {
         setTimerSeconds(prev => prev + 1);
@@ -156,7 +156,7 @@ const MindfulnessChallenge = () => {
 
       // Award points if goal reached for first time today
       if (goalReached && !todayLog?.goal_reached) {
-        await supabase.rpc('update_user_points', {
+        await (supabase.rpc as any)('update_user_points', {
           user_uuid: user.id,
           points_to_add: 20
         });

@@ -19,9 +19,9 @@ export const useUserRole = () => {
       try {
         // Check roles using the secure has_role RPC function
         const [adminCheck, doctorCheck, patientCheck] = await Promise.all([
-          supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }),
-          supabase.rpc('has_role', { _user_id: user.id, _role: 'doctor' }),
-          supabase.rpc('has_role', { _user_id: user.id, _role: 'patient' }),
+          supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' as any }),
+          supabase.rpc('has_role', { _user_id: user.id, _role: 'doctor' as any }),
+          supabase.rpc('has_role', { _user_id: user.id, _role: 'patient' as any }),
         ]);
 
         if (adminCheck.data) {

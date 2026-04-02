@@ -121,14 +121,14 @@ export const DoctorAvailability = () => {
       return;
     }
 
+    const dayMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
     const rows = WEEKDAYS.flatMap((day) =>
       availability[day].map((r) => ({
         doctor_id: user.id,
-        weekday: day,
+        day_of_week: dayMap[day] ?? 0,
         start_time: r.start,
         end_time: r.end,
         is_available: true,
-        timezone,
       }))
     );
 

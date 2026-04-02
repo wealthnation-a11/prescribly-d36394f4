@@ -25,8 +25,6 @@ interface BlogPost {
   tags: string[] | null;
   views: number;
   created_at: string;
-  source_type: string | null;
-  source_id: string | null;
   profiles?: {
     first_name: string | null;
     last_name: string | null;
@@ -73,10 +71,10 @@ export default function Blog() {
           profiles: profilesData?.find(p => p.user_id === post.author_id) || null,
         }));
         
-        return postsWithProfiles as BlogPost[];
+        return postsWithProfiles as unknown as BlogPost[];
       }
       
-      return blogData as BlogPost[];
+      return (blogData || []) as unknown as BlogPost[];
     },
   });
 

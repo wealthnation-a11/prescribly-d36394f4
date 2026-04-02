@@ -8,6 +8,7 @@ interface Subscription {
   plan: string;
   expires_at: string;
   started_at: string;
+  starts_at: string;
 }
 
 export const useSubscription = () => {
@@ -29,7 +30,7 @@ export const useSubscription = () => {
         .maybeSingle();
 
       if (error) throw error;
-      setSubscription(data);
+      setSubscription(data ? { ...data, started_at: data.starts_at } as Subscription : null);
     } catch (error) {
       console.error('Error fetching subscription:', error);
       setSubscription(null);

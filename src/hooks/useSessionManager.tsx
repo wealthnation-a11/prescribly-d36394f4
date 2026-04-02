@@ -75,10 +75,9 @@ export const useSessionManager = (initialPath: string = 'ai-health-companion') =
     try {
       // Get the most recent session for this user and path
       const { data: sessions } = await supabase
-        .from('user_sessions')
+        .from('chat_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('path', initialPath)
         .order('updated_at', { ascending: false })
         .limit(1);
 
@@ -89,9 +88,9 @@ export const useSessionManager = (initialPath: string = 'ai-health-companion') =
         const sessionAge = Date.now() - new Date(session.updated_at).getTime();
         const maxAge = 24 * 60 * 60 * 1000; // 24 hours
 
-        if (sessionAge <= maxAge && session.payload) {
+        if (sessionAge <= maxAge && session.metadata) {
           setSessionId(session.id);
-          return session.payload as unknown as SessionData;
+          return session.metadata as unknown as SessionData;
         }
       }
     } catch (error) {

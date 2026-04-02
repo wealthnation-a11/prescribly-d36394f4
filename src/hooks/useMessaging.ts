@@ -125,14 +125,19 @@ export const useMessaging = () => {
         .from('messages')
         .select('*')
         .or(
-          isDoctor 
-            ? `and(doctor_id.eq.${user.id},patient_id.eq.${participantId})`
-            : `and(doctor_id.eq.${participantId},patient_id.eq.${user.id})`
+          `and(sender_id.eq.${user.id},receiver_id.eq.${participantId}),and(sender_id.eq.${participantId},receiver_id.eq.${user.id})`
         )
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages((data || []) as Message[]);
+      setMessages((data || []).map((m: any) => ({
+        id: m.id,
+        doctor_id: isDoctor ? user.id : participantId,
+        patient_id: isDoctor ? participantId : user.id,
+        content: m.content,
+        sender: m.sender_id === user.id ? (isDoctor ? 'doctor' : 'patient') : (isDoctor ? 'patient' : 'doctor'),
+        created_at: m.created_at,
+      })) as Message[]);
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({
@@ -149,16 +154,10 @@ export const useMessaging = () => {
 
     setIsLoading(true);
     try {
-      const messageData = isDoctor ? {
-        doctor_id: user.id,
-        patient_id: recipientId,
+      const messageData = {
+        sender_id: user.id,
+        receiver_id: recipientId,
         content: content.trim(),
-        sender: 'doctor' as const
-      } : {
-        doctor_id: recipientId,
-        patient_id: user.id,
-        content: content.trim(),
-        sender: 'patient' as const
       };
 
       const { error } = await supabase

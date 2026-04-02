@@ -67,7 +67,7 @@ export const useConsultationPayment = () => {
       const { data, error } = await supabase
         .from('consultation_payments')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('patient_id', user?.id)
         .eq('appointment_id', appointmentId)
         .eq('status', 'completed')
         .maybeSingle();

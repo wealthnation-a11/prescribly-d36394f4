@@ -104,22 +104,16 @@ import { Logo } from "@/components/Logo";
             .update({ country: formData.country })
             .eq('id', profileData.id);
           
-          await supabase.from('patients').insert({
-            user_id: user.id,
-            profile_id: profileData.id,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: formData.email,
-            phone: formData.phone,
-            date_of_birth: formData.dateOfBirth,
-            gender: formData.gender,
-            country: formData.country,
-            emergency_contact_name: formData.emergencyContactName,
-            emergency_contact_phone: formData.emergencyContactPhone,
-            medical_history: formData.medicalHistory,
-            allergies: formData.allergies,
-            current_medications: formData.currentMedications,
-          });
+          // Profile is auto-created by trigger, just update it
+          await supabase
+            .from('profiles')
+            .update({
+              date_of_birth: formData.dateOfBirth,
+              gender: formData.gender,
+              country: formData.country,
+              phone: formData.phone,
+            })
+            .eq('user_id', user.id);
         }
 
         toast({

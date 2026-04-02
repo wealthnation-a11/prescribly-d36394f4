@@ -78,8 +78,7 @@ export const HospitalRegistrationForm: React.FC<HospitalRegistrationFormProps> =
     setSubmitting(true);
     try {
       const { error } = await supabase.from('hospital_registrations').insert({
-        name: formData.name,
-        type: formData.type,
+        hospital_name: formData.name,
         address: formData.address,
         city: formData.city,
         state: formData.state || null,
@@ -87,12 +86,9 @@ export const HospitalRegistrationForm: React.FC<HospitalRegistrationFormProps> =
         phone: formData.phone,
         email: formData.email,
         contact_person: formData.contact_person,
-        description: formData.description || null,
-        latitude: lat,
-        longitude: lng,
-        submitted_by: user?.id || null,
-        status: 'pending' as any,
-      });
+        user_id: user?.id || null,
+        status: 'pending',
+      } as any);
 
       if (error) throw error;
       setSubmitted(true);

@@ -52,11 +52,8 @@ export const useEncryption = () => {
         .upsert({
           user_id: user.id,
           public_key: publicKeyString,
-          key_version: 1,
-          is_active: true
-        }, {
-          onConflict: 'user_id,key_version'
-        });
+          encrypted_private_key: '',
+        } as any);
 
       if (error) throw error;
     } catch (error) {
@@ -76,7 +73,7 @@ export const useEncryption = () => {
         .from('user_encryption_keys')
         .select('public_key')
         .eq('user_id', userId)
-        .eq('is_active', true)
+        
         .single();
 
       if (error) throw error;
@@ -147,7 +144,7 @@ export const useEncryption = () => {
         .from('user_encryption_keys')
         .select('user_id, public_key')
         .in('user_id', uncachedUserIds)
-        .eq('is_active', true);
+        ;
 
       if (error) throw error;
 

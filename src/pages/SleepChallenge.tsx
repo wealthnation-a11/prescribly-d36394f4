@@ -160,7 +160,7 @@ const SleepChallenge = () => {
 
       // Award points if goal reached
       if (goalReached) {
-        await supabase.rpc('update_user_points', {
+        await (supabase.rpc as any)('update_user_points', {
           user_uuid: user.id,
           points_to_add: 15
         });

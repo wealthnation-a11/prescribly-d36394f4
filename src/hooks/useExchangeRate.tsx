@@ -20,7 +20,7 @@ export const useExchangeRate = () => {
         const { data, error } = await supabase
           .from('exchange_rates')
           .select('rate, updated_at')
-          .eq('currency', 'NGN_TO_USD')
+          .eq('target_currency', 'NGN')
           .single();
 
         if (error) {

@@ -75,19 +75,19 @@ const HealthTrendsDashboard = () => {
 
       const { data, error } = await supabase
         .from('user_daily_checkins')
-        .select('date, answer, question_id')
+        .select('date, mood, energy_level, notes')
         .eq('user_id', user.id)
         .gte('date', startDate.toISOString().split('T')[0])
         .order('date', { ascending: true });
 
       if (error) throw error;
 
-      const formattedData = data?.map(item => ({
+      const formattedData = (data || []).map((item: any) => ({
         date: item.date,
-        category: getCategoryFromQuestionId(item.question_id),
-        answer: item.answer,
-        question_text: getQuestionText(item.question_id)
-      })) || [];
+        category: item.mood || 'general',
+        answer: item.notes || '',
+        question_text: `Energy: ${item.energy_level || 'N/A'}`
+      }));
 
       setCheckinData(formattedData);
       calculateStreak(data || []);

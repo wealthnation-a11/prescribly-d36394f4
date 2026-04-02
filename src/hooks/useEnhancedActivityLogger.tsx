@@ -19,10 +19,10 @@ export const useEnhancedActivityLogger = () => {
 
     try {
       const activityData = {
-        type,
-        details,
-        related_id: relatedId || null,
-        [isDoctor ? 'doctor_id' : 'user_id']: user.id,
+        activity_type: type,
+        description: details,
+        user_id: user.id,
+        metadata: { related_id: relatedId || null, role: isDoctor ? 'doctor' : 'user' },
       };
 
       const { error } = await supabase

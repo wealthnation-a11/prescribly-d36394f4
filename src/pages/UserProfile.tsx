@@ -60,7 +60,7 @@ const UserProfile = () => {
           gender: data.gender || "",
           location_country: data.location_country || "",
           location_state: data.location_state || "",
-          medical_history: data.medical_history || ""
+          medical_history: (data as any).medical_history || ""
         });
       } catch (error) {
         console.error('Error fetching profile:', error);

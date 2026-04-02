@@ -71,13 +71,13 @@ const AIHealthCompanion = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data, error } = await supabase.rpc('get_daily_questions_for_user', {
+        const { data, error } = await (supabase.rpc as any)('get_daily_questions_for_user', {
           user_uuid: user.id
         });
 
         if (error) throw error;
 
-        if (data && data.length > 0) {
+        if (data && Array.isArray(data) && data.length > 0) {
           setQuestions(data);
           
           // Initial greeting with first question
@@ -151,14 +151,14 @@ const AIHealthCompanion = () => {
         .from('user_daily_checkins')
         .insert({
           user_id: user.id,
-          question_id: questions[currentQuestionIndex].id,
-          answer: currentMessage
-        });
+          date: new Date().toISOString().split('T')[0],
+          mood: currentMessage,
+        } as any);
 
       if (saveError) throw saveError;
 
       // Award points
-      await supabase.rpc('update_user_points', {
+      await (supabase.rpc as any)('update_user_points', {
         user_uuid: user.id,
         points_to_add: 5
       });

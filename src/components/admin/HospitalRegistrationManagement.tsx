@@ -208,8 +208,8 @@ const HospitalRegistrationManagement = () => {
             <DialogTitle>{actionType === 'approve' ? 'Approve' : 'Reject'} Hospital Registration</DialogTitle>
             <DialogDescription>
               {actionType === 'approve'
-                ? `Approving "${selected?.name}" will add it to the facilities directory and make it visible on the map.`
-                : `Are you sure you want to reject "${selected?.name}"?`}
+                ? `Approving "${selected?.hospital_name}" will add it to the facilities directory and make it visible on the map.`
+                : `Are you sure you want to reject "${selected?.hospital_name}"?`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

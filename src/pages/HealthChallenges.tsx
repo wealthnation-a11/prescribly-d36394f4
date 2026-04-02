@@ -91,20 +91,27 @@ const HealthChallenges = () => {
   const fetchChallenges = async () => {
     try {
       const { data, error } = await supabase
-        .from('challenges')
+        .from('user_challenges')
         .select('*')
-        .eq('active', true)
         .order('created_at', { ascending: false })
         .limit(4);
 
       if (error) throw error;
       
-      // Remove duplicates based on ID
-      const uniqueChallenges = data?.filter((challenge, index, self) => 
-        index === self.findIndex(c => c.id === challenge.id)
-      ) || [];
+      // Map to Challenge interface
+      const mappedChallenges: Challenge[] = (data || []).map((c: any) => ({
+        id: c.id,
+        title: c.challenge_name,
+        description: c.challenge_type,
+        duration: c.target || 30,
+        start_date: c.started_at,
+        end_date: c.completed_at || '',
+        points_per_day: 10,
+        total_points: (c.target || 30) * 10,
+        active: c.status === 'active',
+      }));
       
-      setChallenges(uniqueChallenges);
+      setChallenges(mappedChallenges);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -125,7 +132,14 @@ const HealthChallenges = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      setUserChallenges(data || []);
+      setUserChallenges((data || []).map((d: any) => ({
+        id: d.id,
+        challenge_id: d.id,
+        progress: d.progress || 0,
+        points_earned: (d.progress || 0) * 10,
+        status: d.status,
+        joined_at: d.started_at,
+      })));
     } catch (error: any) {
       console.error('Error fetching user challenges:', error);
     } finally {
@@ -144,8 +158,8 @@ const HealthChallenges = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      setTotalPoints(data?.points || 0);
+      if (error && (error as any).code !== 'PGRST116') throw error;
+      setTotalPoints((data as any)?.points || 0);
     } catch (error: any) {
       console.error('Error fetching user points:', error);
     }
@@ -153,8 +167,7 @@ const HealthChallenges = () => {
 
   const fetchLeaderboard = async (challengeId: string) => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_challenge_leaderboard', { challenge_uuid: challengeId });
+      const { data, error } = await (supabase.rpc as any)('get_challenge_leaderboard', { challenge_uuid: challengeId });
 
       if (error) throw error;
       setLeaderboard(data || []);
@@ -179,8 +192,11 @@ const HealthChallenges = () => {
         .from('user_challenges')
         .insert({
           user_id: user.id,
-          challenge_id: challenge.id
-        });
+          challenge_name: challenge.title,
+          challenge_type: challenge.description,
+          started_at: new Date().toISOString(),
+          target: challenge.duration,
+        } as any);
 
       if (error) throw error;
 
@@ -202,17 +218,16 @@ const HealthChallenges = () => {
   const markDayComplete = async (userChallengeId: string, challenge: Challenge) => {
     try {
       const userChallenge = userChallenges.find(uc => uc.id === userChallengeId);
-      if (!userChallenge || userChallenge.progress >= challenge.duration) return;
+      if (!userChallenge || userChallenge.progress >= (challenge.duration || 30)) return;
 
       const newProgress = userChallenge.progress + 1;
-      const newPointsEarned = userChallenge.points_earned + challenge.points_per_day;
-      const isCompleted = newProgress >= challenge.duration;
+      const newPointsEarned = userChallenge.points_earned + (challenge.points_per_day || 10);
+      const isCompleted = newProgress >= (challenge.duration || 30);
 
       const { error } = await supabase
         .from('user_challenges')
         .update({
           progress: newProgress,
-          points_earned: newPointsEarned,
           status: isCompleted ? 'completed' : 'active',
           completed_at: isCompleted ? new Date().toISOString() : null
         })
@@ -223,9 +238,9 @@ const HealthChallenges = () => {
       // Update user total points
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.rpc('update_user_points', {
+        await (supabase.rpc as any)('update_user_points', {
           user_uuid: user.id,
-          points_to_add: challenge.points_per_day
+          points_to_add: challenge.points_per_day || 10
         });
       }
 

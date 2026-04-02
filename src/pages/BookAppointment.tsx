@@ -158,24 +158,37 @@ export default function BookAppointment() {
   const fetchDoctors = async () => {
     try {
       const { data, error } = await supabase
-        .from('public_doctor_profiles')
-        .select('doctor_user_id, specialization, consultation_fee, first_name, last_name, avatar_url, offers_home_service, home_service_fee, service_locations');
+        .from('doctors')
+        .select('user_id, specialization, consultation_fee, offers_home_service, home_service_fee, service_locations')
+        .eq('verification_status', 'approved');
 
       if (error) throw error;
 
-      const doctorsWithProfiles = (data || []).map((doc: any) => ({
-        user_id: doc.doctor_user_id,
-        specialization: doc.specialization,
-        consultation_fee: doc.consultation_fee,
-        offers_home_service: doc.offers_home_service,
-        home_service_fee: doc.home_service_fee,
-        service_locations: doc.service_locations,
-        profiles: {
-          first_name: doc.first_name || '',
-          last_name: doc.last_name || '',
-          avatar_url: doc.avatar_url || ''
-        }
-      }));
+      // Fetch profiles for doctors
+      const userIds = (data || []).map((d: any) => d.user_id);
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url')
+        .in('user_id', userIds);
+
+      const profileMap = new Map((profilesData || []).map((p: any) => [p.user_id, p]));
+
+      const doctorsWithProfiles = (data || []).map((doc: any) => {
+        const profile = profileMap.get(doc.user_id) || {};
+        return {
+          user_id: doc.user_id,
+          specialization: doc.specialization,
+          consultation_fee: doc.consultation_fee,
+          offers_home_service: doc.offers_home_service,
+          home_service_fee: doc.home_service_fee,
+          service_locations: doc.service_locations,
+          profiles: {
+            first_name: (profile as any).first_name || '',
+            last_name: (profile as any).last_name || '',
+            avatar_url: (profile as any).avatar_url || ''
+          }
+        };
+      });
 
       setDoctors(doctorsWithProfiles as Doctor[]);
     } catch (error) {
@@ -195,24 +208,14 @@ export default function BookAppointment() {
       // First get appointments
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          id,
-          patient_id,
-          doctor_id,
-          scheduled_time,
-          duration_minutes,
-          status,
-          consultation_fee,
-          notes,
-          created_at
-        `)
+        .select('*')
         .eq('patient_id', user?.id)
-        .order('scheduled_time', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (appointmentsError) throw appointmentsError;
 
       // Batch fetch all doctor profiles in a single query
-      const doctorIds = [...new Set((appointmentsData || []).map(a => a.doctor_id))];
+      const doctorIds = [...new Set((appointmentsData || []).map((a: any) => a.doctor_id))];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('user_id, first_name, last_name, avatar_url')
@@ -222,7 +225,7 @@ export default function BookAppointment() {
         (profilesData || []).map(p => [p.user_id, p])
       );
 
-      const appointmentsWithProfiles = (appointmentsData || []).map(appointment => ({
+      const appointmentsWithProfiles = (appointmentsData || []).map((appointment: any) => ({
         ...appointment,
         profiles: profilesMap.get(appointment.doctor_id) || null
       }));

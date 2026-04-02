@@ -109,8 +109,7 @@ const HospitalPortal = () => {
 
       // Submit hospital registration
       const { error } = await supabase.from("hospital_registrations").insert({
-        name: formData.name,
-        type: formData.type,
+        hospital_name: formData.name,
         address: formData.address,
         city: formData.city,
         state: formData.state || null,
@@ -118,12 +117,9 @@ const HospitalPortal = () => {
         phone: formData.phone,
         email: formData.email,
         contact_person: formData.contact_person,
-        description: formData.description || null,
-        latitude: lat,
-        longitude: lng,
-        submitted_by: authData.user?.id || null,
-        status: "pending" as any,
-      });
+        user_id: authData.user?.id || null,
+        status: "pending",
+      } as any);
       if (error) throw error;
 
       // Sign out after registration since they need admin approval

@@ -30,10 +30,11 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  data: any;
+  data?: any;
+  metadata?: any;
   read: boolean;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 const NotificationHistory = () => {
@@ -67,7 +68,7 @@ const NotificationHistory = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data || []).map((n: any) => ({ ...n, data: n.metadata })) as Notification[]);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast.error('Failed to load notifications');

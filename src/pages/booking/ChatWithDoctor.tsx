@@ -71,15 +71,23 @@ export default function ChatWithDoctor() {
   const fetchDoctors = async () => {
     try {
       const { data } = await supabase
-        .from('public_doctor_profiles')
-        .select('doctor_user_id, specialization, consultation_fee, first_name, last_name, avatar_url');
+        .from('doctors')
+        .select('user_id, specialization, consultation_fee')
+        .eq('verification_status', 'approved');
+      // Fetch profiles
+      const userIds = (data || []).map((d: any) => d.user_id);
+      const { data: profiles } = await supabase.from('profiles').select('user_id, first_name, last_name, avatar_url').in('user_id', userIds);
+      const pMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
       setDoctors(
-        (data || []).map((d: any) => ({
-          user_id: d.doctor_user_id,
-          specialization: d.specialization,
-          consultation_fee: d.consultation_fee,
-          profiles: { first_name: d.first_name || '', last_name: d.last_name || '', avatar_url: d.avatar_url },
-        }))
+        (data || []).map((d: any) => {
+          const p = pMap.get(d.user_id) || {} as any;
+          return {
+            user_id: d.user_id,
+            specialization: d.specialization,
+            consultation_fee: d.consultation_fee,
+            profiles: { first_name: p.first_name || '', last_name: p.last_name || '', avatar_url: p.avatar_url },
+          };
+        })
       );
     } finally {
       setLoading(false);
@@ -90,17 +98,17 @@ export default function ChatWithDoctor() {
     if (!user) return;
     const { data: appts } = await supabase
       .from('appointments')
-      .select('id, doctor_id, scheduled_time, status, consultation_fee, notes, created_at')
+      .select('*')
       .eq('patient_id', user.id)
-      .order('scheduled_time', { ascending: false });
+      .order('created_at', { ascending: false });
 
-    const doctorIds = [...new Set((appts || []).map((a) => a.doctor_id))];
+    const doctorIds = [...new Set((appts || []).map((a: any) => a.doctor_id))];
     const { data: profiles } = await supabase
       .from('profiles')
       .select('user_id, first_name, last_name, avatar_url')
       .in('user_id', doctorIds);
-    const profilesMap = new Map((profiles || []).map((p) => [p.user_id, p]));
-    setAppointments((appts || []).map((a) => ({ ...a, profiles: profilesMap.get(a.doctor_id) })));
+    const profilesMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+    setAppointments((appts || []).map((a: any) => ({ ...a, profiles: profilesMap.get(a.doctor_id) })));
   };
 
   const handleBook = async (e: React.FormEvent) => {

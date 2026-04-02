@@ -17,8 +17,8 @@ interface UserSteps {
   id: string;
   date: string;
   step_count: number;
-  calories_burned: number;
-  distance_km: number;
+  calories_burned?: number;
+  distance_km?: number;
   goal_reached: boolean;
 }
 
@@ -163,7 +163,7 @@ export default function StepsChallenge() {
         });
 
         // Award achievements
-        await supabase.rpc('check_and_award_step_achievements', {
+        await (supabase.rpc as any)('check_and_award_step_achievements', {
           user_uuid: user.id
         });
       }

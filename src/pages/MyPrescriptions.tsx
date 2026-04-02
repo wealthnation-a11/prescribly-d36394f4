@@ -258,46 +258,19 @@ const MyPrescriptions = () => {
           // Regular prescriptions table
           supabase
             .from('prescriptions')
-            .select(`
-              id,
-              diagnosis,
-              instructions,
-              medications,
-              status,
-              issued_at,
-              created_at,
-              doctor_id
-            `)
+            .select('*')
             .eq('patient_id', user.id)
             .order('created_at', { ascending: false }),
           
-          // Patient prescriptions table
           supabase
             .from('patient_prescriptions')
-            .select(`
-              id,
-              diagnosis,
-              medications,
-              status,
-              created_at,
-              updated_at,
-              patient_id
-            `)
+            .select('*')
             .eq('patient_id', user.id)
             .order('created_at', { ascending: false }),
           
-          // Prescriptions v2 table (if exists)
           supabase
             .from('prescriptions_v2')
-            .select(`
-              id,
-              diagnosis_id,
-              medications,
-              status,
-              created_at,
-              updated_at,
-              doctor_id
-            `)
+            .select('*')
             .eq('patient_id', user.id)
             .order('created_at', { ascending: false })
         ]);
@@ -307,7 +280,7 @@ const MyPrescriptions = () => {
         // Process regular prescriptions
         if (regularPrescriptions.data) {
           const prescriptionsWithDoctors = await Promise.all(
-            regularPrescriptions.data.map(async (prescription) => {
+            (regularPrescriptions.data as any[]).map(async (prescription: any) => {
               const { data: doctorProfile } = await supabase
                 .from('profiles')
                 .select('first_name, last_name')
@@ -327,10 +300,10 @@ const MyPrescriptions = () => {
 
         // Process patient prescriptions
         if (patientPrescriptions.data) {
-          const formattedPatientPrescriptions = patientPrescriptions.data.map(prescription => ({
+          const formattedPatientPrescriptions = (patientPrescriptions.data as any[]).map((prescription: any) => ({
             id: prescription.id,
             diagnosis: typeof prescription.diagnosis === 'string' ? prescription.diagnosis : 
-                      (prescription.diagnosis as any)?.condition || 'AI Generated Prescription',
+                      prescription.diagnosis?.condition || 'AI Generated Prescription',
             instructions: 'Follow medication instructions as prescribed',
             medications: prescription.medications,
             status: prescription.status,
