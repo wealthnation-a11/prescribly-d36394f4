@@ -30,10 +30,11 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  data: any;
+  data?: any;
+  metadata?: any;
   read: boolean;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 const NotificationHistory = () => {
