@@ -60,7 +60,7 @@ export const useDashboardStats = () => {
         // Fetch active prescriptions (using 'pending' as active status)
         const { data: activePrescriptionsData, error: prescriptionsError } = await supabase
           .from('prescriptions')
-          .select('id, issued_at')
+          .select('id, created_at')
           .eq('patient_id', user.id)
           .eq('status', 'pending');
 
