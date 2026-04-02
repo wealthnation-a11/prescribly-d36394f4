@@ -208,19 +208,9 @@ export default function BookAppointment() {
       // First get appointments
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          id,
-          patient_id,
-          doctor_id,
-          scheduled_time,
-          duration_minutes,
-          status,
-          consultation_fee,
-          notes,
-          created_at
-        `)
+        .select('*')
         .eq('patient_id', user?.id)
-        .order('scheduled_time', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (appointmentsError) throw appointmentsError;
 
