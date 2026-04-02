@@ -71,10 +71,10 @@ export default function Blog() {
           profiles: profilesData?.find(p => p.user_id === post.author_id) || null,
         }));
         
-        return postsWithProfiles as BlogPost[];
+        return postsWithProfiles as unknown as BlogPost[];
       }
       
-      return blogData as BlogPost[];
+      return (blogData || []) as unknown as BlogPost[];
     },
   });
 

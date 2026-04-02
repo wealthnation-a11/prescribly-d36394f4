@@ -158,7 +158,7 @@ const AIHealthCompanion = () => {
       if (saveError) throw saveError;
 
       // Award points
-      await supabase.rpc('update_user_points', {
+      await (supabase.rpc as any)('update_user_points', {
         user_uuid: user.id,
         points_to_add: 5
       });

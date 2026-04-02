@@ -238,9 +238,9 @@ const HealthChallenges = () => {
       // Update user total points
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.rpc('update_user_points', {
+        await (supabase.rpc as any)('update_user_points', {
           user_uuid: user.id,
-          points_to_add: challenge.points_per_day
+          points_to_add: challenge.points_per_day || 10
         });
       }
 

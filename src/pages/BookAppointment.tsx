@@ -225,7 +225,7 @@ export default function BookAppointment() {
         (profilesData || []).map(p => [p.user_id, p])
       );
 
-      const appointmentsWithProfiles = (appointmentsData || []).map(appointment => ({
+      const appointmentsWithProfiles = (appointmentsData || []).map((appointment: any) => ({
         ...appointment,
         profiles: profilesMap.get(appointment.doctor_id) || null
       }));

@@ -131,7 +131,7 @@ export const DoctorDashboard = () => {
       const { count, error } = await supabase
         .from('chats')
         .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', user.id);
+        .eq('receiver_id', user.id);
       
       if (error) throw error;
       return count || 0;
