@@ -52,11 +52,8 @@ export const useEncryption = () => {
         .upsert({
           user_id: user.id,
           public_key: publicKeyString,
-          key_version: 1,
-          is_active: true
-        }, {
-          onConflict: 'user_id,key_version'
-        });
+          encrypted_private_key: '',
+        } as any);
 
       if (error) throw error;
     } catch (error) {
