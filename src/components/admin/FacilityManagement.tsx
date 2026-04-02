@@ -127,7 +127,7 @@ const FacilityManagement = () => {
     const matchSearch = f.name.toLowerCase().includes(search.toLowerCase()) ||
       (f.address || '').toLowerCase().includes(search.toLowerCase()) ||
       (f.city || '').toLowerCase().includes(search.toLowerCase());
-    const matchType = filterType === 'all' || f.type === filterType;
+    const matchType = filterType === 'all' || f.facility_type === filterType;
     return matchSearch && matchType;
   });
 
