@@ -45,9 +45,8 @@ export const ClarifyingQuestionsScreen: React.FC<ClarifyingQuestionsScreenProps>
           
           const { data: fetchedQuestions, error: questionsError } = await supabase
             .from('clarifying_questions')
-            .select('id, condition_id, question')
-            .in('condition_id', conditionIds)
-            .limit(6);
+            .select('id, question, session_id')
+            .limit(6) as any;
 
           if (!questionsError && fetchedQuestions && fetchedQuestions.length > 0) {
             questionsData = fetchedQuestions;

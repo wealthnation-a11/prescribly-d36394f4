@@ -154,16 +154,10 @@ export const useMessaging = () => {
 
     setIsLoading(true);
     try {
-      const messageData = isDoctor ? {
-        doctor_id: user.id,
-        patient_id: recipientId,
+      const messageData = {
+        sender_id: user.id,
+        receiver_id: recipientId,
         content: content.trim(),
-        sender: 'doctor' as const
-      } : {
-        doctor_id: recipientId,
-        patient_id: user.id,
-        content: content.trim(),
-        sender: 'patient' as const
       };
 
       const { error } = await supabase

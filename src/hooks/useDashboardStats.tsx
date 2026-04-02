@@ -74,7 +74,7 @@ export const useDashboardStats = () => {
         threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
         
         const expiringPrescriptions = activePrescriptionsData?.filter(prescription => {
-          const issuedAt = new Date(prescription.issued_at);
+          const issuedAt = new Date(prescription.created_at);
           const estimatedExpiry = new Date(issuedAt);
           estimatedExpiry.setDate(estimatedExpiry.getDate() + 30); // Assume 30-day prescriptions
           return estimatedExpiry <= threeDaysFromNow;

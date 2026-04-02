@@ -62,17 +62,17 @@ export const useDoctorEarnings = () => {
         // Calculate earnings (80% of consultation fee goes to doctor, 20% platform fee)
         // Convert NGN to USD using exchange rate
         const totalEarningsNGN = completedAppointments.reduce((sum, apt) => 
-          sum + (apt.consultation_fee * 0.8), 0
+          sum + ((apt.payment_amount || 0) * 0.8), 0
         );
         const weeklyEarningsNGN = weeklyCompleted.reduce((sum, apt) => 
-          sum + (apt.consultation_fee * 0.8), 0
+          sum + ((apt.payment_amount || 0) * 0.8), 0
         );
         const monthlyEarningsNGN = monthlyCompleted.reduce((sum, apt) => 
-          sum + (apt.consultation_fee * 0.8), 0
+          sum + ((apt.payment_amount || 0) * 0.8), 0
         );
 
         const averageFeeNGN = completedAppointments.length > 0 
-          ? completedAppointments.reduce((sum, apt) => sum + apt.consultation_fee, 0) / completedAppointments.length
+          ? completedAppointments.reduce((sum, apt) => sum + (apt.payment_amount || 0), 0) / completedAppointments.length
           : 0;
 
         // Convert all values to USD

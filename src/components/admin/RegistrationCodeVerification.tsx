@@ -89,7 +89,7 @@ const RegistrationCodeVerification = () => {
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 text-center">
-            <p className="text-xl font-bold">{codes.filter(c => c.status !== 'used' && new Date(c.expires_at) >= new Date()).length}</p>
+            <p className="text-xl font-bold">{codes.filter(c => c.status !== 'used' && c.status === 'pending').length}</p>
             <p className="text-xs text-muted-foreground">Active</p>
           </CardContent>
         </Card>

@@ -26,8 +26,8 @@ export const useHerbalPractitioner = () => {
   return {
     practitioner,
     isLoading,
-    isApproved: practitioner?.verification_status === 'approved',
-    isPending: practitioner?.verification_status === 'pending',
-    isRejected: practitioner?.verification_status === 'rejected',
+    isApproved: practitioner?.is_verified === true,
+    isPending: practitioner?.is_verified === false,
+    isRejected: false,
   };
 };

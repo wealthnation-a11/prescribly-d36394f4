@@ -26,32 +26,58 @@ export const useNearbyDoctors = (lat: number | null, lng: number | null, radiusM
       setLoading(true);
       setError(null);
       try {
-        const { data, error: rpcError } = await supabase.rpc('nearby_doctors', {
-          user_lat: lat,
-          user_lon: lng,
-          radius_miles: radiusMiles,
-        });
+        // Fetch all approved doctors and calculate distance client-side
+        const { data: doctorsData, error: docError } = await supabase
+          .from('doctors')
+          .select('user_id, specialization, rating, home_service_fee, consultation_fee, bio, latitude, longitude')
+          .eq('verification_status', 'approved');
 
-        if (rpcError) throw rpcError;
+        if (docError) throw docError;
 
-        if (!data || data.length === 0) {
+        if (!doctorsData || doctorsData.length === 0) {
           setDoctors([]);
           return;
         }
 
-        const doctorIds = data.map((d: any) => d.doctor_user_id);
-        const distanceMap = new Map(data.map((d: any) => [d.doctor_user_id, d.distance_miles]));
+        // Calculate distances
+        const toRad = (deg: number) => deg * Math.PI / 180;
+        const calcDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+          const R = 3959; // miles
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lon2 - lon1);
+          const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+          return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        };
 
-        // Fetch doctor profiles
+        const nearby = doctorsData
+          .filter(d => d.latitude && d.longitude)
+          .map(d => ({ ...d, distance_miles: calcDist(lat!, lng!, d.latitude!, d.longitude!) }))
+          .filter(d => d.distance_miles <= radiusMiles);
+
+        // Fetch profiles for these doctors
+        const userIds = nearby.map(d => d.user_id);
         const { data: profiles } = await supabase
-          .from('public_doctor_profiles')
-          .select('doctor_user_id, first_name, last_name, specialization, avatar_url, rating, home_service_fee, consultation_fee, bio')
-          .in('doctor_user_id', doctorIds);
+          .from('profiles')
+          .select('user_id, first_name, last_name, avatar_url')
+          .in('user_id', userIds);
 
-        const enriched: NearbyDoctor[] = (profiles || []).map((p: any) => ({
-          ...p,
-          distance_miles: distanceMap.get(p.doctor_user_id) || 0,
-        }));
+        const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+
+        const enriched: NearbyDoctor[] = nearby.map(d => {
+          const p = profileMap.get(d.user_id) || {};
+          return {
+            doctor_user_id: d.user_id,
+            distance_miles: d.distance_miles,
+            first_name: (p as any).first_name || '',
+            last_name: (p as any).last_name || '',
+            specialization: d.specialization,
+            avatar_url: (p as any).avatar_url || null,
+            rating: d.rating,
+            home_service_fee: d.home_service_fee,
+            consultation_fee: d.consultation_fee,
+            bio: d.bio,
+          };
+        });
 
         enriched.sort((a, b) => a.distance_miles - b.distance_miles);
         setDoctors(enriched);

@@ -144,7 +144,7 @@ export const useEncryption = () => {
         .from('user_encryption_keys')
         .select('user_id, public_key')
         .in('user_id', uncachedUserIds)
-        .eq('is_active', true);
+        ;
 
       if (error) throw error;
 

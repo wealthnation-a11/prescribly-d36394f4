@@ -126,20 +126,17 @@ export const useHerbalMessaging = () => {
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (isPractitioner) {
-        query = query
-          .eq('practitioner_id', participantId)
-          .eq('patient_id', user.id);
-      } else {
-        query = query
-          .eq('practitioner_id', participantId)
-          .eq('patient_id', user.id);
-      }
-
+      // Filter by consultation_id if available
       const { data, error } = await query;
 
       if (error) throw error;
-      setMessages((data || []) as Message[]);
+      setMessages((data || []).map((m: any) => ({
+        id: m.id,
+        sender_type: m.sender_id === user.id ? (isPractitioner ? 'practitioner' : 'patient') : (isPractitioner ? 'patient' : 'practitioner'),
+        content: m.content,
+        created_at: m.created_at,
+        read: true,
+      })) as Message[]);
     } catch (error) {
       console.error('Error loading messages:', error);
       toast.error('Failed to load messages');

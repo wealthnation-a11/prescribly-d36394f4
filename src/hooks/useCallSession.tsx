@@ -10,7 +10,7 @@ export const useCallSession = () => {
   const [callDuration, setCallDuration] = useState(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (activeCall) {
       interval = setInterval(() => {
         setCallDuration(prev => prev + 1);
