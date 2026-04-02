@@ -94,7 +94,7 @@ export const SubscriptionManagement = () => {
         .select("*");
 
       if (error) throw error;
-      return data as Subscription[];
+      return (data || []) as unknown as Subscription[];
     },
   });
 

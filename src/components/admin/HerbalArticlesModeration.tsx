@@ -150,9 +150,9 @@ export const HerbalArticlesModeration = () => {
               <TableRow key={article.id}>
                 <TableCell className="font-medium">{article.title}</TableCell>
                 <TableCell>
-                  {article.herbal_practitioners.first_name} {article.herbal_practitioners.last_name}
+                  {(article.herbal_practitioners as any)?.business_name || 'Unknown'}
                 </TableCell>
-                <TableCell>{article.category || 'Uncategorized'}</TableCell>
+                <TableCell>Uncategorized</TableCell>
                 <TableCell>{new Date(article.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">

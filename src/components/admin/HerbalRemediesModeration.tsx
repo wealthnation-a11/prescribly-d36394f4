@@ -137,7 +137,7 @@ export const HerbalRemediesModeration = () => {
               <TableRow key={remedy.id}>
                 <TableCell className="font-medium">{remedy.name}</TableCell>
                 <TableCell>
-                  {remedy.herbal_practitioners.first_name} {remedy.herbal_practitioners.last_name}
+                  {(remedy.herbal_practitioners as any)?.business_name || 'Unknown'}
                 </TableCell>
                 <TableCell>₦{remedy.price}</TableCell>
                 <TableCell>{new Date(remedy.created_at).toLocaleDateString()}</TableCell>
