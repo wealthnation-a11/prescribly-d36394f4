@@ -56,19 +56,18 @@ const FacilityManagement = () => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload = {
+      const payload: any = {
         name: form.name,
-        type: form.type,
+        facility_type: form.type,
         address: form.address || null,
         city: form.city || null,
         state: form.state || null,
         country: form.country || null,
         phone: form.phone || null,
         email: form.email || null,
-        description: form.description || null,
         latitude: form.latitude ? parseFloat(form.latitude) : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
-        is_active: form.is_active,
+        is_verified: form.is_active,
       };
 
       if (editingId) {
