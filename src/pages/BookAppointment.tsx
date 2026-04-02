@@ -215,7 +215,7 @@ export default function BookAppointment() {
       if (appointmentsError) throw appointmentsError;
 
       // Batch fetch all doctor profiles in a single query
-      const doctorIds = [...new Set((appointmentsData || []).map(a => a.doctor_id))];
+      const doctorIds = [...new Set((appointmentsData || []).map((a: any) => a.doctor_id))];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('user_id, first_name, last_name, avatar_url')
