@@ -327,10 +327,10 @@ const MyPrescriptions = () => {
 
         // Process patient prescriptions
         if (patientPrescriptions.data) {
-          const formattedPatientPrescriptions = patientPrescriptions.data.map(prescription => ({
+          const formattedPatientPrescriptions = (patientPrescriptions.data as any[]).map((prescription: any) => ({
             id: prescription.id,
             diagnosis: typeof prescription.diagnosis === 'string' ? prescription.diagnosis : 
-                      (prescription.diagnosis as any)?.condition || 'AI Generated Prescription',
+                      prescription.diagnosis?.condition || 'AI Generated Prescription',
             instructions: 'Follow medication instructions as prescribed',
             medications: prescription.medications,
             status: prescription.status,
