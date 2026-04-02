@@ -114,8 +114,7 @@ import { Logo } from "@/components/Logo";
               phone: formData.phone,
             })
             .eq('user_id', user.id);
-            current_medications: formData.currentMedications,
-          });
+        }
         }
 
         toast({
