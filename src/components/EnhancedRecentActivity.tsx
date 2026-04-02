@@ -151,9 +151,7 @@ const EnhancedRecentActivity = () => {
         return patientPrescData.map(item => ({
           id: item.id,
           title: 'Prescription Received',
-          description: item.diagnosis ? 
-            `${typeof item.diagnosis === 'object' ? JSON.stringify(item.diagnosis) : item.diagnosis}` : 
-            'Medical prescription generated',
+          description: item.drug_name || 'Medical prescription generated',
           timestamp: item.created_at,
           status: item.status || 'active',
           icon: <Pill className="h-4 w-4 text-green-600" />
