@@ -108,17 +108,17 @@ const FacilityManagement = () => {
     setEditingId(facility.id);
     setForm({
       name: facility.name,
-      type: facility.type,
+      type: facility.facility_type || '',
       address: facility.address || '',
       city: facility.city || '',
       state: facility.state || '',
       country: facility.country || '',
       phone: facility.phone || '',
       email: facility.email || '',
-      description: facility.description || '',
+      description: '',
       latitude: facility.latitude?.toString() || '',
       longitude: facility.longitude?.toString() || '',
-      is_active: facility.is_active ?? true,
+      is_active: facility.is_verified ?? true,
     });
     setDialogOpen(true);
   };
