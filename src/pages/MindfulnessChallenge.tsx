@@ -58,7 +58,7 @@ const MindfulnessChallenge = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (timerActive && timerSeconds < targetSeconds) {
       interval = setInterval(() => {
         setTimerSeconds(prev => prev + 1);
