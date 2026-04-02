@@ -28,7 +28,7 @@ const RegistrationCodeVerification = () => {
         data.map(async (code) => {
           const [patientRes, facilityRes] = await Promise.all([
             supabase.from('profiles').select('first_name, last_name').eq('user_id', code.patient_id).single(),
-            supabase.from('facilities').select('name, type').eq('id', code.facility_id).single(),
+            supabase.from('facilities').select('name, facility_type').eq('id', code.facility_id).single(),
           ]);
           return { ...code, patient: patientRes.data, facility: facilityRes.data };
         })
