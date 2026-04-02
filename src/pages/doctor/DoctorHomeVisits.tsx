@@ -144,7 +144,7 @@ const DoctorHomeVisits = () => {
                             {req.patient?.first_name || 'Unknown'} {req.patient?.last_name || 'Patient'}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            {req.age} years • {req.gender}
+                            Patient
                           </p>
                         </div>
                         <Badge className={`${getStatusColor(req.status || 'pending')} border ml-auto lg:ml-2`}>
