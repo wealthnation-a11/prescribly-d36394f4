@@ -25,8 +25,6 @@ interface BlogPost {
   tags: string[] | null;
   views: number;
   created_at: string;
-  source_type: string | null;
-  source_id: string | null;
   profiles?: {
     first_name: string | null;
     last_name: string | null;
