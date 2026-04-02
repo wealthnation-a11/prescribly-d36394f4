@@ -167,8 +167,7 @@ const HealthChallenges = () => {
 
   const fetchLeaderboard = async (challengeId: string) => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_challenge_leaderboard', { challenge_uuid: challengeId });
+      const { data, error } = await (supabase.rpc as any)('get_challenge_leaderboard', { challenge_uuid: challengeId });
 
       if (error) throw error;
       setLeaderboard(data || []);
