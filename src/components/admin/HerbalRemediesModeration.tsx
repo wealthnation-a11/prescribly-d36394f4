@@ -14,18 +14,17 @@ import { useAuth } from '@/contexts/AuthContext';
 interface HerbalRemedy {
   id: string;
   name: string;
-  description: string;
-  price: number;
-  approval_status: string;
+  description: string | null;
+  price: number | null;
+  is_approved: boolean | null;
   created_at: string;
   practitioner_id: string;
   ingredients: any;
-  usage_instructions: string;
+  usage_instructions: string | null;
   herbal_practitioners: {
-    first_name: string;
-    last_name: string;
+    business_name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const HerbalRemediesModeration = () => {
