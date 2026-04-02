@@ -45,7 +45,7 @@ export const NotificationsList = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
+          const newNotification = payload.new as NotificationItem;
           setNotifications(prev => [newNotification, ...prev]);
           
           // Show toast for new notification
