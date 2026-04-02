@@ -51,14 +51,16 @@ export const HerbalPractitionersManagement = () => {
     queryFn: async () => {
       let query = supabase.from("herbal_practitioners").select("*");
 
-      if (activeTab !== "all") {
-        query = query.eq("verification_status", activeTab as "pending" | "approved" | "rejected");
+      if (activeTab === "pending") {
+        query = query.eq("is_verified", false);
+      } else if (activeTab === "approved") {
+        query = query.eq("is_verified", true);
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as HerbalPractitioner[];
+      return (data || []) as unknown as HerbalPractitioner[];
     },
   });
 
