@@ -262,8 +262,8 @@ const FacilityManagement = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold truncate">{f.name}</h3>
-                      <Badge className={typeColors[f.type] || 'bg-gray-100 text-gray-800'}>{f.type}</Badge>
-                      {!f.is_active && <Badge variant="outline" className="text-muted-foreground">Inactive</Badge>}
+                      <Badge className={typeColors[f.facility_type || ''] || 'bg-gray-100 text-gray-800'}>{f.facility_type || 'unknown'}</Badge>
+                      {!f.is_verified && <Badge variant="outline" className="text-muted-foreground">Unverified</Badge>}
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                       {f.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{f.address}{f.city ? `, ${f.city}` : ''}</span>}
