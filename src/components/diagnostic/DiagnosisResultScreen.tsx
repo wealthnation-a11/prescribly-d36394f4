@@ -136,7 +136,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
   const loadDrugRecommendations = async (conditionId: number): Promise<any[]> => {
     try {
-      const { data: drugsData, error: drugsError } = await supabase
+      const { data: drugsData, error: drugsError } = await (supabase as any)
         .from('drugs')
         .select('id, drug_name, rxnorm_id, strength, form, dosage, notes')
         .eq('condition_id', conditionId)
