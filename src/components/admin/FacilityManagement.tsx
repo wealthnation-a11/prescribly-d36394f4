@@ -235,7 +235,7 @@ const FacilityManagement = () => {
         {['hospital', 'clinic', 'pharmacy'].map(t => (
           <Card key={t} className="shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-xl font-bold">{facilities.filter(f => f.type === t).length}</p>
+              <p className="text-xl font-bold">{facilities.filter(f => f.facility_type === t).length}</p>
               <p className="text-xs text-muted-foreground capitalize">{t}s</p>
             </CardContent>
           </Card>
