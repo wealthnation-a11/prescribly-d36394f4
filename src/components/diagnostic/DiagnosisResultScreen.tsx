@@ -170,7 +170,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const submitForDoctorApproval = async (diagSessionId: string, topDiagnosis: any, drugs: any[]) => {
     if (!user) return;
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('pending_drug_approvals')
         .insert({
           patient_id: user.id,
