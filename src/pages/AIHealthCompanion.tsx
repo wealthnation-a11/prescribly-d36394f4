@@ -151,9 +151,9 @@ const AIHealthCompanion = () => {
         .from('user_daily_checkins')
         .insert({
           user_id: user.id,
-          question_id: questions[currentQuestionIndex].id,
-          answer: currentMessage
-        });
+          date: new Date().toISOString().split('T')[0],
+          mood: currentMessage,
+        } as any);
 
       if (saveError) throw saveError;
 
