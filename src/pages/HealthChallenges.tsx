@@ -218,11 +218,11 @@ const HealthChallenges = () => {
   const markDayComplete = async (userChallengeId: string, challenge: Challenge) => {
     try {
       const userChallenge = userChallenges.find(uc => uc.id === userChallengeId);
-      if (!userChallenge || userChallenge.progress >= challenge.duration) return;
+      if (!userChallenge || userChallenge.progress >= (challenge.duration || 30)) return;
 
       const newProgress = userChallenge.progress + 1;
-      const newPointsEarned = userChallenge.points_earned + challenge.points_per_day;
-      const isCompleted = newProgress >= challenge.duration;
+      const newPointsEarned = userChallenge.points_earned + (challenge.points_per_day || 10);
+      const isCompleted = newProgress >= (challenge.duration || 30);
 
       const { error } = await supabase
         .from('user_challenges')
