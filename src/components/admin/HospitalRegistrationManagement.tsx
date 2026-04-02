@@ -14,20 +14,17 @@ import { CheckCircle, XCircle, Clock, Building2, MapPin } from 'lucide-react';
 
 interface HospitalRegistration {
   id: string;
-  name: string;
-  type: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  phone: string;
+  hospital_name: string;
+  registration_number: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  phone: string | null;
   email: string;
-  contact_person: string;
-  description: string;
-  latitude: number | null;
-  longitude: number | null;
+  contact_person: string | null;
   status: string;
-  admin_notes: string | null;
+  user_id: string | null;
   created_at: string;
 }
 
