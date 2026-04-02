@@ -74,13 +74,20 @@ export default function ChatWithDoctor() {
         .from('doctors')
         .select('user_id, specialization, consultation_fee')
         .eq('verification_status', 'approved');
+      // Fetch profiles
+      const userIds = (data || []).map((d: any) => d.user_id);
+      const { data: profiles } = await supabase.from('profiles').select('user_id, first_name, last_name, avatar_url').in('user_id', userIds);
+      const pMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
       setDoctors(
-        (data || []).map((d: any) => ({
-          user_id: d.doctor_user_id,
-          specialization: d.specialization,
-          consultation_fee: d.consultation_fee,
-          profiles: { first_name: d.first_name || '', last_name: d.last_name || '', avatar_url: d.avatar_url },
-        }))
+        (data || []).map((d: any) => {
+          const p = pMap.get(d.user_id) || {} as any;
+          return {
+            user_id: d.user_id,
+            specialization: d.specialization,
+            consultation_fee: d.consultation_fee,
+            profiles: { first_name: p.first_name || '', last_name: p.last_name || '', avatar_url: p.avatar_url },
+          };
+        })
       );
     } finally {
       setLoading(false);
