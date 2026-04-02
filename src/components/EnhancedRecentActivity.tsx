@@ -102,16 +102,19 @@ const EnhancedRecentActivity = () => {
 
       // Add chat session data
       if (chatData) {
-        activities.push(...chatData.map(item => ({
-          id: item.id,
-          title: 'AI Health Chat Session',
-          description: item.confidence_score 
-            ? `Interactive diagnosis with confidence: ${(item.confidence_score * 100).toFixed(1)}%`
-            : 'AI-powered health consultation',
-          timestamp: item.created_at,
-          status: item.status || 'completed',
-          icon: <Brain className="h-4 w-4 text-purple-600" />
-        })));
+        activities.push(...chatData.map(item => {
+          const meta = (item.metadata || {}) as any;
+          return {
+            id: item.id,
+            title: 'AI Health Chat Session',
+            description: meta?.confidence_score 
+              ? `Interactive diagnosis with confidence: ${(meta.confidence_score * 100).toFixed(1)}%`
+              : 'AI-powered health consultation',
+            timestamp: item.created_at,
+            status: meta?.status || 'completed',
+            icon: <Brain className="h-4 w-4 text-purple-600" />
+          };
+        }));
       }
 
       // Sort by timestamp, remove duplicates, and limit to 10
