@@ -100,15 +100,13 @@ export const NotificationsList = () => {
     }
   };
 
-  const handleNotificationClick = async (notification: Notification) => {
-    // Mark as read
+  const handleNotificationClick = async (notification: NotificationItem) => {
     if (!notification.read) {
       await markAsRead(notification.id);
     }
 
-    // Navigate based on notification type
-    if (notification.type === 'diagnosis_update' && notification.diagnosis_session_id) {
-      // System assessment was removed - redirect to dashboard instead
+    const meta = (notification.metadata || {}) as any;
+    if (notification.type === 'diagnosis_update' && meta?.diagnosis_session_id) {
       navigate('/user-dashboard');
     }
   };
