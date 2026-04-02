@@ -28,18 +28,15 @@ import { Leaf, CheckCircle, XCircle, MapPin, Clock, Eye } from "lucide-react";
 
 interface HerbalPractitioner {
   id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
+  business_name: string | null;
+  email: string | null;
   phone: string | null;
-  specialization: string;
-  years_of_experience: number | null;
+  specialization: string | null;
   bio: string | null;
-  qualifications: any;
-  license_number: string | null;
-  practice_location: string;
-  verification_status: "pending" | "approved" | "rejected";
+  address: string | null;
+  is_verified: boolean | null;
   created_at: string;
+  user_id: string;
 }
 
 export const HerbalPractitionersManagement = () => {
