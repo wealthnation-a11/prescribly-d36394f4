@@ -150,9 +150,9 @@ const DoctorHomeVisits = () => {
                         <Badge className={`${getStatusColor(req.status || 'pending')} border ml-auto lg:ml-2`}>
                           {req.status || 'pending'}
                         </Badge>
-                        <Badge className={`${getUrgencyColor(req.urgency_level)} border`}>
+                        <Badge className={`${getUrgencyColor((req as any).urgency_level || 'medium')} border`}>
                           <AlertTriangle className="w-3 h-3 mr-1" />
-                          {req.urgency_level} urgency
+                          {(req as any).urgency_level || 'medium'} urgency
                         </Badge>
                       </div>
 
