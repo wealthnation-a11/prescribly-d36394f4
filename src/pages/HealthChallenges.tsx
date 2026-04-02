@@ -91,20 +91,27 @@ const HealthChallenges = () => {
   const fetchChallenges = async () => {
     try {
       const { data, error } = await supabase
-        .from('challenges')
+        .from('user_challenges')
         .select('*')
-        .eq('active', true)
         .order('created_at', { ascending: false })
         .limit(4);
 
       if (error) throw error;
       
-      // Remove duplicates based on ID
-      const uniqueChallenges = data?.filter((challenge, index, self) => 
-        index === self.findIndex(c => c.id === challenge.id)
-      ) || [];
+      // Map to Challenge interface
+      const mappedChallenges: Challenge[] = (data || []).map((c: any) => ({
+        id: c.id,
+        title: c.challenge_name,
+        description: c.challenge_type,
+        duration: c.target || 30,
+        start_date: c.started_at,
+        end_date: c.completed_at || '',
+        points_per_day: 10,
+        total_points: (c.target || 30) * 10,
+        active: c.status === 'active',
+      }));
       
-      setChallenges(uniqueChallenges);
+      setChallenges(mappedChallenges);
     } catch (error: any) {
       toast({
         title: "Error",
