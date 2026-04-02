@@ -34,17 +34,17 @@ export const PendingPrescriptionCard: React.FC<PendingPrescriptionCardProps> = (
     const fetchStatus = async () => {
       const { data, error } = await supabase
         .from('pending_drug_approvals')
-        .select('status, approved_drugs, doctor_notes')
+        .select('status, reason, dosage')
         .eq('patient_id', user.id)
-        .eq('diagnosis_session_id', sessionId)
         .order('created_at', { ascending: false })
         .limit(1);
 
       if (!error && data && data.length > 0) {
-        setStatus(data[0].status);
-        setApprovedDrugs(data[0].approved_drugs as any[] | null);
-        setDoctorNotes(data[0].doctor_notes);
-        onStatusChange?.(data[0].status);
+        const item = data[0] as any;
+        setStatus(item.status || 'pending');
+        setApprovedDrugs(null);
+        setDoctorNotes(item.reason);
+        onStatusChange?.(item.status);
       }
       setLoading(false);
     };

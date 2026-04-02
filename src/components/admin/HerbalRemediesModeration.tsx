@@ -14,18 +14,17 @@ import { useAuth } from '@/contexts/AuthContext';
 interface HerbalRemedy {
   id: string;
   name: string;
-  description: string;
-  price: number;
-  approval_status: string;
+  description: string | null;
+  price: number | null;
+  is_approved: boolean | null;
   created_at: string;
   practitioner_id: string;
   ingredients: any;
-  usage_instructions: string;
+  usage_instructions: string | null;
   herbal_practitioners: {
-    first_name: string;
-    last_name: string;
+    business_name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const HerbalRemediesModeration = () => {
@@ -44,30 +43,23 @@ export const HerbalRemediesModeration = () => {
         .select(`
           *,
           herbal_practitioners (
-            first_name,
-            last_name,
+            business_name,
             email
           )
         `)
-        .eq('approval_status', 'pending')
+        .eq('is_approved', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as HerbalRemedy[];
+      return (data || []) as unknown as HerbalRemedy[];
     },
   });
 
   const updateRemedyMutation = useMutation({
     mutationFn: async ({ remedyId, status, notes }: { remedyId: string; status: string; notes: string }) => {
       const updateData: any = {
-        approval_status: status,
-        approved_by: user?.id,
-        approved_at: new Date().toISOString(),
+        is_approved: status === 'approved',
       };
-
-      if (status === 'rejected') {
-        updateData.rejection_reason = notes;
-      }
 
       const { error: updateError } = await supabase
         .from('herbal_remedies')
@@ -145,7 +137,7 @@ export const HerbalRemediesModeration = () => {
               <TableRow key={remedy.id}>
                 <TableCell className="font-medium">{remedy.name}</TableCell>
                 <TableCell>
-                  {remedy.herbal_practitioners.first_name} {remedy.herbal_practitioners.last_name}
+                  {(remedy.herbal_practitioners as any)?.business_name || 'Unknown'}
                 </TableCell>
                 <TableCell>₦{remedy.price}</TableCell>
                 <TableCell>{new Date(remedy.created_at).toLocaleDateString()}</TableCell>

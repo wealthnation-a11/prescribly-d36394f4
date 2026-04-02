@@ -11,13 +11,12 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
-interface Notification {
+interface NotificationItem {
   id: string;
   type: string;
   title: string;
   message: string;
-  data: any;
-  diagnosis_session_id?: string;
+  metadata: any;
   read: boolean;
   created_at: string;
 }
@@ -26,7 +25,7 @@ export const NotificationsList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +45,7 @@ export const NotificationsList = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
+          const newNotification = payload.new as NotificationItem;
           setNotifications(prev => [newNotification, ...prev]);
           
           // Show toast for new notification
@@ -101,15 +100,13 @@ export const NotificationsList = () => {
     }
   };
 
-  const handleNotificationClick = async (notification: Notification) => {
-    // Mark as read
+  const handleNotificationClick = async (notification: NotificationItem) => {
     if (!notification.read) {
       await markAsRead(notification.id);
     }
 
-    // Navigate based on notification type
-    if (notification.type === 'diagnosis_update' && notification.diagnosis_session_id) {
-      // System assessment was removed - redirect to dashboard instead
+    const meta = (notification.metadata || {}) as any;
+    if (notification.type === 'diagnosis_update' && meta?.diagnosis_session_id) {
       navigate('/user-dashboard');
     }
   };

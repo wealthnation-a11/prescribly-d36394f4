@@ -55,8 +55,8 @@ interface Subscription {
   user_id: string;
   status: string;
   plan: string;
-  expires_at: string;
-  started_at: string;
+  expires_at: string | null;
+  starts_at: string;
 }
 
 type AccessFilter = "all" | "free-access" | "paid" | "no-access";
@@ -94,7 +94,7 @@ export const SubscriptionManagement = () => {
         .select("*");
 
       if (error) throw error;
-      return data as Subscription[];
+      return (data || []) as unknown as Subscription[];
     },
   });
 

@@ -36,13 +36,13 @@ export default function BlogComments({ postId }: BlogCommentsProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("blog_comments")
-        .select("id, post_id, user_id, author_name, content, approved, created_at")
+        .select("id, post_id, author_name, content, approved, created_at")
         .eq("post_id", postId)
         .eq("approved", true)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as BlogComment[];
+      return (data || []) as unknown as BlogComment[];
     },
   });
 

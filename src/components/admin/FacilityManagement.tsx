@@ -56,19 +56,18 @@ const FacilityManagement = () => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload = {
+      const payload: any = {
         name: form.name,
-        type: form.type,
+        facility_type: form.type,
         address: form.address || null,
         city: form.city || null,
         state: form.state || null,
         country: form.country || null,
         phone: form.phone || null,
         email: form.email || null,
-        description: form.description || null,
         latitude: form.latitude ? parseFloat(form.latitude) : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
-        is_active: form.is_active,
+        is_verified: form.is_active,
       };
 
       if (editingId) {
@@ -109,17 +108,17 @@ const FacilityManagement = () => {
     setEditingId(facility.id);
     setForm({
       name: facility.name,
-      type: facility.type,
+      type: facility.facility_type || '',
       address: facility.address || '',
       city: facility.city || '',
       state: facility.state || '',
       country: facility.country || '',
       phone: facility.phone || '',
       email: facility.email || '',
-      description: facility.description || '',
+      description: '',
       latitude: facility.latitude?.toString() || '',
       longitude: facility.longitude?.toString() || '',
-      is_active: facility.is_active ?? true,
+      is_active: facility.is_verified ?? true,
     });
     setDialogOpen(true);
   };
@@ -128,7 +127,7 @@ const FacilityManagement = () => {
     const matchSearch = f.name.toLowerCase().includes(search.toLowerCase()) ||
       (f.address || '').toLowerCase().includes(search.toLowerCase()) ||
       (f.city || '').toLowerCase().includes(search.toLowerCase());
-    const matchType = filterType === 'all' || f.type === filterType;
+    const matchType = filterType === 'all' || f.facility_type === filterType;
     return matchSearch && matchType;
   });
 
@@ -236,7 +235,7 @@ const FacilityManagement = () => {
         {['hospital', 'clinic', 'pharmacy'].map(t => (
           <Card key={t} className="shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-xl font-bold">{facilities.filter(f => f.type === t).length}</p>
+              <p className="text-xl font-bold">{facilities.filter(f => f.facility_type === t).length}</p>
               <p className="text-xs text-muted-foreground capitalize">{t}s</p>
             </CardContent>
           </Card>
@@ -263,8 +262,8 @@ const FacilityManagement = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold truncate">{f.name}</h3>
-                      <Badge className={typeColors[f.type] || 'bg-gray-100 text-gray-800'}>{f.type}</Badge>
-                      {!f.is_active && <Badge variant="outline" className="text-muted-foreground">Inactive</Badge>}
+                      <Badge className={typeColors[f.facility_type || ''] || 'bg-gray-100 text-gray-800'}>{f.facility_type || 'unknown'}</Badge>
+                      {!f.is_verified && <Badge variant="outline" className="text-muted-foreground">Unverified</Badge>}
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                       {f.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{f.address}{f.city ? `, ${f.city}` : ''}</span>}

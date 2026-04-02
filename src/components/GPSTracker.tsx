@@ -26,7 +26,7 @@ export default function GPSTracker({ onActivityComplete }: GPSTrackerProps) {
   const [calories, setCalories] = useState(0);
   const watchId = useRef<number | null>(null);
   const startTime = useRef<number>(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const calculateDistance = (pos1: Position, pos2: Position): number => {
     const R = 6371; // Earth's radius in km

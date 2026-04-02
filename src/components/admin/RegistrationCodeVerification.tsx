@@ -28,7 +28,7 @@ const RegistrationCodeVerification = () => {
         data.map(async (code) => {
           const [patientRes, facilityRes] = await Promise.all([
             supabase.from('profiles').select('first_name, last_name').eq('user_id', code.patient_id).single(),
-            supabase.from('facilities').select('name, type').eq('id', code.facility_id).single(),
+            supabase.from('facilities').select('name, facility_type').eq('id', code.facility_id).single(),
           ]);
           return { ...code, patient: patientRes.data, facility: facilityRes.data };
         })
@@ -41,7 +41,7 @@ const RegistrationCodeVerification = () => {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('registration_codes')
-        .update({ status: 'used', confirmed_at: new Date().toISOString() })
+        .update({ status: 'used', verified_at: new Date().toISOString() })
         .eq('id', id);
       if (error) throw error;
     },
@@ -54,7 +54,7 @@ const RegistrationCodeVerification = () => {
     },
   });
 
-  const filtered = codes.filter(c =>
+  const filtered = codes.filter((c: any) =>
     c.code.toLowerCase().includes(search.toLowerCase()) ||
     (c.patient?.first_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (c.patient?.last_name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -63,8 +63,6 @@ const RegistrationCodeVerification = () => {
 
   const getStatusBadge = (code: any) => {
     if (code.status === 'used') return <Badge className="bg-green-100 text-green-800 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Used</Badge>;
-    const expired = new Date(code.expires_at) < new Date();
-    if (expired) return <Badge className="bg-red-100 text-red-800 border-red-200"><XCircle className="w-3 h-3 mr-1" />Expired</Badge>;
     return <Badge className="bg-orange-100 text-orange-800 border-orange-200"><Clock className="w-3 h-3 mr-1" />Active</Badge>;
   };
 
@@ -120,11 +118,11 @@ const RegistrationCodeVerification = () => {
                     <div className="flex flex-wrap gap-x-4 mt-1 text-sm text-muted-foreground">
                       <span>Patient: <span className="font-medium text-foreground">{code.patient?.first_name} {code.patient?.last_name}</span></span>
                       <span>Facility: <span className="font-medium text-foreground">{code.facility?.name || 'N/A'}</span></span>
-                      <span>Expires: {format(new Date(code.expires_at), 'PPP p')}</span>
-                      {code.confirmed_at && <span>Confirmed: {format(new Date(code.confirmed_at), 'PPP p')}</span>}
+                      <span>Expires: {format(new Date(code.created_at), 'PPP p')}</span>
+                      {code.verified_at && <span>Confirmed: {format(new Date(code.verified_at), 'PPP p')}</span>}
                     </div>
                   </div>
-                  {code.status !== 'used' && new Date(code.expires_at) >= new Date() && (
+                  {code.status !== 'used' && new Date(code.created_at) >= new Date() && (
                     <Button size="sm" onClick={() => confirmMutation.mutate(code.id)} disabled={confirmMutation.isPending}>
                       <CheckCircle className="w-4 h-4 mr-1" />Confirm
                     </Button>

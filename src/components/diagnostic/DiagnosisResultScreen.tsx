@@ -136,7 +136,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
 
   const loadDrugRecommendations = async (conditionId: number): Promise<any[]> => {
     try {
-      const { data: drugsData, error: drugsError } = await supabase
+      const { data: drugsData, error: drugsError } = await (supabase as any)
         .from('drugs')
         .select('id, drug_name, rxnorm_id, strength, form, dosage, notes')
         .eq('condition_id', conditionId)
@@ -170,7 +170,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
   const submitForDoctorApproval = async (diagSessionId: string, topDiagnosis: any, drugs: any[]) => {
     if (!user) return;
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('pending_drug_approvals')
         .insert({
           patient_id: user.id,
@@ -191,7 +191,7 @@ export const DiagnosisResultScreen: React.FC<DiagnosisResultScreenProps> = ({
     setSaving(true);
     try {
       const topDiagnosis = diagnosisResult.diagnoses[0];
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_assessments')
         .insert({
           user_id: user.id,

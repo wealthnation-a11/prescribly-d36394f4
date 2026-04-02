@@ -14,15 +14,14 @@ interface HerbalArticle {
   id: string;
   title: string;
   content: string;
-  category: string;
-  approval_status: string;
+  is_approved: boolean;
+  is_published: boolean;
   created_at: string;
   practitioner_id: string;
   herbal_practitioners: {
-    first_name: string;
-    last_name: string;
+    business_name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const HerbalArticlesModeration = () => {
@@ -41,31 +40,26 @@ export const HerbalArticlesModeration = () => {
         .select(`
           *,
           herbal_practitioners (
-            first_name,
-            last_name,
+            business_name,
             email
           )
         `)
-        .eq('approval_status', 'pending')
+        .eq('is_approved', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as HerbalArticle[];
+      return (data || []) as unknown as HerbalArticle[];
     },
   });
 
   const updateArticleMutation = useMutation({
     mutationFn: async ({ articleId, status, notes }: { articleId: string; status: string; notes: string }) => {
       const updateData: any = {
-        approval_status: status,
-        approved_by: user?.id,
-        approved_at: new Date().toISOString(),
+        is_approved: status === 'approved',
       };
 
-      if (status === 'rejected') {
-        updateData.rejection_reason = notes;
-      } else if (status === 'approved') {
-        updateData.published_at = new Date().toISOString();
+      if (status === 'approved') {
+        updateData.is_published = true;
       }
 
       const { error: updateError } = await supabase
@@ -156,9 +150,9 @@ export const HerbalArticlesModeration = () => {
               <TableRow key={article.id}>
                 <TableCell className="font-medium">{article.title}</TableCell>
                 <TableCell>
-                  {article.herbal_practitioners.first_name} {article.herbal_practitioners.last_name}
+                  {(article.herbal_practitioners as any)?.business_name || 'Unknown'}
                 </TableCell>
-                <TableCell>{article.category || 'Uncategorized'}</TableCell>
+                <TableCell>Uncategorized</TableCell>
                 <TableCell>{new Date(article.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">

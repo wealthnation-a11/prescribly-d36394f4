@@ -70,16 +70,20 @@ const EnhancedRecentActivity = () => {
       
       // Add user_history data
       if (historyData) {
-        activities.push(...historyData.map(item => ({
-          id: item.id,
-          title: 'Health Diagnostic Completed',
-          description: Array.isArray(item.suggested_conditions) && item.suggested_conditions.length > 0
-            ? `AI diagnosis: ${(item.suggested_conditions[0] as any)?.condition || 'Condition analyzed'}`
-            : item.input_text || 'Health diagnostic session completed',
-          timestamp: item.created_at,
-          status: 'completed',
-          icon: <Brain className="h-4 w-4 text-purple-600" />
-        })));
+        activities.push(...historyData.map(item => {
+          const meta = (item.metadata || {}) as any;
+          const conditions = Array.isArray(meta?.suggested_conditions) ? meta.suggested_conditions : [];
+          return {
+            id: item.id,
+            title: 'Health Diagnostic Completed',
+            description: conditions.length > 0
+              ? `AI diagnosis: ${conditions[0]?.condition || 'Condition analyzed'}`
+              : meta?.input_text || item.description || 'Health diagnostic session completed',
+            timestamp: item.created_at,
+            status: 'completed',
+            icon: <Brain className="h-4 w-4 text-purple-600" />
+          };
+        }));
       }
 
       // Add user_diagnosis_history data
@@ -98,16 +102,19 @@ const EnhancedRecentActivity = () => {
 
       // Add chat session data
       if (chatData) {
-        activities.push(...chatData.map(item => ({
-          id: item.id,
-          title: 'AI Health Chat Session',
-          description: item.confidence_score 
-            ? `Interactive diagnosis with confidence: ${(item.confidence_score * 100).toFixed(1)}%`
-            : 'AI-powered health consultation',
-          timestamp: item.created_at,
-          status: item.status || 'completed',
-          icon: <Brain className="h-4 w-4 text-purple-600" />
-        })));
+        activities.push(...chatData.map(item => {
+          const meta = (item.metadata || {}) as any;
+          return {
+            id: item.id,
+            title: 'AI Health Chat Session',
+            description: meta?.confidence_score 
+              ? `Interactive diagnosis with confidence: ${(meta.confidence_score * 100).toFixed(1)}%`
+              : 'AI-powered health consultation',
+            timestamp: item.created_at,
+            status: meta?.status || 'completed',
+            icon: <Brain className="h-4 w-4 text-purple-600" />
+          };
+        }));
       }
 
       // Sort by timestamp, remove duplicates, and limit to 10
@@ -144,9 +151,7 @@ const EnhancedRecentActivity = () => {
         return patientPrescData.map(item => ({
           id: item.id,
           title: 'Prescription Received',
-          description: item.diagnosis ? 
-            `${typeof item.diagnosis === 'object' ? JSON.stringify(item.diagnosis) : item.diagnosis}` : 
-            'Medical prescription generated',
+          description: item.drug_name || 'Medical prescription generated',
           timestamp: item.created_at,
           status: item.status || 'active',
           icon: <Pill className="h-4 w-4 text-green-600" />
@@ -169,7 +174,7 @@ const EnhancedRecentActivity = () => {
       return (data || []).map(item => ({
         id: item.id,
         title: isDoctor ? 'Prescription Written' : 'Prescription Received',
-        description: item.diagnosis_id || (Array.isArray(item.drugs) ? (item.drugs as any[]).join(', ') : 'Medical prescription'),
+        description: item.diagnosis || 'Medical prescription',
         timestamp: item.created_at,
         status: item.status || 'active',
         icon: <Pill className="h-4 w-4 text-green-600" />

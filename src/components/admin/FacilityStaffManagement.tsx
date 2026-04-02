@@ -25,8 +25,8 @@ export default function FacilityStaffManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("facilities")
-        .select("id, name, type")
-        .eq("is_active", true)
+        .select("id, name, facility_type")
+        .eq("is_verified", true)
         .order("name");
       if (error) throw error;
       return data;
@@ -156,9 +156,9 @@ export default function FacilityStaffManagement() {
                     <SelectValue placeholder="Select facility" />
                   </SelectTrigger>
                   <SelectContent>
-                    {facilities?.map((f) => (
+                    {facilities?.map((f: any) => (
                       <SelectItem key={f.id} value={f.id}>
-                        {f.name} ({f.type})
+                        {f.name} ({f.facility_type})
                       </SelectItem>
                     ))}
                   </SelectContent>
