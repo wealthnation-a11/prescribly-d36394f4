@@ -71,8 +71,9 @@ export default function ChatWithDoctor() {
   const fetchDoctors = async () => {
     try {
       const { data } = await supabase
-        .from('public_doctor_profiles')
-        .select('doctor_user_id, specialization, consultation_fee, first_name, last_name, avatar_url');
+        .from('doctors')
+        .select('user_id, specialization, consultation_fee')
+        .eq('verification_status', 'approved');
       setDoctors(
         (data || []).map((d: any) => ({
           user_id: d.doctor_user_id,
