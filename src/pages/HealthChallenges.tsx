@@ -192,8 +192,11 @@ const HealthChallenges = () => {
         .from('user_challenges')
         .insert({
           user_id: user.id,
-          challenge_id: challenge.id
-        });
+          challenge_name: challenge.title,
+          challenge_type: challenge.description,
+          started_at: new Date().toISOString(),
+          target: challenge.duration,
+        } as any);
 
       if (error) throw error;
 
