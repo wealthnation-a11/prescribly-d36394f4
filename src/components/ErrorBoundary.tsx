@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     // Log to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // Add your error tracking service here (e.g., Sentry)
       console.error('Production error:', {
         error: error.toString(),
