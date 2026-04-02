@@ -158,8 +158,8 @@ const HealthChallenges = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      setTotalPoints(data?.points || 0);
+      if (error && (error as any).code !== 'PGRST116') throw error;
+      setTotalPoints((data as any)?.points || 0);
     } catch (error: any) {
       console.error('Error fetching user points:', error);
     }
