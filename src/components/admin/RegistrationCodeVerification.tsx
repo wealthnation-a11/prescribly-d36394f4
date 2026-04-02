@@ -118,11 +118,11 @@ const RegistrationCodeVerification = () => {
                     <div className="flex flex-wrap gap-x-4 mt-1 text-sm text-muted-foreground">
                       <span>Patient: <span className="font-medium text-foreground">{code.patient?.first_name} {code.patient?.last_name}</span></span>
                       <span>Facility: <span className="font-medium text-foreground">{code.facility?.name || 'N/A'}</span></span>
-                      <span>Expires: {format(new Date(code.expires_at), 'PPP p')}</span>
-                      {code.confirmed_at && <span>Confirmed: {format(new Date(code.confirmed_at), 'PPP p')}</span>}
+                      <span>Expires: {format(new Date(code.created_at), 'PPP p')}</span>
+                      {code.verified_at && <span>Confirmed: {format(new Date(code.verified_at), 'PPP p')}</span>}
                     </div>
                   </div>
-                  {code.status !== 'used' && new Date(code.expires_at) >= new Date() && (
+                  {code.status !== 'used' && new Date(code.created_at) >= new Date() && (
                     <Button size="sm" onClick={() => confirmMutation.mutate(code.id)} disabled={confirmMutation.isPending}>
                       <CheckCircle className="w-4 h-4 mr-1" />Confirm
                     </Button>

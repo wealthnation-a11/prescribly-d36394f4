@@ -130,8 +130,8 @@ const HospitalRegistrationManagement = () => {
                     <CardContent className="p-4 space-y-2">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium">{reg.name}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{reg.type}</p>
+                          <p className="font-medium">{reg.hospital_name}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{"hospital"}</p>
                         </div>
                         {getStatusBadge(reg.status)}
                       </div>
@@ -171,8 +171,8 @@ const HospitalRegistrationManagement = () => {
                   <TableBody>
                     {registrations.map((reg) => (
                       <TableRow key={reg.id}>
-                        <TableCell className="font-medium">{reg.name}</TableCell>
-                        <TableCell className="capitalize">{reg.type}</TableCell>
+                        <TableCell className="font-medium">{reg.hospital_name}</TableCell>
+                        <TableCell className="capitalize">{"hospital"}</TableCell>
                         <TableCell>{reg.city}, {reg.country}</TableCell>
                         <TableCell>
                           <div className="text-sm">{reg.contact_person}</div>
