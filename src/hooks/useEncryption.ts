@@ -73,7 +73,7 @@ export const useEncryption = () => {
         .from('user_encryption_keys')
         .select('public_key')
         .eq('user_id', userId)
-        .eq('is_active', true)
+        
         .single();
 
       if (error) throw error;
