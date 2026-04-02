@@ -14,15 +14,14 @@ interface HerbalArticle {
   id: string;
   title: string;
   content: string;
-  category: string;
-  approval_status: string;
+  is_approved: boolean;
+  is_published: boolean;
   created_at: string;
   practitioner_id: string;
   herbal_practitioners: {
-    first_name: string;
-    last_name: string;
+    business_name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const HerbalArticlesModeration = () => {
