@@ -81,14 +81,15 @@ export default function Prescription() {
       }
 
       if (data && data.length > 0) {
-        const result = data[0];
+        const result = data[0] as any;
+        const results = result.results || {};
         setPrescriptionData({
           id: result.id,
-          patient_info: result.patient_info as any,
-          symptoms: result.symptoms,
-          diagnosis: result.diagnosis,
-          prescription: result.prescription as any,
-          instructions: result.instructions,
+          patient_info: results.patient_info || {},
+          symptoms: results.symptoms || [],
+          diagnosis: results.diagnosis || '',
+          prescription: results.prescription || {},
+          instructions: results.instructions || '',
           created_at: result.created_at
         });
       }

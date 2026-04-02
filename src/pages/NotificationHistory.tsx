@@ -68,7 +68,7 @@ const NotificationHistory = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data || []).map((n: any) => ({ ...n, data: n.metadata })) as Notification[]);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast.error('Failed to load notifications');
