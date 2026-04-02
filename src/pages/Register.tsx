@@ -115,7 +115,6 @@ import { Logo } from "@/components/Logo";
             })
             .eq('user_id', user.id);
         }
-        }
 
         toast({
           title: "Registration Successful!",
