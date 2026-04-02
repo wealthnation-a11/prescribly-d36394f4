@@ -8,6 +8,7 @@ interface Subscription {
   plan: string;
   expires_at: string;
   started_at: string;
+  starts_at: string;
 }
 
 export const useSubscription = () => {
