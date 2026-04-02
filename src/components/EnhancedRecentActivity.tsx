@@ -174,7 +174,7 @@ const EnhancedRecentActivity = () => {
       return (data || []).map(item => ({
         id: item.id,
         title: isDoctor ? 'Prescription Written' : 'Prescription Received',
-        description: item.diagnosis_id || (Array.isArray(item.drugs) ? (item.drugs as any[]).join(', ') : 'Medical prescription'),
+        description: item.diagnosis || 'Medical prescription',
         timestamp: item.created_at,
         status: item.status || 'active',
         icon: <Pill className="h-4 w-4 text-green-600" />
