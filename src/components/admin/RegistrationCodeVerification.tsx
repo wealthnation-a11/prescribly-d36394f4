@@ -54,7 +54,7 @@ const RegistrationCodeVerification = () => {
     },
   });
 
-  const filtered = codes.filter(c =>
+  const filtered = codes.filter((c: any) =>
     c.code.toLowerCase().includes(search.toLowerCase()) ||
     (c.patient?.first_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (c.patient?.last_name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -63,8 +63,6 @@ const RegistrationCodeVerification = () => {
 
   const getStatusBadge = (code: any) => {
     if (code.status === 'used') return <Badge className="bg-green-100 text-green-800 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Used</Badge>;
-    const expired = new Date(code.expires_at) < new Date();
-    if (expired) return <Badge className="bg-red-100 text-red-800 border-red-200"><XCircle className="w-3 h-3 mr-1" />Expired</Badge>;
     return <Badge className="bg-orange-100 text-orange-800 border-orange-200"><Clock className="w-3 h-3 mr-1" />Active</Badge>;
   };
 

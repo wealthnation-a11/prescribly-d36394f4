@@ -42,7 +42,7 @@ const PaymentManagement = () => {
       const { data, error } = await supabase
         .from("exchange_rates")
         .select("rate")
-        .eq("currency", "NGN")
+        .eq("target_currency", "NGN")
         .single();
       if (error) return DEFAULT_EXCHANGE_RATE;
       return data?.rate || DEFAULT_EXCHANGE_RATE;

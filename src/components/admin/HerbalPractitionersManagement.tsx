@@ -79,21 +79,22 @@ export const HerbalPractitionersManagement = () => {
 
       const { error: updateError } = await supabase
         .from("herbal_practitioners")
-        .update({ verification_status: status })
+        .update({ is_verified: status === 'approved' })
         .eq("id", practitionerId);
 
       if (updateError) throw updateError;
 
+      // Log to herbal_article_audit as a generic audit
       const { error: auditError } = await supabase
-        .from("herbal_verification_audit")
+        .from("herbal_article_audit")
         .insert({
-          practitioner_id: practitionerId,
+          article_id: practitionerId,
           admin_id: user.id,
-          action: status,
-          notes,
-        });
+          action: `practitioner_${status}`,
+          reason: notes,
+        } as any);
 
-      if (auditError) throw auditError;
+      if (auditError) console.error('Audit log error:', auditError);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["herbal-practitioners"] });

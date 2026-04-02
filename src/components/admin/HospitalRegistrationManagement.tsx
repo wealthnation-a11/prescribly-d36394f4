@@ -64,18 +64,15 @@ const HospitalRegistrationManagement = () => {
       // If approved, add to facilities
       if (action === 'approve') {
         const { error: facilityError } = await supabase.from('facilities').insert({
-          name: reg.name,
-          type: reg.type,
+          name: reg.hospital_name,
+          facility_type: 'hospital',
           address: reg.address,
           city: reg.city,
           state: reg.state,
           country: reg.country,
           phone: reg.phone,
           email: reg.email,
-          description: reg.description,
-          latitude: reg.latitude,
-          longitude: reg.longitude,
-          is_active: true,
+          is_verified: true,
         });
         if (facilityError) throw facilityError;
       }

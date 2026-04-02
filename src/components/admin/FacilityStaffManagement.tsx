@@ -156,9 +156,9 @@ export default function FacilityStaffManagement() {
                     <SelectValue placeholder="Select facility" />
                   </SelectTrigger>
                   <SelectContent>
-                    {facilities?.map((f) => (
+                    {facilities?.map((f: any) => (
                       <SelectItem key={f.id} value={f.id}>
-                        {f.name} ({f.type})
+                        {f.name} ({f.facility_type})
                       </SelectItem>
                     ))}
                   </SelectContent>

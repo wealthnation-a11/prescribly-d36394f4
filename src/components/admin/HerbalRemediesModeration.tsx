@@ -58,14 +58,8 @@ export const HerbalRemediesModeration = () => {
   const updateRemedyMutation = useMutation({
     mutationFn: async ({ remedyId, status, notes }: { remedyId: string; status: string; notes: string }) => {
       const updateData: any = {
-        approval_status: status,
-        approved_by: user?.id,
-        approved_at: new Date().toISOString(),
+        is_approved: status === 'approved',
       };
-
-      if (status === 'rejected') {
-        updateData.rejection_reason = notes;
-      }
 
       const { error: updateError } = await supabase
         .from('herbal_remedies')

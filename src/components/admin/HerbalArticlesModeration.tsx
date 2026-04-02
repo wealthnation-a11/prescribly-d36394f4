@@ -55,15 +55,11 @@ export const HerbalArticlesModeration = () => {
   const updateArticleMutation = useMutation({
     mutationFn: async ({ articleId, status, notes }: { articleId: string; status: string; notes: string }) => {
       const updateData: any = {
-        approval_status: status,
-        approved_by: user?.id,
-        approved_at: new Date().toISOString(),
+        is_approved: status === 'approved',
       };
 
-      if (status === 'rejected') {
-        updateData.rejection_reason = notes;
-      } else if (status === 'approved') {
-        updateData.published_at = new Date().toISOString();
+      if (status === 'approved') {
+        updateData.is_published = true;
       }
 
       const { error: updateError } = await supabase
