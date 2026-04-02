@@ -228,7 +228,6 @@ const HealthChallenges = () => {
         .from('user_challenges')
         .update({
           progress: newProgress,
-          points_earned: newPointsEarned,
           status: isCompleted ? 'completed' : 'active',
           completed_at: isCompleted ? new Date().toISOString() : null
         })
