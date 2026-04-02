@@ -41,7 +41,7 @@ const RegistrationCodeVerification = () => {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('registration_codes')
-        .update({ status: 'used', confirmed_at: new Date().toISOString() })
+        .update({ status: 'used', verified_at: new Date().toISOString() })
         .eq('id', id);
       if (error) throw error;
     },
