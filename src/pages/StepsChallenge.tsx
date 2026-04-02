@@ -17,8 +17,8 @@ interface UserSteps {
   id: string;
   date: string;
   step_count: number;
-  calories_burned: number;
-  distance_km: number;
+  calories_burned?: number;
+  distance_km?: number;
   goal_reached: boolean;
 }
 
