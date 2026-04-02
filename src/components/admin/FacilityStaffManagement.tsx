@@ -25,8 +25,8 @@ export default function FacilityStaffManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("facilities")
-        .select("id, name, type")
-        .eq("is_active", true)
+        .select("id, name, facility_type")
+        .eq("is_verified", true)
         .order("name");
       if (error) throw error;
       return data;
