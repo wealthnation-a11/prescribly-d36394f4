@@ -158,8 +158,9 @@ export default function BookAppointment() {
   const fetchDoctors = async () => {
     try {
       const { data, error } = await supabase
-        .from('public_doctor_profiles')
-        .select('doctor_user_id, specialization, consultation_fee, first_name, last_name, avatar_url, offers_home_service, home_service_fee, service_locations');
+        .from('doctors')
+        .select('user_id, specialization, consultation_fee, offers_home_service, home_service_fee, service_locations')
+        .eq('verification_status', 'approved');
 
       if (error) throw error;
 
