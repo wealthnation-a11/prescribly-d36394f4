@@ -230,7 +230,13 @@ export const DoctorProfile = () => {
       // Insert new availability
       const { error } = await supabase
         .from('doctor_availability')
-        .insert(availabilityData.filter(slot => slot.is_available));
+        .insert(availabilityData.filter(slot => slot.is_available).map(s => ({
+          doctor_id: s.doctor_id,
+          day_of_week: s.day_of_week,
+          start_time: s.start_time || '09:00',
+          end_time: s.end_time || '17:00',
+          is_available: s.is_available,
+        })));
 
       if (error) throw error;
 
