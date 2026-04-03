@@ -200,12 +200,12 @@ export default function HerbalRemedies() {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                        <span className="truncate">{remedy.name}</span>
-                        {getStatusIcon(remedy.approval_status)}
+                      <span className="truncate">{remedy.name}</span>
+                        {getStatusIcon(remedy.is_approved ? 'approved' : 'pending')}
                       </CardTitle>
                       <CardDescription className="text-sm mt-1">{remedy.description}</CardDescription>
                     </div>
-                    {getStatusBadge(remedy.approval_status)}
+                    {getStatusBadge(remedy.is_approved ? 'approved' : 'pending')}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 px-4 sm:px-6 text-sm">
@@ -218,12 +218,6 @@ export default function HerbalRemedies() {
                   <div>
                     <strong>Price:</strong> ${remedy.price?.toFixed(2)}
                   </div>
-                  {remedy.rejection_reason && (
-                    <div className="mt-3 sm:mt-4 p-3 bg-destructive/10 rounded-lg">
-                      <strong className="text-destructive text-sm">Rejection Reason:</strong>
-                      <p className="text-xs sm:text-sm mt-1">{remedy.rejection_reason}</p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))

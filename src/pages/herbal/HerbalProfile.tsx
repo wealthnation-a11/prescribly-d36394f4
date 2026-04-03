@@ -163,12 +163,12 @@ export default function HerbalProfile() {
                   Experience
                 </Label>
                 <p className="font-medium text-sm sm:text-base">
-                  {practitioner?.years_of_experience ? `${practitioner.years_of_experience} years` : 'Not provided'}
+                  Not provided
                 </p>
               </div>
               <div>
-                <Label className="text-xs sm:text-sm text-muted-foreground">License Number</Label>
-                <p className="font-medium text-sm sm:text-base break-all">{practitioner?.license_number || 'Not provided'}</p>
+                <Label className="text-xs sm:text-sm text-muted-foreground">Business Name</Label>
+                <p className="font-medium text-sm sm:text-base break-all">{practitioner?.business_name || 'Not provided'}</p>
               </div>
             </CardContent>
           </Card>

@@ -97,14 +97,11 @@ export class CurrencyService {
       this.exchangeRates.clear();
       
       if (data) {
-        data.forEach(item => {
-          // The rate in database should be: 1 USD = X local currency
-          // But our existing NGN_TO_USD rate is: 1 NGN = X USD
-          // So we need to handle this conversion
-          if (item.currency === 'NGN_TO_USD') {
-            this.exchangeRates.set('NGN', item.rate); // Store as NGN rate
+        data.forEach((item: any) => {
+          if (item.target_currency === 'NGN_TO_USD') {
+            this.exchangeRates.set('NGN', item.rate);
           } else {
-            this.exchangeRates.set(item.currency, item.rate);
+            this.exchangeRates.set(item.target_currency, item.rate);
           }
         });
       }

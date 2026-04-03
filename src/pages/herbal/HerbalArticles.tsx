@@ -171,25 +171,19 @@ export default function HerbalArticles() {
                     <div className="flex-1 min-w-0">
                       <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                         <span className="line-clamp-2">{article.title}</span>
-                        {getStatusIcon(article.approval_status)}
+                        {getStatusIcon(article.is_approved ? 'approved' : 'pending')}
                       </CardTitle>
                       <CardDescription className="text-xs sm:text-sm mt-1">
-                        {article.category} • {new Date(article.created_at).toLocaleDateString()}
+                        {new Date(article.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
-                    {getStatusBadge(article.approval_status)}
+                    {getStatusBadge(article.is_approved ? 'approved' : 'pending')}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 px-4 sm:px-6">
                   <div className="prose prose-sm max-w-none line-clamp-3 text-xs sm:text-sm">
                     {article.content}
                   </div>
-                  {article.rejection_reason && (
-                    <div className="mt-3 sm:mt-4 p-3 bg-destructive/10 rounded-lg">
-                      <strong className="text-destructive text-sm">Rejection Reason:</strong>
-                      <p className="text-xs sm:text-sm mt-1">{article.rejection_reason}</p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))
