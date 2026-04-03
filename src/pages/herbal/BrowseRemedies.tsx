@@ -99,10 +99,7 @@ export default function BrowseRemedies() {
                       </CardHeader>
                       <CardContent className="space-y-3 px-4 sm:px-6 text-sm">
                         <div>
-                          <strong className="text-xs sm:text-sm">Practitioner:</strong>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {remedy.herbal_practitioners?.first_name} {remedy.herbal_practitioners?.last_name}
-                          </p>
+                          <strong className="text-xs sm:text-sm">By Practitioner</strong>
                         </div>
                         <div>
                           <strong className="text-xs sm:text-sm">Ingredients:</strong>

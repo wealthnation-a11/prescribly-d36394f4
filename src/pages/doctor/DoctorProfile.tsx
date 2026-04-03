@@ -538,13 +538,12 @@ export const DoctorProfile = () => {
                 </h3>
 
                 <div className="space-y-4">
-                  {weekdays.map((day) => {
-                    const dayData = availabilityData.find(slot => slot.weekday === day.value) || {
+                  {weekdays.map((day, idx) => {
+                    const dayData = availabilityData.find(slot => slot.day_of_week === idx) || {
                       doctor_id: user?.id || '',
-                      weekday: day.value,
+                      day_of_week: idx,
                       start_time: '09:00',
                       end_time: '17:00',
-                      timezone: 'Africa/Lagos',
                       is_available: false
                     };
 
@@ -555,7 +554,7 @@ export const DoctorProfile = () => {
                             <Checkbox
                               checked={dayData.is_available}
                               onCheckedChange={(checked) => 
-                                updateAvailability(day.value, 'is_available', checked)
+                                updateAvailability(idx, 'is_available', checked)
                               }
                             />
                             <div className="w-20 font-medium text-card-foreground">
@@ -565,7 +564,7 @@ export const DoctorProfile = () => {
                               <Input
                                 type="time"
                                 value={dayData.start_time || '09:00'}
-                                onChange={(e) => updateAvailability(day.value, 'start_time', e.target.value)}
+                                onChange={(e) => updateAvailability(idx, 'start_time', e.target.value)}
                                 disabled={!dayData.is_available}
                                 className="w-32"
                               />
@@ -573,13 +572,10 @@ export const DoctorProfile = () => {
                               <Input
                                 type="time"
                                 value={dayData.end_time || '17:00'}
-                                onChange={(e) => updateAvailability(day.value, 'end_time', e.target.value)}
+                                onChange={(e) => updateAvailability(idx, 'end_time', e.target.value)}
                                 disabled={!dayData.is_available}
                                 className="w-32"
                               />
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {dayData.timezone}
                             </div>
                           </div>
                         </CardContent>

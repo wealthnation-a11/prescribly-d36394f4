@@ -28,7 +28,6 @@ const FacilityVisitHistory = () => {
         .limit(100);
       if (error) throw error;
 
-      // Fetch patient names for each code
       const patientIds = [...new Set(data?.map(c => c.patient_id).filter(Boolean))];
       const { data: profiles } = await supabase
         .from("profiles")
@@ -47,9 +46,9 @@ const FacilityVisitHistory = () => {
     enabled: !!facilityId,
   });
 
-  const getStatusBadge = (status: string, expiresAt: string) => {
+  const getStatusBadge = (status: string) => {
     if (status === "used") return <Badge variant="secondary">Confirmed</Badge>;
-    if (new Date(expiresAt) < new Date()) return <Badge variant="destructive">Expired</Badge>;
+    if (status === "expired") return <Badge variant="destructive">Expired</Badge>;
     return <Badge>Active</Badge>;
   };
 
@@ -83,7 +82,7 @@ const FacilityVisitHistory = () => {
                       <TableHead>Patient</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
-                      <TableHead>Confirmed</TableHead>
+                      <TableHead>Verified</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -93,12 +92,12 @@ const FacilityVisitHistory = () => {
                           {item.code}
                         </TableCell>
                         <TableCell>{item.patient_name}</TableCell>
-                        <TableCell>{getStatusBadge(item.status, item.expires_at)}</TableCell>
+                        <TableCell>{getStatusBadge(item.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(item.created_at), "PP")}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {item.confirmed_at ? format(new Date(item.confirmed_at), "PPp") : "—"}
+                          {item.verified_at ? format(new Date(item.verified_at), "PPp") : "—"}
                         </TableCell>
                       </TableRow>
                     ))}

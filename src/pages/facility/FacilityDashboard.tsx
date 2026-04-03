@@ -21,7 +21,7 @@ const FacilityDashboard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("facilities")
-        .select("name, type")
+        .select("name, facility_type")
         .eq("id", facilityId!)
         .single();
       if (error) throw error;
@@ -37,14 +37,14 @@ const FacilityDashboard = () => {
       
       const { data: codes, error } = await supabase
         .from("registration_codes")
-        .select("status, created_at, confirmed_at")
+        .select("status, created_at, verified_at")
         .eq("facility_id", facilityId!);
       
       if (error) throw error;
 
       const todayCodes = codes?.filter(c => c.created_at?.startsWith(today)) || [];
       const confirmed = codes?.filter(c => c.status === "used") || [];
-      const pending = codes?.filter(c => c.status === "active") || [];
+      const pending = codes?.filter(c => c.status === "pending") || [];
       const expired = codes?.filter(c => c.status === "expired") || [];
 
       return {
@@ -59,9 +59,9 @@ const FacilityDashboard = () => {
   });
 
   const statCards = [
-    { title: "Today's Codes", value: stats?.todayVisits, icon: Users, color: "text-blue-500" },
-    { title: "Confirmed Visits", value: stats?.confirmed, icon: CheckCircle, color: "text-emerald-500" },
-    { title: "Pending", value: stats?.pending, icon: Clock, color: "text-amber-500" },
+    { title: "Today's Codes", value: stats?.todayVisits, icon: Users, color: "text-primary" },
+    { title: "Confirmed Visits", value: stats?.confirmed, icon: CheckCircle, color: "text-primary" },
+    { title: "Pending", value: stats?.pending, icon: Clock, color: "text-muted-foreground" },
     { title: "Expired", value: stats?.expired, icon: XCircle, color: "text-destructive" },
   ];
 
@@ -73,7 +73,7 @@ const FacilityDashboard = () => {
             {facility?.name || "Facility Dashboard"}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm capitalize">
-            {facility?.type || "Healthcare Facility"} • Staff Portal
+            {facility?.facility_type || "Healthcare Facility"} • Staff Portal
           </p>
         </div>
 

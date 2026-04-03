@@ -128,18 +128,10 @@ export default function BrowseArticles() {
           <DialogHeader>
             <DialogTitle className="text-xl sm:text-2xl">{selectedArticle?.title}</DialogTitle>
             <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-2">
-              <span>By {selectedArticle?.herbal_practitioners?.first_name} {selectedArticle?.herbal_practitioners?.last_name}</span>
-              <span>•</span>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {selectedArticle?.published_at && new Date(selectedArticle.published_at).toLocaleDateString()}
+                {selectedArticle?.created_at && new Date(selectedArticle.created_at).toLocaleDateString()}
               </span>
-              {selectedArticle?.category && (
-                <>
-                  <span>•</span>
-                  <Badge variant="secondary" className="text-xs">{selectedArticle.category}</Badge>
-                </>
-              )}
             </div>
           </DialogHeader>
           <div 

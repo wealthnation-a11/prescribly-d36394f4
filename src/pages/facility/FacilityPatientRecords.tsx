@@ -56,9 +56,9 @@ const FacilityPatientRecords = () => {
 
     setSaving(true);
     try {
-      const { data: codeData, error: codeError } = await supabase.rpc("verify_registration_code", { _code: trimmed });
+      const { data: codeData, error: codeError } = await (supabase.rpc as any)("verify_registration_code", { _code: trimmed });
       if (codeError) throw codeError;
-      if (!codeData || codeData.length === 0) {
+      if (!codeData || (Array.isArray(codeData) && codeData.length === 0)) {
         toast({ title: "Code not found", variant: "destructive" });
         return;
       }
