@@ -95,7 +95,7 @@ export default function HerbalProfile() {
                   <User className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   Personal Information
                 </CardTitle>
-                {practitioner?.verification_status && getStatusBadge(practitioner.verification_status)}
+                {practitioner?.is_verified && getStatusBadge(practitioner.is_verified ? 'approved' : 'pending')}
               </div>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
