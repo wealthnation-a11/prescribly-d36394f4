@@ -101,7 +101,7 @@ export default function HerbalProfile() {
             <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
               <div>
                 <Label className="text-xs sm:text-sm text-muted-foreground">Name</Label>
-                <p className="font-medium text-sm sm:text-base truncate">{practitioner?.first_name} {practitioner?.last_name}</p>
+                <p className="font-medium text-sm sm:text-base truncate">{practitioner?.business_name || practitioner?.email}</p>
               </div>
               <div>
                 <Label className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2">
