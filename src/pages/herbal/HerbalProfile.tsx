@@ -22,7 +22,7 @@ export default function HerbalProfile() {
   const [formData, setFormData] = useState({
     bio: practitioner?.bio || '',
     phone: practitioner?.phone || '',
-    practice_location: practitioner?.practice_location || '',
+    address: practitioner?.address || '',
   });
 
   const updateProfile = useMutation({
