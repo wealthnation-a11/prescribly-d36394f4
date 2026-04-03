@@ -22,13 +22,10 @@ export default function BrowseArticles() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('herbal_articles')
-        .select(`
-          *,
-          herbal_practitioners(first_name, last_name, specialization)
-        `)
-        .eq('approval_status', 'approved')
-        .not('published_at', 'is', null)
-        .order('published_at', { ascending: false });
+        .select('*')
+        .eq('is_approved', true)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -36,8 +33,7 @@ export default function BrowseArticles() {
 
   const filteredArticles = articles?.filter((article) =>
     article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    article.content?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -97,19 +93,12 @@ export default function BrowseArticles() {
                               {article.title}
                             </CardTitle>
                             <CardDescription className="flex flex-wrap items-center gap-2 mt-2 text-xs sm:text-sm">
-                              <span>{article.herbal_practitioners?.first_name} {article.herbal_practitioners?.last_name}</span>
-                              <span>•</span>
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(article.published_at).toLocaleDateString()}
+                                {new Date(article.created_at).toLocaleDateString()}
                               </span>
                             </CardDescription>
                           </div>
-                          {article.category && (
-                            <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                              {article.category}
-                            </Badge>
-                          )}
                         </div>
                       </CardHeader>
                       <CardContent className="px-4 sm:px-6 space-y-3">
@@ -139,18 +128,10 @@ export default function BrowseArticles() {
           <DialogHeader>
             <DialogTitle className="text-xl sm:text-2xl">{selectedArticle?.title}</DialogTitle>
             <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-2">
-              <span>By {selectedArticle?.herbal_practitioners?.first_name} {selectedArticle?.herbal_practitioners?.last_name}</span>
-              <span>•</span>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {selectedArticle?.published_at && new Date(selectedArticle.published_at).toLocaleDateString()}
+                {selectedArticle?.created_at && new Date(selectedArticle.created_at).toLocaleDateString()}
               </span>
-              {selectedArticle?.category && (
-                <>
-                  <span>•</span>
-                  <Badge variant="secondary" className="text-xs">{selectedArticle.category}</Badge>
-                </>
-              )}
             </div>
           </DialogHeader>
           <div 

@@ -39,8 +39,8 @@ const HerbalPractitionerDashboard = () => {
         supabase.from('herbal_remedies').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id),
         supabase.from('herbal_articles').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id),
         supabase.from('herbal_consultations').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id),
-        supabase.from('herbal_remedies').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('approval_status', 'approved'),
-        supabase.from('herbal_articles').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('approval_status', 'approved'),
+        supabase.from('herbal_remedies').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('is_approved', true),
+        supabase.from('herbal_articles').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('is_approved', true),
       ]);
 
       return {
@@ -128,7 +128,7 @@ const HerbalPractitionerDashboard = () => {
               {/* Main Welcome Message */}
               <div className="mb-3">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent animate-fade-in flex items-center gap-3">
-                  Welcome back, {practitioner?.first_name || "Practitioner"}!
+                  Welcome back, {practitioner?.business_name || "Practitioner"}!
                   <span className="text-3xl animate-bounce">🌿</span>
                 </h1>
               </div>

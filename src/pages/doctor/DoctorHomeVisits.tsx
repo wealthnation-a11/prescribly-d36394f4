@@ -160,8 +160,8 @@ const DoctorHomeVisits = () => {
                         <div className="flex items-start gap-2">
                           <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                           <div>
-                            <span className="text-muted-foreground">Illness Duration:</span>{' '}
-                            <span className="font-medium">{req.illness_duration}</span>
+                          <span className="text-muted-foreground">Notes:</span>{' '}
+                            <span className="font-medium">{req.notes || 'N/A'}</span>
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
@@ -173,23 +173,8 @@ const DoctorHomeVisits = () => {
                         </div>
                       </div>
 
-                      <div className="bg-muted/50 rounded-lg p-3">
-                        <p className="text-sm font-medium mb-1">Symptoms:</p>
-                        <p className="text-sm text-muted-foreground">{req.symptoms}</p>
-                      </div>
-
-                      {req.image_url && (
-                        <div className="flex items-center gap-2 text-sm text-primary">
-                          <ImageIcon className="w-4 h-4" />
-                          <a href={req.image_url} target="_blank" rel="noopener noreferrer" className="underline">
-                            View attached image
-                          </a>
-                        </div>
-                      )}
-
                       <p className="text-xs text-muted-foreground">
                         Submitted {req.created_at ? format(new Date(req.created_at), 'PPP p') : 'N/A'}
-                        {req.consultation_fee && ` • Fee: ₦${req.consultation_fee.toLocaleString()}`}
                       </p>
                     </div>
 

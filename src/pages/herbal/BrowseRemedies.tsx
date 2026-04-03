@@ -21,11 +21,8 @@ export default function BrowseRemedies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('herbal_remedies')
-        .select(`
-          *,
-          herbal_practitioners(first_name, last_name, specialization)
-        `)
-        .eq('approval_status', 'approved')
+        .select('*')
+        .eq('is_approved', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -102,10 +99,7 @@ export default function BrowseRemedies() {
                       </CardHeader>
                       <CardContent className="space-y-3 px-4 sm:px-6 text-sm">
                         <div>
-                          <strong className="text-xs sm:text-sm">Practitioner:</strong>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {remedy.herbal_practitioners?.first_name} {remedy.herbal_practitioners?.last_name}
-                          </p>
+                          <strong className="text-xs sm:text-sm">By Practitioner</strong>
                         </div>
                         <div>
                           <strong className="text-xs sm:text-sm">Ingredients:</strong>

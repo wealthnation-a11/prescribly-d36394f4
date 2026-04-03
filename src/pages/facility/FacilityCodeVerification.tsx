@@ -34,10 +34,10 @@ const FacilityCodeVerification = () => {
     setResult(null);
 
     try {
-      const { data, error } = await supabase.rpc("verify_registration_code", { _code: trimmed });
+      const { data, error } = await (supabase.rpc as any)("verify_registration_code", { _code: trimmed });
       if (error) throw error;
 
-      if (!data || data.length === 0) {
+      if (!data || (Array.isArray(data) && data.length === 0)) {
         toast({ title: "Not Found", description: "No registration found for this code", variant: "destructive" });
         return;
       }
@@ -63,7 +63,7 @@ const FacilityCodeVerification = () => {
     setConfirming(true);
 
     try {
-      const { data, error } = await supabase.rpc("confirm_registration_code", { _code: result.code });
+      const { data, error } = await (supabase.rpc as any)("confirm_registration_code", { _code: result.code });
       if (error) throw error;
 
       if (data) {

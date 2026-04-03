@@ -171,36 +171,22 @@ export const DoctorMessages = () => {
   const fetchMessages = async (patientUserId: string) => {
     try {
       const { data, error } = await supabase
-        .from("chats")
+        .from("messages")
         .select("*")
         .or(
-          `and(sender_id.eq.${user?.id},recipient_id.eq.${patientUserId}),and(sender_id.eq.${patientUserId},recipient_id.eq.${user?.id})`
+          `and(sender_id.eq.${user?.id},receiver_id.eq.${patientUserId}),and(sender_id.eq.${patientUserId},receiver_id.eq.${user?.id})`
         )
         .order("created_at", { ascending: true });
 
       if (error) throw error;
 
-      const formattedMessages: ChatMessage[] = await Promise.all(
-        (data || []).map(async (msg) => {
-          let displayMessage = msg.message;
-          
-          // Try to decrypt if message is encrypted
-          if (msg.encrypted_message && isEncrypted(msg.encrypted_message)) {
-            try {
-              displayMessage = await decryptMessage(msg.encrypted_message);
-            } catch (error) {
-              console.error('Failed to decrypt message:', error);
-              displayMessage = '[Encrypted message]';
-            }
-          }
-
-          return {
-            ...msg,
-            message: displayMessage,
-            file_type: msg.file_type as "image" | "pdf" | "docx" | "audio" | null
-          };
-        })
-      );
+      const formattedMessages: ChatMessage[] = (data || []).map((msg) => ({
+        id: msg.id,
+        sender_id: msg.sender_id,
+        recipient_id: msg.receiver_id,
+        message: msg.content,
+        created_at: msg.created_at,
+      }));
 
       setMessages(formattedMessages);
       
@@ -222,27 +208,17 @@ export const DoctorMessages = () => {
         {
           event: "INSERT",
           schema: "public",
-          table: "chats",
-          filter: `or(and(sender_id.eq.${user.id},recipient_id.eq.${patientUserId}),and(sender_id.eq.${patientUserId},recipient_id.eq.${user.id}))`,
+          table: "messages",
         },
         (payload) => {
           const handleIncomingMessage = async () => {
-            const newMsg = payload.new as ChatMessage;
-            let displayMessage = newMsg.message;
-            
-            // Try to decrypt if message is encrypted
-            if (newMsg.encrypted_message && isEncrypted(newMsg.encrypted_message)) {
-              try {
-                displayMessage = await decryptMessage(newMsg.encrypted_message);
-              } catch (error) {
-                console.error('Failed to decrypt incoming message:', error);
-                displayMessage = '[Encrypted message]';
-              }
-            }
-
-            const processedMessage = {
-              ...newMsg,
-              message: displayMessage
+            const newMsg = payload.new as any;
+            const processedMessage: ChatMessage = {
+              id: newMsg.id,
+              sender_id: newMsg.sender_id,
+              recipient_id: newMsg.receiver_id,
+              message: newMsg.content,
+              created_at: newMsg.created_at,
             };
 
             setMessages((prev) => [...prev, processedMessage]);
@@ -292,14 +268,10 @@ export const DoctorMessages = () => {
         plainMessage = messageText;
       }
 
-      const { error } = await supabase.from("chats").insert({
+      const { error } = await supabase.from("messages").insert({
         sender_id: user.id,
-        recipient_id: selectedPatient.user_id,
-        message: plainMessage || undefined,
-        encrypted_message: encryptedMessage || undefined,
-        file_url: fileUrl,
-        file_type: fileType as any,
-        encryption_version: encryptedMessage ? 1 : undefined
+        receiver_id: selectedPatient.user_id,
+        content: plainMessage || messageText || '',
       });
       
       if (error) throw error;

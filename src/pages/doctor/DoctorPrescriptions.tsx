@@ -104,10 +104,8 @@ const [saving, setSaving] = useState(false);
       doctor_id: user.id,
       patient_id: selectedAppointment.patient_id,
       appointment_id: selectedAppointment.id,
-      diagnosis,
+      medication: diagnosis || 'General',
       instructions: prescriptionText,
-      // medications is NOT NULL in existing schema; send empty array as default structure
-      medications: [] as any,
     };
 
     const { error } = await supabase.from("prescriptions").insert(payload);
@@ -127,9 +125,9 @@ const [saving, setSaving] = useState(false);
     // refresh list
     const { data: presc } = await supabase
       .from("prescriptions")
-      .select("id, patient_id, appointment_id, diagnosis, instructions, issued_at")
+      .select("id, patient_id, appointment_id, medication, instructions, created_at")
       .eq("doctor_id", user.id)
-      .order("issued_at", { ascending: false });
+      .order("created_at", { ascending: false });
     setPrescriptions((presc as any) || []);
   };
 

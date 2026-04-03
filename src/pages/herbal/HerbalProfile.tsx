@@ -22,7 +22,7 @@ export default function HerbalProfile() {
   const [formData, setFormData] = useState({
     bio: practitioner?.bio || '',
     phone: practitioner?.phone || '',
-    practice_location: practitioner?.practice_location || '',
+    address: practitioner?.address || '',
   });
 
   const updateProfile = useMutation({
@@ -33,7 +33,7 @@ export default function HerbalProfile() {
         .update({
           bio: data.bio,
           phone: data.phone,
-          practice_location: data.practice_location,
+          address: data.address,
         })
         .eq('id', practitioner.id);
       if (error) throw error;
@@ -95,13 +95,13 @@ export default function HerbalProfile() {
                   <User className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   Personal Information
                 </CardTitle>
-                {practitioner?.verification_status && getStatusBadge(practitioner.verification_status)}
+                {practitioner?.is_verified && getStatusBadge(practitioner.is_verified ? 'approved' : 'pending')}
               </div>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
               <div>
                 <Label className="text-xs sm:text-sm text-muted-foreground">Name</Label>
-                <p className="font-medium text-sm sm:text-base truncate">{practitioner?.first_name} {practitioner?.last_name}</p>
+                <p className="font-medium text-sm sm:text-base truncate">{practitioner?.business_name || practitioner?.email}</p>
               </div>
               <div>
                 <Label className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2">
@@ -133,13 +133,13 @@ export default function HerbalProfile() {
                 </Label>
                 {isEditing ? (
                   <Input
-                    value={formData.practice_location}
-                    onChange={(e) => setFormData({ ...formData, practice_location: e.target.value })}
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     placeholder="Enter practice location"
                     className="h-11 sm:h-10 text-sm"
                   />
                 ) : (
-                  <p className="font-medium text-sm sm:text-base">{practitioner?.practice_location || 'Not provided'}</p>
+                  <p className="font-medium text-sm sm:text-base">{practitioner?.address || 'Not provided'}</p>
                 )}
               </div>
             </CardContent>
@@ -163,12 +163,12 @@ export default function HerbalProfile() {
                   Experience
                 </Label>
                 <p className="font-medium text-sm sm:text-base">
-                  {practitioner?.years_of_experience ? `${practitioner.years_of_experience} years` : 'Not provided'}
+                  Not provided
                 </p>
               </div>
               <div>
-                <Label className="text-xs sm:text-sm text-muted-foreground">License Number</Label>
-                <p className="font-medium text-sm sm:text-base break-all">{practitioner?.license_number || 'Not provided'}</p>
+                <Label className="text-xs sm:text-sm text-muted-foreground">Business Name</Label>
+                <p className="font-medium text-sm sm:text-base break-all">{practitioner?.business_name || 'Not provided'}</p>
               </div>
             </CardContent>
           </Card>

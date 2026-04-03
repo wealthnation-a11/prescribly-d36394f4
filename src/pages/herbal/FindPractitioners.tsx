@@ -60,7 +60,7 @@ export default function FindPractitioners() {
       const { data, error } = await supabase
         .from('herbal_practitioners')
         .select('*')
-        .eq('verification_status', 'approved')
+        .eq('is_verified', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -68,10 +68,9 @@ export default function FindPractitioners() {
   });
 
   const filteredPractitioners = practitioners?.filter((practitioner) =>
-    practitioner.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    practitioner.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    practitioner.specialization.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    practitioner.practice_location?.toLowerCase().includes(searchQuery.toLowerCase())
+    (practitioner.business_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (practitioner.specialization || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (practitioner.address || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -130,11 +129,11 @@ export default function FindPractitioners() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <CardTitle className="text-base sm:text-lg">
-                              {practitioner.first_name} {practitioner.last_name}
+                              {practitioner.business_name || 'Practitioner'}
                             </CardTitle>
                             <CardDescription className="text-xs sm:text-sm flex items-center gap-1 mt-1">
                               <Award className="h-3 w-3 flex-shrink-0" />
-                              {practitioner.specialization}
+                              {practitioner.specialization || 'Herbal Medicine'}
                             </CardDescription>
                           </div>
                           <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100 flex-shrink-0 text-xs">
@@ -143,16 +142,10 @@ export default function FindPractitioners() {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-3 px-4 sm:px-6">
-                        {practitioner.years_of_experience && (
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            {practitioner.years_of_experience} years experience
-                          </div>
-                        )}
-                        {practitioner.practice_location && (
+                        {practitioner.address && (
                           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                             <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            {practitioner.practice_location}
+                            {practitioner.address}
                           </div>
                         )}
                         {practitioner.bio && (

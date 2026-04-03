@@ -35,7 +35,7 @@ interface DoctorProfileData {
   bio?: string;
   consultation_fee?: number;
   years_of_experience?: number;
-  verification_status?: 'pending' | 'approved' | 'rejected' | 'suspended';
+  verification_status?: string;
   rating?: number;
   total_reviews?: number;
   offers_home_service?: boolean;
@@ -46,10 +46,9 @@ interface DoctorProfileData {
 interface AvailabilityData {
   id?: string;
   doctor_id: string;
-  weekday: string;
+  day_of_week: number;
   start_time?: string;
   end_time?: string;
-  timezone: string;
   is_available: boolean;
 }
 
@@ -144,15 +143,13 @@ export const DoctorProfile = () => {
       }
 
       if (data && data.length > 0) {
-        setAvailabilityData(data);
+        setAvailabilityData(data as any);
       } else {
-        // Initialize with default availability data
-        const defaultAvailability = weekdays.map(day => ({
+        const defaultAvailability = weekdays.map((day, idx) => ({
           doctor_id: user?.id || '',
-          weekday: day.value,
+          day_of_week: idx,
           start_time: '09:00',
           end_time: '17:00',
-          timezone: 'Africa/Lagos',
           is_available: false
         }));
         setAvailabilityData(defaultAvailability);
@@ -233,7 +230,13 @@ export const DoctorProfile = () => {
       // Insert new availability
       const { error } = await supabase
         .from('doctor_availability')
-        .insert(availabilityData.filter(slot => slot.is_available));
+        .insert(availabilityData.filter(slot => slot.is_available).map(s => ({
+          doctor_id: s.doctor_id,
+          day_of_week: s.day_of_week,
+          start_time: s.start_time || '09:00',
+          end_time: s.end_time || '17:00',
+          is_available: s.is_available,
+        })));
 
       if (error) throw error;
 
@@ -252,10 +255,10 @@ export const DoctorProfile = () => {
     }
   };
 
-  const updateAvailability = (weekday: string, field: string, value: any) => {
+  const updateAvailability = (dayIndex: number, field: string, value: any) => {
     setAvailabilityData(prev => 
       prev.map(slot => 
-        slot.weekday === weekday 
+        slot.day_of_week === dayIndex 
           ? { ...slot, [field]: value }
           : slot
       )
@@ -535,13 +538,12 @@ export const DoctorProfile = () => {
                 </h3>
 
                 <div className="space-y-4">
-                  {weekdays.map((day) => {
-                    const dayData = availabilityData.find(slot => slot.weekday === day.value) || {
+                  {weekdays.map((day, idx) => {
+                    const dayData = availabilityData.find(slot => slot.day_of_week === idx) || {
                       doctor_id: user?.id || '',
-                      weekday: day.value,
+                      day_of_week: idx,
                       start_time: '09:00',
                       end_time: '17:00',
-                      timezone: 'Africa/Lagos',
                       is_available: false
                     };
 
@@ -552,7 +554,7 @@ export const DoctorProfile = () => {
                             <Checkbox
                               checked={dayData.is_available}
                               onCheckedChange={(checked) => 
-                                updateAvailability(day.value, 'is_available', checked)
+                                updateAvailability(idx, 'is_available', checked)
                               }
                             />
                             <div className="w-20 font-medium text-card-foreground">
@@ -562,7 +564,7 @@ export const DoctorProfile = () => {
                               <Input
                                 type="time"
                                 value={dayData.start_time || '09:00'}
-                                onChange={(e) => updateAvailability(day.value, 'start_time', e.target.value)}
+                                onChange={(e) => updateAvailability(idx, 'start_time', e.target.value)}
                                 disabled={!dayData.is_available}
                                 className="w-32"
                               />
@@ -570,13 +572,10 @@ export const DoctorProfile = () => {
                               <Input
                                 type="time"
                                 value={dayData.end_time || '17:00'}
-                                onChange={(e) => updateAvailability(day.value, 'end_time', e.target.value)}
+                                onChange={(e) => updateAvailability(idx, 'end_time', e.target.value)}
                                 disabled={!dayData.is_available}
                                 className="w-32"
                               />
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {dayData.timezone}
                             </div>
                           </div>
                         </CardContent>
