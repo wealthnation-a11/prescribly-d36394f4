@@ -93,19 +93,12 @@ export default function BrowseArticles() {
                               {article.title}
                             </CardTitle>
                             <CardDescription className="flex flex-wrap items-center gap-2 mt-2 text-xs sm:text-sm">
-                              <span>{article.herbal_practitioners?.first_name} {article.herbal_practitioners?.last_name}</span>
-                              <span>•</span>
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(article.published_at).toLocaleDateString()}
+                                {new Date(article.created_at).toLocaleDateString()}
                               </span>
                             </CardDescription>
                           </div>
-                          {article.category && (
-                            <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                              {article.category}
-                            </Badge>
-                          )}
                         </div>
                       </CardHeader>
                       <CardContent className="px-4 sm:px-6 space-y-3">
