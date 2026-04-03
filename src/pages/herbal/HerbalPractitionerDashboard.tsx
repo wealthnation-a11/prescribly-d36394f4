@@ -39,8 +39,8 @@ const HerbalPractitionerDashboard = () => {
         supabase.from('herbal_remedies').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id),
         supabase.from('herbal_articles').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id),
         supabase.from('herbal_consultations').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id),
-        supabase.from('herbal_remedies').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('approval_status', 'approved'),
-        supabase.from('herbal_articles').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('approval_status', 'approved'),
+        supabase.from('herbal_remedies').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('is_approved', true),
+        supabase.from('herbal_articles').select('*', { count: 'exact', head: true }).eq('practitioner_id', practitioner.id).eq('is_approved', true),
       ]);
 
       return {
