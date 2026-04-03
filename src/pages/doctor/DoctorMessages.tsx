@@ -208,27 +208,17 @@ export const DoctorMessages = () => {
         {
           event: "INSERT",
           schema: "public",
-          table: "chats",
-          filter: `or(and(sender_id.eq.${user.id},recipient_id.eq.${patientUserId}),and(sender_id.eq.${patientUserId},recipient_id.eq.${user.id}))`,
+          table: "messages",
         },
         (payload) => {
           const handleIncomingMessage = async () => {
-            const newMsg = payload.new as ChatMessage;
-            let displayMessage = newMsg.message;
-            
-            // Try to decrypt if message is encrypted
-            if (newMsg.encrypted_message && isEncrypted(newMsg.encrypted_message)) {
-              try {
-                displayMessage = await decryptMessage(newMsg.encrypted_message);
-              } catch (error) {
-                console.error('Failed to decrypt incoming message:', error);
-                displayMessage = '[Encrypted message]';
-              }
-            }
-
-            const processedMessage = {
-              ...newMsg,
-              message: displayMessage
+            const newMsg = payload.new as any;
+            const processedMessage: ChatMessage = {
+              id: newMsg.id,
+              sender_id: newMsg.sender_id,
+              recipient_id: newMsg.receiver_id,
+              message: newMsg.content,
+              created_at: newMsg.created_at,
             };
 
             setMessages((prev) => [...prev, processedMessage]);
