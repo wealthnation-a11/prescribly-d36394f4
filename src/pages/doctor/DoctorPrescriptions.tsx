@@ -104,10 +104,8 @@ const [saving, setSaving] = useState(false);
       doctor_id: user.id,
       patient_id: selectedAppointment.patient_id,
       appointment_id: selectedAppointment.id,
-      diagnosis,
+      medication: diagnosis || 'General',
       instructions: prescriptionText,
-      // medications is NOT NULL in existing schema; send empty array as default structure
-      medications: [] as any,
     };
 
     const { error } = await supabase.from("prescriptions").insert(payload);
