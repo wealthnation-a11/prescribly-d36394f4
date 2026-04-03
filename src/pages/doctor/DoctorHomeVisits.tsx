@@ -160,8 +160,8 @@ const DoctorHomeVisits = () => {
                         <div className="flex items-start gap-2">
                           <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                           <div>
-                            <span className="text-muted-foreground">Illness Duration:</span>{' '}
-                            <span className="font-medium">{req.illness_duration}</span>
+                          <span className="text-muted-foreground">Notes:</span>{' '}
+                            <span className="font-medium">{req.notes || 'N/A'}</span>
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
