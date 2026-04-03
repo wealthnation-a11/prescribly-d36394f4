@@ -33,8 +33,7 @@ export default function BrowseArticles() {
 
   const filteredArticles = articles?.filter((article) =>
     article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    article.content?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
