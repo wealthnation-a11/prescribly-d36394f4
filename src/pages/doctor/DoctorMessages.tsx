@@ -268,14 +268,10 @@ export const DoctorMessages = () => {
         plainMessage = messageText;
       }
 
-      const { error } = await supabase.from("chats").insert({
+      const { error } = await supabase.from("messages").insert({
         sender_id: user.id,
-        recipient_id: selectedPatient.user_id,
-        message: plainMessage || undefined,
-        encrypted_message: encryptedMessage || undefined,
-        file_url: fileUrl,
-        file_type: fileType as any,
-        encryption_version: encryptedMessage ? 1 : undefined
+        receiver_id: selectedPatient.user_id,
+        content: plainMessage || messageText || '',
       });
       
       if (error) throw error;

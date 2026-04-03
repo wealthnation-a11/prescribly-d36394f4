@@ -143,15 +143,13 @@ export const DoctorProfile = () => {
       }
 
       if (data && data.length > 0) {
-        setAvailabilityData(data);
+        setAvailabilityData(data as any);
       } else {
-        // Initialize with default availability data
-        const defaultAvailability = weekdays.map(day => ({
+        const defaultAvailability = weekdays.map((day, idx) => ({
           doctor_id: user?.id || '',
-          weekday: day.value,
+          day_of_week: idx,
           start_time: '09:00',
           end_time: '17:00',
-          timezone: 'Africa/Lagos',
           is_available: false
         }));
         setAvailabilityData(defaultAvailability);
