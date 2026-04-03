@@ -255,10 +255,10 @@ export const DoctorProfile = () => {
     }
   };
 
-  const updateAvailability = (weekday: string, field: string, value: any) => {
+  const updateAvailability = (dayIndex: number, field: string, value: any) => {
     setAvailabilityData(prev => 
       prev.map(slot => 
-        slot.weekday === weekday 
+        slot.day_of_week === dayIndex 
           ? { ...slot, [field]: value }
           : slot
       )
