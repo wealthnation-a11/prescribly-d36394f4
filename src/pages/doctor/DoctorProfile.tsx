@@ -35,7 +35,7 @@ interface DoctorProfileData {
   bio?: string;
   consultation_fee?: number;
   years_of_experience?: number;
-  verification_status?: 'pending' | 'approved' | 'rejected' | 'suspended';
+  verification_status?: string;
   rating?: number;
   total_reviews?: number;
   offers_home_service?: boolean;
@@ -46,10 +46,9 @@ interface DoctorProfileData {
 interface AvailabilityData {
   id?: string;
   doctor_id: string;
-  weekday: string;
+  day_of_week: number;
   start_time?: string;
   end_time?: string;
-  timezone: string;
   is_available: boolean;
 }
 
