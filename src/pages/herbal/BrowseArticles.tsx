@@ -22,13 +22,10 @@ export default function BrowseArticles() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('herbal_articles')
-        .select(`
-          *,
-          herbal_practitioners(first_name, last_name, specialization)
-        `)
-        .eq('approval_status', 'approved')
-        .not('published_at', 'is', null)
-        .order('published_at', { ascending: false });
+        .select('*')
+        .eq('is_approved', true)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
