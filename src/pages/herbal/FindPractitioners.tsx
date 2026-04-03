@@ -60,7 +60,7 @@ export default function FindPractitioners() {
       const { data, error } = await supabase
         .from('herbal_practitioners')
         .select('*')
-        .eq('verification_status', 'approved')
+        .eq('is_verified', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -68,10 +68,9 @@ export default function FindPractitioners() {
   });
 
   const filteredPractitioners = practitioners?.filter((practitioner) =>
-    practitioner.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    practitioner.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    practitioner.specialization.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    practitioner.practice_location?.toLowerCase().includes(searchQuery.toLowerCase())
+    (practitioner.business_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (practitioner.specialization || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (practitioner.address || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
