@@ -33,7 +33,7 @@ export default function HerbalProfile() {
         .update({
           bio: data.bio,
           phone: data.phone,
-          practice_location: data.practice_location,
+          address: data.address,
         })
         .eq('id', practitioner.id);
       if (error) throw error;
