@@ -696,6 +696,48 @@ export type Database = {
         }
         Relationships: []
       }
+      facility_patient_records: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          diagnosis: string | null
+          facility_id: string
+          follow_up_date: string | null
+          id: string
+          patient_id: string
+          registration_code_id: string | null
+          treatment_notes: string | null
+          updated_at: string
+          vitals: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          diagnosis?: string | null
+          facility_id: string
+          follow_up_date?: string | null
+          id?: string
+          patient_id: string
+          registration_code_id?: string | null
+          treatment_notes?: string | null
+          updated_at?: string
+          vitals?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          diagnosis?: string | null
+          facility_id?: string
+          follow_up_date?: string | null
+          id?: string
+          patient_id?: string
+          registration_code_id?: string | null
+          treatment_notes?: string | null
+          updated_at?: string
+          vitals?: Json | null
+        }
+        Relationships: []
+      }
       facility_staff: {
         Row: {
           created_at: string
@@ -2099,12 +2141,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_registration_code: { Args: { _code: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      verify_registration_code: {
+        Args: { _code: string }
+        Returns: {
+          appointment_id: string
+          code: string
+          created_at: string
+          facility_id: string
+          facility_name: string
+          id: string
+          patient_country: string
+          patient_dob: string
+          patient_email: string
+          patient_first_name: string
+          patient_gender: string
+          patient_id: string
+          patient_last_name: string
+          patient_phone: string
+          status: string
+          verified_at: string
+        }[]
       }
     }
     Enums: {
