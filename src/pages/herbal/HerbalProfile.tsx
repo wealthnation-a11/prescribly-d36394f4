@@ -133,13 +133,13 @@ export default function HerbalProfile() {
                 </Label>
                 {isEditing ? (
                   <Input
-                    value={formData.practice_location}
-                    onChange={(e) => setFormData({ ...formData, practice_location: e.target.value })}
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     placeholder="Enter practice location"
                     className="h-11 sm:h-10 text-sm"
                   />
                 ) : (
-                  <p className="font-medium text-sm sm:text-base">{practitioner?.practice_location || 'Not provided'}</p>
+                  <p className="font-medium text-sm sm:text-base">{practitioner?.address || 'Not provided'}</p>
                 )}
               </div>
             </CardContent>
