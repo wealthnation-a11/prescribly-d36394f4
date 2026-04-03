@@ -21,11 +21,8 @@ export default function BrowseRemedies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('herbal_remedies')
-        .select(`
-          *,
-          herbal_practitioners(first_name, last_name, specialization)
-        `)
-        .eq('approval_status', 'approved')
+        .select('*')
+        .eq('is_approved', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
