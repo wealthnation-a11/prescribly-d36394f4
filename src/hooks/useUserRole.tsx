@@ -50,7 +50,7 @@ export const useUserRole = () => {
 
   const isAdmin = role === 'admin';
   const isDoctor = role === 'doctor';
-  const isPatient = role === 'patient';
+  const isPatient = role === 'patient' || role === 'user';
 
   return { role, isAdmin, isDoctor, isPatient, loading: loading || profileLoading };
 };
