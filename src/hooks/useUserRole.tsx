@@ -17,29 +17,25 @@ export const useUserRole = () => {
 
       setLoading(true);
       try {
-        // Check roles using the secure has_role RPC function
-        const [adminCheck, doctorCheck, patientCheck] = await Promise.all([
+        // Check admin/moderator roles via secure has_role RPC (user_roles table)
+        const [adminCheck, moderatorCheck] = await Promise.all([
           supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' as any }),
-          supabase.rpc('has_role', { _user_id: user.id, _role: 'doctor' as any }),
-          supabase.rpc('has_role', { _user_id: user.id, _role: 'patient' as any }),
+          supabase.rpc('has_role', { _user_id: user.id, _role: 'moderator' as any }),
         ]);
 
         if (adminCheck.data) {
           setRole('admin');
-        } else if (doctorCheck.data) {
-          setRole('doctor');
-        } else if (patientCheck.data) {
-          setRole('patient');
+        } else if (moderatorCheck.data) {
+          setRole('moderator');
         } else {
-          // Fallback: check user_roles table directly
-          const { data } = await supabase
-            .from('user_roles')
+          // For non-admin roles, use the profiles table role field
+          const { data: profile } = await supabase
+            .from('profiles')
             .select('role')
             .eq('user_id', user.id)
-            .limit(1)
             .maybeSingle();
           
-          setRole(data?.role || null);
+          setRole(profile?.role || 'patient');
         }
       } catch (error) {
         console.error('Error fetching user role:', error);
