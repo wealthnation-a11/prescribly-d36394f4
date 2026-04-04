@@ -119,6 +119,51 @@ serve(async (req) => {
         });
       }
 
+      // Get signed URLs for doctor KYC documents
+      if (body.action === 'getDocuments' && body.doctorId) {
+        const uuidSchema = z.string().uuid();
+        if (!uuidSchema.safeParse(body.doctorId).success) {
+          return new Response(JSON.stringify({ error: 'Invalid doctor ID' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const { data: doctor, error: docError } = await supabase
+          .from('doctors')
+          .select('kyc_documents, user_id')
+          .eq('id', body.doctorId)
+          .single();
+
+        if (docError || !doctor) {
+          return new Response(JSON.stringify({ error: 'Doctor not found' }), {
+            status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const kycDocs = doctor.kyc_documents || {};
+        const signedUrls: Record<string, string> = {};
+
+        const docTypes = ['governmentId', 'degreecert', 'license', 'specialization', 'cv', 'photo'];
+        for (const docType of docTypes) {
+          const filePath = kycDocs[docType];
+          if (filePath) {
+            const { data: signedData } = await supabase.storage
+              .from('doctor-documents')
+              .createSignedUrl(filePath, 3600); // 1 hour
+            if (signedData?.signedUrl) {
+              signedUrls[docType] = signedData.signedUrl;
+            }
+          }
+        }
+
+        return new Response(JSON.stringify({
+          documents: signedUrls,
+          full_name: kycDocs.full_name || null,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       if (body.action === 'verify' && body.doctorId) {
         const doctorId = body.doctorId;
         const verificationAction = body.verificationAction;
