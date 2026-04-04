@@ -219,7 +219,7 @@ serve(async (req) => {
         .from('doctors')
         .select(`
           id, user_id, specialization, license_number, years_of_experience, 
-          consultation_fee, verification_status, bio, rating, total_reviews, created_at
+          consultation_fee, verification_status, bio, rating, total_reviews, created_at, kyc_documents
         `, { count: 'exact' })
         .range(offset, offset + limit - 1);
 
