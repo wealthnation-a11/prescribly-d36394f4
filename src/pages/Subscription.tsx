@@ -10,11 +10,6 @@ import { CheckCircle, CreditCard, Clock, Crown, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-declare global {
-  interface Window {
-    PaystackPop: any;
-  }
-}
 
 const Subscription = () => {
   const { user, userProfile } = useAuth();
@@ -25,7 +20,7 @@ const Subscription = () => {
   // If user is legacy or doctor, they don't need subscription
   const hasLegacyAccess = userProfile?.is_legacy || userProfile?.role === 'doctor';
 
-  const handlePaystackPayment = async (plan: 'monthly' | 'yearly') => {
+  const handleFlutterwavePayment = async (plan: 'monthly' | 'yearly') => {
     if (!user?.email) return;
 
     setProcessing(true);
@@ -33,22 +28,19 @@ const Subscription = () => {
     try {
       const amount = plan === 'yearly' ? 70 : 7;
       
-      // Initialize payment with our edge function
-      const { data: initData, error: initError } = await supabase.functions.invoke('paystack-initialize', {
+      const { data: initData, error: initError } = await supabase.functions.invoke('flutterwave-initialize', {
         body: {
           email: user.email,
           amount,
-          user_id: user.id,
           type: 'subscription',
           plan
         }
       });
 
-      if (initError || !initData.status) {
+      if (initError || !initData?.status) {
         throw new Error(initData?.message || 'Payment initialization failed');
       }
 
-      // Redirect to Paystack checkout
       window.location.href = initData.authorization_url;
       
     } catch (error) {
@@ -180,7 +172,7 @@ const Subscription = () => {
                       <li>✓ AI health diagnostics</li>
                     </ul>
                      <Button 
-                       onClick={() => handlePaystackPayment('monthly')} 
+                       onClick={() => handleFlutterwavePayment('monthly')} 
                        disabled={processing}
                        className="w-full"
                      >
@@ -217,7 +209,7 @@ const Subscription = () => {
                       <li>✓ Early access to new features</li>
                     </ul>
                      <Button 
-                       onClick={() => handlePaystackPayment('yearly')} 
+                       onClick={() => handleFlutterwavePayment('yearly')} 
                        disabled={processing}
                        className="w-full"
                        variant="secondary"
@@ -229,7 +221,7 @@ const Subscription = () => {
                 </Card>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  Secure payment powered by Paystack • Cancel anytime
+                  Secure payment powered by Flutterwave • Cancel anytime
                 </p>
               </div>
             )}

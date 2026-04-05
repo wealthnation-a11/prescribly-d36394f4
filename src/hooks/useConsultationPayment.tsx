@@ -16,18 +16,17 @@ export const useConsultationPayment = () => {
     setLoading(true);
 
     try {
-      // Initialize payment with our edge function
-      const { data: initData, error: initError } = await supabase.functions.invoke('paystack-initialize', {
+      const { data: initData, error: initError } = await supabase.functions.invoke('flutterwave-initialize', {
         body: {
           email: user.email,
-          amount: 15000, // ₦15,000 consultation fee
-          user_id: user.id,
+          amount: 15000,
           type: 'consultation',
+          currency: 'NGN',
           appointment_id: appointmentId
         }
       });
 
-      if (initError || !initData.status) {
+      if (initError || !initData?.status) {
         throw new Error(initData?.message || 'Payment initialization failed');
       }
 

@@ -97,7 +97,7 @@ export const ConsultationPaymentModal = ({
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            Secure payment powered by Paystack
+            Secure payment powered by Flutterwave
           </p>
         </div>
       </DialogContent>

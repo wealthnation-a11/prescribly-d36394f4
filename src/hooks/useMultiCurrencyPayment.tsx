@@ -68,8 +68,8 @@ export const useMultiCurrencyPayment = () => {
         throw new Error('Failed to get pricing information');
       }
 
-      // Use Paystack for all currencies
-      const functionName = 'paystack-initialize';
+      // Use Flutterwave for all currencies
+      const functionName = 'flutterwave-initialize';
       
       const body: any = {
         email: user.email,
