@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,6 +6,7 @@ export const useNotificationCount = () => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     if (!user?.id) {
@@ -14,7 +15,6 @@ export const useNotificationCount = () => {
       return;
     }
 
-    // Fetch initial unread count
     const fetchUnreadCount = async () => {
       try {
         const { count, error } = await supabase
@@ -23,12 +23,9 @@ export const useNotificationCount = () => {
           .eq('user_id', user.id)
           .eq('read', false);
 
-        if (error) {
-          console.error('Error fetching notification count:', error);
-          return;
+        if (!error) {
+          setUnreadCount(count || 0);
         }
-
-        setUnreadCount(count || 0);
       } catch (error) {
         console.error('Error fetching notification count:', error);
       } finally {
@@ -38,9 +35,15 @@ export const useNotificationCount = () => {
 
     fetchUnreadCount();
 
-    // Set up real-time subscription for notifications
+    // Remove any existing channel first to prevent duplicate subscription error
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const uniqueName = `notification-count-${user.id}-${Date.now()}`;
     const channel = supabase
-      .channel('notification-count-realtime')
+      .channel(uniqueName)
       .on(
         'postgres_changes',
         {
@@ -50,13 +53,9 @@ export const useNotificationCount = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Notification change:', payload);
-          
           if (payload.eventType === 'INSERT') {
-            // New notification - increment count
             setUnreadCount(prev => prev + 1);
           } else if (payload.eventType === 'UPDATE') {
-            // Notification updated - recalculate count
             const notification = payload.new as { read: boolean };
             if (notification.read) {
               setUnreadCount(prev => Math.max(0, prev - 1));
@@ -66,8 +65,11 @@ export const useNotificationCount = () => {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
   }, [user?.id]);
 
