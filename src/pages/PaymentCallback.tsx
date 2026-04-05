@@ -14,61 +14,94 @@ export const PaymentCallback = () => {
 
   useEffect(() => {
     const verifyPayment = async () => {
-      const reference = searchParams.get('trxref');
-      const paymentStatus = searchParams.get('payment');
+      // Flutterwave returns: status, transaction_id, tx_ref
+      const flwStatus = searchParams.get('status');
+      const transactionId = searchParams.get('transaction_id');
+      const txRef = searchParams.get('tx_ref');
       
-      if (!reference || paymentStatus !== 'success') {
+      // Also support Paystack legacy params
+      const paystackRef = searchParams.get('trxref');
+      const paystackPayment = searchParams.get('payment');
+      
+      if (flwStatus === 'cancelled') {
         setStatus('failed');
-        setMessage('Payment was cancelled or failed');
+        setMessage('Payment was cancelled');
         return;
       }
 
-      try {
-        // Verify payment with our edge function
-        const { data: verifyData, error: verifyError } = await supabase.functions.invoke('paystack-verify', {
-          body: { reference }
-        });
+      // Flutterwave flow
+      if (transactionId && flwStatus === 'successful') {
+        try {
+          const { data: verifyData, error: verifyError } = await supabase.functions.invoke('flutterwave-verify', {
+            body: { transaction_id: transactionId, tx_ref: txRef }
+          });
 
-        if (verifyError || !verifyData.status) {
-          throw new Error(verifyData?.message || 'Payment verification failed');
-        }
-
-        setStatus('success');
-        
-        if (verifyData.data.type === 'subscription') {
-          setMessage('Subscription activated successfully!');
-          toast.success('Welcome! Your subscription is now active.');
-          setTimeout(() => navigate('/user-dashboard'), 2000);
-        } else if (verifyData.data.type === 'consultation') {
-          setMessage('Consultation payment completed!');
-          toast.success('You can now chat with your doctor.');
-          
-          // Check for consultation callback
-          const callbackData = localStorage.getItem('consultation_payment_callback');
-          if (callbackData) {
-            const { appointmentId } = JSON.parse(callbackData);
-            localStorage.removeItem('consultation_payment_callback');
-            setTimeout(() => navigate(`/chat?appointment=${appointmentId}`), 2000);
-          } else {
-            setTimeout(() => navigate('/chat'), 2000);
+          if (verifyError || !verifyData?.status) {
+            throw new Error(verifyData?.message || 'Payment verification failed');
           }
-        } else if (verifyData.data.type === 'order') {
-          setMessage('Order placed successfully!');
-          toast.success('Your order has been confirmed.');
-          
-          // Clear pending order from localStorage
-          localStorage.removeItem('pending_order');
-          
-          setTimeout(() => navigate('/herbal/my-orders'), 2000);
+
+          handleSuccess(verifyData.data);
+        } catch (error) {
+          console.error('Payment verification failed:', error);
+          setStatus('failed');
+          setMessage('Payment verification failed. Please contact support if your payment was deducted.');
+          toast.error('Payment verification failed');
         }
+        return;
+      }
+
+      // Paystack legacy flow
+      if (paystackRef && paystackPayment === 'success') {
+        try {
+          const { data: verifyData, error: verifyError } = await supabase.functions.invoke('paystack-verify', {
+            body: { reference: paystackRef }
+          });
+
+          if (verifyError || !verifyData?.status) {
+            throw new Error(verifyData?.message || 'Payment verification failed');
+          }
+
+          handleSuccess(verifyData.data);
+        } catch (error) {
+          console.error('Payment verification failed:', error);
+          setStatus('failed');
+          setMessage('Payment verification failed. Please contact support if your payment was deducted.');
+          toast.error('Payment verification failed');
+        }
+        return;
+      }
+
+      setStatus('failed');
+      setMessage('Payment was cancelled or failed');
+    };
+
+    const handleSuccess = (data: { type: string }) => {
+      setStatus('success');
+      
+      if (data.type === 'subscription') {
+        setMessage('Subscription activated successfully!');
+        toast.success('Welcome! Your subscription is now active.');
+        setTimeout(() => navigate('/user-dashboard'), 2000);
+      } else if (data.type === 'consultation') {
+        setMessage('Consultation payment completed!');
+        toast.success('You can now chat with your doctor.');
         
-      } catch (error) {
-        console.error('Payment verification failed:', error);
-        setStatus('failed');
-        setMessage('Payment verification failed. Please contact support if your payment was deducted.');
-        toast.error('Payment verification failed');
+        const callbackData = localStorage.getItem('consultation_payment_callback');
+        if (callbackData) {
+          const { appointmentId } = JSON.parse(callbackData);
+          localStorage.removeItem('consultation_payment_callback');
+          setTimeout(() => navigate(`/chat?appointment=${appointmentId}`), 2000);
+        } else {
+          setTimeout(() => navigate('/chat'), 2000);
+        }
+      } else if (data.type === 'order') {
+        setMessage('Order placed successfully!');
+        toast.success('Your order has been confirmed.');
+        localStorage.removeItem('pending_order');
+        setTimeout(() => navigate('/herbal/my-orders'), 2000);
       }
     };
+
 
     verifyPayment();
   }, [searchParams, navigate]);
