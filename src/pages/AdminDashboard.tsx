@@ -245,6 +245,21 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       );
+    case "home-visit-feedback":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              Home Visit Feedback
+            </CardTitle>
+            <CardDescription>Patient reviews and ratings for home visit doctors</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <HomeVisitFeedback />
+          </CardContent>
+        </Card>
+      );
     case "profile":
       return (
         <Card className="border-border/50 shadow-sm">
