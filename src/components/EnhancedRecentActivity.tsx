@@ -217,10 +217,13 @@ const EnhancedRecentActivity = () => {
             ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
             : isDoctor ? 'Patient' : 'Doctor';
             
+          const dateStr = item.scheduled_date 
+            ? format(new Date(item.scheduled_date + 'T00:00:00'), 'MMM dd, yyyy')
+            : 'Date TBD';
           return {
             id: item.id,
             title: isDoctor ? 'Appointment Scheduled' : 'Appointment Booked',
-            description: `${item.notes || 'Consultation'} - ${format(new Date(item.scheduled_time), 'MMM dd, yyyy')}${otherPersonName !== 'Patient' && otherPersonName !== 'Doctor' ? ` with ${otherPersonName}` : ''}`,
+            description: `${item.notes || 'Consultation'} - ${dateStr}${item.scheduled_time ? ` at ${item.scheduled_time}` : ''}${otherPersonName !== 'Patient' && otherPersonName !== 'Doctor' ? ` with ${otherPersonName}` : ''}`,
             timestamp: item.created_at,
             status: item.status,
             icon: <Calendar className="h-4 w-4 text-blue-600" />
