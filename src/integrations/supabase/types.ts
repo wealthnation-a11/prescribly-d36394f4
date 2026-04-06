@@ -1096,9 +1096,48 @@ export type Database = {
         }
         Relationships: []
       }
+      home_visit_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          doctor_id: string
+          home_visit_request_id: string | null
+          id: string
+          patient_id: string
+          rating: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          doctor_id: string
+          home_visit_request_id?: string | null
+          id?: string
+          patient_id: string
+          rating: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          doctor_id?: string
+          home_visit_request_id?: string | null
+          id?: string
+          patient_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_visit_reviews_home_visit_request_id_fkey"
+            columns: ["home_visit_request_id"]
+            isOneToOne: false
+            referencedRelation: "home_visit_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hospital_registrations: {
         Row: {
           address: string | null
+          admin_notes: string | null
           city: string | null
           contact_person: string | null
           country: string | null
@@ -1114,6 +1153,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          admin_notes?: string | null
           city?: string | null
           contact_person?: string | null
           country?: string | null
@@ -1129,6 +1169,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          admin_notes?: string | null
           city?: string | null
           contact_person?: string | null
           country?: string | null
