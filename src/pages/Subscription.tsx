@@ -26,7 +26,7 @@ const Subscription = () => {
     setProcessing(true);
 
     try {
-      const amount = plan === 'yearly' ? 70 : 7;
+      const amount = plan === 'yearly' ? 40 : 4;
       
       const { data: initData, error: initError } = await supabase.functions.invoke('flutterwave-initialize', {
         body: {
@@ -86,7 +86,7 @@ const Subscription = () => {
                     {hasLegacyAccess ? 'Legacy User Access' : 'Monthly Plan'}
                   </h3>
                    <p className="text-2xl font-bold text-primary">
-                     {hasLegacyAccess ? 'FREE' : '$7/month'}
+                     {hasLegacyAccess ? 'FREE' : '$4/month'}
                    </p>
                   {hasLegacyAccess && (
                     <p className="text-sm text-muted-foreground">
@@ -160,7 +160,7 @@ const Subscription = () => {
                         <h4 className="text-lg font-semibold">Monthly Plan</h4>
                       </div>
                        <div className="text-right">
-                       <p className="text-2xl font-bold text-primary">$7</p>
+                       <p className="text-2xl font-bold text-primary">$4</p>
                          <p className="text-sm text-muted-foreground">/month</p>
                        </div>
                     </div>
@@ -177,7 +177,7 @@ const Subscription = () => {
                        className="w-full"
                      >
                        <CreditCard className="h-4 w-4 mr-2" />
-                       {processing ? 'Processing...' : 'Subscribe Monthly - $7'}
+                       {processing ? 'Processing...' : 'Subscribe Monthly - $4'}
                      </Button>
                   </CardContent>
                 </Card>
@@ -197,9 +197,9 @@ const Subscription = () => {
                         <h4 className="text-lg font-semibold">Yearly Plan</h4>
                       </div>
                        <div className="text-right">
-                         <p className="text-2xl font-bold text-secondary">$70</p>
+                         <p className="text-2xl font-bold text-secondary">$40</p>
                          <p className="text-sm text-muted-foreground">/year</p>
-                         <p className="text-xs text-green-600">Save $14!</p>
+                         <p className="text-xs text-green-600">Save $8!</p>
                        </div>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-1">
@@ -215,7 +215,7 @@ const Subscription = () => {
                        variant="secondary"
                      >
                        <CreditCard className="h-4 w-4 mr-2" />
-                       {processing ? 'Processing...' : 'Subscribe Yearly - $70'}
+                       {processing ? 'Processing...' : 'Subscribe Yearly - $40'}
                     </Button>
                   </CardContent>
                 </Card>
