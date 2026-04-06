@@ -17,11 +17,12 @@ import CommentModeration from "@/components/admin/CommentModeration";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import FacilityManagement from "@/components/admin/FacilityManagement";
 import HospitalRegistrationManagement from "@/components/admin/HospitalRegistrationManagement";
+import HomeVisitFeedback from "@/components/admin/HomeVisitFeedback";
 import RegistrationCodeVerification from "@/components/admin/RegistrationCodeVerification";
 import FacilityStaffManagement from "@/components/admin/FacilityStaffManagement";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2, UserPlus } from "lucide-react";
+import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2, UserPlus, Star } from "lucide-react";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardTour, getAdminDashboardSteps } from "@/components/DashboardTour";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -241,6 +242,21 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent className="pt-6">
             <FacilityStaffManagement />
+          </CardContent>
+        </Card>
+      );
+    case "home-visit-feedback":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              Home Visit Feedback
+            </CardTitle>
+            <CardDescription>Patient reviews and ratings for home visit doctors</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <HomeVisitFeedback />
           </CardContent>
         </Card>
       );

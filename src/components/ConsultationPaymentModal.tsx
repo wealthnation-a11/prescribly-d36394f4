@@ -63,8 +63,9 @@ export const ConsultationPaymentModal = ({
             </p>
             <div className="flex items-center justify-between border-t border-border pt-2 mt-2">
               <span className="font-medium">Consultation Fee:</span>
-              <span className="text-lg font-bold text-primary">₦15,000</span>
+              <span className="text-lg font-bold text-primary">$15</span>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Doctor receives $10 • Platform fee $5</p>
           </div>
 
           <div className="space-y-2">
@@ -92,7 +93,7 @@ export const ConsultationPaymentModal = ({
               className="flex-1"
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              {processing || loading ? 'Processing...' : 'Pay ₦15,000'}
+              {processing || loading ? 'Processing...' : 'Pay $15'}
             </Button>
           </div>
 

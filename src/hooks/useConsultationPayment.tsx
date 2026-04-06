@@ -19,9 +19,9 @@ export const useConsultationPayment = () => {
       const { data: initData, error: initError } = await supabase.functions.invoke('flutterwave-initialize', {
         body: {
           email: user.email,
-          amount: 15000,
+          amount: 15,
           type: 'consultation',
-          currency: 'NGN',
+          currency: 'USD',
           appointment_id: appointmentId
         }
       });

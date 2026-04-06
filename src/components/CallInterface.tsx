@@ -33,11 +33,21 @@ export function CallInterface({
   const [duration, setDuration] = useState(0);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const MAX_DURATION = 30 * 60; // 30 minutes in seconds
 
   useEffect(() => {
-    const interval = setInterval(() => setDuration(d => d + 1), 1000);
+    const interval = setInterval(() => {
+      setDuration(d => {
+        const next = d + 1;
+        if (next >= MAX_DURATION) {
+          onEndCall();
+          return MAX_DURATION;
+        }
+        return next;
+      });
+    }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [onEndCall]);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -56,6 +66,9 @@ export function CallInterface({
     return `${m}:${(s % 60).toString().padStart(2, '0')}`;
   };
 
+  const remainingSeconds = MAX_DURATION - duration;
+  const isWarning = remainingSeconds <= 5 * 60; // Last 5 minutes
+
   const hasRemoteVideo = remoteStream.getVideoTracks().length > 0 && remoteStream.getVideoTracks()[0]?.enabled;
   const isVideoCall = callType === 'video';
 
@@ -68,8 +81,12 @@ export function CallInterface({
           <span className="text-white font-medium text-lg">
             {isVideoCall ? 'Video Call' : 'Voice Call'}
           </span>
-          <span className="text-slate-300">•</span>
-          <span className="text-slate-300 font-mono">{formatDuration(duration)}</span>
+           <span className="text-slate-300">•</span>
+           <span className="text-slate-300 font-mono">{formatDuration(duration)}</span>
+           <span className="text-slate-300">•</span>
+           <span className={`font-mono text-sm ${isWarning ? 'text-red-400 animate-pulse' : 'text-slate-400'}`}>
+             {formatDuration(remainingSeconds)} left
+           </span>
           {!isConnected && <span className="text-yellow-300 text-sm ml-2">Connecting...</span>}
         </div>
         <Button variant="ghost" size="sm" className="text-white hover:bg-slate-700/50" onClick={onEndCall}>
