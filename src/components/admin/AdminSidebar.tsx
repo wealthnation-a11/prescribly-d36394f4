@@ -25,6 +25,7 @@ import {
   Shield,
   UserCircle,
   UserPlus,
+  Star,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -94,6 +95,7 @@ const navGroups: NavGroup[] = [
       { id: "appointments", label: "Appointments", icon: Calendar, color: "text-teal-500" },
       { id: "payments", label: "Payments", icon: DollarSign, color: "text-lime-500" },
       { id: "ai-logs", label: "AI Diagnosis", icon: Brain, color: "text-purple-500" },
+      { id: "home-visit-feedback", label: "Home Visit Reviews", icon: Star, color: "text-yellow-500" },
     ],
   },
   {
