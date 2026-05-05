@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PasswordValidator } from "@/components/PasswordValidator";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import { lovable } from "@/integrations/lovable";
  
  export const Register = () => {
   const [formData, setFormData] = useState({
