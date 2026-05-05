@@ -69,6 +69,8 @@ serve(async (req) => {
       tx_ref,
       amount,
       currency,
+      // Enable all major Flutterwave payment options so users can choose their method
+      payment_options: 'card,account,ussd,banktransfer,mobilemoneyghana,mobilemoneyuganda,mpesa,qr,credit',
       redirect_url: `${req.headers.get('origin')}/payment-callback`,
       customer: {
         email,
@@ -77,7 +79,7 @@ serve(async (req) => {
           : email,
       },
       customizations: {
-        title: type === 'subscription' ? 'Prescribly Subscription' : type === 'consultation' ? 'Consultation Fee' : 'Order Payment',
+        title: type === 'subscription' ? 'Prescribly Subscription' : type === 'consultation' ? 'Appointment Booking Fee' : 'Order Payment',
         logo: 'https://prescribly.lovable.app/favicon.ico',
       },
       meta: {
