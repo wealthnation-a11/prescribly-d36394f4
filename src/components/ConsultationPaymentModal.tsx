@@ -93,7 +93,7 @@ export const ConsultationPaymentModal = ({
               className="flex-1"
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              {processing || loading ? 'Processing...' : 'Pay $15'}
+              {processing || loading ? 'Processing...' : 'Pay ₦15,000'}
             </Button>
           </div>
 
