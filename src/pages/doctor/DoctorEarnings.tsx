@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Calendar, DollarSign, TrendingUp } from "lucide-react";
 import { DoctorLayout } from "@/components/DoctorLayout";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-const formatNGN = (n:number)=>\;
+const formatNGN = (n: number) => `₦${(n || 0).toLocaleString()}`;
 
 interface CallLogRow {
   id: string;
