@@ -106,20 +106,26 @@ export const LandingPage = () => {
     avatar: "👩🏿‍💼"
   }];
   const faqs = [{
-    question: "Is Prescribly really free?",
-    answer: "Prescribly offers flexible payment options. While some initial consultations may have fees, we strive to keep healthcare accessible and affordable for everyone. Check our pricing page for detailed information."
+    question: "Is Prescribly really free to register?",
+    answer: "Yes — creating an account on Prescribly is 100% free. There is no monthly subscription. You only pay when you book a service: ₦15,000 for an appointment booking with a doctor, or ₦47,000 for a home visit."
+  }, {
+    question: "How much does it cost to book a doctor?",
+    answer: "An online appointment booking (chat / video / voice consultation) costs ₦15,000. A home visit, where the doctor comes to your address, costs ₦47,000. There are no other fees."
+  }, {
+    question: "How does the doctor get paid?",
+    answer: "For every ₦15,000 appointment booking, the doctor receives ₦8,000 and Prescribly receives ₦7,000 to cover platform, payment and support costs. For every ₦47,000 home visit, the doctor receives ₦33,000 and Prescribly receives ₦14,000."
   }, {
     question: "Can I talk to a real doctor?",
-    answer: "Absolutely! All our doctors are licensed medical professionals. The AI provides initial analysis, then connects you with real doctors for consultations."
+    answer: "Absolutely. All Prescribly doctors are licensed medical professionals who are verified before they appear on the platform. Our AI helps with quick symptom analysis, but every consultation is with a real doctor."
+  }, {
+    question: "Which payment methods can I use?",
+    answer: "Payments are processed securely through Flutterwave. You can pay with debit/credit card, bank account, bank transfer, USSD, or mobile money — pick whichever works best for you at checkout."
   }, {
     question: "How is my data protected?",
-    answer: "We use bank-level encryption and comply with HIPAA regulations. Your medical data is stored securely and never shared without your consent."
-  }, {
-    question: "Is AI better than physical checkups?",
-    answer: "AI complements, not replaces, traditional healthcare. It provides quick initial analysis and connects you with doctors for comprehensive care when needed."
+    answer: "Your medical information is encrypted in transit and at rest, and stored on HIPAA-aligned infrastructure. Your records are never shared with anyone without your explicit consent."
   }, {
     question: "How do I get started as a doctor?",
-    answer: "Simply apply through our doctor portal with your medical license. Our team verifies credentials within 24-48 hours."
+    answer: "Apply through the Doctor portal with your medical license and credentials. Our admin team verifies new doctors within 24–48 hours, after which you'll get full access to your doctor dashboard."
   }];
   return <div className="min-h-screen bg-background">
       <Header />
