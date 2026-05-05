@@ -106,20 +106,26 @@ export const LandingPage = () => {
     avatar: "👩🏿‍💼"
   }];
   const faqs = [{
-    question: "Is Prescribly really free?",
-    answer: "Prescribly offers flexible payment options. While some initial consultations may have fees, we strive to keep healthcare accessible and affordable for everyone. Check our pricing page for detailed information."
+    question: "Is Prescribly really free to register?",
+    answer: "Yes — creating an account on Prescribly is 100% free. There is no monthly subscription. You only pay when you book a service: ₦15,000 for an appointment booking with a doctor, or ₦47,000 for a home visit."
+  }, {
+    question: "How much does it cost to book a doctor?",
+    answer: "An online appointment booking (chat / video / voice consultation) costs ₦15,000. A home visit, where the doctor comes to your address, costs ₦47,000. There are no other fees."
+  }, {
+    question: "How does the doctor get paid?",
+    answer: "For every ₦15,000 appointment booking, the doctor receives ₦8,000 and Prescribly receives ₦7,000 to cover platform, payment and support costs. For every ₦47,000 home visit, the doctor receives ₦33,000 and Prescribly receives ₦14,000."
   }, {
     question: "Can I talk to a real doctor?",
-    answer: "Absolutely! All our doctors are licensed medical professionals. The AI provides initial analysis, then connects you with real doctors for consultations."
+    answer: "Absolutely. All Prescribly doctors are licensed medical professionals who are verified before they appear on the platform. Our AI helps with quick symptom analysis, but every consultation is with a real doctor."
+  }, {
+    question: "Which payment methods can I use?",
+    answer: "Payments are processed securely through Flutterwave. You can pay with debit/credit card, bank account, bank transfer, USSD, or mobile money — pick whichever works best for you at checkout."
   }, {
     question: "How is my data protected?",
-    answer: "We use bank-level encryption and comply with HIPAA regulations. Your medical data is stored securely and never shared without your consent."
-  }, {
-    question: "Is AI better than physical checkups?",
-    answer: "AI complements, not replaces, traditional healthcare. It provides quick initial analysis and connects you with doctors for comprehensive care when needed."
+    answer: "Your medical information is encrypted in transit and at rest, and stored on HIPAA-aligned infrastructure. Your records are never shared with anyone without your explicit consent."
   }, {
     question: "How do I get started as a doctor?",
-    answer: "Simply apply through our doctor portal with your medical license. Our team verifies credentials within 24-48 hours."
+    answer: "Apply through the Doctor portal with your medical license and credentials. Our admin team verifies new doctors within 24–48 hours, after which you'll get full access to your doctor dashboard."
   }];
   return <div className="min-h-screen bg-background">
       <Header />
@@ -361,36 +367,22 @@ export const LandingPage = () => {
                 <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up relative">
                   <CardHeader className="text-center pb-8">
                     <CardTitle className="text-2xl mb-2">Individual</CardTitle>
-                    <CardDescription>Perfect for personal healthcare needs</CardDescription>
+                    <CardDescription>Free to register — pay only when you book</CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$7</span>
-                       <span className="text-muted-foreground">/month</span>
+                       <span className="text-4xl font-bold text-primary">Free</span>
+                       <span className="text-muted-foreground"> to register</span>
                      </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>AI Symptom Analysis</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>24/7 Doctor Consultations</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Medical Records Storage</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Prescription Management</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Access to Herbal Features</span>
-                    </div>
-                     
-                    <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
-                      * Extra charges are applied for doctor consultations
+                    <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>AI Symptom Analysis</span></div>
+                    <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Browse & chat with verified doctors</span></div>
+                    <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Medical Records Storage</span></div>
+                    <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Prescription Management</span></div>
+                    <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Access to Herbal Features</span></div>
+
+                    <div className="pt-3 border-t border-border/30 mt-4 space-y-2">
+                      <div className="flex justify-between text-sm"><span>Doctor Appointment Booking</span><span className="font-semibold">₦15,000</span></div>
+                      <div className="flex justify-between text-sm"><span>Doctor Home Visit</span><span className="font-semibold">₦47,000</span></div>
                     </div>
                      <Button variant="medical" className="w-full mt-6" asChild>
                       <Link to="/register">{t('get_started')}</Link>
@@ -510,12 +502,12 @@ export const LandingPage = () => {
                 <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up relative">
                   <CardHeader className="text-center pb-8">
                     <CardTitle className="text-2xl mb-2">Individual</CardTitle>
-                    <CardDescription>Perfect for personal healthcare needs</CardDescription>
+                    <CardDescription>Free to register — pay only when you book</CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$70</span>
-                       <span className="text-muted-foreground">/year</span>
+                       <span className="text-4xl font-bold text-primary">Free</span>
+                       <span className="text-muted-foreground"> to register</span>
                      </div>
-                     <div className="text-sm text-green-600 font-medium">Save $14 annually</div>
+                     <div className="text-xs text-muted-foreground">No subscription. Pay per booking.</div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">

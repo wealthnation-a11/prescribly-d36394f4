@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PasswordValidator } from "@/components/PasswordValidator";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import { lovable } from "@/integrations/lovable";
  
  export const Register = () => {
   const [formData, setFormData] = useState({
@@ -118,9 +119,9 @@ import { Logo } from "@/components/Logo";
 
         toast({
           title: "Registration Successful!",
-          description: "Redirecting to subscription page...",
+          description: "Welcome to Prescribly — registration is free.",
         });
-        navigate("/subscription");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       console.error('Unexpected registration error:', error);
@@ -135,12 +136,22 @@ import { Logo } from "@/components/Logo";
   };
 
   const handleGoogleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/dashboard",
+      });
+      if (result.error) {
+        toast({ title: "Google sign-in failed", description: (result.error as Error).message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+      if (result.redirected) return;
+      navigate("/dashboard");
+    } catch (e: any) {
+      toast({ title: "Google sign-in failed", description: e?.message ?? "Unknown error", variant: "destructive" });
+      setLoading(false);
+    }
   };
 
   return (
