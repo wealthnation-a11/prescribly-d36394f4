@@ -1,17 +1,17 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/hooks/useSubscription';
-import { useUserRole } from '@/hooks/useUserRole';
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
 }
 
+// Prescribly is now free to register. Patients only pay per appointment/home visit.
+// This guard now only checks authentication.
 export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isDoctor, loading: roleLoading } = useUserRole();
-  const { needsSubscription, loading: subLoading, isLegacyUser } = useSubscription();
   const location = useLocation();
+  const isAdmin = false; const isDoctor = false; const isLegacyUser = true;
+  const roleLoading = false; const subLoading = false; const needsSubscription = false;
 
   // Admins have full access without subscription checks
   if (isAdmin) {
