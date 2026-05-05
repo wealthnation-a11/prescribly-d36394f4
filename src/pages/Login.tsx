@@ -65,33 +65,6 @@ export const Login = () => {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        const userId = authUser?.id;
-        
-        // Check if user needs subscription before redirecting
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, is_legacy')
-          .eq('user_id', userId)
-          .single();
-        
-        // If patient (not legacy) without subscription, redirect to subscription page
-        if (profile?.role === 'patient' && !profile?.is_legacy) {
-          const { data: subscription } = await supabase
-            .from('subscriptions')
-            .select('status')
-            .eq('user_id', userId)
-            .eq('status', 'active')
-            .maybeSingle();
-          
-          if (!subscription) {
-            navigate("/subscription");
-            return;
-          }
-        }
-        
-        // Redirect to dashboard which will handle role-based routing
         navigate("/dashboard");
       }
     } catch (error) {
