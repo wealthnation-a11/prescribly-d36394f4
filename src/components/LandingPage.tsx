@@ -502,12 +502,12 @@ export const LandingPage = () => {
                 <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up relative">
                   <CardHeader className="text-center pb-8">
                     <CardTitle className="text-2xl mb-2">Individual</CardTitle>
-                    <CardDescription>Perfect for personal healthcare needs</CardDescription>
+                    <CardDescription>Free to register — pay only when you book</CardDescription>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-primary">$70</span>
-                       <span className="text-muted-foreground">/year</span>
+                       <span className="text-4xl font-bold text-primary">Free</span>
+                       <span className="text-muted-foreground"> to register</span>
                      </div>
-                     <div className="text-sm text-green-600 font-medium">Save $14 annually</div>
+                     <div className="text-xs text-muted-foreground">No subscription. Pay per booking.</div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">
