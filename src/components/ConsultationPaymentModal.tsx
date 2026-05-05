@@ -62,10 +62,10 @@ export const ConsultationPaymentModal = ({
               you need to pay the consultation fee.
             </p>
             <div className="flex items-center justify-between border-t border-border pt-2 mt-2">
-              <span className="font-medium">Consultation Fee:</span>
-              <span className="text-lg font-bold text-primary">$15</span>
+              <span className="font-medium">Appointment Booking Fee:</span>
+              <span className="text-lg font-bold text-primary">₦15,000</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Doctor receives $10 • Platform fee $5</p>
+            <p className="text-xs text-muted-foreground mt-1">Doctor receives ₦8,000 • Platform fee ₦7,000</p>
           </div>
 
           <div className="space-y-2">
