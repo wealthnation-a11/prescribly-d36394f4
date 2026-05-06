@@ -181,17 +181,20 @@ const HealthDiagnostic = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-accent/5">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden">
+        {/* Decorative medical background blobs */}
+        <div aria-hidden className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute bottom-0 -left-20 w-80 h-80 rounded-full bg-accent/10 blur-3xl" />
+        <div className="container mx-auto px-4 py-8 max-w-6xl relative">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-primary/10 border border-primary/20">
-                <Brain className="h-8 w-8 text-primary" />
+            <div className="inline-flex items-center justify-center gap-4 mb-4 p-4 rounded-2xl bg-card/60 backdrop-blur-sm border border-primary/20 shadow-sm">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg">
+                <Brain className="h-8 w-8" />
               </div>
-              <div>
-                <h1 className="text-4xl font-bold text-primary">Health Diagnostic</h1>
-                <p className="text-lg text-primary/80 font-medium">Advanced Medical Analysis</p>
+              <div className="text-left">
+                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Health Diagnostic</h1>
+                <p className="text-sm md:text-base text-muted-foreground font-medium">AI-powered medical analysis · Reviewed by doctors</p>
               </div>
             </div>
           </div>

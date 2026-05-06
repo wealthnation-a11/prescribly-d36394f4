@@ -37,6 +37,8 @@ import { DashboardTour, getUserDashboardSteps } from "@/components/DashboardTour
 import { NativeAd } from "@/components/ads/NativeAd";
 import { DashboardGamificationWidget } from "@/components/DashboardGamificationWidget";
 import HomeVisitTracker from "@/components/HomeVisitTracker";
+import WellnessTrackers from "@/components/WellnessTrackers";
+import DailyHealthQuestions from "@/components/DailyHealthQuestions";
 
 import { 
   SidebarProvider, 
@@ -411,6 +413,12 @@ export const UserDashboard = () => {
                 <div data-tour="health-tip">
                   <DailyHealthTip />
                 </div>
+
+                {/* Daily AI Health Questions */}
+                <DailyHealthQuestions />
+
+                {/* Wellness Trackers */}
+                <WellnessTrackers />
 
                 {/* Gamification Widget */}
                 <div data-tour="gamification">

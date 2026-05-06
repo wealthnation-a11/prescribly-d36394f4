@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -419,6 +443,60 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_question_answers: {
+        Row: {
+          answer: string
+          answered_on: string
+          created_at: string
+          id: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          answered_on?: string
+          created_at?: string
+          id?: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          answered_on?: string
+          created_at?: string
+          id?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_questions: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          options: Json | null
+          question: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          options?: Json | null
+          question: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          options?: Json | null
+          question?: string
+        }
+        Relationships: []
+      }
       daily_tips: {
         Row: {
           created_at: string
@@ -581,6 +659,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      drug_reminders: {
+        Row: {
+          created_at: string
+          dosage: string | null
+          drug_name: string
+          frequency: string
+          id: string
+          is_active: boolean
+          remind_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage?: string | null
+          drug_name: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          remind_at: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string | null
+          drug_name?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          remind_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       drugs: {
         Row: {
@@ -2173,6 +2284,108 @@ export type Database = {
           id?: string
           results?: Json | null
           score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wellness_logs: {
+        Row: {
+          created_at: string
+          drugs_taken: number
+          id: string
+          log_date: string
+          sleep_hours: number
+          steps: number
+          updated_at: string
+          user_id: string
+          water_glasses: number
+        }
+        Insert: {
+          created_at?: string
+          drugs_taken?: number
+          id?: string
+          log_date?: string
+          sleep_hours?: number
+          steps?: number
+          updated_at?: string
+          user_id: string
+          water_glasses?: number
+        }
+        Update: {
+          created_at?: string
+          drugs_taken?: number
+          id?: string
+          log_date?: string
+          sleep_hours?: number
+          steps?: number
+          updated_at?: string
+          user_id?: string
+          water_glasses?: number
+        }
+        Relationships: []
+      }
+      wellness_rewards: {
+        Row: {
+          created_at: string
+          credit_amount: number | null
+          description: string | null
+          id: string
+          is_redeemed: boolean
+          redeemed_at: string | null
+          reward_key: string
+          reward_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credit_amount?: number | null
+          description?: string | null
+          id?: string
+          is_redeemed?: boolean
+          redeemed_at?: string | null
+          reward_key: string
+          reward_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credit_amount?: number | null
+          description?: string | null
+          id?: string
+          is_redeemed?: boolean
+          redeemed_at?: string | null
+          reward_key?: string
+          reward_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wellness_streaks: {
+        Row: {
+          current_streak: number
+          last_activity_date: string | null
+          longest_streak: number
+          total_active_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          last_activity_date?: string | null
+          longest_streak?: number
+          total_active_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          last_activity_date?: string | null
+          longest_streak?: number
+          total_active_days?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
