@@ -41,10 +41,10 @@ export const useConsultationPayment = () => {
     }
   };
 
-  const verifyPayment = async (reference: string) => {
+  const verifyPayment = async (transactionId: string, txRef?: string) => {
     try {
-      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('paystack-verify', {
-        body: { reference }
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('flutterwave-verify', {
+        body: { transaction_id: transactionId, tx_ref: txRef }
       });
 
       if (verifyError || !verifyData.status) {
