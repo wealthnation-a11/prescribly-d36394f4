@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { FacilityRoute } from "./components/FacilityRoute";
 import { RealtimeNotifications } from "./components/RealtimeNotifications";
+import AIChatBubble from "./components/AIChatBubble";
 
 // Eagerly load the landing page for fast first paint
 import Index from "./pages/Index";
@@ -156,6 +157,7 @@ const App = () => (
               <PWAInstallPrompt />
               <OfflineIndicator />
               <RealtimeNotifications />
+              <AIChatBubble />
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
