@@ -181,7 +181,10 @@ const HealthDiagnostic = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-accent/5">
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden">
+        {/* Decorative medical background blobs */}
+        <div aria-hidden className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute bottom-0 -left-20 w-80 h-80 rounded-full bg-accent/10 blur-3xl" />
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           {/* Header */}
           <div className="text-center mb-8">
