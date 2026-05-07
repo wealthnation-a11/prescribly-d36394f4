@@ -16,6 +16,7 @@ import {
   Flame
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import HydrationSchedule from '@/components/wellness/HydrationSchedule';
 
 interface HydrationLog {
   id: string;
@@ -227,6 +228,10 @@ const HydrationChallenge = () => {
             </Card>
           </div>
         )}
+
+        <div className="max-w-2xl mx-auto mb-8">
+          <HydrationSchedule />
+        </div>
 
         {/* Daily Water Tracker */}
         <div className="max-w-2xl mx-auto mb-8">
