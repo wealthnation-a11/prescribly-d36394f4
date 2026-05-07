@@ -134,6 +134,7 @@ const MindfulnessChallenge = () => {
   };
 
   const completeSession = async () => {
+    calming.stop();
     if (!user?.id) return;
 
     try {
