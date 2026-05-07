@@ -71,41 +71,59 @@ const AIHealthCompanion = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data, error } = await (supabase.rpc as any)('get_daily_questions_for_user', {
-          user_uuid: user.id
-        });
+        const today = new Date().toISOString().slice(0, 10);
+        const cacheKey = `daily-health-questions-${user.id}-${today}`;
+        let questionList: Question[] = [];
 
-        if (error) throw error;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          try { questionList = JSON.parse(cached); } catch { /* ignore */ }
+        }
 
-        if (data && Array.isArray(data) && data.length > 0) {
-          setQuestions(data);
-          
-          // Initial greeting with first question
-          const initialMessage: Message = {
-            id: '1',
-            text: `👋 Good to see you! Ready for today's health check-in?\n\n${data[0].question_text}`,
-            isAi: true,
-            timestamp: new Date()
-          };
-          setMessages([initialMessage]);
-        } else {
-          // User has completed today's questions
-          const completedMessage: Message = {
-            id: '1',
-            text: "🎉 You've already completed today's health check-in! Come back tomorrow for new questions.",
-            isAi: true,
-            timestamp: new Date()
-          };
-          setMessages([completedMessage]);
+        if (!questionList.length) {
+          const { data: gen, error: genError } = await supabase.functions.invoke('generate-daily-health-questions', {
+            body: { date: today },
+          });
+          if (!genError && gen?.questions?.length) {
+            questionList = gen.questions;
+            localStorage.setItem(cacheKey, JSON.stringify(questionList));
+          }
+        }
+
+        if (!questionList.length) {
+          const { data } = await (supabase.rpc as any)('get_daily_questions_for_user', { user_uuid: user.id });
+          if (Array.isArray(data)) questionList = data;
+        }
+
+        // Check if user already answered today
+        const { data: existing } = await supabase
+          .from('user_daily_checkins')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('date', today);
+
+        if (existing && existing.length >= questionList.length && questionList.length > 0) {
+          setMessages([{ id: '1', text: "🎉 You've already completed today's health check-in! Come back tomorrow for fresh questions.", isAi: true, timestamp: new Date() }]);
           setIsComplete(true);
+          return;
+        }
+
+        if (questionList.length > 0) {
+          setQuestions(questionList);
+          setCurrentQuestionIndex(existing?.length || 0);
+          const startIdx = existing?.length || 0;
+          const first = questionList[startIdx] || questionList[0];
+          setMessages([{
+            id: '1',
+            text: `👋 Good to see you! Here's today's health check-in (${startIdx + 1}/${questionList.length}):\n\n${first.question_text}`,
+            isAi: true, timestamp: new Date(),
+          }]);
+        } else {
+          setMessages([{ id: '1', text: "Couldn't load today's questions. Please try again later.", isAi: true, timestamp: new Date() }]);
         }
       } catch (error: any) {
         console.error('Error loading questions:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load today's health questions.",
-          variant: "destructive"
-        });
+        toast({ title: "Error", description: "Failed to load today's health questions.", variant: "destructive" });
       }
     };
 
