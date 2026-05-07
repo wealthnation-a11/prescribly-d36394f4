@@ -300,6 +300,9 @@ const MindfulnessChallenge = () => {
           </Card>
         </div>
 
+        {/* Calming Sound Library */}
+        <CalmingSoundLibrary controls={calming} />
+
         {/* Meditation Timer */}
         <Card className="glassmorphism-card border-0 mb-6">
           <CardHeader>
