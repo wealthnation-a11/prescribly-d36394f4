@@ -191,12 +191,26 @@ const MindfulnessChallenge = () => {
   };
 
   const toggleTimer = () => {
-    setTimerActive(!timerActive);
+    const next = !timerActive;
+    setTimerActive(next);
+    if (next) {
+      // Auto-start a calming track if user hasn't picked one
+      if (!calming.selectedId) calming.play(CALMING_TRACKS[0].id);
+      else if (!calming.isPlaying) calming.play(calming.selectedId);
+    } else {
+      calming.stop();
+      // Penalty if user pauses/stops before reaching target
+      if (timerSeconds > 0 && timerSeconds < targetSeconds && user?.id) {
+        (supabase.rpc as any)('update_user_points', { user_uuid: user.id, points_to_add: -10 });
+        toast({ title: "Session ended early", description: "−10 points. Try to finish next time!", variant: "destructive" });
+      }
+    }
   };
 
   const resetTimer = () => {
     setTimerActive(false);
     setTimerSeconds(0);
+    calming.stop();
   };
 
   const progress = (timerSeconds / targetSeconds) * 100;
