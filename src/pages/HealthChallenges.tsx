@@ -333,6 +333,37 @@ const HealthChallenges = () => {
           </Card>
         </div>
 
+        {/* 4 Wellness Trackers */}
+        <div className="mb-10">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-primary">Wellness Trackers</h2>
+              <p className="text-sm text-muted-foreground">Track sleep, water, steps and meditation. Hit a 6-month streak to unlock a ₦15,000 free appointment credit.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { to: "/health-challenges/sleep", icon: Moon, title: "Sleep", desc: "Bedtime, wake-up alarms & sleep score", grad: "from-indigo-500/20 to-purple-500/20", color: "text-indigo-500" },
+              { to: "/health-challenges/hydration", icon: Droplets, title: "Water", desc: "Log glasses & set daily liter goals", grad: "from-blue-500/20 to-cyan-500/20", color: "text-blue-500" },
+              { to: "/health-challenges/steps", icon: Footprints, title: "Steps", desc: "Steps, calories, miles & active time", grad: "from-emerald-500/20 to-green-500/20", color: "text-green-500" },
+              { to: "/health-challenges/mindfulness", icon: Brain, title: "Meditation", desc: "Guided sessions with calming sounds", grad: "from-rose-500/20 to-pink-500/20", color: "text-pink-500" },
+            ].map((t) => (
+              <Card key={t.to} onClick={() => navigate(t.to)} className={`cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br ${t.grad} border-primary/10`}>
+                <CardContent className="p-5 space-y-3">
+                  <div className={`w-11 h-11 rounded-full bg-background/60 flex items-center justify-center ${t.color}`}>
+                    <t.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-primary">{t.title}</h3>
+                    <p className="text-xs text-muted-foreground">{t.desc}</p>
+                  </div>
+                  <Button size="sm" variant="outline" className="w-full">Open</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
         {/* Active Challenges Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {challenges.map((challenge) => {
