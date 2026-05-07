@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import SleepAlarm from "@/components/wellness/SleepAlarm";
 import { 
   Moon, 
   Sun, 
@@ -286,6 +287,8 @@ const SleepChallenge = () => {
             </CardContent>
           </Card>
         </div>
+
+        <SleepAlarm />
 
         {/* Log Sleep Form */}
         <Card className="glassmorphism-card border-0 mb-6">
