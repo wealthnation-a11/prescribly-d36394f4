@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import CalmingSoundLibrary, { useCalmingPlayer } from "@/components/wellness/CalmingSoundLibrary";
+import { CALMING_TRACKS } from "@/lib/wellnessAlarm";
 import { 
   Brain, 
   ArrowLeft,
@@ -44,6 +46,7 @@ const MindfulnessChallenge = () => {
   const [weeklyLogs, setWeeklyLogs] = useState<MindfulnessLog[]>([]);
   const [streak, setStreak] = useState(0);
   const [badgeEarned, setBadgeEarned] = useState(false);
+  const calming = useCalmingPlayer();
 
   // Timer state
   const [timerActive, setTimerActive] = useState(false);
