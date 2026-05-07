@@ -107,7 +107,7 @@ export default function MedicationChallenge() {
       const k = `${r.id}:${r.remind_at.slice(0,5)}`;
       if (log[k] === "taken") taken++;
       else if (log[k] === "missed" || todayAt(r.remind_at.slice(0,5)).getTime() < Date.now() - 60*60*1000) {
-        if (log[k] !== "taken") missed++;
+        missed++;
       }
     });
     return { taken, missed, total, pct: Math.round((taken / total) * 100) };
