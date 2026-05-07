@@ -20,7 +20,8 @@ import {
   Droplets,
   Footprints,
   Brain,
-  Moon
+  Moon,
+  Pill
 } from 'lucide-react';
 
 interface Challenge {
@@ -341,12 +342,13 @@ const HealthChallenges = () => {
               <p className="text-sm text-muted-foreground">Track sleep, water, steps and meditation. Hit a 6-month streak to unlock a ₦15,000 free appointment credit.</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {[
               { to: "/health-challenges/sleep", icon: Moon, title: "Sleep", desc: "Bedtime, wake-up alarms & sleep score", grad: "from-indigo-500/20 to-purple-500/20", color: "text-indigo-500" },
-              { to: "/health-challenges/hydration", icon: Droplets, title: "Water", desc: "Log glasses & set daily liter goals", grad: "from-blue-500/20 to-cyan-500/20", color: "text-blue-500" },
-              { to: "/health-challenges/steps", icon: Footprints, title: "Steps", desc: "Steps, calories, miles & active time", grad: "from-emerald-500/20 to-green-500/20", color: "text-green-500" },
-              { to: "/health-challenges/mindfulness", icon: Brain, title: "Meditation", desc: "Guided sessions with calming sounds", grad: "from-rose-500/20 to-pink-500/20", color: "text-pink-500" },
+              { to: "/health-challenges/hydration", icon: Droplets, title: "Water", desc: "Daily liter goal split into timed alarms", grad: "from-blue-500/20 to-cyan-500/20", color: "text-blue-500" },
+              { to: "/health-challenges/steps", icon: Footprints, title: "Steps", desc: "Unlimited steps, calories & distance", grad: "from-emerald-500/20 to-green-500/20", color: "text-green-500" },
+              { to: "/health-challenges/medication", icon: Pill, title: "Medication", desc: "Drug reminders, alarms & adherence score", grad: "from-pink-500/20 to-rose-500/20", color: "text-pink-500" },
+              { to: "/health-challenges/mindfulness", icon: Brain, title: "Meditation", desc: "Guided sessions with calming sounds", grad: "from-rose-500/20 to-pink-500/20", color: "text-purple-500" },
             ].map((t) => (
               <Card key={t.to} onClick={() => navigate(t.to)} className={`cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br ${t.grad} border-primary/10`}>
                 <CardContent className="p-5 space-y-3">
