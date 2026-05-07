@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import CalmingSoundLibrary, { useCalmingPlayer } from "@/components/wellness/CalmingSoundLibrary";
+import { CALMING_TRACKS } from "@/lib/wellnessAlarm";
 import { 
   Brain, 
   ArrowLeft,
@@ -44,6 +46,7 @@ const MindfulnessChallenge = () => {
   const [weeklyLogs, setWeeklyLogs] = useState<MindfulnessLog[]>([]);
   const [streak, setStreak] = useState(0);
   const [badgeEarned, setBadgeEarned] = useState(false);
+  const calming = useCalmingPlayer();
 
   // Timer state
   const [timerActive, setTimerActive] = useState(false);
@@ -131,6 +134,7 @@ const MindfulnessChallenge = () => {
   };
 
   const completeSession = async () => {
+    calming.stop();
     if (!user?.id) return;
 
     try {
@@ -188,12 +192,26 @@ const MindfulnessChallenge = () => {
   };
 
   const toggleTimer = () => {
-    setTimerActive(!timerActive);
+    const next = !timerActive;
+    setTimerActive(next);
+    if (next) {
+      // Auto-start a calming track if user hasn't picked one
+      if (!calming.selectedId) calming.play(CALMING_TRACKS[0].id);
+      else if (!calming.isPlaying) calming.play(calming.selectedId);
+    } else {
+      calming.stop();
+      // Penalty if user pauses/stops before reaching target
+      if (timerSeconds > 0 && timerSeconds < targetSeconds && user?.id) {
+        (supabase.rpc as any)('update_user_points', { user_uuid: user.id, points_to_add: -10 });
+        toast({ title: "Session ended early", description: "−10 points. Try to finish next time!", variant: "destructive" });
+      }
+    }
   };
 
   const resetTimer = () => {
     setTimerActive(false);
     setTimerSeconds(0);
+    calming.stop();
   };
 
   const progress = (timerSeconds / targetSeconds) * 100;
@@ -281,6 +299,9 @@ const MindfulnessChallenge = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Calming Sound Library */}
+        <CalmingSoundLibrary controls={calming} />
 
         {/* Meditation Timer */}
         <Card className="glassmorphism-card border-0 mb-6">

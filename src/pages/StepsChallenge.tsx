@@ -32,7 +32,7 @@ export default function StepsChallenge() {
   const [loading, setLoading] = useState(true);
   const [motionActive, setMotionActive] = useState(false);
 
-  const DAILY_GOAL = 5000;
+  const DAILY_GOAL = 5000; // soft milestone — there is no upper limit; user can keep walking
 
   useEffect(() => {
     if (user) {
@@ -211,10 +211,28 @@ export default function StepsChallenge() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Walk 5,000 Steps Daily</h1>
-            <p className="text-sm text-muted-foreground">Pedometer + GPS Activity Tracker</p>
+            <h1 className="text-2xl font-bold text-foreground">Daily Steps — Walk Without Limits</h1>
+            <p className="text-sm text-muted-foreground">Soft milestone: 5,000 steps. There's no upper limit — keep going!</p>
           </div>
         </div>
+
+        {/* Daily Summary */}
+        <Card className="border-primary/20 bg-card/50 backdrop-blur-sm mb-4">
+          <CardContent className="p-4 grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="text-xs text-muted-foreground">Steps today</p>
+              <p className="text-xl font-bold">{todaySteps.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Calories burned</p>
+              <p className="text-xl font-bold text-orange-500">{Math.round(todayData?.calories_burned || 0)} kcal</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Distance</p>
+              <p className="text-xl font-bold text-emerald-500">{(todayData?.distance_km || 0).toFixed(2)} km</p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Motion Sensor Integration */}
         <MotionSensor 

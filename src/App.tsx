@@ -53,6 +53,7 @@ const HydrationChallenge = lazy(() => import("./pages/HydrationChallenge"));
 const StepsChallenge = lazy(() => import("./pages/StepsChallenge"));
 const SleepChallenge = lazy(() => import("./pages/SleepChallenge"));
 const MindfulnessChallenge = lazy(() => import("./pages/MindfulnessChallenge"));
+const MedicationChallenge = lazy(() => import("./pages/MedicationChallenge"));
 const GamificationProfile = lazy(() => import("./pages/GamificationProfile"));
 const HealthTrendsDashboard = lazy(() => import("./pages/HealthTrendsDashboard"));
 const MyPrescriptions = lazy(() => import("./pages/MyPrescriptions"));
@@ -211,6 +212,7 @@ const App = () => (
                     <Route path="/health-challenges/steps" element={<PatientRoute><StepsChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/sleep" element={<PatientRoute><SleepChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/mindfulness" element={<PatientRoute><MindfulnessChallenge /></PatientRoute>} />
+                    <Route path="/health-challenges/medication" element={<PatientRoute><MedicationChallenge /></PatientRoute>} />
                     <Route path="/gamification-profile" element={<PatientRoute><GamificationProfile /></PatientRoute>} />
                     <Route path="/health-trends" element={<PatientRoute><HealthTrendsDashboard /></PatientRoute>} />
                     <Route path="/chat" element={<PatientRoute><Chat /></PatientRoute>} />
