@@ -414,12 +414,6 @@ export const UserDashboard = () => {
                   <DailyHealthTip />
                 </div>
 
-                {/* Daily AI Health Questions */}
-                <DailyHealthQuestions />
-
-                {/* Wellness Trackers */}
-                <WellnessTrackers />
-
                 {/* Gamification Widget */}
                 <div data-tour="gamification">
                   <DashboardGamificationWidget />
