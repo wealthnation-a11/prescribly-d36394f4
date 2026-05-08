@@ -49,19 +49,46 @@ export default function MedicationChallenge() {
       try { setLog(JSON.parse(localStorage.getItem(STORAGE_KEY(user.id)) ?? "{}")); } catch {}
       setLoading(false);
       requestNotificationPermission();
+      registerWellnessAlarmSW();
     })();
   }, [user]);
 
-  // (Re)schedule alarms whenever reminders change
+  // SW notification action handler — auto-record taken/missed from the system notification
   useEffect(() => {
+    return onWellnessAlarmAction(async ({ action, kind, refId }) => {
+      if (kind !== "medication" || !refId) return;
+      const r = reminders.find(x => x.id === refId);
+      if (!r) return;
+      const status = action === "taken" ? "taken" : "missed";
+      const k = `${r.id}:${r.remind_at.slice(0,5)}`;
+      persistLog({ ...log, [k]: status });
+      await recordMedicationDose({
+        reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage ?? undefined,
+        scheduled_at: todayAt(r.remind_at.slice(0,5)), status,
+      });
+      toast({ title: status === "taken" ? "✅ Logged from notification" : "Marked missed" });
+    });
+  }, [reminders, log, recordMedicationDose]);
+
+  // (Re)schedule alarms whenever reminders change — both in-tab + background
+  useEffect(() => {
+    clearLocalAlarmsForKind("medication");
     reminders.forEach(r => {
       const fire = todayAt(r.remind_at.slice(0,5));
-      if (fire.getTime() < Date.now()) return; // already passed today
+      if (fire.getTime() < Date.now()) return;
       const key = `med:${r.id}`;
       scheduleAlarm(key, fire, () => {
         playAlarmChime(10);
         showNotification(`💊 Time to take ${r.drug_name}`, `${r.dosage ?? "Dose"} • ${r.remind_at.slice(0,5)}`);
         toast({ title: `💊 Take ${r.drug_name}`, description: `${r.dosage ?? ""} — tap "Taken" once swallowed.` });
+      });
+      // Also queue for background SW so it fires even if tab is closed
+      queueLocalAlarm({
+        id: `med-${r.id}-${fire.toISOString().slice(0,10)}`,
+        fireAt: fire.getTime(),
+        title: `💊 Time to take ${r.drug_name}`,
+        body: `${r.dosage ?? "Dose"} • ${r.remind_at.slice(0,5)}`,
+        kind: "medication", refId: r.id, url: "/health-challenges/medication",
       });
     });
     return () => reminders.forEach(r => cancelAlarm(`med:${r.id}`));
