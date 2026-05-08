@@ -669,7 +669,6 @@ export type Database = {
           id: string
           is_active: boolean
           remind_at: string
-          updated_at: string
           user_id: string
         }
         Insert: {
@@ -680,7 +679,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           remind_at: string
-          updated_at?: string
           user_id: string
         }
         Update: {
@@ -691,7 +689,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           remind_at?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -1296,137 +1293,6 @@ export type Database = {
           state?: string | null
           status?: string
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      hydration_slots: {
-        Row: {
-          created_at: string
-          id: string
-          log_date: string
-          ml: number
-          scheduled_at: string
-          slot_index: number
-          status: string
-          taken_at: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          log_date?: string
-          ml?: number
-          scheduled_at: string
-          slot_index: number
-          status?: string
-          taken_at?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          log_date?: string
-          ml?: number
-          scheduled_at?: string
-          slot_index?: number
-          status?: string
-          taken_at?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      medication_doses: {
-        Row: {
-          created_at: string
-          dosage: string | null
-          dose_change: number
-          drug_name: string
-          id: string
-          notes: string | null
-          reminder_id: string | null
-          scheduled_at: string
-          status: string
-          taken_at: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          dosage?: string | null
-          dose_change?: number
-          drug_name: string
-          id?: string
-          notes?: string | null
-          reminder_id?: string | null
-          scheduled_at: string
-          status?: string
-          taken_at?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          dosage?: string | null
-          dose_change?: number
-          drug_name?: string
-          id?: string
-          notes?: string | null
-          reminder_id?: string | null
-          scheduled_at?: string
-          status?: string
-          taken_at?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "medication_doses_reminder_id_fkey"
-            columns: ["reminder_id"]
-            isOneToOne: false
-            referencedRelation: "drug_reminders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      meditation_sessions: {
-        Row: {
-          actual_minutes: number | null
-          completed: boolean
-          created_at: string
-          ended_at: string | null
-          id: string
-          planned_minutes: number
-          points_change: number
-          sound_id: string | null
-          started_at: string
-          user_id: string
-        }
-        Insert: {
-          actual_minutes?: number | null
-          completed?: boolean
-          created_at?: string
-          ended_at?: string | null
-          id?: string
-          planned_minutes: number
-          points_change?: number
-          sound_id?: string | null
-          started_at?: string
-          user_id: string
-        }
-        Update: {
-          actual_minutes?: number | null
-          completed?: boolean
-          created_at?: string
-          ended_at?: string | null
-          id?: string
-          planned_minutes?: number
-          points_change?: number
-          sound_id?: string | null
-          started_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -2182,7 +2048,6 @@ export type Database = {
           date: string
           glasses_drank: number
           goal: number
-          goal_liters: number
           id: string
           user_id: string
         }
@@ -2191,7 +2056,6 @@ export type Database = {
           date: string
           glasses_drank?: number
           goal?: number
-          goal_liters?: number
           id?: string
           user_id: string
         }
@@ -2200,7 +2064,6 @@ export type Database = {
           date?: string
           glasses_drank?: number
           goal?: number
-          goal_liters?: number
           id?: string
           user_id?: string
         }
@@ -2398,42 +2261,6 @@ export type Database = {
         }
         Relationships: []
       }
-      wellness_alarm_queue: {
-        Row: {
-          body: string
-          created_at: string
-          fire_at: string
-          fired: boolean
-          id: string
-          kind: string
-          ref_id: string | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          fire_at: string
-          fired?: boolean
-          id?: string
-          kind: string
-          ref_id?: string | null
-          title: string
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          fire_at?: string
-          fired?: boolean
-          id?: string
-          kind?: string
-          ref_id?: string | null
-          title?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       wellness_check_results: {
         Row: {
           check_type: string
@@ -2458,63 +2285,6 @@ export type Database = {
           results?: Json | null
           score?: number | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      wellness_eod_summary: {
-        Row: {
-          created_at: string
-          email_sent: boolean
-          id: string
-          in_app_sent: boolean
-          meditation_minutes: number
-          meds_missed: number
-          meds_taken: number
-          points_earned: number
-          points_lost: number
-          sleep_hours: number
-          steps: number
-          summary_date: string
-          total_score: number
-          user_id: string
-          water_missed: number
-          water_taken: number
-        }
-        Insert: {
-          created_at?: string
-          email_sent?: boolean
-          id?: string
-          in_app_sent?: boolean
-          meditation_minutes?: number
-          meds_missed?: number
-          meds_taken?: number
-          points_earned?: number
-          points_lost?: number
-          sleep_hours?: number
-          steps?: number
-          summary_date?: string
-          total_score?: number
-          user_id: string
-          water_missed?: number
-          water_taken?: number
-        }
-        Update: {
-          created_at?: string
-          email_sent?: boolean
-          id?: string
-          in_app_sent?: boolean
-          meditation_minutes?: number
-          meds_missed?: number
-          meds_taken?: number
-          points_earned?: number
-          points_lost?: number
-          sleep_hours?: number
-          steps?: number
-          summary_date?: string
-          total_score?: number
-          user_id?: string
-          water_missed?: number
-          water_taken?: number
         }
         Relationships: []
       }
@@ -2625,33 +2395,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      compute_eod_summary: {
-        Args: { _date?: string; _user_id: string }
-        Returns: {
-          created_at: string
-          email_sent: boolean
-          id: string
-          in_app_sent: boolean
-          meditation_minutes: number
-          meds_missed: number
-          meds_taken: number
-          points_earned: number
-          points_lost: number
-          sleep_hours: number
-          steps: number
-          summary_date: string
-          total_score: number
-          user_id: string
-          water_missed: number
-          water_taken: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "wellness_eod_summary"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
       confirm_registration_code: { Args: { _code: string }; Returns: boolean }
       has_role: {
         Args: {

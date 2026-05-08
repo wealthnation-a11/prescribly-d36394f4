@@ -15,9 +15,6 @@ import {
   requestNotificationPermission, scheduleAlarm, cancelAlarm,
   showNotification, playAlarmChime,
 } from "@/lib/wellnessAlarm";
-import { registerWellnessAlarmSW, queueLocalAlarm, clearLocalAlarmsForKind, onWellnessAlarmAction } from "@/lib/wellnessAlarmSW";
-import { useWellnessPersistence } from "@/hooks/useWellnessPersistence";
-import MedicationAdherenceHistory from "@/components/wellness/MedicationAdherenceHistory";
 
 type Reminder = { id: string; drug_name: string; dosage: string | null; remind_at: string; is_active: boolean; frequency: string };
 type DoseLog = Record<string, "taken" | "missed" | "pending">; // key = `${reminderId}:${HH:mm}` for today
@@ -32,7 +29,6 @@ const todayAt = (hhmm: string) => {
 export default function MedicationChallenge() {
   usePageSEO({ title: "Medication Tracker - Prescribly", description: "Drug reminders, alarms and daily medication score.", canonicalPath: "/health-challenges/medication" });
   const { user } = useAuth();
-  const { recordMedicationDose } = useWellnessPersistence();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [log, setLog] = useState<DoseLog>({});
   const [drugName, setDrugName] = useState("");
@@ -49,46 +45,19 @@ export default function MedicationChallenge() {
       try { setLog(JSON.parse(localStorage.getItem(STORAGE_KEY(user.id)) ?? "{}")); } catch {}
       setLoading(false);
       requestNotificationPermission();
-      registerWellnessAlarmSW();
     })();
   }, [user]);
 
-  // SW notification action handler — auto-record taken/missed from the system notification
+  // (Re)schedule alarms whenever reminders change
   useEffect(() => {
-    return onWellnessAlarmAction(async ({ action, kind, refId }) => {
-      if (kind !== "medication" || !refId) return;
-      const r = reminders.find(x => x.id === refId);
-      if (!r) return;
-      const status = action === "taken" ? "taken" : "missed";
-      const k = `${r.id}:${r.remind_at.slice(0,5)}`;
-      persistLog({ ...log, [k]: status });
-      await recordMedicationDose({
-        reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage ?? undefined,
-        scheduled_at: todayAt(r.remind_at.slice(0,5)), status,
-      });
-      toast({ title: status === "taken" ? "✅ Logged from notification" : "Marked missed" });
-    });
-  }, [reminders, log, recordMedicationDose]);
-
-  // (Re)schedule alarms whenever reminders change — both in-tab + background
-  useEffect(() => {
-    clearLocalAlarmsForKind("medication");
     reminders.forEach(r => {
       const fire = todayAt(r.remind_at.slice(0,5));
-      if (fire.getTime() < Date.now()) return;
+      if (fire.getTime() < Date.now()) return; // already passed today
       const key = `med:${r.id}`;
       scheduleAlarm(key, fire, () => {
         playAlarmChime(10);
         showNotification(`💊 Time to take ${r.drug_name}`, `${r.dosage ?? "Dose"} • ${r.remind_at.slice(0,5)}`);
         toast({ title: `💊 Take ${r.drug_name}`, description: `${r.dosage ?? ""} — tap "Taken" once swallowed.` });
-      });
-      // Also queue for background SW so it fires even if tab is closed
-      queueLocalAlarm({
-        id: `med-${r.id}-${fire.toISOString().slice(0,10)}`,
-        fireAt: fire.getTime(),
-        title: `💊 Time to take ${r.drug_name}`,
-        body: `${r.dosage ?? "Dose"} • ${r.remind_at.slice(0,5)}`,
-        kind: "medication", refId: r.id, url: "/health-challenges/medication",
       });
     });
     return () => reminders.forEach(r => cancelAlarm(`med:${r.id}`));
@@ -118,26 +87,17 @@ export default function MedicationChallenge() {
     setReminders(rs => rs.filter(r => r.id !== id));
   };
 
-  const mark = async (r: Reminder, status: "taken" | "missed") => {
+  const mark = (r: Reminder, status: "taken" | "missed") => {
     const key = `${r.id}:${r.remind_at.slice(0,5)}`;
     persistLog({ ...log, [key]: status });
-    await recordMedicationDose({
-      reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage ?? undefined,
-      scheduled_at: todayAt(r.remind_at.slice(0,5)), status,
-    });
     toast({ title: status === "taken" ? "✅ Logged as taken" : "Marked missed" });
   };
 
-  const adjustDose = async (r: Reminder, delta: number) => {
+  const adjustDose = (r: Reminder, delta: number) => {
     const k = `${r.id}:count`;
     const cur = Number(log[k] ?? 0);
     const next = Math.max(0, cur + delta);
     persistLog({ ...log, [k]: String(next) as any });
-    await recordMedicationDose({
-      reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage ?? undefined,
-      scheduled_at: new Date(), status: "skipped", dose_change: delta,
-      notes: `Manual dose adjust to ${next}`,
-    });
   };
 
   const score = useMemo(() => {
@@ -229,10 +189,8 @@ export default function MedicationChallenge() {
           </CardContent>
         </Card>
 
-        <MedicationAdherenceHistory />
-
         <p className="text-xs text-muted-foreground text-center">
-          Alarms ring while the app is open. Background alarms work via the wellness service worker — enable browser notifications when prompted.
+          Alarms ring while the app is open. Enable browser notifications when prompted to also receive system alerts.
         </p>
       </div>
     </div>
