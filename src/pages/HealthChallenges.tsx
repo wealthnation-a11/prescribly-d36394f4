@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useNavigate } from 'react-router-dom';
+import EndOfDaySummary from '@/components/wellness/EndOfDaySummary';
 import { 
   Trophy,
   Users,
@@ -333,6 +334,8 @@ const HealthChallenges = () => {
             </CardContent>
           </Card>
         </div>
+
+        <div className="max-w-4xl mx-auto mb-8"><EndOfDaySummary /></div>
 
         {/* 4 Wellness Trackers */}
         <div className="mb-10">
