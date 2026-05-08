@@ -229,8 +229,10 @@ export default function MedicationChallenge() {
           </CardContent>
         </Card>
 
+        <MedicationAdherenceHistory />
+
         <p className="text-xs text-muted-foreground text-center">
-          Alarms ring while the app is open. Enable browser notifications when prompted to also receive system alerts.
+          Alarms ring while the app is open. Background alarms work via the wellness service worker — enable browser notifications when prompted.
         </p>
       </div>
     </div>
