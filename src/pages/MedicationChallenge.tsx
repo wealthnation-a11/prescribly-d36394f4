@@ -32,6 +32,7 @@ const todayAt = (hhmm: string) => {
 export default function MedicationChallenge() {
   usePageSEO({ title: "Medication Tracker - Prescribly", description: "Drug reminders, alarms and daily medication score.", canonicalPath: "/health-challenges/medication" });
   const { user } = useAuth();
+  const { recordMedicationDose } = useWellnessPersistence();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [log, setLog] = useState<DoseLog>({});
   const [drugName, setDrugName] = useState("");
