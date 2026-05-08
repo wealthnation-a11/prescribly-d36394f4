@@ -15,6 +15,9 @@ import {
   requestNotificationPermission, scheduleAlarm, cancelAlarm,
   showNotification, playAlarmChime,
 } from "@/lib/wellnessAlarm";
+import { registerWellnessAlarmSW, queueLocalAlarm, clearLocalAlarmsForKind, onWellnessAlarmAction } from "@/lib/wellnessAlarmSW";
+import { useWellnessPersistence } from "@/hooks/useWellnessPersistence";
+import MedicationAdherenceHistory from "@/components/wellness/MedicationAdherenceHistory";
 
 type Reminder = { id: string; drug_name: string; dosage: string | null; remind_at: string; is_active: boolean; frequency: string };
 type DoseLog = Record<string, "taken" | "missed" | "pending">; // key = `${reminderId}:${HH:mm}` for today
