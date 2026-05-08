@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useNavigate } from 'react-router-dom';
+import EndOfDaySummary from '@/components/wellness/EndOfDaySummary';
 import { 
   Trophy,
   Users,
