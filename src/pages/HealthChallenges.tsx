@@ -334,6 +334,8 @@ const HealthChallenges = () => {
           </Card>
         </div>
 
+        <div className="max-w-4xl mx-auto mb-8"><EndOfDaySummary /></div>
+
         {/* 4 Wellness Trackers */}
         <div className="mb-10">
           <div className="flex items-end justify-between mb-4">
