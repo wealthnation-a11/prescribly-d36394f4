@@ -118,17 +118,26 @@ export default function MedicationChallenge() {
     setReminders(rs => rs.filter(r => r.id !== id));
   };
 
-  const mark = (r: Reminder, status: "taken" | "missed") => {
+  const mark = async (r: Reminder, status: "taken" | "missed") => {
     const key = `${r.id}:${r.remind_at.slice(0,5)}`;
     persistLog({ ...log, [key]: status });
+    await recordMedicationDose({
+      reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage ?? undefined,
+      scheduled_at: todayAt(r.remind_at.slice(0,5)), status,
+    });
     toast({ title: status === "taken" ? "✅ Logged as taken" : "Marked missed" });
   };
 
-  const adjustDose = (r: Reminder, delta: number) => {
+  const adjustDose = async (r: Reminder, delta: number) => {
     const k = `${r.id}:count`;
     const cur = Number(log[k] ?? 0);
     const next = Math.max(0, cur + delta);
     persistLog({ ...log, [k]: String(next) as any });
+    await recordMedicationDose({
+      reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage ?? undefined,
+      scheduled_at: new Date(), status: "skipped", dose_change: delta,
+      notes: `Manual dose adjust to ${next}`,
+    });
   };
 
   const score = useMemo(() => {
