@@ -21,9 +21,49 @@ export const requestNotificationPermission = async () => {
 
 export const showNotification = (title: string, body: string) => {
   if (typeof window === "undefined" || !("Notification" in window)) return;
-  if (Notification.permission === "granted") {
-    try { new Notification(title, { body, icon: "/icon-192.png", tag: title }); } catch {}
+  if (Notification.permission !== "granted") return;
+  // Prefer SW so notifications survive tab close on supported platforms
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.ready.then(reg => {
+      try { reg.showNotification(title, { body, icon: "/pwa-192x192.png", tag: title }); }
+      catch { try { new Notification(title, { body, icon: "/pwa-192x192.png", tag: title }); } catch {} }
+    }).catch(() => { try { new Notification(title, { body }); } catch {} });
+  } else {
+    try { new Notification(title, { body, icon: "/pwa-192x192.png", tag: title }); } catch {}
   }
+};
+
+// Schedule a background notification using the Notification Triggers API (Chrome/Edge/Android PWA).
+// Falls back silently if unsupported — caller should still rely on the in-tab setTimeout.
+export const scheduleBackgroundNotification = async (
+  tag: string, fireAt: Date, title: string, body: string
+): Promise<boolean> => {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return false;
+  if (!("Notification" in window) || Notification.permission !== "granted") return false;
+  const TimestampTrigger = (window as any).TimestampTrigger;
+  if (!TimestampTrigger) return false; // unsupported on iOS Safari & Firefox
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    // Cancel any pending one with this tag
+    const existing = await reg.getNotifications({ tag, includeTriggered: true } as any);
+    existing.forEach(n => n.close());
+    await reg.showNotification(title, {
+      body, tag, icon: "/pwa-192x192.png", badge: "/pwa-192x192.png",
+      data: { type: "wellness-alarm" },
+      // @ts-ignore — Notification Triggers API
+      showTrigger: new TimestampTrigger(fireAt.getTime()),
+    } as any);
+    return true;
+  } catch (e) { console.warn("scheduleBackgroundNotification failed", e); return false; }
+};
+
+export const cancelBackgroundNotification = async (tag: string) => {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const list = await reg.getNotifications({ tag, includeTriggered: true } as any);
+    list.forEach(n => n.close());
+  } catch {}
 };
 
 // Plays a 3-beep chime that loops a few times (alarm feel)
