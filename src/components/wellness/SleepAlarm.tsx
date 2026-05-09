@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   scheduleAlarm, cancelAlarm,
   requestNotificationPermission, showNotification, playAlarmChime,
+  scheduleBackgroundNotification, cancelBackgroundNotification,
 } from "@/lib/wellnessAlarm";
 
 const ALARM_ID = "sleep-wake-alarm";
@@ -29,6 +30,7 @@ export default function SleepAlarm() {
     const ms = (hours * 60 + minutes) * 60 * 1000;
     const at = new Date(Date.now() + ms);
     setFireAt(at); setActive(true); setRinging(false);
+    scheduleBackgroundNotification(ALARM_ID, at, "⏰ Wake up!", "Your sleep timer has finished.");
     scheduleAlarm(ALARM_ID, at, () => {
       setRinging(true);
       stopRef.current = playAlarmChime(60);
@@ -41,6 +43,7 @@ export default function SleepAlarm() {
 
   const cancel = () => {
     cancelAlarm(ALARM_ID);
+    cancelBackgroundNotification(ALARM_ID);
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     setActive(false); setRinging(false); setFireAt(null);
   };

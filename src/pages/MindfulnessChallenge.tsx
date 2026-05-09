@@ -133,7 +133,7 @@ const MindfulnessChallenge = () => {
     }
   };
 
-  const completeSession = async () => {
+  const completeSession = async (earlyEnd = false) => {
     calming.stop();
     if (!user?.id) return;
 
@@ -142,8 +142,22 @@ const MindfulnessChallenge = () => {
       const minutesCompleted = Math.floor(timerSeconds / 60);
       const newTotal = (todayLog?.minutes || 0) + minutesCompleted;
       const newSessions = (todayLog?.sessions || 0) + 1;
-      const goalReached = newTotal >= 10;
+      const goalReached = newTotal >= 10 && !earlyEnd;
+      const pointsChange = earlyEnd ? -10 : (goalReached && !todayLog?.goal_reached ? 20 : 0);
 
+      // Persist the meditation session itself
+      await supabase.from('meditation_sessions').insert({
+        user_id: user.id,
+        started_at: new Date(Date.now() - timerSeconds * 1000).toISOString(),
+        ended_at: new Date().toISOString(),
+        planned_minutes: selectedDuration,
+        actual_minutes: minutesCompleted,
+        completed: !earlyEnd && timerSeconds >= targetSeconds,
+        sound_id: calming.selectedId,
+        points_change: pointsChange,
+      });
+
+      // Daily summary
       const { error } = await supabase
         .from('user_mindfulness_log' as any)
         .upsert({
@@ -152,36 +166,29 @@ const MindfulnessChallenge = () => {
           minutes: newTotal,
           sessions: newSessions,
           goal_reached: goalReached
-        }, {
-          onConflict: 'user_id,date'
-        });
+        }, { onConflict: 'user_id,date' });
 
       if (error) throw error;
 
-      // Award points if goal reached for first time today
-      if (goalReached && !todayLog?.goal_reached) {
-        await (supabase.rpc as any)('update_user_points', {
-          user_uuid: user.id,
-          points_to_add: 20
-        });
+      if (pointsChange !== 0) {
+        await (supabase.rpc as any)('update_user_points', { user_uuid: user.id, points_to_add: pointsChange });
       }
 
       toast({
-        title: "Session Complete! 🧘",
-        description: goalReached 
-          ? `You've reached your 10-minute goal! +20 points` 
-          : `${minutesCompleted} minutes logged. ${10 - newTotal} more to goal!`
+        title: earlyEnd ? "Session ended early" : "Session Complete! 🧘",
+        description: earlyEnd
+          ? "−10 points. Try to finish next time!"
+          : goalReached
+            ? `You've reached your 10-minute goal! +20 points`
+            : `${minutesCompleted} minutes logged. ${Math.max(0, 10 - newTotal)} more to goal!`,
+        variant: earlyEnd ? "destructive" : "default",
       });
 
       setTimerSeconds(0);
       loadMindfulnessData();
     } catch (error) {
       console.error('Error completing session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save session",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to save session", variant: "destructive" });
     }
   };
 
@@ -195,15 +202,13 @@ const MindfulnessChallenge = () => {
     const next = !timerActive;
     setTimerActive(next);
     if (next) {
-      // Auto-start a calming track if user hasn't picked one
       if (!calming.selectedId) calming.play(CALMING_TRACKS[0].id);
       else if (!calming.isPlaying) calming.play(calming.selectedId);
     } else {
       calming.stop();
       // Penalty if user pauses/stops before reaching target
-      if (timerSeconds > 0 && timerSeconds < targetSeconds && user?.id) {
-        (supabase.rpc as any)('update_user_points', { user_uuid: user.id, points_to_add: -10 });
-        toast({ title: "Session ended early", description: "−10 points. Try to finish next time!", variant: "destructive" });
+      if (timerSeconds > 0 && timerSeconds < targetSeconds) {
+        completeSession(true);
       }
     }
   };
