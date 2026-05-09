@@ -401,7 +401,7 @@ const MindfulnessChallenge = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={completeSession}
+                onClick={() => completeSession(false)}
                 disabled={timerSeconds < 60}
               >
                 End Early
