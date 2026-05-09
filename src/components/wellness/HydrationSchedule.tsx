@@ -5,71 +5,99 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Droplets, BellRing, Check, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   buildHydrationSchedule, scheduleAlarm, cancelAlarm,
   requestNotificationPermission, showNotification, playAlarmChime,
+  scheduleBackgroundNotification, cancelBackgroundNotification,
 } from "@/lib/wellnessAlarm";
 
-const KEY = (uid: string | undefined) => `hydration_${uid ?? "anon"}_${new Date().toISOString().slice(0,10)}`;
 const GOAL_KEY = (uid: string | undefined) => `hydration_goal_${uid ?? "anon"}`;
 
 type Status = "taken" | "missed" | "pending";
+type Slot = { id?: string; slot_index: number; scheduled_at: string; ml: number; status: Status };
 
-export default function HydrationSchedule({ userId }: { userId?: string }) {
+export default function HydrationSchedule() {
+  const { user } = useAuth();
+  const userId = user?.id;
   const [liters, setLiters] = useState<number>(() => Number(localStorage.getItem(GOAL_KEY(userId)) ?? 2));
-  const [statuses, setStatuses] = useState<Record<number, Status>>({});
+  const [slots, setSlots] = useState<Slot[]>([]);
 
   const sched = useMemo(() => buildHydrationSchedule(liters), [liters]);
+  const today = new Date().toISOString().slice(0, 10);
 
+  // Load or seed today's slots from DB
   useEffect(() => {
-    try { setStatuses(JSON.parse(localStorage.getItem(KEY(userId)) ?? "{}")); } catch {}
-    requestNotificationPermission();
-  }, [userId]);
+    if (!userId) return;
+    (async () => {
+      requestNotificationPermission();
+      const { data: existing } = await supabase
+        .from("hydration_slots")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("log_date", today)
+        .order("slot_index");
 
+      if (existing && existing.length === sched.glasses) {
+        setSlots(existing.map((r: any) => ({
+          id: r.id, slot_index: r.slot_index, scheduled_at: r.scheduled_at, ml: r.ml, status: r.status,
+        })));
+      } else {
+        // Replace with new schedule
+        if (existing?.length) {
+          await supabase.from("hydration_slots").delete().eq("user_id", userId).eq("log_date", today);
+        }
+        const rows = sched.slots.map(s => ({
+          user_id: userId, log_date: today, slot_index: s.index,
+          scheduled_at: s.time.toISOString(), ml: sched.mlPerGlass, status: "pending" as Status,
+        }));
+        const { data: ins } = await supabase.from("hydration_slots").insert(rows).select();
+        setSlots((ins ?? []).map((r: any) => ({
+          id: r.id, slot_index: r.slot_index, scheduled_at: r.scheduled_at, ml: r.ml, status: r.status,
+        })));
+      }
+    })();
+  }, [userId, liters]);
+
+  // Schedule alarms (in-tab + background SW)
   useEffect(() => {
     localStorage.setItem(GOAL_KEY(userId), String(liters));
-    // Cancel previous and schedule
     sched.slots.forEach(s => cancelAlarm(`hydra:${s.index}`));
+    sched.slots.forEach(s => cancelBackgroundNotification(`hydra:${userId}:${s.index}`));
+
     sched.slots.forEach(s => {
       if (s.time.getTime() < Date.now()) return;
+      // SW background trigger (Chrome/Android PWA)
+      scheduleBackgroundNotification(
+        `hydra:${userId}:${s.index}`, s.time,
+        "💧 Time to drink water", `Glass ${s.index} of ${sched.glasses} (${sched.mlPerGlass}ml)`
+      );
+      // In-tab alarm
       scheduleAlarm(`hydra:${s.index}`, s.time, () => {
         playAlarmChime(8);
         showNotification("💧 Time to drink water", `Glass ${s.index} of ${sched.glasses} (${sched.mlPerGlass}ml)`);
         toast({ title: "💧 Hydration alarm", description: `Drink glass ${s.index} of ${sched.glasses}.` });
-        // auto-mark missed in 30 min if not handled
-        scheduleAlarm(`hydra-miss:${s.index}`, new Date(Date.now() + 30*60*1000), () => {
-          setStatuses(prev => {
-            if (prev[s.index]) return prev;
-            const next = { ...prev, [s.index]: "missed" as Status };
-            localStorage.setItem(KEY(userId), JSON.stringify(next));
-            return next;
-          });
-        });
       });
     });
     return () => {
-      sched.slots.forEach(s => { cancelAlarm(`hydra:${s.index}`); cancelAlarm(`hydra-miss:${s.index}`); });
+      sched.slots.forEach(s => cancelAlarm(`hydra:${s.index}`));
     };
   }, [liters, sched, userId]);
 
-  const persist = (next: Record<number, Status>) => {
-    setStatuses(next);
-    localStorage.setItem(KEY(userId), JSON.stringify(next));
+  const mark = async (slot: Slot, status: "taken" | "missed") => {
+    if (!userId) return;
+    const taken_at = status === "taken" ? new Date().toISOString() : null;
+    const next = slots.map(s => s.slot_index === slot.slot_index ? { ...s, status } : s);
+    setSlots(next);
+    if (slot.id) {
+      await supabase.from("hydration_slots").update({ status, taken_at }).eq("id", slot.id);
+    }
   };
 
-  const mark = (i: number, s: Status) => persist({ ...statuses, [i]: s });
-
-  const taken = Object.values(statuses).filter(s => s === "taken").length;
-  const missed = Object.values(statuses).filter(s => s === "missed").length;
-  const pct = Math.round((taken / sched.glasses) * 100);
-
-  // End-of-day score notification
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour >= 22 && (taken + missed) > 0) {
-      showNotification("Hydration summary", `You drank ${taken}/${sched.glasses} glasses today. Great work!`);
-    }
-  }, [taken, missed, sched.glasses]);
+  const taken = slots.filter(s => s.status === "taken").length;
+  const missed = slots.filter(s => s.status === "missed").length;
+  const pct = sched.glasses ? Math.round((taken / sched.glasses) * 100) : 0;
 
   return (
     <Card className="border-blue-200">
@@ -93,23 +121,23 @@ export default function HydrationSchedule({ userId }: { userId?: string }) {
         <Progress value={pct} className="h-2" />
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {sched.slots.map(s => {
-            const st = statuses[s.index] ?? "pending";
+          {slots.map(s => {
+            const time = new Date(s.scheduled_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
             return (
-              <div key={s.index} className={`rounded-lg border p-2 text-xs ${st === "taken" ? "border-green-300 bg-green-50/50" : st === "missed" ? "border-red-300 bg-red-50/50" : "border-blue-200"}`}>
+              <div key={s.slot_index} className={`rounded-lg border p-2 text-xs ${s.status === "taken" ? "border-green-300 bg-green-50/50" : s.status === "missed" ? "border-red-300 bg-red-50/50" : "border-blue-200"}`}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium">{s.label}</span>
+                  <span className="font-medium">{time}</span>
                   <Droplets className="w-3 h-3 text-blue-500" />
                 </div>
                 <div className="flex gap-1">
-                  <Button size="sm" variant={st === "taken" ? "default" : "outline"} className="h-7 px-2 flex-1" onClick={() => mark(s.index, "taken")}><Check className="w-3 h-3" /></Button>
-                  <Button size="sm" variant={st === "missed" ? "destructive" : "outline"} className="h-7 px-2 flex-1" onClick={() => mark(s.index, "missed")}><X className="w-3 h-3" /></Button>
+                  <Button size="sm" variant={s.status === "taken" ? "default" : "outline"} className="h-7 px-2 flex-1" onClick={() => mark(s, "taken")}><Check className="w-3 h-3" /></Button>
+                  <Button size="sm" variant={s.status === "missed" ? "destructive" : "outline"} className="h-7 px-2 flex-1" onClick={() => mark(s, "missed")}><X className="w-3 h-3" /></Button>
                 </div>
               </div>
             );
           })}
         </div>
-        <p className="text-xs text-muted-foreground">Reminders run between 08:00 and 22:00. Keep this tab open for in-app alarms; allow notifications for system alerts.</p>
+        <p className="text-xs text-muted-foreground">Reminders persist across devices. Background alerts work on Chrome/Android PWA. Allow notifications for system alerts.</p>
       </CardContent>
     </Card>
   );

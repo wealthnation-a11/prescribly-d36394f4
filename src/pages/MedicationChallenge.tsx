@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Pill, Plus, Trash2, BellRing, Check, X, Bell } from "lucide-react";
+import { ArrowLeft, Pill, Plus, Trash2, BellRing, Check, X, Bell, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -14,12 +14,11 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import {
   requestNotificationPermission, scheduleAlarm, cancelAlarm,
   showNotification, playAlarmChime,
+  scheduleBackgroundNotification, cancelBackgroundNotification,
 } from "@/lib/wellnessAlarm";
 
 type Reminder = { id: string; drug_name: string; dosage: string | null; remind_at: string; is_active: boolean; frequency: string };
-type DoseLog = Record<string, "taken" | "missed" | "pending">; // key = `${reminderId}:${HH:mm}` for today
-
-const STORAGE_KEY = (uid: string) => `med_dose_log_${uid}_${new Date().toISOString().slice(0,10)}`;
+type Dose = { id: string; reminder_id: string | null; drug_name: string; dosage: string | null; scheduled_at: string; status: "pending" | "taken" | "missed"; dose_change: number; taken_at: string | null };
 
 const todayAt = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
@@ -30,44 +29,60 @@ export default function MedicationChallenge() {
   usePageSEO({ title: "Medication Tracker - Prescribly", description: "Drug reminders, alarms and daily medication score.", canonicalPath: "/health-challenges/medication" });
   const { user } = useAuth();
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [log, setLog] = useState<DoseLog>({});
+  const [doses, setDoses] = useState<Dose[]>([]);
   const [drugName, setDrugName] = useState("");
   const [dosage, setDosage] = useState("");
   const [remindAt, setRemindAt] = useState("09:00");
   const [loading, setLoading] = useState(true);
 
-  // Load reminders + today's log
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase.from("drug_reminders").select("*").eq("user_id", user.id).eq("is_active", true).order("remind_at");
-      setReminders((data ?? []) as Reminder[]);
-      try { setLog(JSON.parse(localStorage.getItem(STORAGE_KEY(user.id)) ?? "{}")); } catch {}
-      setLoading(false);
-      requestNotificationPermission();
-    })();
-  }, [user]);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
 
-  // (Re)schedule alarms whenever reminders change
+  const loadAll = async () => {
+    if (!user) return;
+    const [{ data: rems }, { data: ds }] = await Promise.all([
+      supabase.from("drug_reminders").select("*").eq("user_id", user.id).eq("is_active", true).order("remind_at"),
+      supabase.from("medication_doses").select("*").eq("user_id", user.id).gte("scheduled_at", today.toISOString()).lt("scheduled_at", tomorrow.toISOString()).order("scheduled_at"),
+    ]);
+    setReminders((rems ?? []) as Reminder[]);
+    setDoses((ds ?? []) as Dose[]);
+  };
+
+  // Seed today's doses for each active reminder
+  const ensureDoseRows = async (rems: Reminder[]) => {
+    if (!user) return;
+    const existingKeys = new Set(doses.map(d => d.reminder_id));
+    const toInsert = rems
+      .filter(r => !existingKeys.has(r.id))
+      .map(r => ({
+        user_id: user.id, reminder_id: r.id, drug_name: r.drug_name,
+        dosage: r.dosage, scheduled_at: todayAt(r.remind_at.slice(0,5)).toISOString(),
+        status: "pending" as const, dose_change: 0,
+      }));
+    if (toInsert.length) {
+      await supabase.from("medication_doses").insert(toInsert);
+      await loadAll();
+    }
+  };
+
+  useEffect(() => { (async () => { await loadAll(); setLoading(false); requestNotificationPermission(); })(); }, [user?.id]);
+  useEffect(() => { if (reminders.length) ensureDoseRows(reminders); }, [reminders.length]);
+
+  // (Re)schedule alarms for each reminder (in-tab + SW background)
   useEffect(() => {
     reminders.forEach(r => {
       const fire = todayAt(r.remind_at.slice(0,5));
-      if (fire.getTime() < Date.now()) return; // already passed today
-      const key = `med:${r.id}`;
-      scheduleAlarm(key, fire, () => {
+      if (fire.getTime() < Date.now()) return;
+      const tag = `med:${user?.id}:${r.id}`;
+      scheduleBackgroundNotification(tag, fire, `💊 Time to take ${r.drug_name}`, `${r.dosage ?? "Dose"} • ${r.remind_at.slice(0,5)}`);
+      scheduleAlarm(`med:${r.id}`, fire, () => {
         playAlarmChime(10);
         showNotification(`💊 Time to take ${r.drug_name}`, `${r.dosage ?? "Dose"} • ${r.remind_at.slice(0,5)}`);
         toast({ title: `💊 Take ${r.drug_name}`, description: `${r.dosage ?? ""} — tap "Taken" once swallowed.` });
       });
     });
-    return () => reminders.forEach(r => cancelAlarm(`med:${r.id}`));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reminders.map(r => r.id + r.remind_at).join("|")]);
-
-  const persistLog = (next: DoseLog) => {
-    setLog(next);
-    if (user) localStorage.setItem(STORAGE_KEY(user.id), JSON.stringify(next));
-  };
+    return () => reminders.forEach(r => { cancelAlarm(`med:${r.id}`); cancelBackgroundNotification(`med:${user?.id}:${r.id}`); });
+  }, [reminders.map(r => r.id + r.remind_at).join("|"), user?.id]);
 
   const addReminder = async () => {
     if (!user || !drugName.trim()) return;
@@ -83,57 +98,60 @@ export default function MedicationChallenge() {
 
   const removeReminder = async (id: string) => {
     await supabase.from("drug_reminders").update({ is_active: false }).eq("id", id);
-    cancelAlarm(`med:${id}`);
+    cancelAlarm(`med:${id}`); cancelBackgroundNotification(`med:${user?.id}:${id}`);
     setReminders(rs => rs.filter(r => r.id !== id));
   };
 
-  const mark = (r: Reminder, status: "taken" | "missed") => {
-    const key = `${r.id}:${r.remind_at.slice(0,5)}`;
-    persistLog({ ...log, [key]: status });
+  const markDose = async (r: Reminder, status: "taken" | "missed") => {
+    if (!user) return;
+    const dose = doses.find(d => d.reminder_id === r.id);
+    const taken_at = status === "taken" ? new Date().toISOString() : null;
+    if (dose) {
+      await supabase.from("medication_doses").update({ status, taken_at }).eq("id", dose.id);
+    } else {
+      await supabase.from("medication_doses").insert({
+        user_id: user.id, reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage,
+        scheduled_at: todayAt(r.remind_at.slice(0,5)).toISOString(), status, taken_at, dose_change: 0,
+      });
+    }
+    await loadAll();
     toast({ title: status === "taken" ? "✅ Logged as taken" : "Marked missed" });
   };
 
-  const adjustDose = (r: Reminder, delta: number) => {
-    const k = `${r.id}:count`;
-    const cur = Number(log[k] ?? 0);
-    const next = Math.max(0, cur + delta);
-    persistLog({ ...log, [k]: String(next) as any });
+  const adjustDose = async (r: Reminder, delta: number) => {
+    if (!user) return;
+    const dose = doses.find(d => d.reminder_id === r.id);
+    if (dose) {
+      await supabase.from("medication_doses").update({ dose_change: dose.dose_change + delta }).eq("id", dose.id);
+    } else {
+      await supabase.from("medication_doses").insert({
+        user_id: user.id, reminder_id: r.id, drug_name: r.drug_name, dosage: r.dosage,
+        scheduled_at: todayAt(r.remind_at.slice(0,5)).toISOString(), status: "pending", dose_change: delta,
+      });
+    }
+    await loadAll();
   };
 
   const score = useMemo(() => {
     const total = reminders.length || 1;
-    let taken = 0, missed = 0;
-    reminders.forEach(r => {
-      const k = `${r.id}:${r.remind_at.slice(0,5)}`;
-      if (log[k] === "taken") taken++;
-      else if (log[k] === "missed" || todayAt(r.remind_at.slice(0,5)).getTime() < Date.now() - 60*60*1000) {
-        missed++;
-      }
-    });
+    const taken = doses.filter(d => d.status === "taken").length;
+    const missed = doses.filter(d => d.status === "missed").length;
     return { taken, missed, total, pct: Math.round((taken / total) * 100) };
-  }, [log, reminders]);
-
-  // Send daily summary notification on first load if any missed
-  useEffect(() => {
-    if (loading) return;
-    const hour = new Date().getHours();
-    if (hour >= 21 && score.missed > 0) {
-      showNotification("Medication summary", `You took ${score.taken}/${score.total} doses today.`);
-    }
-  }, [loading, score.taken, score.missed, score.total]);
+  }, [doses, reminders]);
 
   return (
     <div className="min-h-screen medical-background">
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center gap-4">
           <Button asChild variant="ghost" size="icon"><Link to="/health-challenges"><ArrowLeft className="h-5 w-5" /></Link></Button>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
             <div className="p-3 rounded-full bg-pink-500/10 border border-pink-500/20"><Pill className="h-6 w-6 text-pink-500" /></div>
             <div>
               <h1 className="text-2xl font-bold">Medication Tracker</h1>
               <p className="text-muted-foreground text-sm">Reminders, alarms & daily adherence score</p>
             </div>
           </div>
+          <Button asChild variant="outline" size="sm"><Link to="/health-challenges/medication/history"><History className="h-4 w-4 mr-1" /> History</Link></Button>
         </div>
 
         <Card>
@@ -144,7 +162,7 @@ export default function MedicationChallenge() {
               <Badge variant={score.pct >= 80 ? "default" : "secondary"}>{score.pct}%</Badge>
             </div>
             <Progress value={score.pct} className="h-2" />
-            <p className="text-xs text-muted-foreground">Taken: {score.taken} • Missed: {score.missed}. End-of-day notification will be sent.</p>
+            <p className="text-xs text-muted-foreground">Taken: {score.taken} • Missed: {score.missed}. Synced to your account.</p>
           </CardContent>
         </Card>
 
@@ -164,9 +182,7 @@ export default function MedicationChallenge() {
             {loading ? <p className="text-sm text-muted-foreground">Loading…</p> :
              reminders.length === 0 ? <p className="text-sm text-muted-foreground">No reminders yet — add your first medication above.</p> :
              reminders.map(r => {
-              const k = `${r.id}:${r.remind_at.slice(0,5)}`;
-              const status = log[k];
-              const count = Number(log[`${r.id}:count`] ?? 0);
+              const dose = doses.find(d => d.reminder_id === r.id);
               return (
                 <div key={r.id} className="border rounded-lg p-3 flex flex-wrap gap-3 items-center justify-between">
                   <div>
@@ -175,12 +191,12 @@ export default function MedicationChallenge() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" onClick={() => adjustDose(r, -1)}>-</Button>
-                    <span className="w-10 text-center text-sm">{count}</span>
+                    <span className="w-10 text-center text-sm">{dose?.dose_change ?? 0}</span>
                     <Button size="sm" variant="outline" onClick={() => adjustDose(r, 1)}>+</Button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant={status === "taken" ? "default" : "outline"} onClick={() => mark(r, "taken")}><Check className="w-4 h-4 mr-1" /> Taken</Button>
-                    <Button size="sm" variant={status === "missed" ? "destructive" : "outline"} onClick={() => mark(r, "missed")}><X className="w-4 h-4 mr-1" /> Miss</Button>
+                    <Button size="sm" variant={dose?.status === "taken" ? "default" : "outline"} onClick={() => markDose(r, "taken")}><Check className="w-4 h-4 mr-1" /> Taken</Button>
+                    <Button size="sm" variant={dose?.status === "missed" ? "destructive" : "outline"} onClick={() => markDose(r, "missed")}><X className="w-4 h-4 mr-1" /> Miss</Button>
                     <Button size="icon" variant="ghost" onClick={() => removeReminder(r.id)}><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </div>
@@ -190,7 +206,7 @@ export default function MedicationChallenge() {
         </Card>
 
         <p className="text-xs text-muted-foreground text-center">
-          Alarms ring while the app is open. Enable browser notifications when prompted to also receive system alerts.
+          Alarms ring while the app is open. On Chrome/Android PWA, scheduled notifications also fire when the app is closed. All data syncs to your account.
         </p>
       </div>
     </div>
