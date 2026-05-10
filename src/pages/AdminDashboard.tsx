@@ -282,6 +282,15 @@ const AdminDashboard = () => {
 
   const statCards = [
     {
+      title: "Total Users",
+      value: stats?.totalUsers || 0,
+      subtitle: "All accounts",
+      icon: Users,
+      color: "from-cyan-500/20 to-cyan-600/10",
+      iconColor: "text-cyan-500",
+      borderColor: "border-cyan-500/20",
+    },
+    {
       title: "Total Doctors",
       value: stats?.totalDoctors || 0,
       subtitle: "All registered",
