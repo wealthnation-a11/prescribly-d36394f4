@@ -217,6 +217,8 @@ const App = () => (
                     <Route path="/health-challenges/mindfulness" element={<PatientRoute><MindfulnessChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/medication" element={<PatientRoute><MedicationChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/medication/history" element={<PatientRoute><MedicationAdherenceHistory /></PatientRoute>} />
+                    <Route path="/eod-summary" element={<PatientRoute><EODSummary /></PatientRoute>} />
+                    <Route path="/alarm-settings" element={<ProtectedRoute><NotificationAlarmSettings /></ProtectedRoute>} />
                     <Route path="/gamification-profile" element={<PatientRoute><GamificationProfile /></PatientRoute>} />
                     <Route path="/health-trends" element={<PatientRoute><HealthTrendsDashboard /></PatientRoute>} />
                     <Route path="/chat" element={<PatientRoute><Chat /></PatientRoute>} />
