@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import HydrationSchedule from '@/components/wellness/HydrationSchedule';
+import HydrationTimeline from '@/components/wellness/HydrationTimeline';
 
 interface HydrationLog {
   id: string;
