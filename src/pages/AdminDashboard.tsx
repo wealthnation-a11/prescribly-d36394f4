@@ -365,7 +365,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-8" data-tour="stats">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4 mb-8" data-tour="stats">
               {statCards.map((stat, index) => (
                 <Card 
                   key={stat.title}
