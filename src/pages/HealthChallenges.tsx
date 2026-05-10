@@ -306,6 +306,14 @@ const HealthChallenges = () => {
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
             Join weekly challenges, track your progress, compete with others, and earn points for healthy habits
           </p>
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
+            <Button variant="outline" size="sm" onClick={() => navigate('/eod-summary')}>
+              <TrendingUp className="w-4 h-4 mr-2" /> End-of-day summary
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/alarm-settings')}>
+              <Clock className="w-4 h-4 mr-2" /> Alarm settings
+            </Button>
+          </div>
         </div>
 
         {/* Points Display */}

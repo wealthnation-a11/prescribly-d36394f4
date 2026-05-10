@@ -282,6 +282,15 @@ const AdminDashboard = () => {
 
   const statCards = [
     {
+      title: "Total Users",
+      value: stats?.totalUsers || 0,
+      subtitle: "All accounts",
+      icon: Users,
+      color: "from-cyan-500/20 to-cyan-600/10",
+      iconColor: "text-cyan-500",
+      borderColor: "border-cyan-500/20",
+    },
+    {
       title: "Total Doctors",
       value: stats?.totalDoctors || 0,
       subtitle: "All registered",
@@ -356,7 +365,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-8" data-tour="stats">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4 mb-8" data-tour="stats">
               {statCards.map((stat, index) => (
                 <Card 
                   key={stat.title}

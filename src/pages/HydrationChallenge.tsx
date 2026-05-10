@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import HydrationSchedule from '@/components/wellness/HydrationSchedule';
+import HydrationTimeline from '@/components/wellness/HydrationTimeline';
 
 interface HydrationLog {
   id: string;
@@ -229,6 +230,9 @@ const HydrationChallenge = () => {
           </div>
         )}
 
+        <div className="max-w-2xl mx-auto mb-4">
+          <HydrationTimeline />
+        </div>
         <div className="max-w-2xl mx-auto mb-8">
           <HydrationSchedule />
         </div>

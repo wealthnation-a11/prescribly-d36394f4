@@ -55,6 +55,8 @@ const SleepChallenge = lazy(() => import("./pages/SleepChallenge"));
 const MindfulnessChallenge = lazy(() => import("./pages/MindfulnessChallenge"));
 const MedicationChallenge = lazy(() => import("./pages/MedicationChallenge"));
 const MedicationAdherenceHistory = lazy(() => import("./pages/MedicationAdherenceHistory"));
+const EODSummary = lazy(() => import("./pages/EODSummary"));
+const NotificationAlarmSettings = lazy(() => import("./pages/NotificationAlarmSettings"));
 const GamificationProfile = lazy(() => import("./pages/GamificationProfile"));
 const HealthTrendsDashboard = lazy(() => import("./pages/HealthTrendsDashboard"));
 const MyPrescriptions = lazy(() => import("./pages/MyPrescriptions"));
@@ -215,6 +217,8 @@ const App = () => (
                     <Route path="/health-challenges/mindfulness" element={<PatientRoute><MindfulnessChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/medication" element={<PatientRoute><MedicationChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/medication/history" element={<PatientRoute><MedicationAdherenceHistory /></PatientRoute>} />
+                    <Route path="/eod-summary" element={<PatientRoute><EODSummary /></PatientRoute>} />
+                    <Route path="/alarm-settings" element={<ProtectedRoute><NotificationAlarmSettings /></ProtectedRoute>} />
                     <Route path="/gamification-profile" element={<PatientRoute><GamificationProfile /></PatientRoute>} />
                     <Route path="/health-trends" element={<PatientRoute><HealthTrendsDashboard /></PatientRoute>} />
                     <Route path="/chat" element={<PatientRoute><Chat /></PatientRoute>} />

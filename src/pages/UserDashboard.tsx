@@ -47,6 +47,8 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRealtimeAppointments } from "@/hooks/useRealtimeAppointments";
 
+import { useEndOfDaySummary } from "@/hooks/useEndOfDaySummary";
+
 export const UserDashboard = () => {
   const { user, userProfile } = useAuth();
   const { role } = useUserRole();
@@ -55,6 +57,7 @@ export const UserDashboard = () => {
   const [searchParams] = useSearchParams();
   const [runTour, setRunTour] = useState(false);
   const [showRenewalCelebration, setShowRenewalCelebration] = useState(false);
+  useEndOfDaySummary();
   
   // Real-time subscriptions
   useRealtimeAppointments('patient');
