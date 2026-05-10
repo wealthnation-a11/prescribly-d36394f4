@@ -230,6 +230,9 @@ const HydrationChallenge = () => {
           </div>
         )}
 
+        <div className="max-w-2xl mx-auto mb-4">
+          <HydrationTimeline />
+        </div>
         <div className="max-w-2xl mx-auto mb-8">
           <HydrationSchedule />
         </div>
