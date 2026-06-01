@@ -294,6 +294,19 @@ html[dir="rtl"] .rtl\:ml-auto {
     --doctor-sidebar-hover-messages: 262 83% 65%;
     --doctor-sidebar-hover-availability: 25 95% 65%;
     --doctor-sidebar-hover-earnings: 173 71% 55%;
+
+    /* Women's Health dark mode */
+    --wh-pink: 335 90% 70%;
+    --wh-pink-soft: 335 40% 18%;
+    --wh-pink-deep: 335 90% 60%;
+    --wh-blue: 217 100% 65%;
+    --wh-blue-soft: 217 40% 18%;
+    --wh-purple: 270 70% 70%;
+    --wh-purple-soft: 270 40% 18%;
+    --wh-green: 142 60% 60%;
+    --wh-green-soft: 142 40% 18%;
+    --wh-bg: 222 47% 8%;
+    --wh-card: 222 30% 12%;
   }
 }
 
