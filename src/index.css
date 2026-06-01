@@ -193,6 +193,24 @@ html[dir="rtl"] .rtl\:ml-auto {
     --doctor-sidebar-hover-messages: 262 83% 45%;
     --doctor-sidebar-hover-availability: 25 95% 45%;
     --doctor-sidebar-hover-earnings: 173 71% 35%;
+
+    /* Women's Health Module Tokens */
+    --wh-pink: 335 100% 72%;          /* #FF6FAE */
+    --wh-pink-soft: 340 100% 96%;
+    --wh-pink-deep: 335 80% 55%;
+    --wh-blue: 217 100% 50%;          /* #0066FF Prescribly Blue */
+    --wh-blue-soft: 217 100% 96%;
+    --wh-purple: 270 70% 65%;         /* Ovulation */
+    --wh-purple-soft: 270 70% 96%;
+    --wh-green: 142 60% 55%;          /* Fertile */
+    --wh-green-soft: 142 60% 95%;
+    --wh-bg: 210 25% 97%;             /* #F5F7FA */
+    --wh-card: 0 0% 100%;
+    --gradient-wh-hero: linear-gradient(135deg, hsl(var(--wh-pink-soft)) 0%, hsl(var(--wh-blue-soft)) 100%);
+    --gradient-wh-pink: linear-gradient(135deg, hsl(var(--wh-pink)) 0%, hsl(var(--wh-pink-deep)) 100%);
+    --gradient-wh-blue-pink: linear-gradient(135deg, hsl(var(--wh-blue)) 0%, hsl(var(--wh-pink)) 100%);
+    --shadow-wh-card: 0 8px 24px -8px hsl(var(--wh-pink) / 0.18);
+    --shadow-wh-soft: 0 2px 12px -2px hsl(220 30% 50% / 0.08);
   }
 
   .dark {
