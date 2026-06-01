@@ -63,6 +63,19 @@ export default {
 				success: {
 					green: 'hsl(var(--success-green))'
 				},
+				wh: {
+					pink: 'hsl(var(--wh-pink))',
+					'pink-soft': 'hsl(var(--wh-pink-soft))',
+					'pink-deep': 'hsl(var(--wh-pink-deep))',
+					blue: 'hsl(var(--wh-blue))',
+					'blue-soft': 'hsl(var(--wh-blue-soft))',
+					purple: 'hsl(var(--wh-purple))',
+					'purple-soft': 'hsl(var(--wh-purple-soft))',
+					green: 'hsl(var(--wh-green))',
+					'green-soft': 'hsl(var(--wh-green-soft))',
+					bg: 'hsl(var(--wh-bg))',
+					card: 'hsl(var(--wh-card))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
