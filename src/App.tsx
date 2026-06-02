@@ -57,6 +57,7 @@ const MedicationChallenge = lazy(() => import("./pages/MedicationChallenge"));
 const MedicationAdherenceHistory = lazy(() => import("./pages/MedicationAdherenceHistory"));
 const EODSummary = lazy(() => import("./pages/EODSummary"));
 const NotificationAlarmSettings = lazy(() => import("./pages/NotificationAlarmSettings"));
+const WomensHealth = lazy(() => import("./pages/WomensHealth"));
 const GamificationProfile = lazy(() => import("./pages/GamificationProfile"));
 const HealthTrendsDashboard = lazy(() => import("./pages/HealthTrendsDashboard"));
 const MyPrescriptions = lazy(() => import("./pages/MyPrescriptions"));
@@ -220,6 +221,7 @@ const App = () => (
                     <Route path="/eod-summary" element={<PatientRoute><EODSummary /></PatientRoute>} />
                     <Route path="/alarm-settings" element={<ProtectedRoute><NotificationAlarmSettings /></ProtectedRoute>} />
                     <Route path="/gamification-profile" element={<PatientRoute><GamificationProfile /></PatientRoute>} />
+                    <Route path="/womens-health/*" element={<PatientRoute><WomensHealth /></PatientRoute>} />
                     <Route path="/health-trends" element={<PatientRoute><HealthTrendsDashboard /></PatientRoute>} />
                     <Route path="/chat" element={<PatientRoute><Chat /></PatientRoute>} />
                     <Route path="/book-appointment" element={<PatientRoute><BookingModeSelector /></PatientRoute>} />

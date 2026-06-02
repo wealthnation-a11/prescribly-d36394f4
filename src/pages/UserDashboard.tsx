@@ -24,7 +24,8 @@ import {
   Brain,
   Trophy,
   Crown,
-  HelpCircle
+  HelpCircle,
+  Flower2
 } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
@@ -103,6 +104,14 @@ export const UserDashboard = () => {
       href: "/health-challenges",
       variant: "outline" as const,
       color: "text-yellow-600"
+    },
+    {
+      title: "Women's Health",
+      description: "Cycle tracking, fertility insights, and pregnancy journey — built for you.",
+      icon: Flower2,
+      href: "/womens-health",
+      variant: "outline" as const,
+      color: "text-pink-500"
     },
     {
       title: "Chat with Doctors",
