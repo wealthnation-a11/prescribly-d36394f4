@@ -57,6 +57,7 @@ const MedicationChallenge = lazy(() => import("./pages/MedicationChallenge"));
 const MedicationAdherenceHistory = lazy(() => import("./pages/MedicationAdherenceHistory"));
 const EODSummary = lazy(() => import("./pages/EODSummary"));
 const NotificationAlarmSettings = lazy(() => import("./pages/NotificationAlarmSettings"));
+const WomensHealth = lazy(() => import("./pages/WomensHealth"));
 const GamificationProfile = lazy(() => import("./pages/GamificationProfile"));
 const HealthTrendsDashboard = lazy(() => import("./pages/HealthTrendsDashboard"));
 const MyPrescriptions = lazy(() => import("./pages/MyPrescriptions"));
