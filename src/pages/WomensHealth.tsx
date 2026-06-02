@@ -674,16 +674,72 @@ const BabyGrowthTimeline = () => {
 };
 
 // ────────────────────────────────────────────────────────────────────────────
+// ENTRY — 3-option chooser
+const WHEntry = () => {
+  const navigate = useNavigate();
+  const tiles = [
+    { label: "Cycle Tracking", desc: "Period, ovulation & fertile window", Icon: Flower2, to: "/womens-health/home", grad: "linear-gradient(135deg, hsl(var(--wh-pink)/.18), hsl(var(--wh-pink)/.05))", color: "wh-pink" },
+    { label: "Pregnancy", desc: "Week-by-week journey & milestones", Icon: Heart, to: "/womens-health/pregnancy", grad: "linear-gradient(135deg, hsl(var(--wh-purple)/.18), hsl(var(--wh-purple)/.05))", color: "wh-purple" },
+    { label: "Baby Growth", desc: "Size, development & timeline", Icon: Baby, to: "/womens-health/pregnancy/baby-growth", grad: "linear-gradient(135deg, hsl(var(--wh-blue)/.18), hsl(var(--wh-blue)/.05))", color: "wh-blue" },
+  ];
+  return (
+    <WHLayout title="Women's Health">
+      <p className="text-sm text-muted-foreground mb-4">Choose where you want to begin.</p>
+      <div className="space-y-3">
+        {tiles.map((t, i) => (
+          <motion.div
+            key={t.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08, duration: 0.35 }}
+          >
+            <Card
+              onClick={() => navigate(t.to)}
+              className="p-5 cursor-pointer border-0 shadow-[var(--shadow-wh-card)] active:scale-[0.99] transition-transform"
+              style={{ background: t.grad }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-2xl bg-card grid place-items-center shadow-[var(--shadow-wh-soft)]">
+                  <t.Icon className={`h-7 w-7 text-[hsl(var(--${t.color}))]`} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-base">{t.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
+                </div>
+                <ChevronRight className={`h-5 w-5 text-[hsl(var(--${t.color}))]`} />
+              </div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </WHLayout>
+  );
+};
+
+// Pregnancy entry — routes to onboarding or pregnancy home based on profile state
+const PregnancyEntry = () => {
+  const { profile: preg, loading } = usePregnancyProfile();
+  const { save } = useWomensProfile();
+  if (loading) return <WHLayout><Card className="h-48 animate-pulse" /></WHLayout>;
+  if (!preg?.lmp_date && !preg?.due_date) {
+    save({ mode: "pregnancy" }).catch(() => {});
+    return <Navigate to="/womens-health/pregnancy/onboarding" replace />;
+  }
+  return <PregnancyHome />;
+};
+
 // Router
 const WomensHealth = () => (
   <Routes>
-    <Route index element={<WHHome />} />
+    <Route index element={<WHEntry />} />
+    <Route path="home" element={<WHHome />} />
     <Route path="calendar" element={<WHCalendar />} />
     <Route path="insights" element={<Insights />} />
     <Route path="logs" element={<DailyLogPage />} />
     <Route path="profile" element={<WHProfile />} />
     <Route path="log-period" element={<LogPeriod />} />
     <Route path="fertility" element={<Fertility />} />
+    <Route path="pregnancy" element={<PregnancyEntry />} />
     <Route path="pregnancy/onboarding" element={<PregnancyOnboarding />} />
     <Route path="pregnancy/baby-growth" element={<BabyGrowthTimeline />} />
   </Routes>
