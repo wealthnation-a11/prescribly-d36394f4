@@ -1,4 +1,4 @@
-import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain, HelpCircle, Trophy, Target } from "lucide-react";
+import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain, HelpCircle, Trophy, Target, Flower2 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
