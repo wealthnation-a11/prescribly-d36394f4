@@ -24,7 +24,8 @@ import {
   Brain,
   Trophy,
   Crown,
-  HelpCircle
+  HelpCircle,
+  Flower2
 } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
