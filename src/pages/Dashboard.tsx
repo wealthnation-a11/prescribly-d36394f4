@@ -26,20 +26,9 @@ const Dashboard = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // If no role assigned, show error
+  // If role hasn't synced yet, default to the patient dashboard instead of an error screen
   if (!role) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="text-6xl text-slate-400 mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Role Not Assigned</h1>
-          <p className="text-slate-600 mb-4">Your role is not assigned. Please contact support.</p>
-          <a href="/" className="text-primary hover:underline">
-            Go back to home
-          </a>
-        </div>
-      </div>
-    );
+    return <Navigate to="/user-dashboard" replace />;
   }
 
   // Redirect based on role
