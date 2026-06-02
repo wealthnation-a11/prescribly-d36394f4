@@ -106,6 +106,14 @@ export const UserDashboard = () => {
       color: "text-yellow-600"
     },
     {
+      title: "Women's Health",
+      description: "Cycle tracking, fertility insights, and pregnancy journey — built for you.",
+      icon: Flower2,
+      href: "/womens-health",
+      variant: "outline" as const,
+      color: "text-pink-500"
+    },
+    {
       title: "Chat with Doctors",
       description: "Connect with healthcare professionals instantly.",
       icon: MessageCircle,
