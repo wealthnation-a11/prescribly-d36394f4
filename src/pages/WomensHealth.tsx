@@ -1,14 +1,13 @@
 import { useMemo, useState } from "react";
-import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Droplet, Moon, Smile, Activity, Plus, Minus, Heart, Flower2, Baby,
-  Calendar as CalIcon, ChevronLeft, ChevronRight, Sparkles, Check,
+  Calendar as CalIcon, ChevronLeft, ChevronRight, Sparkles, Zap,
+  Bell, MoreVertical, Info, Share2, ClipboardList, Apple, CheckSquare,
 } from "lucide-react";
-import { addDays, format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfWeek, endOfWeek } from "date-fns";
-import {
-  LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, CartesianGrid,
-} from "recharts";
+import { addDays, format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfWeek, endOfWeek, isToday } from "date-fns";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, CartesianGrid, ReferenceDot } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,13 +27,40 @@ import WHLayout from "@/components/womens-health/WHLayout";
 import { useQuery } from "@tanstack/react-query";
 
 // ────────────────────────────────────────────────────────────────────────────
+// Inline top tab strip used at the top of each main page
+const TopTabs = ({ tabs }: { tabs: { to: string; label: string; end?: boolean }[] }) => (
+  <div className="-mx-4 px-4 border-b border-border/60 mb-4 overflow-x-auto no-scrollbar">
+    <div className="flex gap-6 min-w-max">
+      {tabs.map(t => (
+        <NavLink
+          key={t.to}
+          to={t.to}
+          end={t.end}
+          className={({ isActive }) =>
+            `relative pb-2.5 pt-1 text-[15px] font-medium transition-colors ${
+              isActive ? "text-wh-pink" : "text-muted-foreground"
+            }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              {t.label}
+              {isActive && <motion.span layoutId="wh-tab-underline" className="absolute left-0 right-0 -bottom-px h-[3px] rounded-full bg-wh-pink" />}
+            </>
+          )}
+        </NavLink>
+      ))}
+    </div>
+  </div>
+);
+
 // Reusable ring
-const Ring = ({ pct, color, children, size = 200 }: { pct: number; color: string; children: React.ReactNode; size?: number }) => {
-  const r = size / 2 - 14;
+const Ring = ({ pct, color, children, size = 200, track = "hsl(var(--muted))" }: { pct: number; color: string; children: React.ReactNode; size?: number; track?: string }) => {
+  const r = size / 2 - 12;
   const c = 2 * Math.PI * r;
   return (
     <svg width={size} height={size} className="overflow-visible">
-      <circle cx={size / 2} cy={size / 2} r={r} stroke="hsl(var(--muted))" strokeWidth={10} fill="none" />
+      <circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={10} fill="none" />
       <motion.circle
         cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={10} strokeLinecap="round" fill="none"
         strokeDasharray={c}
@@ -43,58 +69,65 @@ const Ring = ({ pct, color, children, size = 200 }: { pct: number; color: string
         transition={{ duration: 1, ease: "easeOut" }}
         style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%" }}
       />
+      <circle cx={size / 2 + r * Math.cos(((pct / 100) * 360 - 90) * Math.PI / 180)} cy={size / 2 + r * Math.sin(((pct / 100) * 360 - 90) * Math.PI / 180)} r={6} fill={color} />
       <foreignObject x={0} y={0} width={size} height={size}>
-        <div className="w-full h-full flex flex-col items-center justify-center text-center">{children}</div>
+        <div className="w-full h-full flex flex-col items-center justify-center text-center px-4">{children}</div>
       </foreignObject>
     </svg>
   );
 };
 
 // ────────────────────────────────────────────────────────────────────────────
-// HOME
-const WHHome = () => {
-  const { user, userProfile } = useAuth();
-  const { profile, loading, save } = useWomensProfile();
-  const { profile: preg } = usePregnancyProfile();
+// PERIOD TRACKING — OVERVIEW
+const PERIOD_TABS = [
+  { to: "/womens-health/home", label: "Overview", end: true },
+  { to: "/womens-health/home/calendar", label: "Calendar" },
+  { to: "/womens-health/home/insights", label: "Insights" },
+  { to: "/womens-health/home/history", label: "History" },
+];
+
+const PeriodOverview = () => {
+  const { user } = useAuth();
+  const { profile, loading } = useWomensProfile();
   const navigate = useNavigate();
 
-  if (loading) return <WHLayout><div className="space-y-3"><Card className="h-48 animate-pulse" /><Card className="h-24 animate-pulse" /></div></WHLayout>;
+  if (loading) return <WHLayout title="Period Tracking"><Card className="h-48 animate-pulse" /></WHLayout>;
+  if (!profile?.last_period_start) return <WHOnboarding onSaved={() => navigate("/womens-health/home")} />;
 
-  // Onboarding (no last period, no pregnancy)
-  if (!profile?.last_period_start && profile?.mode !== "pregnancy") {
-    return <WHOnboarding onSaved={() => navigate("/womens-health")} />;
-  }
-
-  if (profile?.mode === "pregnancy") return <PregnancyHome />;
-
-  const cycle = computeCycle(profile!.last_period_start!, profile!.avg_cycle_length, profile!.avg_period_length);
-  const first = (userProfile as any)?.first_name || "there";
+  const cycle = computeCycle(profile.last_period_start, profile.avg_cycle_length, profile.avg_period_length);
+  const pct = (cycle.cycleDay / cycle.cycleLength) * 100;
 
   return (
-    <WHLayout>
-      <p className="text-sm text-muted-foreground">Good morning,</p>
-      <h2 className="text-2xl font-bold mb-4">{first} <span className="text-wh-pink">🌸</span></h2>
+    <WHLayout title="Period Tracking" rightAction={<button className="p-2 rounded-full hover:bg-muted"><MoreVertical className="h-5 w-5 text-foreground/70" /></button>}>
+      <TopTabs tabs={PERIOD_TABS} />
 
-      {/* Current cycle */}
-      <Card className="p-5 mb-4 border-0 shadow-[var(--shadow-wh-card)]" style={{ background: "var(--gradient-wh-hero)" }}>
+      {/* Hero */}
+      <Card className="p-5 mb-4 border-0 shadow-[var(--shadow-wh-card)] overflow-hidden relative" style={{ background: "var(--gradient-wh-hero)" }}>
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-xs text-foreground/70">Current Cycle</p>
-            <p className="text-3xl font-extrabold leading-none">Day {cycle.cycleDay} <span className="text-base font-medium text-foreground/60">of {cycle.cycleLength}</span></p>
-            <p className="text-wh-pink-deep font-semibold mt-2">{cycle.daysUntilOvulation > 0 ? `Ovulation in ${cycle.daysUntilOvulation} days` : cycle.status === "ovulation" ? "Ovulation today" : statusLabel(cycle.status)}</p>
+            <p className="text-sm font-medium text-foreground/80">Current Cycle</p>
+            <p className="text-[40px] font-extrabold leading-none">Day {cycle.cycleDay} <span className="text-base font-medium text-foreground/60">of {cycle.cycleLength}</span></p>
+            <p className="text-wh-pink-deep font-bold mt-2 text-base">
+              {cycle.status === "period" ? "Period day" :
+               cycle.status === "ovulation" ? "Ovulation today" :
+               cycle.daysUntilOvulation > 0 ? `Ovulation in ${cycle.daysUntilOvulation} days` :
+               `Next period in ${cycle.daysUntilNextPeriod} days`}
+            </p>
             <p className="text-sm text-foreground/70">{statusLabel(cycle.status)}</p>
-            <Button onClick={() => navigate("/womens-health/log-period")} className="mt-3 bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full">Log Today's Symptoms</Button>
+            <Button onClick={() => navigate("/womens-health/log-period")} className="mt-4 bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full px-6">
+              Log Period
+            </Button>
           </div>
-          <Ring pct={(cycle.cycleDay / cycle.cycleLength) * 100} color="hsl(var(--wh-pink))">
+          <Ring pct={pct} color="hsl(var(--wh-pink))" size={150} track="hsl(var(--wh-pink)/0.15)">
             <Flower2 className="h-7 w-7 text-wh-pink mb-1" />
-            <p className="text-xs font-semibold leading-tight">{statusLabel(cycle.status)}</p>
+            <p className="text-[11px] font-semibold leading-tight">{statusLabel(cycle.status)}</p>
           </Ring>
         </div>
       </Card>
 
       {/* Next period */}
       <Card className="p-4 mb-4 shadow-[var(--shadow-wh-soft)]">
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className="grid grid-cols-[1.2fr_1fr_1fr_auto] gap-3 items-center">
           <div>
             <p className="text-xs text-muted-foreground">Next Period</p>
             <p className="text-wh-pink font-bold text-base">{format(cycle.nextPeriod, "d MMM yyyy")}</p>
@@ -102,99 +135,314 @@ const WHHome = () => {
           </div>
           <div className="border-l border-border pl-3">
             <p className="text-xs text-muted-foreground">Cycle Length</p>
-            <p className="font-bold">{cycle.cycleLength} Days</p>
+            <p className="font-bold"><span className="text-base">{cycle.cycleLength}</span> Days</p>
           </div>
           <div className="border-l border-border pl-3">
             <p className="text-xs text-muted-foreground">Period Length</p>
-            <p className="font-bold">{cycle.periodLength} Days</p>
-          </div>
-        </div>
-      </Card>
-
-      {/* Quick actions */}
-      <h3 className="text-sm font-semibold mb-2">Quick Actions</h3>
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {[
-          { label: "Period", to: "/womens-health/log-period", Icon: Droplet, color: "wh-pink" },
-          { label: "Mood", to: "/womens-health/logs", Icon: Smile, color: "wh-purple" },
-          { label: "Symptoms", to: "/womens-health/log-period", Icon: Sparkles, color: "wh-pink-deep" },
-          { label: "Weight", to: "/womens-health/logs", Icon: Activity, color: "wh-blue" },
-          { label: "Sleep", to: "/womens-health/logs", Icon: Moon, color: "wh-purple" },
-          { label: "Water", to: "/womens-health/logs", Icon: Droplet, color: "wh-blue" },
-        ].map(a => (
-          <Link key={a.label} to={a.to} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-card border hover:shadow-[var(--shadow-wh-card)] transition-all">
-            <a.Icon className={`h-5 w-5 mb-1 text-[hsl(var(--${a.color}))]`} />
-            <span className="text-[11px] font-medium">{a.label}</span>
-          </Link>
-        ))}
-      </div>
-
-      {/* Today's summary */}
-      <TodaysSummary />
-
-      {/* Fertility entry */}
-      <Card className="p-4 mt-4 cursor-pointer hover:shadow-[var(--shadow-wh-card)]" onClick={() => navigate("/womens-health/fertility")}>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full grid place-items-center bg-wh-pink-soft"><Heart className="h-5 w-5 text-wh-pink" /></div>
-          <div className="flex-1">
-            <p className="font-semibold text-sm">Fertility Tracker</p>
-            <p className="text-xs text-muted-foreground">Ovulation, fertile window & conception chart</p>
+            <p className="font-bold"><span className="text-base">{cycle.periodLength}</span> Days</p>
           </div>
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </div>
       </Card>
 
-      <Card className="p-4 mt-2 cursor-pointer hover:shadow-[var(--shadow-wh-card)]" onClick={() => save({ mode: "pregnancy" }).then(() => navigate("/womens-health/pregnancy/onboarding"))}>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full grid place-items-center bg-wh-purple-soft"><Baby className="h-5 w-5 text-wh-purple" /></div>
-          <div className="flex-1">
-            <p className="font-semibold text-sm">I'm pregnant</p>
-            <p className="text-xs text-muted-foreground">Switch to pregnancy journey</p>
-          </div>
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </Card>
+      {/* Inline mini-calendar */}
+      <MiniCalendar />
+
+      {/* Today's Log */}
+      <TodaysLogRow />
     </WHLayout>
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────
-// Today's summary widget — reads daily_health_logs
-const TodaysSummary = () => {
+const MiniCalendar = () => {
+  const { profile } = useWomensProfile();
+  const [month, setMonth] = useState(new Date());
+  const days = useMemo(() => eachDayOfInterval({ start: startOfWeek(startOfMonth(month)), end: endOfWeek(endOfMonth(month)) }), [month]);
+  const cycle = profile?.last_period_start ? computeCycle(profile.last_period_start, profile.avg_cycle_length, profile.avg_period_length, month) : null;
+
+  const cls = (d: Date) => {
+    if (!cycle) return { wrap: "", text: "" };
+    const periodEnd = addDays(cycle.cycleStart, cycle.periodLength - 1);
+    const nextPeriodEnd = addDays(cycle.nextPeriod, cycle.periodLength - 1);
+    const isPeriod = (d >= cycle.cycleStart && d <= periodEnd) || (d >= cycle.nextPeriod && d <= nextPeriodEnd);
+    const isOvulation = isSameDay(d, cycle.ovulationDate);
+    const inFertile = d >= cycle.fertileStart && d <= cycle.fertileEnd && !isOvulation;
+    const isExpectedOvulation = isOvulation && d > new Date();
+    if (isExpectedOvulation) return { wrap: "border-2 border-dashed border-wh-green", text: "text-foreground" };
+    if (isOvulation) return { wrap: "bg-wh-purple", text: "text-white" };
+    if (isPeriod) return { wrap: "bg-wh-pink/80", text: "text-white" };
+    if (inFertile) return { wrap: "bg-wh-green/25", text: "text-wh-green" };
+    return { wrap: "", text: "" };
+  };
+
+  return (
+    <Card className="p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="font-bold text-base">{format(month, "MMMM yyyy")}</p>
+        <div className="flex gap-1">
+          <button onClick={() => setMonth(addDays(startOfMonth(month), -1))} className="p-1.5 rounded-full hover:bg-muted"><ChevronLeft className="h-4 w-4" /></button>
+          <button onClick={() => setMonth(addDays(endOfMonth(month), 1))} className="p-1.5 rounded-full hover:bg-muted"><ChevronRight className="h-4 w-4" /></button>
+        </div>
+      </div>
+      <div className="grid grid-cols-7 text-[10px] text-muted-foreground text-center mb-1 font-medium">
+        {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(d => <div key={d}>{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {days.map(d => {
+          const c = cls(d);
+          return (
+            <div key={d.toISOString()} className={`aspect-square rounded-full grid place-items-center text-sm font-medium ${isSameMonth(d, month) ? "" : "text-muted-foreground/40"} ${c.wrap} ${c.text}`}>
+              {format(d, "d")}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-[11px]">
+        <Legend dotClass="bg-wh-pink" label="Period" />
+        <Legend dotClass="bg-wh-green/60" label="Fertile Window" />
+        <Legend dotClass="bg-wh-purple" label="Ovulation" />
+        <Legend dotClass="border-2 border-dashed border-wh-green bg-transparent" label="Expected Ovulation" />
+      </div>
+    </Card>
+  );
+};
+const Legend = ({ dotClass, label }: { dotClass: string; label: string }) => (
+  <div className="flex items-center gap-1.5"><span className={`h-2.5 w-2.5 rounded-full ${dotClass}`} />{label}</div>
+);
+
+const TodaysLogRow = () => {
   const { user } = useAuth();
   const today = format(new Date(), "yyyy-MM-dd");
-  const { data: log } = useQuery({
+  const { data: dhl } = useQuery({
     queryKey: ["wh-dhl", user?.id, today],
     enabled: !!user,
-    queryFn: async () => {
-      const { data } = await (supabase as any).from("daily_health_logs").select("*").eq("user_id", user!.id).eq("log_date", today).maybeSingle();
-      return data;
-    },
+    queryFn: async () => (await (supabase as any).from("daily_health_logs").select("*").eq("user_id", user!.id).eq("log_date", today).maybeSingle()).data,
   });
-  const items = [
-    { label: "Sleep", value: log?.sleep_hours ? `${log.sleep_hours}h` : "—", Icon: Moon, color: "wh-purple" },
-    { label: "Water", value: log?.water_glasses ? `${log.water_glasses}` : "—", Icon: Droplet, color: "wh-blue" },
-    { label: "Mood", value: log?.mood ?? "—", Icon: Smile, color: "wh-pink" },
-    { label: "Energy", value: log?.energy ?? "—", Icon: Activity, color: "wh-green" },
+  const { data: pl } = useQuery({
+    queryKey: ["wh-pl", user?.id, today],
+    enabled: !!user,
+    queryFn: async () => (await (supabase as any).from("period_logs").select("*").eq("user_id", user!.id).eq("log_date", today).maybeSingle()).data,
+  });
+
+  const tiles = [
+    { label: "Flow", value: pl?.flow ?? "—", Icon: Droplet, tone: "text-wh-pink" },
+    { label: "Mood", value: dhl?.mood ?? pl?.mood ?? "—", Icon: Smile, tone: "text-wh-purple" },
+    { label: "Energy", value: dhl?.energy ?? "—", Icon: Zap, tone: "text-wh-blue" },
+    { label: "Sleep", value: dhl?.sleep_hours ? `${dhl.sleep_hours}h` : "—", Icon: Moon, tone: "text-wh-orange" },
+    { label: "Symptoms", value: pl?.symptoms?.length ? `${pl.symptoms.length}` : "—", Icon: Activity, tone: "text-wh-green" },
   ];
+
   return (
-    <Card className="p-4">
-      <p className="font-semibold text-sm mb-3">Today's Health Summary</p>
-      <div className="grid grid-cols-4 gap-2">
-        {items.map(i => (
-          <div key={i.label} className="text-center">
-            <i.Icon className={`h-5 w-5 mx-auto mb-1 text-[hsl(var(--${i.color}))]`} />
-            <p className="text-[11px] text-muted-foreground">{i.label}</p>
-            <p className="text-sm font-semibold">{i.value}</p>
+    <Card className="p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="font-bold">Today's Log</p>
+        <Link to="/womens-health/logs" className="text-xs text-wh-pink font-semibold border border-wh-pink rounded-full px-3 py-1 flex items-center gap-1"><Plus className="h-3 w-3" />Log Now</Link>
+      </div>
+      <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
+        {tiles.map(t => (
+          <div key={t.label} className="flex-shrink-0 w-[68px] rounded-2xl border bg-card p-3 flex flex-col items-center gap-1.5">
+            <t.Icon className={`h-6 w-6 ${t.tone}`} />
+            <p className="text-[11px] font-semibold leading-none">{t.label}</p>
+            <p className="text-[10px] text-muted-foreground capitalize text-center leading-tight truncate w-full">{t.value}</p>
           </div>
         ))}
+        <Link to="/womens-health/logs" className="flex-shrink-0 w-[68px] rounded-2xl border-2 border-dashed border-border bg-card/40 p-3 flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+          <Plus className="h-5 w-5" />
+          <p className="text-[11px] font-medium">Add Note</p>
+        </Link>
       </div>
     </Card>
   );
 };
 
+// CALENDAR / INSIGHTS / HISTORY pages for Period section
+const PeriodCalendarPage = () => (
+  <WHLayout title="Period Tracking"><TopTabs tabs={PERIOD_TABS} /><MiniCalendar /></WHLayout>
+);
+
+const PeriodHistory = () => {
+  const { user } = useAuth();
+  const { data: logs = [] } = useQuery({
+    queryKey: ["period-history", user?.id],
+    enabled: !!user,
+    queryFn: async () => (await (supabase as any).from("period_logs").select("*").eq("user_id", user!.id).order("log_date", { ascending: false }).limit(60)).data ?? [],
+  });
+  return (
+    <WHLayout title="Period Tracking">
+      <TopTabs tabs={PERIOD_TABS} />
+      {logs.length === 0 ? (
+        <Card className="p-6 text-center text-sm text-muted-foreground">No period logs yet. Tap <span className="text-wh-pink font-semibold">Log Period</span> to start.</Card>
+      ) : (
+        <div className="space-y-2">
+          {logs.map((l: any) => (
+            <Card key={l.id} className="p-3 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-wh-pink-soft grid place-items-center"><Droplet className="h-5 w-5 text-wh-pink" /></div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{format(new Date(l.log_date), "EEE, d MMM yyyy")}</p>
+                <p className="text-xs text-muted-foreground capitalize">Flow: {l.flow ?? "—"} · Pain {l.pain_level ?? 0}/10 · {l.mood ?? "—"}</p>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </WHLayout>
+  );
+};
+
 // ────────────────────────────────────────────────────────────────────────────
-// Onboarding
+// FERTILITY TRACKER
+const FERTILITY_TABS = [
+  { to: "/womens-health/fertility", label: "Today", end: true },
+  { to: "/womens-health/fertility/calendar", label: "Calendar" },
+  { to: "/womens-health/fertility/ovulation", label: "Ovulation" },
+  { to: "/womens-health/fertility/insights", label: "Insights" },
+];
+
+const FertilityToday = () => {
+  const { profile, loading } = useWomensProfile();
+  const navigate = useNavigate();
+
+  if (loading) return <WHLayout title="Fertility Tracker" showBack><Card className="h-48 animate-pulse" /></WHLayout>;
+  if (!profile?.last_period_start) {
+    return (
+      <WHLayout title="Fertility Tracker" showBack>
+        <Card className="p-6 text-center">
+          <Heart className="h-10 w-10 text-wh-pink mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">Set up your cycle to see fertility insights.</p>
+          <Button className="bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full" onClick={() => navigate("/womens-health/home")}>Set Up Cycle</Button>
+        </Card>
+      </WHLayout>
+    );
+  }
+
+  const cycle = computeCycle(profile.last_period_start, profile.avg_cycle_length, profile.avg_period_length);
+  const fertilePct = Math.min(100, Math.max(8, 100 - Math.abs(cycle.daysUntilOvulation) * 8));
+  const today = new Date();
+
+  // 8-day strip centred around ovulation
+  const stripDays = Array.from({ length: 8 }).map((_, i) => addDays(cycle.fertileStart, i - 1));
+  const stripCls = (d: Date) => {
+    if (isSameDay(d, cycle.ovulationDate)) return { wrap: "border-2 border-wh-purple bg-card", text: "text-foreground", label: "OVULATION" as const };
+    const inFertile = d >= cycle.fertileStart && d <= cycle.fertileEnd;
+    if (inFertile && d <= cycle.ovulationDate) return { wrap: "bg-wh-green/25", text: "text-wh-green", label: undefined };
+    if (inFertile) return { wrap: "bg-wh-green", text: "text-white", label: undefined };
+    return { wrap: "bg-muted/60", text: "text-muted-foreground", label: undefined };
+  };
+
+  // Conception curve
+  const curve = conceptionCurve(cycle.ovulationDate).map(p => ({ ...p, dateStr: format(p.date, "MMM d"), dayStr: `Day ${Math.round((p.date.getTime() - cycle.cycleStart.getTime()) / 86400000) + 1}` }));
+  const peakIdx = curve.reduce((m, c, i, a) => c.probability > a[m].probability ? i : m, 0);
+
+  const isHigh = cycle.status === "high" || cycle.status === "ovulation";
+
+  return (
+    <WHLayout title="Fertility Tracker" showBack rightAction={<button className="p-2 rounded-full hover:bg-muted"><Info className="h-5 w-5 text-foreground/70" /></button>}>
+      <TopTabs tabs={FERTILITY_TABS} />
+
+      {/* Hero */}
+      <Card className="p-5 mb-4 border-0 shadow-[var(--shadow-wh-card)]" style={{ background: "var(--gradient-wh-hero)" }}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground/80">Current Fertility Status</p>
+            <p className="text-[28px] font-extrabold text-wh-pink leading-tight mt-1">{statusLabel(cycle.status)} <span className="text-2xl">🌸</span></p>
+            <p className="text-sm text-foreground/75 mt-1">{isHigh ? "Your fertile window is open" : "Your fertile window is approaching"}</p>
+            {isHigh && <p className="text-sm text-foreground/75">Great time to try to conceive!</p>}
+            <Button variant="outline" onClick={() => navigate("/womens-health/log-period")} className="mt-4 rounded-full border-wh-pink text-wh-pink hover:bg-wh-pink-soft">Log Symptoms</Button>
+          </div>
+          <Ring pct={fertilePct} color="hsl(var(--wh-pink))" size={150} track="hsl(var(--wh-pink)/0.15)">
+            <p className="text-[10px] text-foreground/70">Ovulation in</p>
+            <p className="text-xl font-extrabold leading-none my-1">{Math.max(0, cycle.daysUntilOvulation)} Days</p>
+            <p className="text-[10px] text-foreground/70 leading-tight">{isHigh ? "High chance of conception" : "Tracking your cycle"}</p>
+          </Ring>
+        </div>
+      </Card>
+
+      {/* Fertile window strip */}
+      <Card className="p-4 mb-4">
+        <p className="font-bold mb-3">Your Fertile Window</p>
+        <div className="relative">
+          <div className="absolute left-0 right-0 text-center -top-1">
+            {(() => {
+              const idx = stripDays.findIndex(d => isSameDay(d, cycle.ovulationDate));
+              if (idx < 0) return null;
+              return (
+                <div style={{ marginLeft: `${(idx + 0.5) * (100 / stripDays.length)}%` }} className="-translate-x-1/2 inline-block">
+                  <p className="text-[10px] font-bold text-foreground/70">OVULATION</p>
+                  <p className="text-foreground/60">▼</p>
+                </div>
+              );
+            })()}
+          </div>
+          <div className="grid grid-cols-8 gap-1 pt-7">
+            {stripDays.map(d => {
+              const c = stripCls(d);
+              return (
+                <div key={d.toISOString()} className="flex flex-col items-center">
+                  <div className={`h-10 w-10 rounded-full grid place-items-center text-sm font-semibold ${c.wrap} ${c.text}`}>{format(d, "d")}</div>
+                  <p className="text-[10px] text-muted-foreground mt-1">{format(d, "EEE")}</p>
+                  {isSameDay(d, cycle.ovulationDate) && <Heart className="h-3 w-3 text-wh-pink fill-wh-pink mt-0.5" />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-x-3 gap-y-2 mt-4 text-[11px]">
+          <Legend dotClass="bg-wh-green/30" label="Fertile Window" />
+          <Legend dotClass="bg-wh-green" label="High Fertility" />
+          <Legend dotClass="border-2 border-wh-purple bg-transparent" label="Ovulation Day" />
+          <Legend dotClass="bg-muted-foreground/40" label="Low Fertility" />
+        </div>
+      </Card>
+
+      {/* 4 stat cards */}
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        <StatCard Icon={CalIcon} tone="text-wh-pink" label="Ovulation Date" value={format(cycle.ovulationDate, "MMM d")} sub={format(cycle.ovulationDate, "EEEE")} />
+        <StatCard Icon={Flower2} tone="text-wh-pink" label="Fertile Window" value={`${format(cycle.fertileStart, "MMM d")}–${format(cycle.fertileEnd, "d")}`} sub={`${Math.round((cycle.fertileEnd.getTime() - cycle.fertileStart.getTime()) / 86400000) + 1} Days`} />
+        <StatCard Icon={Heart} tone="text-wh-pink" label="Conception" value={isHigh ? "High" : "Low"} sub="Probability" />
+        <StatCard Icon={Activity} tone="text-wh-pink" label="Cycle Day" value={`Day ${cycle.cycleDay}`} sub={`of ${cycle.cycleLength}`} />
+      </div>
+
+      {/* Conception chart */}
+      <Card className="p-4 mb-4">
+        <div className="flex items-center gap-1.5 mb-2"><p className="font-bold">Chance of Conception</p><Info className="h-3.5 w-3.5 text-muted-foreground" /></div>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={curve} margin={{ top: 20, right: 10, left: 0, bottom: 30 }}>
+            <XAxis dataKey="dateStr" fontSize={9} tickLine={false} axisLine={false} interval={0} />
+            <YAxis hide domain={[0, 100]} />
+            <Tooltip formatter={(v: any) => `${v}%`} />
+            <Line type="monotone" dataKey="probability" stroke="hsl(var(--wh-pink))" strokeWidth={2.5} strokeDasharray="3 3" dot={{ r: 4, fill: "hsl(var(--wh-pink))", strokeWidth: 0 }} label={{ position: "top", fontSize: 10, fill: "hsl(var(--foreground))", formatter: (v: any) => `${v}%` }} />
+            <ReferenceDot x={curve[peakIdx]?.dateStr} y={curve[peakIdx]?.probability} r={6} fill="hsl(var(--wh-pink))" stroke="hsl(var(--wh-pink-soft))" strokeWidth={4} />
+          </LineChart>
+        </ResponsiveContainer>
+        <div className="flex justify-center mt-1">
+          <Badge className="bg-wh-pink text-white text-[10px] tracking-wider">PEAK</Badge>
+        </div>
+      </Card>
+
+      {/* Insights */}
+      <Card className="p-4 mb-4 bg-wh-pink-soft border-0">
+        <div className="flex items-center gap-2 mb-3"><Sparkles className="h-4 w-4 text-wh-pink" /><p className="font-bold">Fertility Insights</p></div>
+        <ul className="space-y-2 text-sm">
+          <li className="flex gap-2"><ClipboardList className="h-4 w-4 text-wh-purple flex-shrink-0 mt-0.5" /><span>Your fertility is highest <b>1 day before</b> ovulation.</span></li>
+          <li className="flex gap-2"><CalIcon className="h-4 w-4 text-wh-purple flex-shrink-0 mt-0.5" /><span>You usually ovulate around <b>Day {cycle.cycleLength - 14}</b> of your cycle.</span></li>
+          <li className="flex gap-2"><Heart className="h-4 w-4 text-wh-purple flex-shrink-0 mt-0.5" /><span>Having intercourse every 1–2 days increases your chances.</span></li>
+        </ul>
+      </Card>
+    </WHLayout>
+  );
+};
+
+const StatCard = ({ Icon, tone, label, value, sub }: any) => (
+  <Card className="p-2.5 flex flex-col">
+    <Icon className={`h-4 w-4 ${tone} mb-1`} />
+    <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
+    <p className="font-bold text-[13px] leading-tight mt-0.5">{value}</p>
+    <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>
+  </Card>
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// ONBOARDING
 const WHOnboarding = ({ onSaved }: { onSaved: () => void }) => {
   const { save } = useWomensProfile();
   const [lastPeriod, setLastPeriod] = useState(format(addDays(new Date(), -10), "yyyy-MM-dd"));
@@ -202,91 +450,25 @@ const WHOnboarding = ({ onSaved }: { onSaved: () => void }) => {
   const [periodLen, setPeriodLen] = useState(5);
 
   return (
-    <WHLayout title="Set up Women's Health">
-      <Card className="p-5 mb-4" style={{ background: "var(--gradient-wh-hero)" }}>
+    <WHLayout title="Set up Cycle Tracking" showBack>
+      <Card className="p-5 mb-4 border-0" style={{ background: "var(--gradient-wh-hero)" }}>
         <Flower2 className="h-8 w-8 text-wh-pink mb-2" />
         <h2 className="text-xl font-bold mb-1">Let's personalize your tracker</h2>
         <p className="text-sm text-muted-foreground">We'll predict your cycle, ovulation, and fertility window.</p>
       </Card>
-
       <Card className="p-4 space-y-4">
-        <div>
-          <Label>First day of last period</Label>
-          <Input type="date" value={lastPeriod} onChange={e => setLastPeriod(e.target.value)} className="mt-1" />
-        </div>
-        <div>
-          <Label>Average cycle length: <span className="text-wh-pink font-bold">{cycleLen} days</span></Label>
-          <Slider value={[cycleLen]} min={21} max={40} step={1} onValueChange={v => setCycleLen(v[0])} className="mt-2" />
-        </div>
-        <div>
-          <Label>Average period length: <span className="text-wh-pink font-bold">{periodLen} days</span></Label>
-          <Slider value={[periodLen]} min={2} max={10} step={1} onValueChange={v => setPeriodLen(v[0])} className="mt-2" />
-        </div>
-        <Button
-          className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full"
-          onClick={async () => {
-            await save({ last_period_start: lastPeriod, avg_cycle_length: cycleLen, avg_period_length: periodLen, mode: "cycle" });
-            toast({ title: "All set!", description: "Your cycle is now tracked." });
-            onSaved();
-          }}
-        >
-          Start Tracking
-        </Button>
+        <div><Label>First day of last period</Label><Input type="date" value={lastPeriod} onChange={e => setLastPeriod(e.target.value)} className="mt-1" /></div>
+        <div><Label>Average cycle length: <span className="text-wh-pink font-bold">{cycleLen} days</span></Label><Slider value={[cycleLen]} min={21} max={40} step={1} onValueChange={v => setCycleLen(v[0])} className="mt-2" /></div>
+        <div><Label>Average period length: <span className="text-wh-pink font-bold">{periodLen} days</span></Label><Slider value={[periodLen]} min={2} max={10} step={1} onValueChange={v => setPeriodLen(v[0])} className="mt-2" /></div>
+        <Button className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full" onClick={async () => {
+          await save({ last_period_start: lastPeriod, avg_cycle_length: cycleLen, avg_period_length: periodLen, mode: "cycle" });
+          toast({ title: "All set!", description: "Your cycle is now tracked." });
+          onSaved();
+        }}>Start Tracking</Button>
       </Card>
     </WHLayout>
   );
 };
-
-// ────────────────────────────────────────────────────────────────────────────
-// CALENDAR
-const WHCalendar = () => {
-  const { profile } = useWomensProfile();
-  const [month, setMonth] = useState(new Date());
-  const days = useMemo(() => eachDayOfInterval({ start: startOfWeek(startOfMonth(month)), end: endOfWeek(endOfMonth(month)) }), [month]);
-  const cycle = profile?.last_period_start ? computeCycle(profile.last_period_start, profile.avg_cycle_length, profile.avg_period_length, month) : null;
-
-  const dayClass = (d: Date) => {
-    if (!cycle) return "";
-    const isPeriod = d >= cycle.cycleStart && d <= addDays(cycle.cycleStart, cycle.periodLength - 1);
-    const isOvulation = isSameDay(d, cycle.ovulationDate);
-    const inFertile = d >= cycle.fertileStart && d <= cycle.fertileEnd && !isOvulation;
-    if (isOvulation) return "bg-wh-purple text-white";
-    if (isPeriod) return "bg-wh-pink/80 text-white";
-    if (inFertile) return "bg-wh-green/30 text-wh-green";
-    return "";
-  };
-
-  return (
-    <WHLayout title="Calendar">
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <Button variant="ghost" size="icon" onClick={() => setMonth(addDays(startOfMonth(month), -1))}><ChevronLeft className="h-5 w-5" /></Button>
-          <p className="font-semibold">{format(month, "MMMM yyyy")}</p>
-          <Button variant="ghost" size="icon" onClick={() => setMonth(addDays(endOfMonth(month), 1))}><ChevronRight className="h-5 w-5" /></Button>
-        </div>
-        <div className="grid grid-cols-7 text-[10px] text-muted-foreground text-center mb-1">
-          {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(d => <div key={d}>{d}</div>)}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {days.map(d => (
-            <div key={d.toISOString()} className={`aspect-square rounded-full grid place-items-center text-sm ${isSameMonth(d, month) ? "" : "text-muted-foreground/40"} ${dayClass(d)}`}>
-              {format(d, "d")}
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-3 mt-4 text-[11px]">
-          <Legend color="wh-pink" label="Period" />
-          <Legend color="wh-green" label="Fertile" />
-          <Legend color="wh-purple" label="Ovulation" />
-          <Legend color="wh-blue" label="Predicted" />
-        </div>
-      </Card>
-    </WHLayout>
-  );
-};
-const Legend = ({ color, label }: { color: string; label: string }) => (
-  <div className="flex items-center gap-1.5"><span className={`h-2.5 w-2.5 rounded-full bg-[hsl(var(--${color}))]`} />{label}</div>
-);
 
 // ────────────────────────────────────────────────────────────────────────────
 // LOG PERIOD
@@ -310,7 +492,7 @@ const LogPeriod = () => {
     }, { onConflict: "user_id,log_date" });
     if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Logged", description: "Period entry saved." });
-    navigate("/womens-health");
+    navigate(-1);
   };
 
   return (
@@ -371,40 +553,21 @@ const DailyLogPage = () => {
   };
 
   return (
-    <WHLayout title="Daily Log">
+    <WHLayout title="Daily Log" showBack>
       <Card className="p-4 mb-3 space-y-3">
-        <div>
-          <Label>Mood</Label>
-          <div className="flex gap-2 mt-1 flex-wrap">{MOODS.map(m => <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full text-xs border ${mood === m ? "bg-wh-purple text-white" : "border-border"}`}>{m}</button>)}</div>
-        </div>
-        <div>
-          <Label>Energy</Label>
-          <div className="flex gap-2 mt-1">{["Low", "Medium", "High"].map(m => <button key={m} onClick={() => setEnergy(m)} className={`px-3 py-1.5 rounded-full text-xs border ${energy === m ? "bg-wh-green text-white" : "border-border"}`}>{m}</button>)}</div>
-        </div>
-        <div>
-          <Label>Sleep (hours): <span className="font-bold text-wh-purple">{sleep}h</span></Label>
-          <Slider value={[sleep]} min={0} max={12} step={0.5} onValueChange={v => setSleep(v[0])} />
-        </div>
-        <div>
-          <Label>Water glasses: <span className="font-bold text-wh-blue">{water}</span></Label>
+        <div><Label>Mood</Label><div className="flex gap-2 mt-1 flex-wrap">{MOODS.map(m => <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full text-xs border ${mood === m ? "bg-wh-purple text-white" : "border-border"}`}>{m}</button>)}</div></div>
+        <div><Label>Energy</Label><div className="flex gap-2 mt-1">{["Low", "Medium", "High"].map(m => <button key={m} onClick={() => setEnergy(m)} className={`px-3 py-1.5 rounded-full text-xs border ${energy === m ? "bg-wh-green text-white" : "border-border"}`}>{m}</button>)}</div></div>
+        <div><Label>Sleep (hours): <span className="font-bold text-wh-purple">{sleep}h</span></Label><Slider value={[sleep]} min={0} max={12} step={0.5} onValueChange={v => setSleep(v[0])} /></div>
+        <div><Label>Water glasses: <span className="font-bold text-wh-blue">{water}</span></Label>
           <div className="flex items-center gap-3 mt-1">
             <Button size="icon" variant="outline" onClick={() => setWater(w => Math.max(0, w - 1))}><Minus className="h-4 w-4" /></Button>
             <Progress value={(water / 8) * 100} className="flex-1" />
             <Button size="icon" variant="outline" onClick={() => setWater(w => w + 1)}><Plus className="h-4 w-4" /></Button>
           </div>
         </div>
-        <div>
-          <Label>Weight (kg)</Label>
-          <Input type="number" value={weight} onChange={e => setWeight(e.target.value ? Number(e.target.value) : "")} />
-        </div>
-        <div>
-          <Label>Exercise (minutes): <span className="font-bold text-wh-green">{exercise}</span></Label>
-          <Slider value={[exercise]} min={0} max={180} step={5} onValueChange={v => setExercise(v[0])} />
-        </div>
-        <div>
-          <Label>Notes</Label>
-          <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Anything notable today…" />
-        </div>
+        <div><Label>Weight (kg)</Label><Input type="number" value={weight} onChange={e => setWeight(e.target.value ? Number(e.target.value) : "")} /></div>
+        <div><Label>Exercise (minutes): <span className="font-bold text-wh-green">{exercise}</span></Label><Slider value={[exercise]} min={0} max={180} step={5} onValueChange={v => setExercise(v[0])} /></div>
+        <div><Label>Notes</Label><Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Anything notable today…" /></div>
       </Card>
       <Button className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full" onClick={save}>Save Today's Log</Button>
     </WHLayout>
@@ -412,107 +575,45 @@ const DailyLogPage = () => {
 };
 
 // ────────────────────────────────────────────────────────────────────────────
-// FERTILITY
-const Fertility = () => {
-  const { profile } = useWomensProfile();
-  if (!profile?.last_period_start) return <WHLayout title="Fertility"><Card className="p-6 text-center"><p>Set up your cycle first.</p></Card></WHLayout>;
-  const cycle = computeCycle(profile.last_period_start, profile.avg_cycle_length, profile.avg_period_length);
-  const curve = conceptionCurve(cycle.ovulationDate).map(p => ({ ...p, dateStr: format(p.date, "MMM d") }));
-
-  return (
-    <WHLayout title="Fertility Tracker" showBack>
-      <Card className="p-5 mb-4 border-0" style={{ background: "var(--gradient-wh-hero)" }}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Current Fertility Status</p>
-            <p className="text-2xl font-extrabold text-wh-pink mt-1">{statusLabel(cycle.status)} <span className="text-base">🌸</span></p>
-            <p className="text-sm text-muted-foreground mt-1">Your fertile window {cycle.status === "high" ? "is open" : "is approaching"}</p>
-          </div>
-          <Ring pct={Math.max(5, 100 - Math.abs(cycle.daysUntilOvulation) * 10)} color="hsl(var(--wh-pink))" size={140}>
-            <p className="text-[10px] text-muted-foreground">Ovulation in</p>
-            <p className="text-xl font-bold">{Math.max(0, cycle.daysUntilOvulation)} Days</p>
-          </Ring>
-        </div>
-      </Card>
-
-      <Card className="p-4 mb-4">
-        <p className="font-semibold mb-3">Chance of Conception</p>
-        <ResponsiveContainer width="100%" height={180}>
-          <LineChart data={curve}>
-            <XAxis dataKey="dateStr" fontSize={10} />
-            <YAxis hide domain={[0, 100]} />
-            <Tooltip />
-            <Line type="monotone" dataKey="probability" stroke="hsl(var(--wh-pink))" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--wh-pink))" }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-2">
-        <Card className="p-3"><p className="text-xs text-muted-foreground">Ovulation Date</p><p className="font-bold">{format(cycle.ovulationDate, "MMM d")}</p></Card>
-        <Card className="p-3"><p className="text-xs text-muted-foreground">Fertile Window</p><p className="font-bold text-sm">{format(cycle.fertileStart, "MMM d")} – {format(cycle.fertileEnd, "MMM d")}</p></Card>
-      </div>
-
-      <Card className="p-4 mt-3 bg-wh-pink-soft border-0">
-        <p className="text-sm flex items-start gap-2"><Sparkles className="h-4 w-4 text-wh-pink mt-0.5" /><span>Your fertility peaks in <b>{Math.max(0, cycle.daysUntilOvulation)} days</b>. Consider tracking ovulation symptoms.</span></p>
-      </Card>
-    </WHLayout>
-  );
-};
-
-// ────────────────────────────────────────────────────────────────────────────
-// INSIGHTS
-const Insights = () => {
+// INSIGHTS (Period section)
+const PeriodInsights = () => {
   const { user } = useAuth();
   const { profile } = useWomensProfile();
-  const { data: logs } = useQuery({
+  const { data: logs = [] } = useQuery({
     queryKey: ["wh-insights", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data } = await (supabase as any).from("daily_health_logs").select("log_date,sleep_hours,weight_kg,mood").eq("user_id", user!.id).order("log_date", { ascending: true }).limit(30);
-      return data ?? [];
-    },
+    queryFn: async () => (await (supabase as any).from("daily_health_logs").select("log_date,sleep_hours,weight_kg,mood").eq("user_id", user!.id).order("log_date", { ascending: true }).limit(30)).data ?? [],
   });
-  const chart = (logs ?? []).map((r: any) => ({ date: format(new Date(r.log_date), "M/d"), sleep: r.sleep_hours, weight: r.weight_kg }));
-  const cycleData = Array.from({ length: 6 }).map((_, i) => ({ name: `C${i + 1}`, length: (profile?.avg_cycle_length ?? 28) + (i % 2 === 0 ? -1 : 1) }));
+  const chart = (logs as any[]).map(r => ({ date: format(new Date(r.log_date), "M/d"), sleep: r.sleep_hours, weight: r.weight_kg }));
 
   return (
-    <WHLayout title="Insights">
+    <WHLayout title="Period Tracking">
+      <TopTabs tabs={PERIOD_TABS} />
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <Stat label="Avg Cycle" value={`${profile?.avg_cycle_length ?? "—"} d`} />
-        <Stat label="Avg Period" value={`${profile?.avg_period_length ?? "—"} d`} />
+        <Card className="p-3"><p className="text-xs text-muted-foreground">Avg Cycle</p><p className="font-bold text-lg">{profile?.avg_cycle_length ?? "—"} d</p></Card>
+        <Card className="p-3"><p className="text-xs text-muted-foreground">Avg Period</p><p className="font-bold text-lg">{profile?.avg_period_length ?? "—"} d</p></Card>
       </div>
       <Card className="p-4 mb-3">
-        <p className="font-semibold mb-2 text-sm">Cycle Length History</p>
-        <ResponsiveContainer width="100%" height={150}>
-          <BarChart data={cycleData}>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-            <XAxis dataKey="name" fontSize={10} />
-            <YAxis fontSize={10} />
-            <Tooltip />
-            <Bar dataKey="length" fill="hsl(var(--wh-pink))" radius={[8, 8, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-      <Card className="p-4 mb-3">
-        <p className="font-semibold mb-2 text-sm">Sleep Trend (30 d)</p>
-        <ResponsiveContainer width="100%" height={150}>
-          <LineChart data={chart}>
-            <XAxis dataKey="date" fontSize={10} />
-            <YAxis fontSize={10} />
-            <Tooltip />
-            <Line type="monotone" dataKey="sleep" stroke="hsl(var(--wh-purple))" strokeWidth={2} />
-          </LineChart>
-        </ResponsiveContainer>
+        <p className="font-semibold mb-2 text-sm">Sleep Trend (last 30 days)</p>
+        {chart.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-10 text-center">No data yet. Log a few days to see your trends.</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={150}>
+            <LineChart data={chart}>
+              <XAxis dataKey="date" fontSize={10} />
+              <YAxis fontSize={10} />
+              <Tooltip />
+              <Line type="monotone" dataKey="sleep" stroke="hsl(var(--wh-purple))" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </Card>
       <Card className="p-4 bg-wh-blue-soft border-0">
-        <p className="text-sm flex items-start gap-2"><Sparkles className="h-4 w-4 text-wh-blue mt-0.5" /><span>Your cycle has remained regular for the last several months — great consistency!</span></p>
+        <p className="text-sm flex items-start gap-2"><Sparkles className="h-4 w-4 text-wh-blue mt-0.5" /><span>Keep logging daily — your insights get smarter with every entry.</span></p>
       </Card>
     </WHLayout>
   );
 };
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <Card className="p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="font-bold text-lg">{value}</p></Card>
-);
 
 // ────────────────────────────────────────────────────────────────────────────
 // PROFILE
@@ -541,16 +642,20 @@ const WHProfile = () => {
         <div><p className="font-semibold text-sm">Notifications</p><p className="text-xs text-muted-foreground">Period & ovulation reminders</p></div>
         <Switch checked={profile?.notifications_enabled ?? true} onCheckedChange={(v) => save({ notifications_enabled: v })} />
       </Card>
-      <Card className="p-4 flex items-center justify-between cursor-pointer" onClick={() => save({ mode: profile?.mode === "pregnancy" ? "cycle" : "pregnancy" })}>
-        <div><p className="font-semibold text-sm">{profile?.mode === "pregnancy" ? "Switch back to Cycle Mode" : "Switch to Pregnancy Mode"}</p><p className="text-xs text-muted-foreground">Change tracker focus</p></div>
-        <Badge className="bg-wh-pink text-white">{profile?.mode}</Badge>
-      </Card>
     </WHLayout>
   );
 };
 
 // ────────────────────────────────────────────────────────────────────────────
 // PREGNANCY
+const PREGNANCY_TABS = [
+  { to: "/womens-health/pregnancy", label: "Overview", end: true },
+  { to: "/womens-health/pregnancy/baby-growth", label: "Baby Growth" },
+  { to: "/womens-health/pregnancy/calendar", label: "Calendar" },
+  { to: "/womens-health/pregnancy/health", label: "Health" },
+  { to: "/womens-health/pregnancy/insights", label: "Insights" },
+];
+
 const PregnancyOnboarding = () => {
   const { save } = usePregnancyProfile();
   const navigate = useNavigate();
@@ -560,16 +665,13 @@ const PregnancyOnboarding = () => {
 
   return (
     <WHLayout title="Pregnancy Setup" showBack>
-      <Card className="p-5 mb-4" style={{ background: "var(--gradient-wh-hero)" }}>
+      <Card className="p-5 mb-4 border-0" style={{ background: "var(--gradient-wh-hero)" }}>
         <Baby className="h-8 w-8 text-wh-pink mb-2" />
         <h2 className="text-xl font-bold">Welcome to your pregnancy journey</h2>
         <p className="text-sm text-muted-foreground">We'll track baby growth week by week.</p>
       </Card>
       <Card className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <Label>Use due date instead of LMP</Label>
-          <Switch checked={useDue} onCheckedChange={setUseDue} />
-        </div>
+        <div className="flex items-center justify-between"><Label>Use due date instead of LMP</Label><Switch checked={useDue} onCheckedChange={setUseDue} /></div>
         {!useDue ? (
           <div><Label>First day of last menstrual period</Label><Input type="date" value={lmp} onChange={e => setLmp(e.target.value)} /></div>
         ) : (
@@ -578,44 +680,78 @@ const PregnancyOnboarding = () => {
         <Button className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full" onClick={async () => {
           await save(useDue ? { due_date: due, lmp_date: null } : { lmp_date: lmp, due_date: null });
           toast({ title: "Pregnancy started 🎉" });
-          navigate("/womens-health");
+          navigate("/womens-health/pregnancy");
         }}>Start Pregnancy Journey</Button>
       </Card>
     </WHLayout>
   );
 };
 
-const PregnancyHome = () => {
-  const { profile: preg } = usePregnancyProfile();
-  const { userProfile } = useAuth();
+const PregnancyOverview = () => {
+  const { profile: preg, loading } = usePregnancyProfile();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
-  if (!preg) return <Navigate to="/womens-health/pregnancy/onboarding" replace />;
-  const state = computePregnancy({ lmpDate: preg.lmp_date, dueDate: preg.due_date });
+
+  if (loading) return <WHLayout title="Pregnancy"><Card className="h-48 animate-pulse" /></WHLayout>;
+  if (!preg?.lmp_date && !preg?.due_date) return <Navigate to="/womens-health/pregnancy/onboarding" replace />;
+  const state = computePregnancy({ lmpDate: preg!.lmp_date, dueDate: preg!.due_date });
   if (!state) return <Navigate to="/womens-health/pregnancy/onboarding" replace />;
+
+  const first = (userProfile as any)?.first_name || "there";
+  const greeting = (() => {
+    const h = new Date().getHours();
+    return h < 12 ? "Good Morning" : h < 18 ? "Good Afternoon" : "Good Evening";
+  })();
+
   return (
-    <WHLayout title="Pregnancy">
-      <p className="text-sm text-muted-foreground">Good morning,</p>
-      <h2 className="text-2xl font-bold mb-4">{(userProfile as any)?.first_name || "Mum"} 🌸</h2>
-      <Card className="p-5 mb-4 border-0" style={{ background: "var(--gradient-wh-hero)" }}>
+    <WHLayout title="Pregnancy" rightAction={<button className="p-2 rounded-full hover:bg-muted relative"><Bell className="h-5 w-5 text-foreground/70" /></button>}>
+      <TopTabs tabs={PREGNANCY_TABS} />
+
+      {/* Hero */}
+      <Card className="p-5 mb-4 border-0 shadow-[var(--shadow-wh-card)] relative overflow-hidden" style={{ background: "var(--gradient-wh-hero)" }}>
+        <button className="absolute top-3 right-3 h-9 w-9 rounded-full bg-card grid place-items-center shadow"><Share2 className="h-4 w-4 text-foreground/70" /></button>
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-2xl font-extrabold text-wh-pink-deep">Week {state.week}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{greeting}, {first} 🌸</p>
+            <p className="text-[36px] font-extrabold text-wh-pink leading-none mt-2">Week {state.week}</p>
             <p className="text-wh-pink font-semibold">{trimesterLabel(state.trimester)}</p>
-            <p className="text-sm text-muted-foreground mt-1">{state.weeksRemaining} weeks to go!</p>
-            <div className="flex gap-3 mt-3 text-xs">
-              <div className="bg-card rounded-xl p-2 px-3"><p className="text-muted-foreground">Due Date</p><p className="font-bold">{format(state.dueDate, "d MMM yyyy")}</p></div>
-              <div className="bg-card rounded-xl p-2 px-3"><p className="text-muted-foreground">Days Remaining</p><p className="font-bold">{state.daysRemaining}</p></div>
+            <p className="text-sm text-foreground/75 mt-1">{state.weeksRemaining} Weeks to go!</p>
+            <div className="flex gap-2 mt-3 text-xs">
+              <div className="bg-card rounded-xl p-2 px-3 flex items-center gap-2 shadow-sm">
+                <div className="h-7 w-7 rounded-lg bg-wh-pink-soft grid place-items-center"><CalIcon className="h-4 w-4 text-wh-pink" /></div>
+                <div><p className="text-[10px] text-muted-foreground leading-none">Due Date</p><p className="font-bold text-[11px] mt-0.5">{format(state.dueDate, "d MMM yyyy")}</p></div>
+              </div>
+              <div className="bg-card rounded-xl p-2 px-3 flex items-center gap-2 shadow-sm">
+                <div className="h-7 w-7 rounded-lg bg-wh-pink-soft grid place-items-center"><Activity className="h-4 w-4 text-wh-pink" /></div>
+                <div><p className="text-[10px] text-muted-foreground leading-none">Days Remaining</p><p className="font-bold text-[11px] mt-0.5">{state.daysRemaining} Days</p></div>
+              </div>
             </div>
-            <Progress value={state.progressPct} className="mt-3" />
-            <p className="text-[11px] text-muted-foreground mt-1">{state.week} of 40 weeks · {state.progressPct}%</p>
+            <div className="mt-3">
+              <Progress value={state.progressPct} className="h-2 bg-card" />
+              <div className="flex justify-between text-[11px] text-foreground/70 mt-1">
+                <span>{state.week} of 40 Weeks</span>
+                <span className="font-semibold">{state.progressPct}%</span>
+              </div>
+            </div>
           </div>
-          <div className="text-6xl">👶</div>
+          <div className="h-[120px] w-[120px] rounded-full bg-card grid place-items-center text-6xl shadow-inner flex-shrink-0">👶</div>
         </div>
       </Card>
-      <BabySizeCard week={state.week} />
-      <Card className="p-4 mt-3 cursor-pointer" onClick={() => navigate("/womens-health/pregnancy/baby-growth")}>
-        <div className="flex items-center gap-3"><Baby className="h-5 w-5 text-wh-pink" /><div className="flex-1"><p className="font-semibold text-sm">Baby Growth Timeline</p><p className="text-xs text-muted-foreground">Week-by-week development</p></div><ChevronRight className="h-5 w-5 text-muted-foreground" /></div>
-      </Card>
+
+      {/* Baby size + development */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <BabySizeCard week={state.week} />
+        <BabyDevelopmentCard week={state.week} onView={() => navigate("/womens-health/pregnancy/baby-growth")} />
+      </div>
+
+      {/* Today's Highlights */}
+      <TodaysHighlights week={state.week} />
+
+      {/* Health Log Summary */}
+      <HealthLogSummary />
+
+      {/* Upcoming Appointments */}
+      <UpcomingAppointments />
     </WHLayout>
   );
 };
@@ -623,37 +759,171 @@ const PregnancyHome = () => {
 const BabySizeCard = ({ week }: { week: number }) => {
   const { data } = useQuery({
     queryKey: ["baby-growth", week],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from("baby_growth_data").select("*").eq("week", week).maybeSingle();
-      return data;
-    },
+    queryFn: async () => (await (supabase as any).from("baby_growth_data").select("*").eq("week", week).maybeSingle()).data,
   });
-  if (!data) return null;
   return (
-    <Card className="p-4">
-      <p className="text-xs text-muted-foreground">Your baby is the size of a</p>
-      <p className="text-xl font-bold text-wh-purple">{data.size_comparison} <span className="text-2xl">{data.size_emoji}</span></p>
-      <div className="flex gap-4 mt-2 text-xs">
-        <div><p className="text-muted-foreground">Length</p><p className="font-bold">{data.length_cm} cm</p></div>
-        <div><p className="text-muted-foreground">Weight</p><p className="font-bold">{data.weight_g} g</p></div>
-      </div>
-      {data.development && <p className="text-sm mt-3 text-foreground/80">{data.development}</p>}
+    <Card className="p-4 border-0" style={{ background: "linear-gradient(135deg, hsl(var(--wh-purple)/.12), hsl(var(--wh-pink)/.05))" }}>
+      <p className="text-xs text-foreground/70">Your Baby is the size of a</p>
+      {data ? (
+        <>
+          <p className="text-xl font-extrabold text-wh-purple mt-0.5 leading-tight">{data.size_comparison} <span className="text-xl">{data.size_emoji ?? "🌱"}</span></p>
+          <div className="flex gap-3 mt-2 text-[11px]">
+            <div><p className="text-muted-foreground leading-none">Length</p><p className="font-bold text-xs mt-0.5">{data.length_cm ?? "—"} cm</p></div>
+            <div><p className="text-muted-foreground leading-none">Weight</p><p className="font-bold text-xs mt-0.5">{data.weight_g ?? "—"} g</p></div>
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-muted-foreground mt-2">Tracking week {week}…</p>
+      )}
+      <div className="flex justify-end mt-2"><ChevronRight className="h-4 w-4 text-muted-foreground" /></div>
     </Card>
   );
 };
 
+const BabyDevelopmentCard = ({ week, onView }: { week: number; onView: () => void }) => {
+  const { data } = useQuery({
+    queryKey: ["baby-growth", week],
+    queryFn: async () => (await (supabase as any).from("baby_growth_data").select("*").eq("week", week).maybeSingle()).data,
+  });
+  return (
+    <Card className="p-4">
+      <p className="font-bold text-sm">Baby's Development</p>
+      <p className="text-xs text-foreground/75 mt-1 line-clamp-3">{data?.development ?? "Loading development info for this week…"}</p>
+      <button onClick={onView} className="text-wh-pink text-xs font-semibold underline mt-2 flex items-center gap-1">View Details <ChevronRight className="h-3 w-3" /></button>
+    </Card>
+  );
+};
+
+const TodaysHighlights = ({ week }: { week: number }) => {
+  const { data } = useQuery({
+    queryKey: ["baby-growth", week],
+    queryFn: async () => (await (supabase as any).from("baby_growth_data").select("*").eq("week", week).maybeSingle()).data,
+  });
+  const items = [
+    { Icon: Heart, label: "Your Body", text: data?.milestones?.[0] ?? "Track changes you're feeling today.", bg: "bg-wh-pink-soft", color: "text-wh-pink" },
+    { Icon: Baby, label: "Baby's Growth", text: data?.development ? data.development.split(".")[0] + "." : "See how baby is growing this week.", bg: "bg-wh-purple-soft", color: "text-wh-purple" },
+    { Icon: Apple, label: "Health Tip", text: "Eat iron rich foods and stay hydrated.", bg: "bg-wh-green-soft", color: "text-wh-green" },
+    { Icon: CheckSquare, label: "To Do Today", text: "Prenatal vitamin · water · rest.", bg: "bg-wh-blue-soft", color: "text-wh-blue" },
+  ];
+  return (
+    <Card className="p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="font-bold">Today's Highlights</p>
+        <Link to="/womens-health/pregnancy/health" className="text-xs text-wh-pink font-semibold">View All</Link>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {items.map(i => (
+          <div key={i.label} className="text-center">
+            <div className={`h-12 w-12 mx-auto rounded-full grid place-items-center ${i.bg} mb-2`}><i.Icon className={`h-6 w-6 ${i.color}`} /></div>
+            <p className="text-[11px] font-semibold">{i.label}</p>
+            <p className="text-[10px] text-muted-foreground line-clamp-3 leading-tight mt-1">{i.text}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
+const HealthLogSummary = () => {
+  const { user } = useAuth();
+  const today = format(new Date(), "yyyy-MM-dd");
+  const { data: dhl } = useQuery({
+    queryKey: ["wh-dhl-preg", user?.id, today],
+    enabled: !!user,
+    queryFn: async () => (await (supabase as any).from("daily_health_logs").select("*").eq("user_id", user!.id).eq("log_date", today).maybeSingle()).data,
+  });
+  const stats = [
+    { Icon: Activity, label: "Weight", val: dhl?.weight_kg ? `${dhl.weight_kg} kg` : "—", sub: dhl?.weight_kg ? "Logged" : "Not set", color: "text-wh-pink" },
+    { Icon: Droplet, label: "Water", val: dhl?.water_glasses != null ? `${dhl.water_glasses} / 8` : "—", sub: dhl?.water_glasses >= 6 ? "Good" : "Keep going", color: "text-wh-blue" },
+    { Icon: Moon, label: "Sleep", val: dhl?.sleep_hours ? `${dhl.sleep_hours}h` : "—", sub: dhl?.sleep_hours >= 7 ? "Good" : "Rest more", color: "text-wh-purple" },
+    { Icon: Zap, label: "Activity", val: dhl?.exercise_minutes != null ? `${dhl.exercise_minutes} min` : "—", sub: dhl?.exercise_minutes ? "Logged" : "—", color: "text-wh-green" },
+    { Icon: Smile, label: "Mood", val: dhl?.mood ?? "—", sub: dhl?.mood ? "Logged" : "—", color: "text-wh-orange" },
+  ];
+  return (
+    <Card className="p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="font-bold">Health Log Summary</p>
+        <Link to="/womens-health/logs" className="text-xs text-wh-pink font-semibold">Log Now</Link>
+      </div>
+      <div className="grid grid-cols-5 gap-1">
+        {stats.map(s => (
+          <div key={s.label} className="text-center">
+            <s.Icon className={`h-5 w-5 mx-auto mb-1 ${s.color}`} />
+            <p className="text-[10px] text-muted-foreground">{s.label}</p>
+            <p className="text-xs font-bold leading-tight">{s.val}</p>
+            <p className={`text-[9px] ${s.color}`}>{s.sub}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
+const UpcomingAppointments = () => {
+  const { user } = useAuth();
+  const { data: appts = [] } = useQuery({
+    queryKey: ["upcoming-appts", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { data } = await supabase
+        .from("appointments")
+        .select("id, scheduled_date, scheduled_time, appointment_type, reason, status")
+        .eq("patient_id", user!.id)
+        .gte("scheduled_date", today)
+        .in("status", ["confirmed", "pending", "scheduled"])
+        .order("scheduled_date", { ascending: true })
+        .limit(3);
+      return data ?? [];
+    },
+  });
+
+  return (
+    <Card className="p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="font-bold">Upcoming Appointments</p>
+        <Link to="/appointments" className="text-xs text-wh-pink font-semibold">View All</Link>
+      </div>
+      {appts.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-3">No upcoming appointments.</p>
+      ) : (
+        <div className="space-y-2">
+          {appts.map((a: any) => {
+            const d = a.scheduled_date ? new Date(a.scheduled_date) : null;
+            const daysLeft = d ? Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86400000)) : 0;
+            return (
+              <div key={a.id} className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-wh-pink-soft text-wh-pink grid place-items-center text-center">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase leading-none">{d ? format(d, "MMM") : ""}</p>
+                    <p className="text-base font-extrabold leading-none mt-0.5">{d ? format(d, "d") : "—"}</p>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{a.reason || (a.appointment_type === "home_visit" ? "Home Visit" : "Checkup")}</p>
+                  <p className="text-xs text-muted-foreground">{d ? format(d, "EEEE") : ""}{a.scheduled_time ? `, ${a.scheduled_time}` : ""}</p>
+                </div>
+                <div className="flex items-center gap-1 text-wh-pink text-xs font-semibold"><Bell className="h-3.5 w-3.5" />{daysLeft} {daysLeft === 1 ? "Day" : "Days"} Left<ChevronRight className="h-4 w-4 text-muted-foreground ml-1" /></div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+};
+
+// Baby Growth full timeline
 const BabyGrowthTimeline = () => {
   const { profile: preg } = usePregnancyProfile();
   const state = preg ? computePregnancy({ lmpDate: preg.lmp_date, dueDate: preg.due_date }) : null;
   const { data: all = [] } = useQuery({
     queryKey: ["baby-growth-all"],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from("baby_growth_data").select("*").order("week");
-      return data ?? [];
-    },
+    queryFn: async () => (await (supabase as any).from("baby_growth_data").select("*").order("week")).data ?? [],
   });
   return (
-    <WHLayout title="Baby Growth" showBack>
+    <WHLayout title="Pregnancy" showBack>
+      <TopTabs tabs={PREGNANCY_TABS} />
       <div className="space-y-2">
         {all.map((w: any) => (
           <Card key={w.week} className={`p-3 ${state?.week === w.week ? "border-wh-pink border-2" : ""}`}>
@@ -673,6 +943,38 @@ const BabyGrowthTimeline = () => {
   );
 };
 
+// Pregnancy calendar / health / insights tabs (minimal)
+const PregnancyCalendar = () => (
+  <WHLayout title="Pregnancy"><TopTabs tabs={PREGNANCY_TABS} /><MiniCalendar /></WHLayout>
+);
+const PregnancyHealth = () => (
+  <WHLayout title="Pregnancy">
+    <TopTabs tabs={PREGNANCY_TABS} />
+    <HealthLogSummary />
+    <UpcomingAppointments />
+  </WHLayout>
+);
+const PregnancyInsights = () => (
+  <WHLayout title="Pregnancy">
+    <TopTabs tabs={PREGNANCY_TABS} />
+    <Card className="p-4 bg-wh-pink-soft border-0">
+      <p className="text-sm flex items-start gap-2"><Sparkles className="h-4 w-4 text-wh-pink mt-0.5" /><span>Your insights will appear here as you log your daily health.</span></p>
+    </Card>
+  </WHLayout>
+);
+
+// Fertility tabs share content
+const FertilityCalendar = () => <WHLayout title="Fertility Tracker" showBack><TopTabs tabs={FERTILITY_TABS} /><MiniCalendar /></WHLayout>;
+const FertilityOvulation = () => <FertilityToday />;
+const FertilityInsights = () => (
+  <WHLayout title="Fertility Tracker" showBack>
+    <TopTabs tabs={FERTILITY_TABS} />
+    <Card className="p-4 bg-wh-pink-soft border-0">
+      <p className="text-sm flex items-start gap-2"><Sparkles className="h-4 w-4 text-wh-pink mt-0.5" /><span>Log symptoms regularly to unlock deeper fertility insights.</span></p>
+    </Card>
+  </WHLayout>
+);
+
 // ────────────────────────────────────────────────────────────────────────────
 // ENTRY — 3-option chooser
 const WHEntry = () => {
@@ -687,25 +989,11 @@ const WHEntry = () => {
       <p className="text-sm text-muted-foreground mb-4">Choose where you want to begin.</p>
       <div className="space-y-3">
         {tiles.map((t, i) => (
-          <motion.div
-            key={t.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08, duration: 0.35 }}
-          >
-            <Card
-              onClick={() => navigate(t.to)}
-              className="p-5 cursor-pointer border-0 shadow-[var(--shadow-wh-card)] active:scale-[0.99] transition-transform"
-              style={{ background: t.grad }}
-            >
+          <motion.div key={t.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.35 }}>
+            <Card onClick={() => navigate(t.to)} className="p-5 cursor-pointer border-0 shadow-[var(--shadow-wh-card)] active:scale-[0.99] transition-transform" style={{ background: t.grad }}>
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-card grid place-items-center shadow-[var(--shadow-wh-soft)]">
-                  <t.Icon className={`h-7 w-7 text-[hsl(var(--${t.color}))]`} />
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-base">{t.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
-                </div>
+                <div className="h-14 w-14 rounded-2xl bg-card grid place-items-center shadow-[var(--shadow-wh-soft)]"><t.Icon className={`h-7 w-7 text-[hsl(var(--${t.color}))]`} /></div>
+                <div className="flex-1"><p className="font-bold text-base">{t.label}</p><p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p></div>
                 <ChevronRight className={`h-5 w-5 text-[hsl(var(--${t.color}))]`} />
               </div>
             </Card>
@@ -716,32 +1004,32 @@ const WHEntry = () => {
   );
 };
 
-// Pregnancy entry — routes to onboarding or pregnancy home based on profile state
-const PregnancyEntry = () => {
-  const { profile: preg, loading } = usePregnancyProfile();
-  const { save } = useWomensProfile();
-  if (loading) return <WHLayout><Card className="h-48 animate-pulse" /></WHLayout>;
-  if (!preg?.lmp_date && !preg?.due_date) {
-    save({ mode: "pregnancy" }).catch(() => {});
-    return <Navigate to="/womens-health/pregnancy/onboarding" replace />;
-  }
-  return <PregnancyHome />;
-};
-
 // Router
 const WomensHealth = () => (
   <Routes>
     <Route index element={<WHEntry />} />
-    <Route path="home" element={<WHHome />} />
-    <Route path="calendar" element={<WHCalendar />} />
-    <Route path="insights" element={<Insights />} />
+    <Route path="home" element={<PeriodOverview />} />
+    <Route path="home/calendar" element={<PeriodCalendarPage />} />
+    <Route path="home/insights" element={<PeriodInsights />} />
+    <Route path="home/history" element={<PeriodHistory />} />
+
+    <Route path="calendar" element={<PeriodCalendarPage />} />
+    <Route path="insights" element={<PeriodInsights />} />
     <Route path="logs" element={<DailyLogPage />} />
     <Route path="profile" element={<WHProfile />} />
     <Route path="log-period" element={<LogPeriod />} />
-    <Route path="fertility" element={<Fertility />} />
-    <Route path="pregnancy" element={<PregnancyEntry />} />
+
+    <Route path="fertility" element={<FertilityToday />} />
+    <Route path="fertility/calendar" element={<FertilityCalendar />} />
+    <Route path="fertility/ovulation" element={<FertilityOvulation />} />
+    <Route path="fertility/insights" element={<FertilityInsights />} />
+
+    <Route path="pregnancy" element={<PregnancyOverview />} />
     <Route path="pregnancy/onboarding" element={<PregnancyOnboarding />} />
     <Route path="pregnancy/baby-growth" element={<BabyGrowthTimeline />} />
+    <Route path="pregnancy/calendar" element={<PregnancyCalendar />} />
+    <Route path="pregnancy/health" element={<PregnancyHealth />} />
+    <Route path="pregnancy/insights" element={<PregnancyInsights />} />
   </Routes>
 );
 
