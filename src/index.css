@@ -204,6 +204,8 @@ html[dir="rtl"] .rtl\:ml-auto {
     --wh-purple-soft: 270 70% 96%;
     --wh-green: 142 60% 55%;          /* Fertile */
     --wh-green-soft: 142 60% 95%;
+    --wh-orange: 28 95% 60%;
+    --wh-orange-soft: 28 95% 95%;
     --wh-bg: 210 25% 97%;             /* #F5F7FA */
     --wh-card: 0 0% 100%;
     --gradient-wh-hero: linear-gradient(135deg, hsl(var(--wh-pink-soft)) 0%, hsl(var(--wh-blue-soft)) 100%);
