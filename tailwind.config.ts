@@ -73,6 +73,8 @@ export default {
 					'purple-soft': 'hsl(var(--wh-purple-soft))',
 					green: 'hsl(var(--wh-green))',
 					'green-soft': 'hsl(var(--wh-green-soft))',
+					orange: 'hsl(var(--wh-orange))',
+					'orange-soft': 'hsl(var(--wh-orange-soft))',
 					bg: 'hsl(var(--wh-bg))',
 					card: 'hsl(var(--wh-card))'
 				},
