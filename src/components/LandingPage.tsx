@@ -107,13 +107,13 @@ export const LandingPage = () => {
   }];
   const faqs = [{
     question: "Is Prescribly really free to register?",
-    answer: "Yes — creating an account on Prescribly is 100% free. There is no monthly subscription. You only pay when you book a service: ₦15,000 for an appointment booking with a doctor, or ₦47,000 for a home visit."
+    answer: "Yes — creating an account on Prescribly is 100% free. There is no monthly subscription. You only pay when you book a service: ₦3,000 for a doctor consultation, or ₦47,000 for a home visit."
   }, {
     question: "How much does it cost to book a doctor?",
-    answer: "An online appointment booking (chat / video / voice consultation) costs ₦15,000. A home visit, where the doctor comes to your address, costs ₦47,000. There are no other fees."
+    answer: "An online doctor consultation (chat / video / voice) costs ₦3,000. A home visit, where the doctor comes to your address, costs ₦47,000. There are no other fees."
   }, {
     question: "How does the doctor get paid?",
-    answer: "For every ₦15,000 appointment booking, the doctor receives ₦8,000 and Prescribly receives ₦7,000 to cover platform, payment and support costs. For every ₦47,000 home visit, the doctor receives ₦33,000 and Prescribly receives ₦14,000."
+    answer: "Consultation fees and home-visit fees are split between the doctor and Prescribly to cover platform, payment, and support costs. Doctors receive their share directly to their payout account."
   }, {
     question: "Can I talk to a real doctor?",
     answer: "Absolutely. All Prescribly doctors are licensed medical professionals who are verified before they appear on the platform. Our AI helps with quick symptom analysis, but every consultation is with a real doctor."
@@ -381,7 +381,7 @@ export const LandingPage = () => {
                     <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Access to Herbal Features</span></div>
 
                     <div className="pt-3 border-t border-border/30 mt-4 space-y-2">
-                      <div className="flex justify-between text-sm"><span>Doctor Appointment Booking</span><span className="font-semibold">₦15,000</span></div>
+                      <div className="flex justify-between text-sm"><span>Doctor Consultation</span><span className="font-semibold">₦3,000</span></div>
                       <div className="flex justify-between text-sm"><span>Doctor Home Visit</span><span className="font-semibold">₦47,000</span></div>
                     </div>
                      <Button variant="medical" className="w-full mt-6" asChild>

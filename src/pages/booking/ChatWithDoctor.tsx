@@ -7,21 +7,11 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { DoctorCard } from '@/components/booking/DoctorCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, ArrowLeft, Search } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Loader2, ArrowLeft, Search, CheckCircle2, Sparkles, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Calendar as CalendarIcon, Clock, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format, isPast } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { useDoctorAvailability } from '@/hooks/useDoctorAvailability';
+import { useConsultationPayment } from '@/hooks/useConsultationPayment';
+import { Logo } from '@/components/Logo';
 
 interface Doctor {
   user_id: string;
@@ -30,112 +20,71 @@ interface Doctor {
   profiles: { first_name: string; last_name: string; avatar_url?: string };
 }
 
-interface Appointment {
-  id: string;
-  doctor_id: string;
-  scheduled_time: string;
-  status: string;
-  consultation_fee: number;
-  notes?: string;
-  created_at: string;
-  profiles?: { first_name: string; last_name: string; avatar_url?: string };
-}
-
-const timeSlots = [
-  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-  '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-  '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-  '17:00', '17:30',
-];
-
 export default function ChatWithDoctor() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { initializePayment, loading: payLoading } = useConsultationPayment();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedTime, setSelectedTime] = useState('');
-  const [reason, setReason] = useState('');
-  const [isBooking, setIsBooking] = useState(false);
-  const { isTimeSlotAvailable } = useDoctorAvailability(selectedDoctor);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
-    fetchDoctors();
-    fetchAppointments();
-  }, [user]);
-
-  const fetchDoctors = async () => {
-    try {
+    (async () => {
       const { data } = await supabase
         .from('doctors')
         .select('user_id, specialization, consultation_fee')
         .eq('verification_status', 'approved');
-      // Fetch profiles
       const userIds = (data || []).map((d: any) => d.user_id);
-      const { data: profiles } = await supabase.from('profiles').select('user_id, first_name, last_name, avatar_url').in('user_id', userIds);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url')
+        .in('user_id', userIds);
       const pMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
       setDoctors(
         (data || []).map((d: any) => {
-          const p = pMap.get(d.user_id) || {} as any;
+          const p: any = pMap.get(d.user_id) || {};
           return {
             user_id: d.user_id,
             specialization: d.specialization,
             consultation_fee: d.consultation_fee,
-            profiles: { first_name: p.first_name || '', last_name: p.last_name || '', avatar_url: p.avatar_url },
+            profiles: {
+              first_name: p.first_name || '',
+              last_name: p.last_name || '',
+              avatar_url: p.avatar_url,
+            },
           };
         })
       );
-    } finally {
       setLoading(false);
-    }
-  };
+    })();
+  }, [user]);
 
-  const fetchAppointments = async () => {
-    if (!user) return;
-    const { data: appts } = await supabase
-      .from('appointments')
-      .select('*')
-      .eq('patient_id', user.id)
-      .order('created_at', { ascending: false });
-
-    const doctorIds = [...new Set((appts || []).map((a: any) => a.doctor_id))];
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, first_name, last_name, avatar_url')
-      .in('user_id', doctorIds);
-    const profilesMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
-    setAppointments((appts || []).map((a: any) => ({ ...a, profiles: profilesMap.get(a.doctor_id) })));
-  };
-
-  const handleBook = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedDoctor || !selectedDate || !selectedTime || !reason.trim()) return;
-    setIsBooking(true);
+  const handlePay = async () => {
+    if (!selectedDoctor || !user) return;
+    setPaying(true);
     try {
-      const { data, error } = await supabase.functions.invoke('bookAppointment', {
-        body: {
-          doctor_id: selectedDoctor,
-          date: format(selectedDate, 'yyyy-MM-dd'),
-          time: selectedTime,
-          reason: reason.trim(),
-          appointment_type: 'clinic',
-        },
-      });
-      if (error || data?.error) throw new Error(data?.error || error?.message);
-      toast({ title: 'Appointment Booked!', description: 'Waiting for doctor approval.' });
-      setSelectedDoctor('');
-      setSelectedDate(undefined);
-      setSelectedTime('');
-      setReason('');
-      fetchAppointments();
+      // Use the doctor's user_id as the payment reference (lightweight "session" id)
+      const ref = `consult_${selectedDoctor.user_id}_${Date.now()}`;
+      const url = await initializePayment(ref);
+      if (url) {
+        localStorage.setItem(
+          'consultation_payment_callback',
+          JSON.stringify({
+            appointmentId: ref,
+            action: 'consultation_external_redirect',
+            doctorId: selectedDoctor.user_id,
+            doctorName: `${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}`,
+          })
+        );
+        window.location.href = url;
+      }
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      toast({ title: 'Payment failed', description: err.message, variant: 'destructive' });
     } finally {
-      setIsBooking(false);
+      setPaying(false);
     }
   };
 
@@ -145,14 +94,6 @@ export default function ChatWithDoctor() {
       d.profiles.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.specialization.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const pendingAppointments = appointments.filter((a) => a.status === 'pending');
-  const upcomingAppointments = appointments.filter((a) => a.status === 'approved' && !isPast(new Date(a.scheduled_time)));
-  const historyAppointments = appointments.filter(
-    (a) => a.status === 'completed' || a.status === 'cancelled' || (a.status === 'approved' && isPast(new Date(a.scheduled_time)))
-  );
-
-  const selectedDoctorData = doctors.find((d) => d.user_id === selectedDoctor);
 
   return (
     <SidebarProvider>
@@ -166,156 +107,93 @@ export default function ChatWithDoctor() {
             </Button>
             <h1 className="ml-2 text-xl font-semibold">Chat or Call a Doctor</h1>
           </header>
-          <div className="container mx-auto px-4 py-6 max-w-4xl">
-            <Tabs defaultValue="book" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="book">Book New</TabsTrigger>
-                <TabsTrigger value="pending">Pending {pendingAppointments.length > 0 && `(${pendingAppointments.length})`}</TabsTrigger>
-                <TabsTrigger value="upcoming">Upcoming {upcomingAppointments.length > 0 && `(${upcomingAppointments.length})`}</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-              </TabsList>
+          <div className="container mx-auto px-4 py-6 max-w-2xl">
+            {!selectedDoctor ? (
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search doctors by name or specialty..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {loading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : filteredDoctors.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-12">No doctors found</p>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {filteredDoctors.map((d) => (
+                      <DoctorCard
+                        key={d.user_id}
+                        name={`${d.profiles.first_name} ${d.profiles.last_name}`}
+                        specialization={d.specialization}
+                        avatarUrl={d.profiles.avatar_url}
+                        price={3000}
+                        priceLabel="Consultation Fee"
+                        onSelect={() => setSelectedDoctor(d)}
+                        buttonText="Consult Now"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Card className="p-6 space-y-5 text-center">
+                <div className="flex justify-center"><Logo size="lg" priority /></div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mx-auto">
+                  <Sparkles className="h-3.5 w-3.5" /> Secure consultation
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">You're about to consult with</p>
+                  <h2 className="text-xl font-bold mt-1">
+                    Dr. {selectedDoctor.profiles.first_name} {selectedDoctor.profiles.last_name}
+                  </h2>
+                  <p className="text-xs text-muted-foreground">{selectedDoctor.specialization}</p>
+                </div>
 
-              <TabsContent value="book">
-                {!selectedDoctor ? (
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Search doctors by name or specialty..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
-                    </div>
-                    {loading ? (
-                      <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                    ) : filteredDoctors.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-12">No doctors found</p>
+                <div className="rounded-xl bg-muted/40 p-4 text-left space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Consultation Fee</span>
+                    <span className="font-bold text-primary text-base">₦3,000</span>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      Pay securely through Prescribly
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      After payment you'll be redirected to start your consultation
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      Chat, voice, or video — all from inside Prescribly
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={() => setSelectedDoctor(null)} disabled={paying || payLoading}>
+                    Back
+                  </Button>
+                  <Button className="flex-1" onClick={handlePay} disabled={paying || payLoading}>
+                    {paying || payLoading ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</>
                     ) : (
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {filteredDoctors.map((d) => (
-                          <DoctorCard
-                            key={d.user_id}
-                            name={`${d.profiles.first_name} ${d.profiles.last_name}`}
-                            specialization={d.specialization}
-                            avatarUrl={d.profiles.avatar_url}
-                            price={d.consultation_fee}
-                            onSelect={() => setSelectedDoctor(d.user_id)}
-                          />
-                        ))}
-                      </div>
+                      <><CreditCard className="h-4 w-4 mr-2" />Pay ₦3,000</>
                     )}
-                  </div>
-                ) : (
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" onClick={() => setSelectedDoctor('')}>
-                          <ArrowLeft className="h-4 w-4" />
-                        </Button>
-                        <CardTitle>Book with Dr. {selectedDoctorData?.profiles.first_name} {selectedDoctorData?.profiles.last_name}</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleBook} className="space-y-4">
-                        <div>
-                          <Label>Select Date</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className={cn('w-full justify-start text-left', !selectedDate && 'text-muted-foreground')}>
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} /></PopoverContent>
-                          </Popover>
-                        </div>
-                        <div>
-                          <Label>Select Time</Label>
-                          <Select value={selectedTime} onValueChange={setSelectedTime}>
-                            <SelectTrigger><SelectValue placeholder="Select time" /></SelectTrigger>
-                            <SelectContent>
-                              {timeSlots.map((t) => (
-                                <SelectItem key={t} value={t} disabled={selectedDate ? !isTimeSlotAvailable(selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(), t) : false}>
-                                  {t}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Reason for Visit</Label>
-                          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Describe your reason..." required maxLength={1000} />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isBooking || !selectedDate || !selectedTime || !reason.trim()}>
-                          {isBooking ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Booking...</> : 'Book Appointment'}
-                        </Button>
-                      </form>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="pending">
-                {pendingAppointments.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-12">No pending appointments</p>
-                ) : (
-                  <div className="space-y-3">
-                    {pendingAppointments.map((a) => (
-                      <Card key={a.id}>
-                        <CardContent className="p-4 flex items-center gap-4">
-                          <Clock className="h-5 w-5 text-orange-500" />
-                          <div className="flex-1">
-                            <p className="font-medium">Dr. {a.profiles?.first_name} {a.profiles?.last_name}</p>
-                            <p className="text-sm text-muted-foreground">{format(new Date(a.scheduled_time), 'PPP p')}</p>
-                          </div>
-                          <Badge variant="secondary">Pending</Badge>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="upcoming">
-                {upcomingAppointments.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-12">No upcoming appointments</p>
-                ) : (
-                  <div className="space-y-3">
-                    {upcomingAppointments.map((a) => (
-                      <Card key={a.id}>
-                        <CardContent className="p-4 flex items-center gap-4">
-                          <CheckCircle className="h-5 w-5 text-teal-500" />
-                          <div className="flex-1">
-                            <p className="font-medium">Dr. {a.profiles?.first_name} {a.profiles?.last_name}</p>
-                            <p className="text-sm text-muted-foreground">{format(new Date(a.scheduled_time), 'PPP p')}</p>
-                          </div>
-                          <Button size="sm" onClick={() => navigate('/chat', { state: { doctorId: a.doctor_id } })}>
-                            <MessageCircle className="h-4 w-4 mr-1" /> Chat
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="history">
-                {historyAppointments.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-12">No appointment history</p>
-                ) : (
-                  <div className="space-y-3">
-                    {historyAppointments.map((a) => (
-                      <Card key={a.id}>
-                        <CardContent className="p-4 flex items-center gap-4">
-                          {a.status === 'completed' ? <CheckCircle className="h-5 w-5 text-blue-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
-                          <div className="flex-1">
-                            <p className="font-medium">Dr. {a.profiles?.first_name} {a.profiles?.last_name}</p>
-                            <p className="text-sm text-muted-foreground">{format(new Date(a.scheduled_time), 'PPP p')}</p>
-                          </div>
-                          <Badge variant={a.status === 'completed' ? 'default' : 'destructive'}>{a.status}</Badge>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Secure payment powered by Flutterwave
+                </p>
+              </Card>
+            )}
           </div>
         </main>
       </div>
