@@ -687,29 +687,41 @@ const PREGNANCY_TABS = [
 const PregnancyOnboarding = () => {
   const { save } = usePregnancyProfile();
   const navigate = useNavigate();
-  const [lmp, setLmp] = useState(format(addDays(new Date(), -24 * 7), "yyyy-MM-dd"));
+  const [lmp, setLmp] = useState<string>("");
   const [useDue, setUseDue] = useState(false);
-  const [due, setDue] = useState(format(addDays(new Date(), 16 * 7), "yyyy-MM-dd"));
+  const [due, setDue] = useState<string>("");
+  const todayStr = format(new Date(), "yyyy-MM-dd");
 
   return (
     <WHLayout title="Pregnancy Setup" showBack>
       <Card className="p-5 mb-4 border-0" style={{ background: "var(--gradient-wh-hero)" }}>
         <Baby className="h-8 w-8 text-wh-pink mb-2" />
         <h2 className="text-xl font-bold">Welcome to your pregnancy journey</h2>
-        <p className="text-sm text-muted-foreground">We'll track baby growth week by week.</p>
+        <p className="text-sm text-muted-foreground">Enter your dates so we can track baby growth week by week.</p>
       </Card>
       <Card className="p-4 space-y-3">
         <div className="flex items-center justify-between"><Label>Use due date instead of LMP</Label><Switch checked={useDue} onCheckedChange={setUseDue} /></div>
         {!useDue ? (
-          <div><Label>First day of last menstrual period</Label><Input type="date" value={lmp} onChange={e => setLmp(e.target.value)} /></div>
+          <div>
+            <Label>First day of your last menstrual period</Label>
+            <Input type="date" max={todayStr} value={lmp} onChange={e => setLmp(e.target.value)} />
+          </div>
         ) : (
-          <div><Label>Due date</Label><Input type="date" value={due} onChange={e => setDue(e.target.value)} /></div>
+          <div>
+            <Label>Your due date</Label>
+            <Input type="date" value={due} onChange={e => setDue(e.target.value)} />
+          </div>
         )}
-        <Button className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full" onClick={async () => {
-          await save(useDue ? { due_date: due, lmp_date: null } : { lmp_date: lmp, due_date: null });
-          toast({ title: "Pregnancy started 🎉" });
-          navigate("/womens-health/pregnancy");
-        }}>Start Pregnancy Journey</Button>
+        <Button
+          className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full"
+          disabled={useDue ? !due : !lmp}
+          onClick={async () => {
+            if (useDue ? !due : !lmp) { toast({ title: "Pick a date", description: "Please enter the required date.", variant: "destructive" }); return; }
+            await save(useDue ? { due_date: due, lmp_date: null } : { lmp_date: lmp, due_date: null });
+            toast({ title: "Pregnancy started 🎉" });
+            navigate("/womens-health/pregnancy");
+          }}
+        >Start Pregnancy Journey</Button>
       </Card>
     </WHLayout>
   );
