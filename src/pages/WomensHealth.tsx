@@ -445,26 +445,36 @@ const StatCard = ({ Icon, tone, label, value, sub }: any) => (
 // ONBOARDING
 const WHOnboarding = ({ onSaved }: { onSaved: () => void }) => {
   const { save } = useWomensProfile();
-  const [lastPeriod, setLastPeriod] = useState(format(addDays(new Date(), -10), "yyyy-MM-dd"));
+  const [lastPeriod, setLastPeriod] = useState<string>("");
   const [cycleLen, setCycleLen] = useState(28);
   const [periodLen, setPeriodLen] = useState(5);
+  const todayStr = format(new Date(), "yyyy-MM-dd");
 
   return (
     <WHLayout title="Set up Cycle Tracking" showBack>
       <Card className="p-5 mb-4 border-0" style={{ background: "var(--gradient-wh-hero)" }}>
         <Flower2 className="h-8 w-8 text-wh-pink mb-2" />
         <h2 className="text-xl font-bold mb-1">Let's personalize your tracker</h2>
-        <p className="text-sm text-muted-foreground">We'll predict your cycle, ovulation, and fertility window.</p>
+        <p className="text-sm text-muted-foreground">Enter the first day of your last period so we can predict your cycle, ovulation, and fertility window.</p>
       </Card>
       <Card className="p-4 space-y-4">
-        <div><Label>First day of last period</Label><Input type="date" value={lastPeriod} onChange={e => setLastPeriod(e.target.value)} className="mt-1" /></div>
+        <div>
+          <Label>First day of your last period</Label>
+          <Input type="date" max={todayStr} value={lastPeriod} onChange={e => setLastPeriod(e.target.value)} className="mt-1" />
+          {!lastPeriod && <p className="text-[11px] text-muted-foreground mt-1">Pick the date your last period started.</p>}
+        </div>
         <div><Label>Average cycle length: <span className="text-wh-pink font-bold">{cycleLen} days</span></Label><Slider value={[cycleLen]} min={21} max={40} step={1} onValueChange={v => setCycleLen(v[0])} className="mt-2" /></div>
         <div><Label>Average period length: <span className="text-wh-pink font-bold">{periodLen} days</span></Label><Slider value={[periodLen]} min={2} max={10} step={1} onValueChange={v => setPeriodLen(v[0])} className="mt-2" /></div>
-        <Button className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full" onClick={async () => {
-          await save({ last_period_start: lastPeriod, avg_cycle_length: cycleLen, avg_period_length: periodLen, mode: "cycle" });
-          toast({ title: "All set!", description: "Your cycle is now tracked." });
-          onSaved();
-        }}>Start Tracking</Button>
+        <Button
+          className="w-full bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full"
+          disabled={!lastPeriod}
+          onClick={async () => {
+            if (!lastPeriod) { toast({ title: "Pick a date", description: "Please enter the first day of your last period.", variant: "destructive" }); return; }
+            await save({ last_period_start: lastPeriod, avg_cycle_length: cycleLen, avg_period_length: periodLen, mode: "cycle" });
+            toast({ title: "All set!", description: "Your cycle is now tracked." });
+            onSaved();
+          }}
+        >Start Tracking</Button>
       </Card>
     </WHLayout>
   );
@@ -477,31 +487,49 @@ const MOODS = ["Happy", "Calm", "Irritated", "Sad", "Stressed"];
 
 const LogPeriod = () => {
   const { user } = useAuth();
+  const { profile, save: saveProfile } = useWomensProfile();
   const navigate = useNavigate();
+  const [logDate, setLogDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [isStartDay, setIsStartDay] = useState(true);
   const [flow, setFlow] = useState<string>("medium");
   const [pain, setPain] = useState(3);
   const [mood, setMood] = useState<string>("Calm");
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const toggle = (s: string) => setSymptoms(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
+  const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const save = async () => {
     if (!user) return;
-    const today = format(new Date(), "yyyy-MM-dd");
+    if (!logDate) { toast({ title: "Pick a date", description: "Choose the date this entry is for.", variant: "destructive" }); return; }
     const { error } = await (supabase as any).from("period_logs").upsert({
-      user_id: user.id, log_date: today, flow, pain_level: pain, mood, symptoms,
+      user_id: user.id, log_date: logDate, flow, pain_level: pain, mood, symptoms,
     }, { onConflict: "user_id,log_date" });
     if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
+    // If this is the start day of the period, update the profile's last_period_start
+    if (isStartDay && (!profile?.last_period_start || logDate >= profile.last_period_start)) {
+      await saveProfile({ last_period_start: logDate });
+    }
     toast({ title: "Logged", description: "Period entry saved." });
     navigate(-1);
   };
 
   return (
     <WHLayout title="Log Period" showBack>
+      <Card className="p-4 mb-3 space-y-3">
+        <div>
+          <Label>Date</Label>
+          <Input type="date" max={todayStr} value={logDate} onChange={e => setLogDate(e.target.value)} className="mt-1" />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label className="cursor-pointer">This is the first day of my period</Label>
+          <Switch checked={isStartDay} onCheckedChange={setIsStartDay} />
+        </div>
+      </Card>
       <Card className="p-4 mb-3">
         <Label className="mb-2 block">Flow</Label>
         <div className="grid grid-cols-4 gap-2">
           {["spotting", "light", "medium", "heavy"].map(f => (
-            <button key={f} onClick={() => setFlow(f)} className={`py-2 rounded-full text-xs capitalize border ${flow === f ? "bg-wh-pink text-white border-wh-pink" : "border-border"}`}>{f}</button>
+            <button key={f} type="button" onClick={() => setFlow(f)} className={`py-2 rounded-full text-xs capitalize border ${flow === f ? "bg-wh-pink text-white border-wh-pink" : "border-border"}`}>{f}</button>
           ))}
         </div>
       </Card>
@@ -513,7 +541,7 @@ const LogPeriod = () => {
         <Label className="mb-2 block">Mood</Label>
         <div className="grid grid-cols-3 gap-2">
           {MOODS.map(m => (
-            <button key={m} onClick={() => setMood(m)} className={`py-2 rounded-full text-xs border ${mood === m ? "bg-wh-purple text-white border-wh-purple" : "border-border"}`}>{m}</button>
+            <button key={m} type="button" onClick={() => setMood(m)} className={`py-2 rounded-full text-xs border ${mood === m ? "bg-wh-purple text-white border-wh-purple" : "border-border"}`}>{m}</button>
           ))}
         </div>
       </Card>
@@ -521,7 +549,7 @@ const LogPeriod = () => {
         <Label className="mb-2 block">Symptoms</Label>
         <div className="flex flex-wrap gap-2">
           {SYMPTOMS.map(s => (
-            <button key={s} onClick={() => toggle(s)} className={`px-3 py-1.5 rounded-full text-xs border ${symptoms.includes(s) ? "bg-wh-pink-soft text-wh-pink-deep border-wh-pink" : "border-border"}`}>{s}</button>
+            <button key={s} type="button" onClick={() => toggle(s)} className={`px-3 py-1.5 rounded-full text-xs border ${symptoms.includes(s) ? "bg-wh-pink-soft text-wh-pink-deep border-wh-pink" : "border-border"}`}>{s}</button>
           ))}
         </div>
       </Card>
