@@ -744,7 +744,7 @@ const PregnancyOverview = () => {
   })();
 
   return (
-    <WHLayout title="Pregnancy" rightAction={<button className="p-2 rounded-full hover:bg-muted relative"><Bell className="h-5 w-5 text-foreground/70" /></button>}>
+    <WHLayout title="Pregnancy">
       <TopTabs tabs={PREGNANCY_TABS} />
 
       {/* Hero */}
