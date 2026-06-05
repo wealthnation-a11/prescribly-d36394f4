@@ -98,7 +98,7 @@ const PeriodOverview = () => {
   const pct = (cycle.cycleDay / cycle.cycleLength) * 100;
 
   return (
-    <WHLayout title="Period Tracking" rightAction={<button className="p-2 rounded-full hover:bg-muted"><MoreVertical className="h-5 w-5 text-foreground/70" /></button>}>
+    <WHLayout title="Period Tracking">
       <TopTabs tabs={PERIOD_TABS} />
 
       {/* Hero */}
@@ -336,7 +336,7 @@ const FertilityToday = () => {
   const isHigh = cycle.status === "high" || cycle.status === "ovulation";
 
   return (
-    <WHLayout title="Fertility Tracker" showBack rightAction={<button className="p-2 rounded-full hover:bg-muted"><Info className="h-5 w-5 text-foreground/70" /></button>}>
+    <WHLayout title="Fertility Tracker">
       <TopTabs tabs={FERTILITY_TABS} />
 
       {/* Hero */}
@@ -744,7 +744,7 @@ const PregnancyOverview = () => {
   })();
 
   return (
-    <WHLayout title="Pregnancy" rightAction={<button className="p-2 rounded-full hover:bg-muted relative"><Bell className="h-5 w-5 text-foreground/70" /></button>}>
+    <WHLayout title="Pregnancy">
       <TopTabs tabs={PREGNANCY_TABS} />
 
       {/* Hero */}
