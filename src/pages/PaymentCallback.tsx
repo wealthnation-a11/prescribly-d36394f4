@@ -143,7 +143,7 @@ export const PaymentCallback = () => {
 
           {status === 'failed' && (
             <div className="space-y-3">
-              <Button onClick={() => navigate('/subscription')} className="w-full">
+              <Button onClick={() => navigate(retryPath)} className="w-full">
                 Try Again
               </Button>
               <Button onClick={() => navigate('/user-dashboard')} variant="outline" className="w-full">
@@ -151,6 +151,7 @@ export const PaymentCallback = () => {
               </Button>
             </div>
           )}
+
           
           {status === 'success' && (
             <div className="text-sm text-muted-foreground">
