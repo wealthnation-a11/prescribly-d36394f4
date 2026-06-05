@@ -98,7 +98,7 @@ const PeriodOverview = () => {
   const pct = (cycle.cycleDay / cycle.cycleLength) * 100;
 
   return (
-    <WHLayout title="Period Tracking" rightAction={<button className="p-2 rounded-full hover:bg-muted"><MoreVertical className="h-5 w-5 text-foreground/70" /></button>}>
+    <WHLayout title="Period Tracking">
       <TopTabs tabs={PERIOD_TABS} />
 
       {/* Hero */}
