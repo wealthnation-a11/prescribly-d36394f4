@@ -1,8 +1,17 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Bell } from "lucide-react";
-import { Home, CalendarDays, LineChart, ClipboardList, User } from "lucide-react";
+import { ArrowLeft, Bell, MoreVertical, Settings, Share2, ClipboardList, Info, RefreshCw } from "lucide-react";
+import { Home, CalendarDays, LineChart, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   title?: string;
@@ -19,16 +28,35 @@ const tabs = [
   { to: "/womens-health/profile", icon: User, label: "Profile" },
 ];
 
-export const WHLayout = ({ title = "Women's Health", showBack, rightAction, children }: Props) => {
+export const WHLayout = ({ title = "Women's Health", showBack = true, rightAction, children }: Props) => {
   const navigate = useNavigate();
   const loc = useLocation();
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `Prescribly — ${title}`, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Link copied", description: "Page link copied to clipboard." });
+      }
+    } catch {
+      // user dismissed share dialog — ignore
+    }
+  };
+
   return (
     <div className="min-h-screen bg-wh-bg flex flex-col">
       <header className="sticky top-0 z-30 bg-wh-card/95 backdrop-blur border-b border-border/40">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {showBack && (
-              <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-muted">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 -ml-2 rounded-full hover:bg-muted"
+                aria-label="Back"
+              >
                 <ArrowLeft className="h-5 w-5" />
               </button>
             )}
@@ -36,9 +64,43 @@ export const WHLayout = ({ title = "Women's Health", showBack, rightAction, chil
           </div>
           <div className="flex items-center gap-1">
             {rightAction}
-            <button className="p-2 rounded-full hover:bg-muted relative" aria-label="Notifications">
+            <button
+              onClick={() => navigate("/notifications")}
+              className="p-2 rounded-full hover:bg-muted relative"
+              aria-label="Notifications"
+            >
               <Bell className="h-5 w-5 text-foreground/70" />
             </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 rounded-full hover:bg-muted" aria-label="More options">
+                  <MoreVertical className="h-5 w-5 text-foreground/70" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-popover z-50">
+                <DropdownMenuLabel>Quick actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/womens-health/profile")}>
+                  <Settings className="h-4 w-4 mr-2" /> Cycle & profile settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/womens-health/onboarding")}>
+                  <RefreshCw className="h-4 w-4 mr-2" /> Reset cycle dates
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/notification-settings")}>
+                  <Bell className="h-4 w-4 mr-2" /> Notification settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/womens-health/logs")}>
+                  <ClipboardList className="h-4 w-4 mr-2" /> View all logs
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleShare}>
+                  <Share2 className="h-4 w-4 mr-2" /> Share
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/support")}>
+                  <Info className="h-4 w-4 mr-2" /> Help & support
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
