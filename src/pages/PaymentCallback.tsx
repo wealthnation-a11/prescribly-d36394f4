@@ -11,6 +11,15 @@ export const PaymentCallback = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [message, setMessage] = useState('Verifying payment...');
+  const [retryPath, setRetryPath] = useState<string>('/subscription');
+
+  // Decide where Try Again should send the user
+  useEffect(() => {
+    const raw = localStorage.getItem('consultation_payment_callback');
+    if (raw) setRetryPath('/book-appointment/chat');
+    else if (localStorage.getItem('pending_order')) setRetryPath('/herbal/shopping-cart');
+  }, []);
+
 
   useEffect(() => {
     const verifyPayment = async () => {
