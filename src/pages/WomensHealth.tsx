@@ -336,7 +336,7 @@ const FertilityToday = () => {
   const isHigh = cycle.status === "high" || cycle.status === "ovulation";
 
   return (
-    <WHLayout title="Fertility Tracker" showBack rightAction={<button className="p-2 rounded-full hover:bg-muted"><Info className="h-5 w-5 text-foreground/70" /></button>}>
+    <WHLayout title="Fertility Tracker">
       <TopTabs tabs={FERTILITY_TABS} />
 
       {/* Hero */}
