@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_broadcast_dismissals: {
+        Row: {
+          broadcast_id: string
+          dismissed_at: string
+          user_id: string
+        }
+        Insert: {
+          broadcast_id: string
+          dismissed_at?: string
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string
+          dismissed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_broadcast_dismissals_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "admin_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_broadcasts: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          cta_label: string | null
+          cta_url: string | null
+          ends_at: string | null
+          id: string
+          message: string
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          ends_at?: string | null
+          id?: string
+          message: string
+          starts_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          ends_at?: string | null
+          id?: string
+          message?: string
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_chat_messages: {
         Row: {
           content: string
@@ -2146,6 +2214,65 @@ export type Database = {
           },
         ]
       }
+      secret_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "secret_chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "secret_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      secret_chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shopping_cart: {
         Row: {
           created_at: string
@@ -2923,6 +3050,45 @@ export type Database = {
         }
         Relationships: []
       }
+      women_daily_log: {
+        Row: {
+          cravings: string[]
+          created_at: string
+          id: string
+          log_date: string
+          mood: string | null
+          mood_reason: string | null
+          notes: string | null
+          symptoms: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cravings?: string[]
+          created_at?: string
+          id?: string
+          log_date?: string
+          mood?: string | null
+          mood_reason?: string | null
+          notes?: string | null
+          symptoms?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cravings?: string[]
+          created_at?: string
+          id?: string
+          log_date?: string
+          mood?: string | null
+          mood_reason?: string | null
+          notes?: string | null
+          symptoms?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       women_profiles: {
         Row: {
           avg_cycle_length: number
@@ -2971,6 +3137,27 @@ export type Database = {
         }
         Relationships: []
       }
+      women_secret_pin: {
+        Row: {
+          created_at: string
+          pin_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          pin_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          pin_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -3011,6 +3198,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_secret_pin: { Args: never; Returns: boolean }
+      set_secret_pin: { Args: { _pin: string }; Returns: boolean }
       verify_registration_code: {
         Args: { _code: string }
         Returns: {
@@ -3032,6 +3221,7 @@ export type Database = {
           verified_at: string
         }[]
       }
+      verify_secret_pin: { Args: { _pin: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
