@@ -1013,6 +1013,7 @@ const WomensHealth = () => (
     <Route path="logs" element={<DailyLogPage />} />
     <Route path="profile" element={<WHProfile />} />
     <Route path="log-period" element={<LogPeriod />} />
+    <Route path="secret-chats" element={<SecretChats />} />
 
     <Route path="fertility" element={<FertilityToday />} />
     <Route path="fertility/calendar" element={<FertilityCalendar />} />
