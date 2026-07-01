@@ -24,6 +24,9 @@ import { usePregnancyProfile } from "@/hooks/usePregnancyProfile";
 import { computeCycle, statusLabel, conceptionCurve } from "@/lib/cycleMath";
 import { computePregnancy, trimesterLabel } from "@/lib/pregnancyMath";
 import WHLayout from "@/components/womens-health/WHLayout";
+import GiftOnboarding from "@/components/womens-health/GiftOnboarding";
+import PeriodTodayFlo from "@/components/womens-health/PeriodTodayFlo";
+import SecretChats from "@/pages/womens-health/SecretChats";
 import { useQuery } from "@tanstack/react-query";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -87,72 +90,22 @@ const PERIOD_TABS = [
 ];
 
 const PeriodOverview = () => {
-  const { user } = useAuth();
   const { profile, loading } = useWomensProfile();
   const navigate = useNavigate();
 
   if (loading) return <WHLayout title="Period Tracking"><Card className="h-48 animate-pulse" /></WHLayout>;
-  if (!profile?.last_period_start) return <WHOnboarding onSaved={() => navigate("/womens-health/home")} />;
-
-  const cycle = computeCycle(profile.last_period_start, profile.avg_cycle_length, profile.avg_period_length);
-  const pct = (cycle.cycleDay / cycle.cycleLength) * 100;
+  if (!profile?.last_period_start) return <GiftOnboarding onFinished={() => navigate("/womens-health/home")} />;
 
   return (
     <WHLayout title="Period Tracking">
       <TopTabs tabs={PERIOD_TABS} />
-
-      {/* Hero */}
-      <Card className="p-5 mb-4 border-0 shadow-[var(--shadow-wh-card)] overflow-hidden relative" style={{ background: "var(--gradient-wh-hero)" }}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground/80">Current Cycle</p>
-            <p className="text-[40px] font-extrabold leading-none">Day {cycle.cycleDay} <span className="text-base font-medium text-foreground/60">of {cycle.cycleLength}</span></p>
-            <p className="text-wh-pink-deep font-bold mt-2 text-base">
-              {cycle.status === "period" ? "Period day" :
-               cycle.status === "ovulation" ? "Ovulation today" :
-               cycle.daysUntilOvulation > 0 ? `Ovulation in ${cycle.daysUntilOvulation} days` :
-               `Next period in ${cycle.daysUntilNextPeriod} days`}
-            </p>
-            <p className="text-sm text-foreground/70">{statusLabel(cycle.status)}</p>
-            <Button onClick={() => navigate("/womens-health/log-period")} className="mt-4 bg-wh-pink hover:bg-wh-pink-deep text-white rounded-full px-6">
-              Log Period
-            </Button>
-          </div>
-          <Ring pct={pct} color="hsl(var(--wh-pink))" size={150} track="hsl(var(--wh-pink)/0.15)">
-            <Flower2 className="h-7 w-7 text-wh-pink mb-1" />
-            <p className="text-[11px] font-semibold leading-tight">{statusLabel(cycle.status)}</p>
-          </Ring>
-        </div>
-      </Card>
-
-      {/* Next period */}
-      <Card className="p-4 mb-4 shadow-[var(--shadow-wh-soft)]">
-        <div className="grid grid-cols-[1.2fr_1fr_1fr_auto] gap-3 items-center">
-          <div>
-            <p className="text-xs text-muted-foreground">Next Period</p>
-            <p className="text-wh-pink font-bold text-base">{format(cycle.nextPeriod, "d MMM yyyy")}</p>
-            <p className="text-[11px] text-muted-foreground">In {cycle.daysUntilNextPeriod} days</p>
-          </div>
-          <div className="border-l border-border pl-3">
-            <p className="text-xs text-muted-foreground">Cycle Length</p>
-            <p className="font-bold"><span className="text-base">{cycle.cycleLength}</span> Days</p>
-          </div>
-          <div className="border-l border-border pl-3">
-            <p className="text-xs text-muted-foreground">Period Length</p>
-            <p className="font-bold"><span className="text-base">{cycle.periodLength}</span> Days</p>
-          </div>
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </Card>
-
-      {/* Inline mini-calendar */}
-      <MiniCalendar />
-
-      {/* Today's Log */}
+      <PeriodTodayFlo />
+      <div className="mt-4"><MiniCalendar /></div>
       <TodaysLogRow />
     </WHLayout>
   );
 };
+
 
 const MiniCalendar = () => {
   const { profile } = useWomensProfile();
@@ -1023,6 +976,8 @@ const WHEntry = () => {
     { label: "Cycle Tracking", desc: "Period, ovulation & fertile window", Icon: Flower2, to: "/womens-health/home", grad: "linear-gradient(135deg, hsl(var(--wh-pink)/.18), hsl(var(--wh-pink)/.05))", color: "wh-pink" },
     { label: "Pregnancy", desc: "Week-by-week journey & milestones", Icon: Heart, to: "/womens-health/pregnancy", grad: "linear-gradient(135deg, hsl(var(--wh-purple)/.18), hsl(var(--wh-purple)/.05))", color: "wh-purple" },
     { label: "Baby Growth", desc: "Size, development & timeline", Icon: Baby, to: "/womens-health/pregnancy/baby-growth", grad: "linear-gradient(135deg, hsl(var(--wh-blue)/.18), hsl(var(--wh-blue)/.05))", color: "wh-blue" },
+    { label: "Insights", desc: "Your personal cycle patterns", Icon: Sparkles, to: "/womens-health/insights", grad: "linear-gradient(135deg, hsl(var(--wh-pink)/.18), hsl(var(--wh-pink)/.05))", color: "wh-pink" },
+    { label: "Secret Chats", desc: "Private PIN-locked chat with Gift", Icon: Zap, to: "/womens-health/secret-chats", grad: "linear-gradient(135deg, hsl(var(--wh-purple)/.18), hsl(var(--wh-purple)/.05))", color: "wh-purple" },
   ];
   return (
     <WHLayout title="Women's Health">
@@ -1058,6 +1013,7 @@ const WomensHealth = () => (
     <Route path="logs" element={<DailyLogPage />} />
     <Route path="profile" element={<WHProfile />} />
     <Route path="log-period" element={<LogPeriod />} />
+    <Route path="secret-chats" element={<SecretChats />} />
 
     <Route path="fertility" element={<FertilityToday />} />
     <Route path="fertility/calendar" element={<FertilityCalendar />} />
