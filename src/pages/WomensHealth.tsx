@@ -976,6 +976,8 @@ const WHEntry = () => {
     { label: "Cycle Tracking", desc: "Period, ovulation & fertile window", Icon: Flower2, to: "/womens-health/home", grad: "linear-gradient(135deg, hsl(var(--wh-pink)/.18), hsl(var(--wh-pink)/.05))", color: "wh-pink" },
     { label: "Pregnancy", desc: "Week-by-week journey & milestones", Icon: Heart, to: "/womens-health/pregnancy", grad: "linear-gradient(135deg, hsl(var(--wh-purple)/.18), hsl(var(--wh-purple)/.05))", color: "wh-purple" },
     { label: "Baby Growth", desc: "Size, development & timeline", Icon: Baby, to: "/womens-health/pregnancy/baby-growth", grad: "linear-gradient(135deg, hsl(var(--wh-blue)/.18), hsl(var(--wh-blue)/.05))", color: "wh-blue" },
+    { label: "Insights", desc: "Your personal cycle patterns", Icon: Sparkles, to: "/womens-health/insights", grad: "linear-gradient(135deg, hsl(var(--wh-pink)/.18), hsl(var(--wh-pink)/.05))", color: "wh-pink" },
+    { label: "Secret Chats", desc: "Private PIN-locked chat with Gift", Icon: Zap, to: "/womens-health/secret-chats", grad: "linear-gradient(135deg, hsl(var(--wh-purple)/.18), hsl(var(--wh-purple)/.05))", color: "wh-purple" },
   ];
   return (
     <WHLayout title="Women's Health">
