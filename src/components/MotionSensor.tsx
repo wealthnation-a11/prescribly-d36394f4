@@ -21,11 +21,13 @@ export default function MotionSensor({ onStepDetected, isActive }: MotionSensorP
 
   useEffect(() => {
     if (!isActive) {
-      stop();
+      void stop();
       return;
     }
-    start();
-    return () => stop();
+    void start();
+    return () => {
+      void stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
