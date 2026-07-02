@@ -16,6 +16,7 @@ import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { FacilityRoute } from "./components/FacilityRoute";
 import { RealtimeNotifications } from "./components/RealtimeNotifications";
 import AIChatBubble from "./components/AIChatBubble";
+import BroadcastPopup from "./components/BroadcastPopup";
 
 // Eagerly load the landing page for fast first paint
 import Index from "./pages/Index";
@@ -163,6 +164,7 @@ const App = () => (
               <OfflineIndicator />
               <RealtimeNotifications />
               <AIChatBubble />
+              <BroadcastPopup />
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
