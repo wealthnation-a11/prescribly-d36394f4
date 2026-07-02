@@ -20,6 +20,7 @@ import HospitalRegistrationManagement from "@/components/admin/HospitalRegistrat
 import HomeVisitFeedback from "@/components/admin/HomeVisitFeedback";
 import RegistrationCodeVerification from "@/components/admin/RegistrationCodeVerification";
 import FacilityStaffManagement from "@/components/admin/FacilityStaffManagement";
+import AdminBroadcastManagement from "@/components/admin/AdminBroadcastManagement";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2, UserPlus, Star } from "lucide-react";
@@ -257,6 +258,21 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent className="pt-6">
             <HomeVisitFeedback />
+          </CardContent>
+        </Card>
+      );
+    case "broadcasts":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              Popup Broadcasts
+            </CardTitle>
+            <CardDescription>Send a popup message to every user of the app</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <AdminBroadcastManagement />
           </CardContent>
         </Card>
       );

@@ -26,6 +26,7 @@ import {
   UserCircle,
   UserPlus,
   Star,
+  Megaphone,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -96,6 +97,7 @@ const navGroups: NavGroup[] = [
       { id: "payments", label: "Payments", icon: DollarSign, color: "text-lime-500" },
       { id: "ai-logs", label: "AI Diagnosis", icon: Brain, color: "text-purple-500" },
       { id: "home-visit-feedback", label: "Home Visit Reviews", icon: Star, color: "text-yellow-500" },
+      { id: "broadcasts", label: "Popup Broadcasts", icon: Megaphone, color: "text-fuchsia-500" },
     ],
   },
   {
