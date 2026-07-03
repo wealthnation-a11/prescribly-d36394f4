@@ -132,7 +132,7 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MobileHeader />
+      <MobileHeader title="Health Wallet" showBackButton backPath="/user-dashboard" />
       <div className="mx-auto max-w-2xl px-4 pb-24 pt-4 space-y-6">
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="icon">
