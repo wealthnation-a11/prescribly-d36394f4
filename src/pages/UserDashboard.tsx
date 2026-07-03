@@ -25,7 +25,8 @@ import {
   Trophy,
   Crown,
   HelpCircle,
-  Flower2
+  Flower2,
+  Wallet
 } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
