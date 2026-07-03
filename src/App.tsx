@@ -84,6 +84,7 @@ const HipaaCompliance = lazy(() => import("./pages/HipaaCompliance"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const InstallPWA = lazy(() => import("./pages/InstallPWA"));
 const NotificationHistory = lazy(() => import("./pages/NotificationHistory"));
+const Wallet = lazy(() => import("./pages/Wallet"));
 const HerbalMedicine = lazy(() => import("./pages/HerbalMedicine"));
 const BrowseRemedies = lazy(() => import("./pages/herbal/BrowseRemedies"));
 const BrowseArticles = lazy(() => import("./pages/herbal/BrowseArticles"));
