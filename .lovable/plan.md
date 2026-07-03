@@ -1,37 +1,69 @@
-## 1. Women's Health entry screen with 3 options
+## Prescribly's Health Wallet
 
-Currently tapping **Women's Health** drops the user straight into the cycle home (or onboarding). Add a dedicated landing screen at `/womens-health` that shows three premium cards:
+A closed-loop wallet: users top up via Hitchpay, and the balance can only be spent inside Prescribly (consultations now, HMO later). Every user gets a unique virtual bank account number they can transfer to; incoming transfers auto-credit their wallet.
 
-1. **Cycle Tracking** → `/womens-health/home`
-2. **Pregnancy** → `/womens-health/pregnancy`
-3. **Baby Growth** → `/womens-health/baby-growth`
+---
 
-Changes:
-- In `src/pages/WomensHealth.tsx`, add a new `WHEntry` component (3 gradient cards, Flower2 / Heart / Baby icons, pink/blue/purple tokens, framer-motion stagger).
-- Change the index route from `WHHome` → `WHEntry`.
-- Move existing cycle home to `/womens-health/home`.
-- Pregnancy and Baby Growth tiles route to existing `/pregnancy` and `/baby-growth` sub-routes already inside the module.
-- Add a small "Back to Women's Health" link in `WHLayout` header when not on the entry route.
+### 1. Database (Lovable Cloud)
 
-## 2. Remove "Access Denied" screen after login/register
+New tables (all RLS-protected, user-scoped except admin):
 
-The `ProtectedRoute` (`src/components/ProtectedRoute.tsx`) and `Dashboard.tsx` show a full "Access Denied / Role Not Assigned" page when the role hasn't synced yet after a fresh signup/login. This is what the user is hitting.
+- `wallets` — one row per user: `user_id`, `balance_cents`, `currency`, `status` (active/frozen), timestamps.
+- `wallet_virtual_accounts` — one row per user: `user_id`, `provider` ("hitchpay"), `provider_account_id`, `bank_name`, `account_number`, `account_name`, `status`.
+- `wallet_transactions` — append-only ledger: `user_id`, `wallet_id`, `type` (topup / consultation_charge / refund / adjustment), `direction` (credit/debit), `amount_cents`, `balance_after_cents`, `status` (pending/succeeded/failed), `provider_reference`, `related_id` (appointment/consultation), `metadata`, timestamps.
+- `hitchpay_events` — raw webhook log for auditing/idempotency: `event_id`, `event_type`, `payload`, `processed_at`, `signature_verified`.
 
-Fix:
-- In `ProtectedRoute.tsx`, replace every "Access Denied" / "Role Not Assigned" return with a silent `<Navigate>`:
-  - No role yet → keep showing the loading spinner (give role-sync trigger time) instead of an error screen.
-  - Wrong role (admin/doctor/patient mismatch) → `<Navigate to="/dashboard" replace />` so the `Dashboard` page routes them to the correct home.
-- In `src/pages/Dashboard.tsx`, replace the "Role Not Assigned" screen with the same loading spinner + auto-retry; if still missing after ~2s, fall through to `/user-dashboard` (default patient route).
-- Keep the role-sync DB trigger as-is — no backend changes.
+Grants + RLS: users read only their own wallet, virtual account, and transactions. Writes happen only from edge functions using the service role. Admin role can read all. Ledger rows are insert-only (no update/delete for users).
 
-## Technical details
+A DB function `credit_wallet(user_id, amount, type, reference, metadata)` and `debit_wallet(user_id, amount, type, reference, metadata)` wrap the balance update + ledger insert atomically and reject negative balances.
 
-- Files touched: `src/pages/WomensHealth.tsx`, `src/components/ProtectedRoute.tsx`, `src/pages/Dashboard.tsx`.
-- No DB migration, no auth config change.
-- No new dependencies.
-- Pregnancy mode toggle (the existing `save({ mode: "pregnancy" })` call on the home) is preserved but moved behind the **Pregnancy** entry card.
+### 2. Edge functions
 
-## Out of scope
+- `wallet-provision` — called on first wallet page visit. Creates the `wallets` row if missing, then calls Hitchpay to create a virtual bank account for the user and stores it in `wallet_virtual_accounts`.
+- `wallet-topup-initiate` — input: amount. Creates a `pending` topup ledger row, calls Hitchpay Checkout API, returns the redirect URL.
+- `hitchpay-webhook` — public endpoint. Verifies Hitchpay signature using the secret key, is idempotent on `event_id`, credits the wallet on successful `payment.completed` or `virtual_account.credited` events, logs everything to `hitchpay_events`.
+- `wallet-pay-consultation` — input: appointment/consultation id. Validates the price against the DB (never trusts client), calls `debit_wallet`, marks the consultation as paid, returns the updated appointment.
 
-- No changes to login/register forms themselves.
-- No changes to subscription gating (still applies after the entry screen).
+Secrets used: `HITCHPAY_CLIENT_ID`, `HITCHPAY_SECRET_KEY`, `HITCHPAY_WEBHOOK_SECRET`. Requested via the secrets tool during build — never hardcoded.
+
+### 3. Frontend
+
+New route `/wallet` ("Prescribly Health Wallet") with:
+
+- **Balance card** — big balance, currency, "Add money" and "How to fund" buttons.
+- **Your account number card** — bank name, account number (with copy button), account holder name, and a one-line note: "Transfers to this account are credited to your Prescribly wallet within minutes. Funds can only be used inside Prescribly."
+- **Add money sheet** — amount input → calls `wallet-topup-initiate` → redirects to Hitchpay checkout → returns to `/wallet?topup=success|failed`.
+- **Transactions list** — paged, with type, amount, status, date, and reference.
+- **Empty state** — friendly "Set up your wallet" CTA that calls `wallet-provision`.
+
+Entry points:
+
+- New "Wallet" tile on the user dashboard and a wallet icon in the header.
+- On the consultation booking / payment screen, add "Pay with Prescribly Wallet" as the first option when the balance covers the fee. If insufficient, show "Top up $X to pay with wallet" that opens the top-up sheet.
+
+Wallet balance and account number are read directly from the DB via Supabase client with realtime subscription so the balance updates the moment the webhook credits it.
+
+### 4. Constraints & safeguards
+
+- Wallet is store-credit only: no withdrawal UI, no external payouts, no P2P transfers. All debit paths go through server-side edge functions that only accept known internal `type` values (`consultation_charge`, later `hmo_charge`).
+- Server always re-fetches the price from the DB before debiting; the client never sends the amount to charge.
+- Ledger is the source of truth; balance is recomputed from ledger in a nightly reconciliation edge function and compared to `wallets.balance_cents`.
+- Currency is stored on the wallet; top-ups in a different currency are rejected until multi-currency support is added.
+- HMO is out of scope for this build but the ledger `type` enum and payment function are designed to accept `hmo_charge` later without schema changes.
+
+### 5. Technical notes
+
+- Hitchpay integration assumes the provider exposes a Virtual Accounts API (real bank account per user) and a Checkout API for one-off top-ups. If the Virtual Accounts API isn't available on the account tier, `wallet-provision` falls back to generating a Prescribly reference code (`PRB-XXXX-XXXX`) and shows top-up-via-checkout only, with a clear message. This fallback is coded in from day one.
+- All amounts stored as integer cents to avoid float drift.
+- Webhook uses raw body + HMAC verification with `HITCHPAY_WEBHOOK_SECRET`; unverified requests return 401 and are logged.
+- Types file will regenerate after the migration; wallet client code is written after that.
+
+### 6. Out of scope (for a later pass)
+
+- HMO section and HMO-funded charges.
+- Withdrawals / payouts.
+- Wallet-to-wallet transfers between users.
+- Multi-currency conversion on top-up.  
+  
+also i have my client ID and client Secret key
+- &nbsp;
