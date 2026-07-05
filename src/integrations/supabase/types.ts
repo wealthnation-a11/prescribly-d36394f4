@@ -1374,39 +1374,6 @@ export type Database = {
         }
         Relationships: []
       }
-      hitchpay_events: {
-        Row: {
-          created_at: string
-          error: string | null
-          event_id: string | null
-          event_type: string | null
-          id: string
-          payload: Json
-          processed_at: string | null
-          signature_verified: boolean
-        }
-        Insert: {
-          created_at?: string
-          error?: string | null
-          event_id?: string | null
-          event_type?: string | null
-          id?: string
-          payload: Json
-          processed_at?: string | null
-          signature_verified?: boolean
-        }
-        Update: {
-          created_at?: string
-          error?: string | null
-          event_id?: string | null
-          event_type?: string | null
-          id?: string
-          payload?: Json
-          processed_at?: string | null
-          signature_verified?: boolean
-        }
-        Relationships: []
-      }
       home_visit_requests: {
         Row: {
           address: string | null
@@ -2861,146 +2828,6 @@ export type Database = {
         }
         Relationships: []
       }
-      wallet_transactions: {
-        Row: {
-          amount_cents: number
-          balance_after_cents: number | null
-          created_at: string
-          currency: string
-          description: string | null
-          direction: Database["public"]["Enums"]["wallet_txn_direction"]
-          id: string
-          metadata: Json
-          provider: string | null
-          provider_reference: string | null
-          related_id: string | null
-          status: Database["public"]["Enums"]["wallet_txn_status"]
-          type: Database["public"]["Enums"]["wallet_txn_type"]
-          user_id: string
-          wallet_id: string
-        }
-        Insert: {
-          amount_cents: number
-          balance_after_cents?: number | null
-          created_at?: string
-          currency?: string
-          description?: string | null
-          direction: Database["public"]["Enums"]["wallet_txn_direction"]
-          id?: string
-          metadata?: Json
-          provider?: string | null
-          provider_reference?: string | null
-          related_id?: string | null
-          status?: Database["public"]["Enums"]["wallet_txn_status"]
-          type: Database["public"]["Enums"]["wallet_txn_type"]
-          user_id: string
-          wallet_id: string
-        }
-        Update: {
-          amount_cents?: number
-          balance_after_cents?: number | null
-          created_at?: string
-          currency?: string
-          description?: string | null
-          direction?: Database["public"]["Enums"]["wallet_txn_direction"]
-          id?: string
-          metadata?: Json
-          provider?: string | null
-          provider_reference?: string | null
-          related_id?: string | null
-          status?: Database["public"]["Enums"]["wallet_txn_status"]
-          type?: Database["public"]["Enums"]["wallet_txn_type"]
-          user_id?: string
-          wallet_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wallet_transactions_wallet_id_fkey"
-            columns: ["wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      wallet_virtual_accounts: {
-        Row: {
-          account_name: string | null
-          account_number: string
-          bank_name: string | null
-          created_at: string
-          id: string
-          is_real_bank_account: boolean
-          metadata: Json
-          provider: string
-          provider_account_id: string | null
-          reference_code: string | null
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          account_name?: string | null
-          account_number: string
-          bank_name?: string | null
-          created_at?: string
-          id?: string
-          is_real_bank_account?: boolean
-          metadata?: Json
-          provider?: string
-          provider_account_id?: string | null
-          reference_code?: string | null
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          account_name?: string | null
-          account_number?: string
-          bank_name?: string | null
-          created_at?: string
-          id?: string
-          is_real_bank_account?: boolean
-          metadata?: Json
-          provider?: string
-          provider_account_id?: string | null
-          reference_code?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      wallets: {
-        Row: {
-          balance_cents: number
-          created_at: string
-          currency: string
-          id: string
-          status: Database["public"]["Enums"]["wallet_status"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          balance_cents?: number
-          created_at?: string
-          currency?: string
-          id?: string
-          status?: Database["public"]["Enums"]["wallet_status"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          balance_cents?: number
-          created_at?: string
-          currency?: string
-          id?: string
-          status?: Database["public"]["Enums"]["wallet_status"]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       wellness_alarm_queue: {
         Row: {
           body: string
@@ -3364,74 +3191,6 @@ export type Database = {
         }
       }
       confirm_registration_code: { Args: { _code: string }; Returns: boolean }
-      credit_wallet: {
-        Args: {
-          _amount_cents: number
-          _description?: string
-          _metadata?: Json
-          _provider?: string
-          _provider_reference?: string
-          _related_id?: string
-          _type: Database["public"]["Enums"]["wallet_txn_type"]
-          _user_id: string
-        }
-        Returns: {
-          amount_cents: number
-          balance_after_cents: number | null
-          created_at: string
-          currency: string
-          description: string | null
-          direction: Database["public"]["Enums"]["wallet_txn_direction"]
-          id: string
-          metadata: Json
-          provider: string | null
-          provider_reference: string | null
-          related_id: string | null
-          status: Database["public"]["Enums"]["wallet_txn_status"]
-          type: Database["public"]["Enums"]["wallet_txn_type"]
-          user_id: string
-          wallet_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "wallet_transactions"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      debit_wallet: {
-        Args: {
-          _amount_cents: number
-          _description?: string
-          _metadata?: Json
-          _related_id?: string
-          _type: Database["public"]["Enums"]["wallet_txn_type"]
-          _user_id: string
-        }
-        Returns: {
-          amount_cents: number
-          balance_after_cents: number | null
-          created_at: string
-          currency: string
-          description: string | null
-          direction: Database["public"]["Enums"]["wallet_txn_direction"]
-          id: string
-          metadata: Json
-          provider: string | null
-          provider_reference: string | null
-          related_id: string | null
-          status: Database["public"]["Enums"]["wallet_txn_status"]
-          type: Database["public"]["Enums"]["wallet_txn_type"]
-          user_id: string
-          wallet_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "wallet_transactions"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3466,15 +3225,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
-      wallet_status: "active" | "frozen"
-      wallet_txn_direction: "credit" | "debit"
       wallet_txn_status: "pending" | "succeeded" | "failed"
-      wallet_txn_type:
-        | "topup"
-        | "consultation_charge"
-        | "refund"
-        | "adjustment"
-        | "hmo_charge"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3603,16 +3354,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
-      wallet_status: ["active", "frozen"],
-      wallet_txn_direction: ["credit", "debit"],
       wallet_txn_status: ["pending", "succeeded", "failed"],
-      wallet_txn_type: [
-        "topup",
-        "consultation_charge",
-        "refund",
-        "adjustment",
-        "hmo_charge",
-      ],
     },
   },
 } as const
