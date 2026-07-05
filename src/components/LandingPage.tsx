@@ -381,7 +381,7 @@ export const LandingPage = () => {
                     <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Access to Herbal Features</span></div>
 
                     <div className="pt-3 border-t border-border/30 mt-4 space-y-2">
-                      <div className="flex justify-between text-sm"><span>Doctor Consultation</span><span className="font-semibold">₦3,000</span></div>
+                      <div className="flex justify-between text-sm"><span>Doctor Consultation</span><span className="font-semibold">₦3,500</span></div>
                       <div className="flex justify-between text-sm"><span>Doctor Home Visit</span><span className="font-semibold">₦47,000</span></div>
                     </div>
                      <Button variant="medical" className="w-full mt-6" asChild>
