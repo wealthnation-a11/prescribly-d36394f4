@@ -26,7 +26,6 @@ import {
   Crown,
   HelpCircle,
   Flower2,
-  Wallet
 } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import EnhancedRecentActivity from "@/components/EnhancedRecentActivity";
@@ -106,22 +105,14 @@ export const UserDashboard = () => {
       variant: "outline" as const,
       color: "text-yellow-600"
     },
-    {
+    ...(userProfile?.gender === "female" ? [{
       title: "Women's Health",
       description: "Cycle tracking, fertility insights, and pregnancy journey — built for you.",
       icon: Flower2,
       href: "/womens-health",
       variant: "outline" as const,
       color: "text-pink-500"
-    },
-    {
-      title: "Health Wallet",
-      description: "Prescribly Health Wallet — top up and pay for consultations from your balance.",
-      icon: Wallet,
-      href: "/wallet",
-      variant: "outline" as const,
-      color: "text-teal-600"
-    },
+    }] : []),
     {
       title: "Chat with Doctors",
       description: "Connect with healthcare professionals instantly.",

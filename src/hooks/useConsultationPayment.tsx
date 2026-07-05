@@ -25,7 +25,7 @@ export const useConsultationPayment = () => {
       const isUuid = UUID_RE.test(appointmentIdOrRef);
       const body: Record<string, any> = {
         email: user.email,
-        amount: 3000,
+        amount: 3500,
         type: 'consultation',
         currency: 'NGN',
         metadata: {
