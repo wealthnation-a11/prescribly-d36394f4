@@ -133,7 +133,7 @@ export default function ChatWithDoctor() {
                         name={`${d.profiles.first_name} ${d.profiles.last_name}`}
                         specialization={d.specialization}
                         avatarUrl={d.profiles.avatar_url}
-                        price={3000}
+                        price={3500}
                         priceLabel="Consultation Fee"
                         onSelect={() => setSelectedDoctor(d)}
                         buttonText="Consult Now"
@@ -159,7 +159,7 @@ export default function ChatWithDoctor() {
                 <div className="rounded-xl bg-muted/40 p-4 text-left space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Consultation Fee</span>
-                    <span className="font-bold text-primary text-base">₦3,000</span>
+                    <span className="font-bold text-primary text-base">₦3,500</span>
                   </div>
                   <ul className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
                     <li className="flex items-start gap-2">
@@ -185,7 +185,7 @@ export default function ChatWithDoctor() {
                     {paying || payLoading ? (
                       <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</>
                     ) : (
-                      <><CreditCard className="h-4 w-4 mr-2" />Pay ₦3,000</>
+                      <><CreditCard className="h-4 w-4 mr-2" />Pay ₦3,500</>
                     )}
                   </Button>
                 </div>
