@@ -1000,33 +1000,40 @@ const WHEntry = () => {
 };
 
 // Router
-const WomensHealth = () => (
-  <Routes>
-    <Route index element={<WHEntry />} />
-    <Route path="home" element={<PeriodOverview />} />
-    <Route path="home/calendar" element={<PeriodCalendarPage />} />
-    <Route path="home/insights" element={<PeriodInsights />} />
-    <Route path="home/history" element={<PeriodHistory />} />
+const WomensHealth = () => {
+  const { userProfile } = useAuth();
+  // Privacy gate: only visible to female users
+  if (userProfile && userProfile.gender && userProfile.gender !== "female") {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return (
+    <Routes>
+      <Route index element={<WHEntry />} />
+      <Route path="home" element={<PeriodOverview />} />
+      <Route path="home/calendar" element={<PeriodCalendarPage />} />
+      <Route path="home/insights" element={<PeriodInsights />} />
+      <Route path="home/history" element={<PeriodHistory />} />
 
-    <Route path="calendar" element={<PeriodCalendarPage />} />
-    <Route path="insights" element={<PeriodInsights />} />
-    <Route path="logs" element={<DailyLogPage />} />
-    <Route path="profile" element={<WHProfile />} />
-    <Route path="log-period" element={<LogPeriod />} />
-    <Route path="secret-chats" element={<SecretChats />} />
+      <Route path="calendar" element={<PeriodCalendarPage />} />
+      <Route path="insights" element={<PeriodInsights />} />
+      <Route path="logs" element={<DailyLogPage />} />
+      <Route path="profile" element={<WHProfile />} />
+      <Route path="log-period" element={<LogPeriod />} />
+      <Route path="secret-chats" element={<SecretChats />} />
 
-    <Route path="fertility" element={<FertilityToday />} />
-    <Route path="fertility/calendar" element={<FertilityCalendar />} />
-    <Route path="fertility/ovulation" element={<FertilityOvulation />} />
-    <Route path="fertility/insights" element={<FertilityInsights />} />
+      <Route path="fertility" element={<FertilityToday />} />
+      <Route path="fertility/calendar" element={<FertilityCalendar />} />
+      <Route path="fertility/ovulation" element={<FertilityOvulation />} />
+      <Route path="fertility/insights" element={<FertilityInsights />} />
 
-    <Route path="pregnancy" element={<PregnancyOverview />} />
-    <Route path="pregnancy/onboarding" element={<PregnancyOnboarding />} />
-    <Route path="pregnancy/baby-growth" element={<BabyGrowthTimeline />} />
-    <Route path="pregnancy/calendar" element={<PregnancyCalendar />} />
-    <Route path="pregnancy/health" element={<PregnancyHealth />} />
-    <Route path="pregnancy/insights" element={<PregnancyInsights />} />
-  </Routes>
-);
+      <Route path="pregnancy" element={<PregnancyOverview />} />
+      <Route path="pregnancy/onboarding" element={<PregnancyOnboarding />} />
+      <Route path="pregnancy/baby-growth" element={<BabyGrowthTimeline />} />
+      <Route path="pregnancy/calendar" element={<PregnancyCalendar />} />
+      <Route path="pregnancy/health" element={<PregnancyHealth />} />
+      <Route path="pregnancy/insights" element={<PregnancyInsights />} />
+    </Routes>
+  );
+};
 
 export default WomensHealth;

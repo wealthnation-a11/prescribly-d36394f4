@@ -107,10 +107,10 @@ export const LandingPage = () => {
   }];
   const faqs = [{
     question: "Is Prescribly really free to register?",
-    answer: "Yes — creating an account on Prescribly is 100% free. There is no monthly subscription. You only pay when you book a service: ₦3,000 for a doctor consultation, or ₦47,000 for a home visit."
+    answer: "Yes — creating an account on Prescribly is 100% free. There is no monthly subscription. You only pay when you book a service: ₦3,500 for a doctor consultation, or ₦47,000 for a home visit."
   }, {
     question: "How much does it cost to book a doctor?",
-    answer: "An online doctor consultation (chat / video / voice) costs ₦3,000. A home visit, where the doctor comes to your address, costs ₦47,000. There are no other fees."
+    answer: "An online doctor consultation (chat / video / voice) costs ₦3,500. A home visit, where the doctor comes to your address, costs ₦47,000. There are no other fees."
   }, {
     question: "How does the doctor get paid?",
     answer: "Consultation fees and home-visit fees are split between the doctor and Prescribly to cover platform, payment, and support costs. Doctors receive their share directly to their payout account."
