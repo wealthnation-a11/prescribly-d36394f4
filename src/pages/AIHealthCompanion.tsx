@@ -1,25 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
-import { 
-  Brain, 
-  Send, 
+import {
+  Brain,
+  Send,
   Loader2,
-  Bot,
+  Sparkles,
   User,
   Trophy,
   CheckCircle,
   BarChart3,
-  Calendar,
-  ArrowLeft
+  ArrowLeft,
+  Flame,
+  Heart,
 } from 'lucide-react';
 
 interface Question {
@@ -38,16 +38,16 @@ interface Message {
 
 const AIHealthCompanion = () => {
   usePageSEO({
-    title: "Daily Health Check-in - Prescribly",
-    description: "Complete your daily health check-in with our AI companion and track your wellness journey.",
-    canonicalPath: "/ai-health-companion"
+    title: 'Gift — Your AI Health Companion | Prescribly',
+    description: 'Chat with Gift, your AI health companion. Complete a daily check-in and earn wellness points.',
+    canonicalPath: '/ai-health-companion',
   });
 
   const { toast } = useToast();
   const { isDoctor } = useUserRole();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,15 +56,10 @@ const AIHealthCompanion = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Load daily questions
   useEffect(() => {
     const loadDailyQuestions = async () => {
       try {
@@ -81,9 +76,10 @@ const AIHealthCompanion = () => {
         }
 
         if (!questionList.length) {
-          const { data: gen, error: genError } = await supabase.functions.invoke('generate-daily-health-questions', {
-            body: { date: today },
-          });
+          const { data: gen, error: genError } = await supabase.functions.invoke(
+            'generate-daily-health-questions',
+            { body: { date: today } }
+          );
           if (!genError && gen?.questions?.length) {
             questionList = gen.questions;
             localStorage.setItem(cacheKey, JSON.stringify(questionList));
@@ -91,11 +87,12 @@ const AIHealthCompanion = () => {
         }
 
         if (!questionList.length) {
-          const { data } = await (supabase.rpc as any)('get_daily_questions_for_user', { user_uuid: user.id });
+          const { data } = await (supabase.rpc as any)('get_daily_questions_for_user', {
+            user_uuid: user.id,
+          });
           if (Array.isArray(data)) questionList = data;
         }
 
-        // Check if user already answered today
         const { data: existing } = await supabase
           .from('user_daily_checkins')
           .select('id')
@@ -103,7 +100,14 @@ const AIHealthCompanion = () => {
           .eq('date', today);
 
         if (existing && existing.length >= questionList.length && questionList.length > 0) {
-          setMessages([{ id: '1', text: "🎉 You've already completed today's health check-in! Come back tomorrow for fresh questions.", isAi: true, timestamp: new Date() }]);
+          setMessages([
+            {
+              id: '1',
+              text: "🎉 You've already completed today's check-in! Come back tomorrow — I'll have fresh questions for you.",
+              isAi: true,
+              timestamp: new Date(),
+            },
+          ]);
           setIsComplete(true);
           return;
         }
@@ -113,17 +117,31 @@ const AIHealthCompanion = () => {
           setCurrentQuestionIndex(existing?.length || 0);
           const startIdx = existing?.length || 0;
           const first = questionList[startIdx] || questionList[0];
-          setMessages([{
-            id: '1',
-            text: `👋 Good to see you! Here's today's health check-in (${startIdx + 1}/${questionList.length}):\n\n${first.question_text}`,
-            isAi: true, timestamp: new Date(),
-          }]);
+          setMessages([
+            {
+              id: '1',
+              text: `👋 Hi, I'm **Gift** — your AI health companion. Let's do today's check-in together (${startIdx + 1}/${questionList.length}):\n\n${first.question_text}`,
+              isAi: true,
+              timestamp: new Date(),
+            },
+          ]);
         } else {
-          setMessages([{ id: '1', text: "Couldn't load today's questions. Please try again later.", isAi: true, timestamp: new Date() }]);
+          setMessages([
+            {
+              id: '1',
+              text: "I couldn't load today's questions. Please try again in a moment.",
+              isAi: true,
+              timestamp: new Date(),
+            },
+          ]);
         }
       } catch (error: any) {
         console.error('Error loading questions:', error);
-        toast({ title: "Error", description: "Failed to load today's health questions.", variant: "destructive" });
+        toast({
+          title: 'Error',
+          description: "Failed to load today's health questions.",
+          variant: 'destructive',
+        });
       }
     };
 
@@ -131,18 +149,13 @@ const AIHealthCompanion = () => {
   }, []);
 
   const showTypingIndicator = () => {
-    const typingMessage: Message = {
-      id: `typing-${Date.now()}`,
-      text: "...",
-      isAi: true,
-      timestamp: new Date(),
-      isTyping: true
-    };
-    setMessages(prev => [...prev, typingMessage]);
+    setMessages(prev => [
+      ...prev,
+      { id: `typing-${Date.now()}`, text: '...', isAi: true, timestamp: new Date(), isTyping: true },
+    ]);
   };
-
   const removeTypingIndicator = () => {
-    setMessages(prev => prev.filter(msg => !msg.isTyping));
+    setMessages(prev => prev.filter(m => !m.isTyping));
   };
 
   const handleSendMessage = async () => {
@@ -152,19 +165,16 @@ const AIHealthCompanion = () => {
       id: `user-${Date.now()}`,
       text: currentMessage,
       isAi: false,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
-
     showTypingIndicator();
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Save the answer
       const { error: saveError } = await supabase
         .from('user_daily_checkins')
         .insert({
@@ -172,258 +182,280 @@ const AIHealthCompanion = () => {
           date: new Date().toISOString().split('T')[0],
           mood: currentMessage,
         } as any);
-
       if (saveError) throw saveError;
 
-      // Award points
       await (supabase.rpc as any)('update_user_points', {
         user_uuid: user.id,
-        points_to_add: 5
+        points_to_add: 5,
       });
 
       removeTypingIndicator();
 
-      // Check if more questions
       if (currentQuestionIndex + 1 < questions.length) {
         const nextQuestion = questions[currentQuestionIndex + 1];
-        const nextMessage: Message = {
-          id: `ai-${Date.now()}`,
-          text: `Great! Next question:\n\n${nextQuestion.question_text}`,
-          isAi: true,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, nextMessage]);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `ai-${Date.now()}`,
+            text: `Thank you for sharing. Here's the next one:\n\n${nextQuestion.question_text}`,
+            isAi: true,
+            timestamp: new Date(),
+          },
+        ]);
         setCurrentQuestionIndex(prev => prev + 1);
       } else {
-        // All questions completed
         const totalPoints = questions.length * 5;
         setPointsEarned(totalPoints);
-        
-        const completionMessage: Message = {
-          id: `completion-${Date.now()}`,
-          text: `🎉 Fantastic! You've completed today's health check-in and earned +${totalPoints} points!\n\nYour answers have been saved to help track your health trends over time.`,
-          isAi: true,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, completionMessage]);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `completion-${Date.now()}`,
+            text: `🎉 Amazing! You've completed today's check-in and earned **+${totalPoints} points**.\n\nYour answers help me build a picture of your wellness over time.`,
+            isAi: true,
+            timestamp: new Date(),
+          },
+        ]);
         setIsComplete(true);
       }
-
       setCurrentMessage('');
     } catch (error: any) {
       console.error('Error saving answer:', error);
       removeTypingIndicator();
-      
-      const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        text: "I'm having trouble saving your answer. Please try again.",
-        isAi: true,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          text: "I'm having trouble saving that. Please try again.",
+          isAi: true,
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const formatMessageText = (text: string) => {
-    const formatted = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br/>');
-    
-    // Sanitize HTML to prevent XSS attacks
-    return DOMPurify.sanitize(formatted, {
-      ALLOWED_TAGS: ['strong', 'br'],
-      ALLOWED_ATTR: []
-    });
+    const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+    return DOMPurify.sanitize(formatted, { ALLOWED_TAGS: ['strong', 'br'], ALLOWED_ATTR: [] });
   };
 
+  const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
+
   return (
-    <div className="min-h-screen medical-background relative overflow-hidden">
-      {/* Background Medical Icons */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-        <Brain className="absolute top-20 left-10 w-16 h-16 text-primary medical-icon" />
-        <Calendar className="absolute top-40 right-20 w-12 h-12 text-accent medical-icon" />
-        <BarChart3 className="absolute bottom-40 left-20 w-20 h-20 text-primary medical-icon" />
-        <Trophy className="absolute bottom-20 right-10 w-16 h-16 text-primary medical-icon" />
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-background via-primary/5 to-accent/10">
+      {/* Ambient blobs */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+        <div
+          className="absolute top-1/2 -right-32 w-[28rem] h-[28rem] rounded-full bg-accent/20 blur-3xl animate-pulse"
+          style={{ animationDelay: '2s' }}
+        />
+        <div
+          className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-purple-400/10 blur-3xl animate-pulse"
+          style={{ animationDelay: '4s' }}
+        />
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 relative z-10">
-        {/* Back Button */}
-        <div className="mb-6">
-          <Link to={isDoctor ? "/doctor-dashboard" : "/user-dashboard"}>
-            <Button variant="ghost" size="sm" className="gap-2 text-primary hover:text-primary/80 hover:bg-primary/10">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Dashboard
-            </Button>
-          </Link>
-        </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        {/* Back */}
+        <Link to={isDoctor ? '/doctor-dashboard' : '/user-dashboard'}>
+          <Button variant="ghost" size="sm" className="gap-2 -ml-2 mb-6">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Button>
+        </Link>
 
-        {/* Header */}
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 rounded-full bg-primary/10 border border-primary/20">
-              <Brain className="h-8 w-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-primary">Daily Health Check-in</h1>
-              <p className="text-lg text-primary/80 font-medium">Track Your Wellness Journey</p>
-            </div>
-          </div>
-          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Answer a few quick questions each day to build healthy habits and earn points
-          </p>
-
-          {/* Points Display */}
-          {pointsEarned > 0 && (
-            <div className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-4 py-2 rounded-full font-semibold animate-pulse">
-              <Trophy className="h-5 w-5" />
-              +{pointsEarned} Points Earned! 🎉
-            </div>
-          )}
-        </div>
-
-        {/* Progress Indicator */}
-        {questions.length > 0 && !isComplete && (
-          <div className="max-w-2xl mx-auto mb-6">
-            <Card className="glassmorphism-card border-0">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-primary">Progress</span>
-                  <span className="text-sm text-muted-foreground">
-                    {currentQuestionIndex + 1} of {questions.length}
-                  </span>
-                </div>
-                <div className="w-full bg-primary/10 rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Chat Container */}
-        <div className="max-w-3xl mx-auto">
-          <Card className="h-[500px] flex flex-col chat-container border-0 shadow-lg">
-            {/* Chat Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-accent/5">
-              <div className="p-2 rounded-full bg-primary/10">
-                <Bot className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-primary">Health Companion</h3>
-                <p className="text-xs text-muted-foreground">
-                  {isComplete ? 'Check-in Complete' : 'Daily Questions'}
-                </p>
-              </div>
-              {isComplete && (
-                <div className="ml-auto">
-                  <CheckCircle className="h-6 w-6 text-green-500" />
-                </div>
-              )}
-            </div>
-
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-white/50 to-primary/5">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isAi ? 'justify-start' : 'justify-end'}`}
-                  style={{
-                    animation: 'slideInUp 0.5s ease-out'
-                  }}
-                >
-                  <div className={`flex items-start gap-3 max-w-[85%] ${message.isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-                    {/* Avatar */}
-                    <div className={`p-2 rounded-full ${
-                      message.isAi 
-                        ? 'bg-primary/10 border border-primary/20' 
-                        : 'bg-accent/20 border border-accent/30'
-                    } flex-shrink-0`}>
-                      {message.isAi ? (
-                        <Bot className="h-4 w-4 text-primary" />
-                      ) : (
-                        <User className="h-4 w-4 text-accent-foreground" />
-                      )}
-                    </div>
-                    
-                    {/* Message Bubble */}
-                    <div className={`px-5 py-3 rounded-2xl shadow-md ${
-                      message.isAi 
-                        ? 'chat-ai-bubble text-foreground rounded-bl-md' 
-                        : 'chat-user-bubble text-white rounded-br-md'
-                    }`}>
-                      {message.isTyping ? (
-                        <div className="flex space-x-1 py-1">
-                          <div className="w-2 h-2 bg-primary/60 rounded-full" style={{
-                            animation: 'typingPulse 1.5s infinite'
-                          }}></div>
-                          <div className="w-2 h-2 bg-primary/60 rounded-full" style={{
-                            animation: 'typingPulse 1.5s infinite 0.2s'
-                          }}></div>
-                          <div className="w-2 h-2 bg-primary/60 rounded-full" style={{
-                            animation: 'typingPulse 1.5s infinite 0.4s'
-                          }}></div>
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-sm leading-relaxed whitespace-pre-wrap"
-                          dangerouslySetInnerHTML={{ __html: formatMessageText(message.text) }}
-                        />
-                      )}
-                    </div>
+        {/* Hero header */}
+        <div className="relative mb-8 sm:mb-10 animate-fade-in">
+          <Card className="border-0 overflow-hidden bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-2xl">
+            <CardContent className="p-6 sm:p-10 relative">
+              <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_20%_20%,white_1px,transparent_1px)] [background-size:24px_24px]" />
+              <div className="relative flex flex-col sm:flex-row sm:items-center gap-6">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-white/30 blur-xl animate-pulse" />
+                  <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                    <Brain className="h-10 w-10 sm:h-12 sm:w-12" />
                   </div>
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div className="border-t border-primary/10 p-4 bg-gradient-to-r from-white to-primary/5">
-              <div className="flex gap-3">
-                <Input
-                  placeholder={isComplete ? "Come back tomorrow for more questions!" : "Type your answer..."}
-                  value={currentMessage}
-                  onChange={(e) => setCurrentMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  disabled={isLoading || isComplete}
-                  className="flex-1 rounded-full border-primary/20 focus:ring-primary/30 focus:border-primary/40"
-                />
-                <Button 
-                  onClick={handleSendMessage}
-                  disabled={isLoading || !currentMessage.trim() || isComplete}
-                  size="icon"
-                  className="rounded-full w-12 h-12 bg-primary hover:bg-primary/90 shadow-lg"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Send className="h-5 w-5" />
-                  )}
-                </Button>
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 mb-3 text-xs font-medium">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Powered by Prescribly AI
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+                    Hi, I'm <span className="italic">Gift</span>.
+                  </h1>
+                  <p className="mt-2 text-primary-foreground/90 text-sm sm:text-base max-w-xl">
+                    Your daily AI health companion — checking in, tracking trends, and cheering on your wellness journey.
+                  </p>
+                </div>
+                {pointsEarned > 0 && (
+                  <div className="flex items-center gap-2 rounded-2xl bg-amber-400 text-amber-950 px-4 py-3 shadow-lg animate-scale-in font-semibold">
+                    <Trophy className="h-5 w-5" />
+                    +{pointsEarned} pts
+                  </div>
+                )}
               </div>
-            </div>
+
+              {/* Stat pills */}
+              <div className="relative mt-6 grid grid-cols-3 gap-3">
+                <div className="rounded-xl bg-white/15 backdrop-blur border border-white/20 p-3">
+                  <div className="flex items-center gap-2 text-xs opacity-80"><Heart className="h-3.5 w-3.5" />Today</div>
+                  <div className="mt-1 font-bold text-sm sm:text-base">
+                    {isComplete ? 'Complete' : `${currentQuestionIndex + 1}/${questions.length || '—'}`}
+                  </div>
+                </div>
+                <div className="rounded-xl bg-white/15 backdrop-blur border border-white/20 p-3">
+                  <div className="flex items-center gap-2 text-xs opacity-80"><Flame className="h-3.5 w-3.5" />Streak</div>
+                  <div className="mt-1 font-bold text-sm sm:text-base">Keep going</div>
+                </div>
+                <div className="rounded-xl bg-white/15 backdrop-blur border border-white/20 p-3">
+                  <div className="flex items-center gap-2 text-xs opacity-80"><Trophy className="h-3.5 w-3.5" />Reward</div>
+                  <div className="mt-1 font-bold text-sm sm:text-base">+5 pts / q</div>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </div>
 
-        {/* Action Buttons (shown after completion) */}
+        {/* Progress */}
+        {questions.length > 0 && !isComplete && (
+          <div className="mb-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-2 text-sm">
+              <span className="font-medium text-foreground">Today's check-in</span>
+              <span className="text-muted-foreground">
+                {currentQuestionIndex + 1} of {questions.length}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-primary via-accent to-primary transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Chat card */}
+        <Card className="border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl rounded-3xl overflow-hidden animate-fade-in">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-border/60 bg-gradient-to-r from-primary/5 via-transparent to-accent/5">
+            <div className="relative">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-md">
+                <Brain className="h-5 w-5" />
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-card" />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold text-foreground text-sm sm:text-base">Gift</div>
+              <div className="text-xs text-muted-foreground">
+                {isComplete ? 'Check-in complete' : 'Online · usually responds instantly'}
+              </div>
+            </div>
+            {isComplete && <CheckCircle className="h-6 w-6 text-green-500" />}
+          </div>
+
+          {/* Messages */}
+          <div
+            ref={scrollAreaRef}
+            className="h-[420px] sm:h-[500px] overflow-y-auto px-4 sm:px-6 py-6 space-y-5 bg-gradient-to-b from-background/40 to-primary/5"
+          >
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.isAi ? 'justify-start' : 'justify-end'} animate-fade-in`}
+              >
+                <div
+                  className={`flex items-end gap-2 max-w-[85%] ${
+                    message.isAi ? 'flex-row' : 'flex-row-reverse'
+                  }`}
+                >
+                  <div
+                    className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-semibold shadow-sm ${
+                      message.isAi
+                        ? 'bg-gradient-to-br from-primary to-accent'
+                        : 'bg-gradient-to-br from-slate-500 to-slate-700'
+                    }`}
+                  >
+                    {message.isAi ? <Brain className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                  </div>
+                  <div
+                    className={`px-4 py-3 rounded-2xl shadow-sm text-sm leading-relaxed ${
+                      message.isAi
+                        ? 'bg-card border border-border rounded-bl-md text-foreground'
+                        : 'bg-gradient-to-br from-primary to-accent text-primary-foreground rounded-br-md'
+                    }`}
+                  >
+                    {message.isTyping ? (
+                      <div className="flex space-x-1 py-1 px-1">
+                        <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" />
+                        <span
+                          className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
+                          style={{ animationDelay: '0.15s' }}
+                        />
+                        <span
+                          className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
+                          style={{ animationDelay: '0.3s' }}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: formatMessageText(message.text) }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="border-t border-border/60 p-3 sm:p-4 bg-card/80 backdrop-blur">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Input
+                placeholder={
+                  isComplete
+                    ? 'Come back tomorrow for a new check-in ✨'
+                    : 'Type your answer to Gift…'
+                }
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                disabled={isLoading || isComplete}
+                className="flex-1 rounded-full border-border/60 bg-background px-5 h-12 focus-visible:ring-primary/40"
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={isLoading || !currentMessage.trim() || isComplete}
+                size="icon"
+                className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent hover:opacity-90 shadow-lg shadow-primary/25 transition-transform hover:scale-105 active:scale-95"
+              >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+              </Button>
+            </div>
+          </div>
+        </Card>
+
         {isComplete && (
-          <div className="flex justify-center gap-4 mt-6 animate-fade-in">
-            <Button 
-              asChild
-              className="rounded-full px-6 py-3 bg-green-500 hover:bg-green-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-            >
+          <div className="flex flex-col sm:flex-row justify-center gap-3 mt-8 animate-fade-in">
+            <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg shadow-primary/20">
               <Link to="/health-trends" className="flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2" />
                 View Health Trends
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="rounded-full">
+              <Link to="/gamification-profile">
+                <Trophy className="h-5 w-5 mr-2" />
+                Your Rewards
               </Link>
             </Button>
           </div>
