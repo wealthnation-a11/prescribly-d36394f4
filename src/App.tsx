@@ -121,15 +121,22 @@ const queryClient = new QueryClient({
   },
 });
 
-// Shared loading fallback
+// Shared loading fallback — lightweight skeleton for perceived speed
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="text-center space-y-4">
-      <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto" />
-      <p className="text-muted-foreground text-sm">Loading...</p>
+  <div className="min-h-screen bg-background">
+    <div className="container mx-auto px-4 py-8 space-y-6 animate-pulse">
+      <div className="h-10 w-2/3 max-w-md rounded-lg bg-muted" />
+      <div className="h-4 w-1/2 max-w-sm rounded bg-muted/70" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+        <div className="h-32 rounded-2xl bg-muted" />
+        <div className="h-32 rounded-2xl bg-muted" />
+        <div className="h-32 rounded-2xl bg-muted" />
+      </div>
+      <div className="h-64 rounded-2xl bg-muted/80" />
     </div>
   </div>
 );
+
 
 // Wrapper for subscription-guarded patient routes
 const PatientRoute = ({ children }: { children: React.ReactNode }) => (
