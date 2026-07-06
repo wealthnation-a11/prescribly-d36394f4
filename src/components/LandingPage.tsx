@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle, Shield, Lock, FileText, Users } from "lucide-react";
 import { NearbyHospitals } from "./landing/NearbyHospitals";
+import { PlatformShowcase } from "./landing/PlatformShowcase";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
 import { StatCounter } from "./StatCounter";
@@ -255,6 +256,11 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Platform Showcase — new features in the app */}
+      <PlatformShowcase />
+
+
 
       {/* How it Works Section */}
       <section id="how-it-works" className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
