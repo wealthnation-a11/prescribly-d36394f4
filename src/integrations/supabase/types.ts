@@ -502,6 +502,85 @@ export type Database = {
         }
         Relationships: []
       }
+      consultation_call_signals: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          sender_id: string
+          session_id: string
+          signal_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload: Json
+          sender_id: string
+          session_id: string
+          signal_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          sender_id?: string
+          session_id?: string
+          signal_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_call_signals_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "consultation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultation_messages: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          message_type: string
+          read_at: string | null
+          sender_id: string
+          sender_role: string
+          session_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message_type?: string
+          read_at?: string | null
+          sender_id: string
+          sender_role?: string
+          session_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message_type?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "consultation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultation_payments: {
         Row: {
           amount: number
@@ -538,6 +617,75 @@ export type Database = {
           payment_method?: string | null
           payment_reference?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      consultation_sessions: {
+        Row: {
+          conditions: string[] | null
+          consult_type: string
+          created_at: string
+          doctor_id: string | null
+          duration_answer: string | null
+          ended_at: string | null
+          ends_at: string | null
+          fee: number
+          id: string
+          is_emergency: boolean
+          mode: string
+          other_symptoms: string[] | null
+          patient_id: string
+          payment_method: string | null
+          payment_reference: string | null
+          severity: number | null
+          started_at: string | null
+          status: string
+          symptoms: string | null
+          updated_at: string
+        }
+        Insert: {
+          conditions?: string[] | null
+          consult_type?: string
+          created_at?: string
+          doctor_id?: string | null
+          duration_answer?: string | null
+          ended_at?: string | null
+          ends_at?: string | null
+          fee?: number
+          id?: string
+          is_emergency?: boolean
+          mode?: string
+          other_symptoms?: string[] | null
+          patient_id: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          severity?: number | null
+          started_at?: string | null
+          status?: string
+          symptoms?: string | null
+          updated_at?: string
+        }
+        Update: {
+          conditions?: string[] | null
+          consult_type?: string
+          created_at?: string
+          doctor_id?: string | null
+          duration_answer?: string | null
+          ended_at?: string | null
+          ends_at?: string | null
+          fee?: number
+          id?: string
+          is_emergency?: boolean
+          mode?: string
+          other_symptoms?: string[] | null
+          patient_id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          severity?: number | null
+          started_at?: string | null
+          status?: string
+          symptoms?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1574,6 +1722,51 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_orders: {
+        Row: {
+          collected_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          in_progress_at: string | null
+          ordered_at: string
+          patient_id: string
+          result_url: string | null
+          session_id: string | null
+          status: string
+          test_name: string
+          updated_at: string
+        }
+        Insert: {
+          collected_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          in_progress_at?: string | null
+          ordered_at?: string
+          patient_id: string
+          result_url?: string | null
+          session_id?: string | null
+          status?: string
+          test_name: string
+          updated_at?: string
+        }
+        Update: {
+          collected_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          in_progress_at?: string | null
+          ordered_at?: string
+          patient_id?: string
+          result_url?: string | null
+          session_id?: string | null
+          status?: string
+          test_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medication_doses: {
         Row: {
           created_at: string
@@ -1899,6 +2092,148 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pharmacies: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          delivery_eta: string | null
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          rating: number | null
+          review_count: number | null
+          stock_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          delivery_eta?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          stock_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          delivery_eta?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          stock_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pharmacy_messages: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          message_type: string
+          order_id: string
+          sender_id: string | null
+          sender_role: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message_type?: string
+          order_id: string
+          sender_id?: string | null
+          sender_role?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message_type?: string
+          order_id?: string
+          sender_id?: string | null
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_orders: {
+        Row: {
+          created_at: string
+          delivery_address: string | null
+          id: string
+          items: Json
+          patient_id: string
+          pharmacy_id: string | null
+          prescription_id: string | null
+          rider_name: string | null
+          rider_phone: string | null
+          session_id: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_address?: string | null
+          id?: string
+          items?: Json
+          patient_id: string
+          pharmacy_id?: string | null
+          prescription_id?: string | null
+          rider_name?: string | null
+          rider_phone?: string | null
+          session_id?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string | null
+          id?: string
+          items?: Json
+          patient_id?: string
+          pharmacy_id?: string | null
+          prescription_id?: string | null
+          rider_name?: string | null
+          rider_phone?: string | null
+          session_id?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_orders_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pregnancy_logs: {
         Row: {

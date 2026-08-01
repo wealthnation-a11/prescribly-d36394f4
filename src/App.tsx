@@ -47,6 +47,13 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const UserDashboard = lazy(() => import("./pages/UserDashboard"));
 const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
 const Prescription = lazy(() => import("./pages/Prescription"));
+const ConsultationFlow = lazy(() => import("./pages/consultation/ConsultationFlow"));
+const LiveConsultation = lazy(() => import("./pages/consultation/LiveConsultation"));
+const PrescriptionResult = lazy(() => import("./pages/consultation/PrescriptionResult"));
+const PharmacyList = lazy(() => import("./pages/consultation/PharmacyList"));
+const PharmacyOrder = lazy(() => import("./pages/consultation/PharmacyOrder"));
+const LabOrders = lazy(() => import("./pages/consultation/LabOrders"));
+const ConsultationRecord = lazy(() => import("./pages/consultation/ConsultationRecord"));
 const AIHealthCompanion = lazy(() => import("./pages/AIHealthCompanion"));
 const HealthDiagnostic = lazy(() => import("./pages/HealthDiagnostic"));
 const HealthChallenges = lazy(() => import("./pages/HealthChallenges"));
@@ -233,6 +240,16 @@ const App = () => (
                     <Route path="/book-appointment/facility" element={<PatientRoute><FacilityVisit /></PatientRoute>} />
                     <Route path="/prescription" element={<PatientRoute><Prescription /></PatientRoute>} />
                     <Route path="/my-prescriptions" element={<PatientRoute><MyPrescriptions /></PatientRoute>} />
+
+                    {/* Consultation module (self-contained) */}
+                    <Route path="/consultation" element={<PatientRoute><ConsultationFlow /></PatientRoute>} />
+                    <Route path="/consultation/:sessionId/live" element={<ProtectedRoute><LiveConsultation /></ProtectedRoute>} />
+                    <Route path="/consultation/prescription" element={<PatientRoute><PrescriptionResult /></PatientRoute>} />
+                    <Route path="/consultation/labs" element={<PatientRoute><LabOrders /></PatientRoute>} />
+                    <Route path="/consultation/record" element={<PatientRoute><ConsultationRecord /></PatientRoute>} />
+                    <Route path="/prescriptions/pharmacies" element={<PatientRoute><PharmacyList /></PatientRoute>} />
+                    <Route path="/prescriptions/orders/:orderId" element={<PatientRoute><PharmacyOrder /></PatientRoute>} />
+
                     
                     <Route path="/appointments" element={<Navigate to="/book-appointment" replace />} />
                     <Route path="/support" element={<ProtectedRoute requirePatient><Support /></ProtectedRoute>} />
