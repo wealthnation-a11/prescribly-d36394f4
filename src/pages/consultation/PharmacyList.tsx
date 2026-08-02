@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, Star, Clock, MapPin, PackageCheck, AlertCircle } from "lucide-react";
+import { ArrowLeft, Star, Clock, MapPin, PackageCheck, AlertCircle, PackageX } from "lucide-react";
 import { StepTracker } from "@/components/consultation/StepTracker";
 import { CT, formatNaira } from "@/components/consultation/consultationTheme";
 
@@ -20,26 +20,48 @@ interface Pharmacy {
   stock_status: string | null;
 }
 
+interface InventoryRow {
+  pharmacy_id: string;
+  drug_name: string;
+  unit_price: number;
+  quantity_available: number;
+  is_available: boolean;
+}
+
+interface LineItem {
+  name: string;
+  price: number;
+  inStock: boolean;
+  priceKnown: boolean;
+}
+
+// TODO: replace with the real delivery-fee service when pharmacy logistics are live.
+const DELIVERY_FEE = 1000;
+
+const norm = (s: string) => s.trim().toLowerCase();
+
 export default function PharmacyList() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
-  const [selected, setSelected] = useState<Pharmacy | null>(null);
+  const [inventory, setInventory] = useState<InventoryRow[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [rxTotal, setRxTotal] = useState(0);
-  const [items, setItems] = useState<{ name: string; price: number }[]>([]);
+  const [medications, setMedications] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      const { data: pharms } = await supabase
         .from("pharmacies")
         .select("*")
         .eq("is_active", true)
         .order("rating", { ascending: false });
-      setPharmacies((data ?? []) as Pharmacy[]);
+      const list = (pharms ?? []) as Pharmacy[];
+      setPharmacies(list);
 
+      let meds: string[] = [];
       if (user?.id) {
         const { data: rx } = await supabase
           .from("prescriptions")
@@ -47,13 +69,62 @@ export default function PharmacyList() {
           .eq("patient_id", user.id)
           .order("created_at", { ascending: false })
           .limit(5);
-        const list = (rx ?? []).map((r: any) => ({ name: r.medication as string, price: 2500 }));
-        setItems(list);
-        setRxTotal(list.reduce((s, i) => s + i.price, 0));
+        meds = (rx ?? []).map((r: any) => r.medication as string).filter(Boolean);
+        setMedications(meds);
+      }
+
+      if (list.length) {
+        const { data: inv } = await supabase
+          .from("pharmacy_inventory")
+          .select("pharmacy_id,drug_name,unit_price,quantity_available,is_available")
+          .in(
+            "pharmacy_id",
+            list.map((p) => p.id)
+          );
+        setInventory((inv ?? []) as InventoryRow[]);
       }
       setLoading(false);
     })();
   }, [user?.id]);
+
+  // Real availability + pricing per pharmacy, derived from pharmacy_inventory.
+  const stockByPharmacy = useMemo(() => {
+    const map = new Map<
+      string,
+      { items: LineItem[]; inStockCount: number; total: number; hasInventory: boolean }
+    >();
+    for (const p of pharmacies) {
+      const rows = inventory.filter((i) => i.pharmacy_id === p.id);
+      const hasInventory = rows.length > 0;
+      const items: LineItem[] = medications.map((med) => {
+        const match = rows.find(
+          (r) => norm(r.drug_name) === norm(med) || norm(med).includes(norm(r.drug_name))
+        );
+        if (!match) {
+          // TODO fallback: no inventory record for this drug — price confirmed by the pharmacy.
+          return { name: med, price: 0, inStock: false, priceKnown: false };
+        }
+        return {
+          name: med,
+          price: Number(match.unit_price) || 0,
+          inStock: match.is_available && match.quantity_available > 0,
+          priceKnown: Number(match.unit_price) > 0,
+        };
+      });
+      map.set(p.id, {
+        items,
+        inStockCount: items.filter((i) => i.inStock).length,
+        total: items.reduce((s, i) => s + i.price, 0),
+        hasInventory,
+      });
+    }
+    return map;
+  }, [pharmacies, inventory, medications]);
+
+  const selected = pharmacies.find((p) => p.id === selectedId) ?? null;
+  const selectedStock = selectedId ? stockByPharmacy.get(selectedId) : undefined;
+  const selectedTotal = (selectedStock?.total ?? 0) + DELIVERY_FEE;
+  const pricingUnknown = !!selectedStock?.items.some((i) => !i.priceKnown);
 
   const placeOrder = async () => {
     if (!user?.id || !selected) return;
@@ -67,8 +138,8 @@ export default function PharmacyList() {
       .insert({
         patient_id: user.id,
         pharmacy_id: selected.id,
-        items: items as any,
-        total_amount: rxTotal + 1000,
+        items: (selectedStock?.items ?? []) as any,
+        total_amount: selectedTotal,
         delivery_address: address.trim(),
         status: "placed",
       })
@@ -95,7 +166,9 @@ export default function PharmacyList() {
             Choose a pharmacy
           </h1>
           <p className="text-sm mt-1.5" style={{ color: CT.muted }}>
-            Partner pharmacies near you, ready to deliver.
+            {medications.length
+              ? `Availability shown for your ${medications.length} prescribed item${medications.length > 1 ? "s" : ""}.`
+              : "Partner pharmacies near you, ready to deliver."}
           </p>
         </div>
 
@@ -110,18 +183,37 @@ export default function PharmacyList() {
             ))}
 
           {pharmacies.map((p) => {
-            const active = selected?.id === p.id;
+            const active = selectedId === p.id;
+            const stock = stockByPharmacy.get(p.id);
+            const total = medications.length;
+            const inStock = stock?.inStockCount ?? 0;
+            const unknown = !stock?.hasInventory || total === 0;
+            const label = unknown
+              ? "Confirm on order" // TODO fallback: pharmacy has not published inventory yet
+              : inStock === total
+                ? "All in stock"
+                : inStock === 0
+                  ? "Out of stock"
+                  : `${inStock}/${total} in stock`;
+            const tone = unknown
+              ? { bg: "#E0E7FF", fg: "#3730A3", Icon: AlertCircle }
+              : inStock === total
+                ? { bg: "#DCFCE7", fg: CT.green, Icon: PackageCheck }
+                : inStock === 0
+                  ? { bg: "#FEE2E2", fg: CT.red, Icon: PackageX }
+                  : { bg: "#FEF3C7", fg: "#92400E", Icon: AlertCircle };
+
             return (
               <button
                 key={p.id}
-                onClick={() => setSelected(p)}
+                onClick={() => setSelectedId(p.id)}
                 className="w-full text-left rounded-2xl border p-4 transition-all active:scale-[.98]"
                 style={{
                   borderColor: active ? CT.blue : CT.border,
                   backgroundColor: active ? CT.blueSoft : "#fff",
                 }}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold" style={{ color: CT.navy }}>
                       {p.name}
@@ -141,20 +233,18 @@ export default function PharmacyList() {
                         <Clock className="w-3 h-3" /> {p.delivery_eta}
                       </span>
                     </div>
+                    {!unknown && (
+                      <p className="text-xs mt-2" style={{ color: CT.navy }}>
+                        From {formatNaira(stock?.total ?? 0)} + delivery
+                      </p>
+                    )}
                   </div>
                   <span
-                    className="text-[10px] px-2 py-1 rounded-full flex items-center gap-1"
-                    style={{
-                      backgroundColor: p.stock_status === "full" ? "#DCFCE7" : "#FEF3C7",
-                      color: p.stock_status === "full" ? CT.green : "#92400E",
-                    }}
+                    className="text-[10px] px-2 py-1 rounded-full flex items-center gap-1 whitespace-nowrap"
+                    style={{ backgroundColor: tone.bg, color: tone.fg }}
                   >
-                    {p.stock_status === "full" ? (
-                      <PackageCheck className="w-3 h-3" />
-                    ) : (
-                      <AlertCircle className="w-3 h-3" />
-                    )}
-                    {p.stock_status === "full" ? "All in stock" : "Partial stock"}
+                    <tone.Icon className="w-3 h-3" />
+                    {label}
                   </span>
                 </div>
               </button>
@@ -168,23 +258,43 @@ export default function PharmacyList() {
               className="rounded-2xl border p-4 space-y-2"
               style={{ borderColor: CT.border, backgroundColor: CT.gray }}
             >
-              {items.map((i) => (
+              {(selectedStock?.items ?? []).map((i) => (
                 <div key={i.name} className="flex justify-between text-sm">
-                  <span style={{ color: CT.text }}>{i.name}</span>
-                  <span style={{ color: CT.navy }}>{formatNaira(i.price)}</span>
+                  <span style={{ color: i.inStock ? CT.text : CT.muted }}>
+                    {i.name}
+                    {!i.inStock && (
+                      <span className="text-[11px] ml-2" style={{ color: CT.red }}>
+                        unavailable
+                      </span>
+                    )}
+                  </span>
+                  <span style={{ color: CT.navy }}>
+                    {i.priceKnown ? formatNaira(i.price) : "Price on confirmation"}
+                  </span>
                 </div>
               ))}
+              {!selectedStock?.items.length && (
+                <p className="text-sm" style={{ color: CT.muted }}>
+                  No prescription items found yet — the pharmacy will confirm your list.
+                </p>
+              )}
               <div className="flex justify-between text-sm">
                 <span style={{ color: CT.text }}>Delivery</span>
-                <span style={{ color: CT.navy }}>{formatNaira(1000)}</span>
+                <span style={{ color: CT.navy }}>{formatNaira(DELIVERY_FEE)}</span>
               </div>
               <div
                 className="flex justify-between font-bold pt-2 border-t"
                 style={{ borderColor: CT.border, color: CT.navy }}
               >
-                <span>Total</span>
-                <span>{formatNaira(rxTotal + 1000)}</span>
+                <span>{pricingUnknown ? "Estimated total" : "Total"}</span>
+                <span>{formatNaira(selectedTotal)}</span>
               </div>
+              {pricingUnknown && (
+                <p className="text-[11px]" style={{ color: CT.muted }}>
+                  Some prices aren't published by this pharmacy yet and will be confirmed before
+                  dispatch.
+                </p>
+              )}
             </div>
 
             <Input
