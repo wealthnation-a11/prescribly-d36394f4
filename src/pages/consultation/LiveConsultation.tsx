@@ -41,6 +41,8 @@ export default function LiveConsultation() {
   const [secondsLeft, setSecondsLeft] = useState(20 * 60);
   const [warned, setWarned] = useState(false);
   const [ended, setEnded] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
+  const endingRef = useRef(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [minimizedChat, setMinimizedChat] = useState(true);
