@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import RealtimeChat from "@/components/consultation/RealtimeChat";
 import { StepTracker } from "@/components/consultation/StepTracker";
-import { CT, mmss } from "@/components/consultation/consultationTheme";
+import { CT, mmss, CONSULTATION_MINUTES } from "@/components/consultation/consultationTheme";
 import { useConsultationCall } from "@/hooks/useConsultationCall";
 
 interface SessionRow {
@@ -41,6 +41,8 @@ export default function LiveConsultation() {
   const [secondsLeft, setSecondsLeft] = useState(20 * 60);
   const [warned, setWarned] = useState(false);
   const [ended, setEnded] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
+  const endingRef = useRef(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [minimizedChat, setMinimizedChat] = useState(true);
@@ -74,36 +76,102 @@ export default function LiveConsultation() {
         navigate("/dashboard");
         return;
       }
-      setSession(data as SessionRow);
-      if (data.status === "completed") setEnded(true);
-      if (data.doctor_id) {
+      let row = data as SessionRow;
+
+      // Guarantee a server-side end time so the 20-minute limit always applies.
+      if (row.status !== "completed" && !row.ends_at) {
+        const startedAt = row.started_at ?? new Date().toISOString();
+        const endsAt = new Date(
+          new Date(startedAt).getTime() + CONSULTATION_MINUTES * 60 * 1000
+        ).toISOString();
+        const { data: updated } = await supabase
+          .from("consultation_sessions")
+          .update({ started_at: startedAt, ends_at: endsAt })
+          .eq("id", sessionId)
+          .select("id,patient_id,doctor_id,mode,status,started_at,ends_at")
+          .maybeSingle();
+        row = (updated as SessionRow) ?? { ...row, started_at: startedAt, ends_at: endsAt };
+      }
+
+      setSession(row);
+      if (row.status === "completed") {
+        endingRef.current = true;
+        setEnded(true);
+        setTimedOut(true);
+        setSecondsLeft(0);
+      }
+      if (row.doctor_id) {
         const { data: prof } = await supabase
           .from("profiles")
           .select("first_name,last_name")
-          .eq("user_id", data.doctor_id)
+          .eq("user_id", row.doctor_id)
           .maybeSingle();
         if (prof) setDoctorName(`Dr. ${prof.first_name ?? ""} ${prof.last_name ?? ""}`.trim());
       }
     })();
   }, [sessionId, navigate]);
 
-  // Server-authoritative countdown
+  // Server-authoritative countdown — always auto-ends at 00:00
   useEffect(() => {
     if (!session?.ends_at || ended) return;
+    const endsAtMs = new Date(session.ends_at).getTime();
     const tick = () => {
-      const left = Math.floor((new Date(session.ends_at!).getTime() - Date.now()) / 1000);
+      const left = Math.floor((endsAtMs - Date.now()) / 1000);
       setSecondsLeft(left);
       if (left <= 300 && left > 0 && !warned) {
         setWarned(true);
         toast.warning("5 minutes remaining in this consultation");
       }
-      if (left <= 0) handleEnd();
+      if (left <= 0) handleEnd("timeout");
     };
     tick();
     const i = setInterval(tick, 1000);
-    return () => clearInterval(i);
+    // Re-sync immediately when the tab/app is resumed (timers are throttled in background)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      clearInterval(i);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.ends_at, ended, warned]);
+
+  // If the doctor (or the server) ends the session, follow along.
+  useEffect(() => {
+    if (!sessionId) return;
+    const ch = supabase
+      .channel(`consultation-status-${sessionId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "consultation_sessions",
+          filter: `id=eq.${sessionId}`,
+        },
+        (payload: any) => {
+          const row = payload.new as SessionRow;
+          if (row.status === "completed" && !endingRef.current) {
+            endingRef.current = true;
+            call.hangup();
+            setTimedOut(true);
+            setEnded(true);
+          } else if (row.ends_at && row.ends_at !== session?.ends_at) {
+            setSession((s) => (s ? { ...s, ends_at: row.ends_at } : s));
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
+
 
   useEffect(() => {
     if (localVideoRef.current && call.localStream)
@@ -121,8 +189,11 @@ export default function LiveConsultation() {
     if (remoteAudioRef.current) remoteAudioRef.current.muted = !call.speakerOn;
   }, [call.speakerOn]);
 
-  const handleEnd = async () => {
-    if (ended) return;
+  const handleEnd = async (reason: "manual" | "timeout" = "manual") => {
+    if (endingRef.current) return;
+    endingRef.current = true;
+    setTimedOut(reason === "timeout");
+    setSecondsLeft(0);
     setEnded(true);
     call.hangup();
     if (sessionId) {
@@ -157,16 +228,24 @@ export default function LiveConsultation() {
     navigate("/consultation/prescription" + (sessionId ? `?session=${sessionId}` : ""));
   };
 
-  /* --------------- SCREEN 8C: SUMMARY --------------- */
+  /* --------------- SCREEN 8C: CONSULTATION TIME ENDED --------------- */
   if (ended) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <div className="flex-1 max-w-md w-full mx-auto px-5 pt-12 text-center">
-          <h1 className="text-2xl font-bold" style={{ color: CT.navy }}>
-            Consultation ended
+          <div
+            className="w-16 h-16 rounded-full mx-auto flex items-center justify-center"
+            style={{ backgroundColor: CT.blueSoft }}
+          >
+            <Clock className="w-7 h-7" style={{ color: CT.blue }} />
+          </div>
+          <h1 className="text-2xl font-bold mt-4" style={{ color: CT.navy }}>
+            {timedOut ? "Consultation Time Ended" : "Consultation ended"}
           </h1>
           <p className="text-sm mt-2" style={{ color: CT.muted }}>
-            You spoke with {doctorName}
+            {timedOut
+              ? `Your ${CONSULTATION_MINUTES}-minute session with ${doctorName} is complete.`
+              : `You spoke with ${doctorName}`}
           </p>
 
           <div
@@ -204,6 +283,13 @@ export default function LiveConsultation() {
           >
             <FileText className="w-4 h-4 mr-2" /> View prescription
           </Button>
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl mt-3"
+            onClick={() => navigate("/consultation")}
+          >
+            Book a follow-up consultation
+          </Button>
           <button
             className="w-full py-3 text-sm font-medium"
             style={{ color: CT.muted }}
@@ -212,6 +298,7 @@ export default function LiveConsultation() {
             Back to dashboard
           </button>
         </div>
+
         <div className="max-w-md w-full mx-auto">
           <StepTracker current="live" />
         </div>
@@ -310,7 +397,7 @@ export default function LiveConsultation() {
               {call.speakerOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
             </button>
             <button
-              onClick={handleEnd}
+              onClick={() => handleEnd("manual")}
               className="w-16 h-16 rounded-full flex items-center justify-center text-white"
               style={{ backgroundColor: CT.red }}
             >
@@ -385,7 +472,7 @@ export default function LiveConsultation() {
             >
               {mmss(secondsLeft)}
             </span>
-            <button onClick={handleEnd} className="p-2 rounded-full" style={{ color: CT.red }}>
+            <button onClick={() => handleEnd("manual")} className="p-2 rounded-full" style={{ color: CT.red }}>
               <PhoneOff className="w-4 h-4" />
             </button>
           </div>

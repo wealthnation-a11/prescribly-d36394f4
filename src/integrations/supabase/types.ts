@@ -2138,6 +2138,50 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy_inventory: {
+        Row: {
+          created_at: string
+          drug_name: string
+          generic_name: string | null
+          id: string
+          is_available: boolean
+          pharmacy_id: string
+          quantity_available: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          drug_name: string
+          generic_name?: string | null
+          id?: string
+          is_available?: boolean
+          pharmacy_id: string
+          quantity_available?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          drug_name?: string
+          generic_name?: string | null
+          id?: string
+          is_available?: boolean
+          pharmacy_id?: string
+          quantity_available?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_inventory_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_messages: {
         Row: {
           content: string | null

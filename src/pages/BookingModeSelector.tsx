@@ -8,7 +8,7 @@ const modes = [
     title: 'Chat or Call a Doctor',
     description: 'Connect with a doctor instantly via chat, audio, or video call',
     icon: <div className="flex gap-1"><MessageCircle className="h-8 w-8" /><Video className="h-8 w-8" /></div>,
-    path: '/book-appointment/chat',
+    path: '/consultation',
     gradient: 'from-blue-500/20 to-cyan-500/20 dark:from-blue-500/10 dark:to-cyan-500/10',
     iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
     border: 'border-blue-200 dark:border-blue-800/50',
