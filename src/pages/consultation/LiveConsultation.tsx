@@ -76,36 +76,102 @@ export default function LiveConsultation() {
         navigate("/dashboard");
         return;
       }
-      setSession(data as SessionRow);
-      if (data.status === "completed") setEnded(true);
-      if (data.doctor_id) {
+      let row = data as SessionRow;
+
+      // Guarantee a server-side end time so the 20-minute limit always applies.
+      if (row.status !== "completed" && !row.ends_at) {
+        const startedAt = row.started_at ?? new Date().toISOString();
+        const endsAt = new Date(
+          new Date(startedAt).getTime() + CONSULTATION_MINUTES * 60 * 1000
+        ).toISOString();
+        const { data: updated } = await supabase
+          .from("consultation_sessions")
+          .update({ started_at: startedAt, ends_at: endsAt })
+          .eq("id", sessionId)
+          .select("id,patient_id,doctor_id,mode,status,started_at,ends_at")
+          .maybeSingle();
+        row = (updated as SessionRow) ?? { ...row, started_at: startedAt, ends_at: endsAt };
+      }
+
+      setSession(row);
+      if (row.status === "completed") {
+        endingRef.current = true;
+        setEnded(true);
+        setTimedOut(true);
+        setSecondsLeft(0);
+      }
+      if (row.doctor_id) {
         const { data: prof } = await supabase
           .from("profiles")
           .select("first_name,last_name")
-          .eq("user_id", data.doctor_id)
+          .eq("user_id", row.doctor_id)
           .maybeSingle();
         if (prof) setDoctorName(`Dr. ${prof.first_name ?? ""} ${prof.last_name ?? ""}`.trim());
       }
     })();
   }, [sessionId, navigate]);
 
-  // Server-authoritative countdown
+  // Server-authoritative countdown — always auto-ends at 00:00
   useEffect(() => {
     if (!session?.ends_at || ended) return;
+    const endsAtMs = new Date(session.ends_at).getTime();
     const tick = () => {
-      const left = Math.floor((new Date(session.ends_at!).getTime() - Date.now()) / 1000);
+      const left = Math.floor((endsAtMs - Date.now()) / 1000);
       setSecondsLeft(left);
       if (left <= 300 && left > 0 && !warned) {
         setWarned(true);
         toast.warning("5 minutes remaining in this consultation");
       }
-      if (left <= 0) handleEnd();
+      if (left <= 0) handleEnd("timeout");
     };
     tick();
     const i = setInterval(tick, 1000);
-    return () => clearInterval(i);
+    // Re-sync immediately when the tab/app is resumed (timers are throttled in background)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      clearInterval(i);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.ends_at, ended, warned]);
+
+  // If the doctor (or the server) ends the session, follow along.
+  useEffect(() => {
+    if (!sessionId) return;
+    const ch = supabase
+      .channel(`consultation-status-${sessionId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "consultation_sessions",
+          filter: `id=eq.${sessionId}`,
+        },
+        (payload: any) => {
+          const row = payload.new as SessionRow;
+          if (row.status === "completed" && !endingRef.current) {
+            endingRef.current = true;
+            call.hangup();
+            setTimedOut(true);
+            setEnded(true);
+          } else if (row.ends_at && row.ends_at !== session?.ends_at) {
+            setSession((s) => (s ? { ...s, ends_at: row.ends_at } : s));
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
+
 
   useEffect(() => {
     if (localVideoRef.current && call.localStream)
