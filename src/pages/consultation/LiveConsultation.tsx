@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import RealtimeChat from "@/components/consultation/RealtimeChat";
 import { StepTracker } from "@/components/consultation/StepTracker";
-import { CT, mmss } from "@/components/consultation/consultationTheme";
+import { CT, mmss, CONSULTATION_MINUTES } from "@/components/consultation/consultationTheme";
 import { useConsultationCall } from "@/hooks/useConsultationCall";
 
 interface SessionRow {
@@ -381,7 +381,7 @@ export default function LiveConsultation() {
               {call.speakerOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
             </button>
             <button
-              onClick={handleEnd}
+              onClick={() => handleEnd("manual")}
               className="w-16 h-16 rounded-full flex items-center justify-center text-white"
               style={{ backgroundColor: CT.red }}
             >
@@ -456,7 +456,7 @@ export default function LiveConsultation() {
             >
               {mmss(secondsLeft)}
             </span>
-            <button onClick={handleEnd} className="p-2 rounded-full" style={{ color: CT.red }}>
+            <button onClick={() => handleEnd("manual")} className="p-2 rounded-full" style={{ color: CT.red }}>
               <PhoneOff className="w-4 h-4" />
             </button>
           </div>
