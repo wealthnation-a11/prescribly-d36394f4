@@ -74,7 +74,6 @@ const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const BookAppointment = lazy(() => import("./pages/BookAppointment"));
 const BookingModeSelector = lazy(() => import("./pages/BookingModeSelector"));
-const ChatWithDoctor = lazy(() => import("./pages/booking/ChatWithDoctor"));
 const HomeVisit = lazy(() => import("./pages/booking/HomeVisit"));
 const FacilityVisit = lazy(() => import("./pages/booking/FacilityVisit"));
 const Chat = lazy(() => import("./pages/Chat"));
