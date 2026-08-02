@@ -189,8 +189,11 @@ export default function LiveConsultation() {
     if (remoteAudioRef.current) remoteAudioRef.current.muted = !call.speakerOn;
   }, [call.speakerOn]);
 
-  const handleEnd = async () => {
-    if (ended) return;
+  const handleEnd = async (reason: "manual" | "timeout" = "manual") => {
+    if (endingRef.current) return;
+    endingRef.current = true;
+    setTimedOut(reason === "timeout");
+    setSecondsLeft(0);
     setEnded(true);
     call.hangup();
     if (sessionId) {
