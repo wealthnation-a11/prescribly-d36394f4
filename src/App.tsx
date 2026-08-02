@@ -235,7 +235,7 @@ const App = () => (
                     <Route path="/health-trends" element={<PatientRoute><HealthTrendsDashboard /></PatientRoute>} />
                     <Route path="/chat" element={<PatientRoute><Chat /></PatientRoute>} />
                     <Route path="/book-appointment" element={<PatientRoute><BookingModeSelector /></PatientRoute>} />
-                    <Route path="/book-appointment/chat" element={<PatientRoute><ChatWithDoctor /></PatientRoute>} />
+                    <Route path="/book-appointment/chat" element={<Navigate to="/consultation" replace />} />
                     <Route path="/book-appointment/home-visit" element={<PatientRoute><HomeVisit /></PatientRoute>} />
                     <Route path="/book-appointment/facility" element={<PatientRoute><FacilityVisit /></PatientRoute>} />
                     <Route path="/prescription" element={<PatientRoute><Prescription /></PatientRoute>} />
