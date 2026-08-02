@@ -228,16 +228,24 @@ export default function LiveConsultation() {
     navigate("/consultation/prescription" + (sessionId ? `?session=${sessionId}` : ""));
   };
 
-  /* --------------- SCREEN 8C: SUMMARY --------------- */
+  /* --------------- SCREEN 8C: CONSULTATION TIME ENDED --------------- */
   if (ended) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <div className="flex-1 max-w-md w-full mx-auto px-5 pt-12 text-center">
-          <h1 className="text-2xl font-bold" style={{ color: CT.navy }}>
-            Consultation ended
+          <div
+            className="w-16 h-16 rounded-full mx-auto flex items-center justify-center"
+            style={{ backgroundColor: CT.blueSoft }}
+          >
+            <Clock className="w-7 h-7" style={{ color: CT.blue }} />
+          </div>
+          <h1 className="text-2xl font-bold mt-4" style={{ color: CT.navy }}>
+            {timedOut ? "Consultation Time Ended" : "Consultation ended"}
           </h1>
           <p className="text-sm mt-2" style={{ color: CT.muted }}>
-            You spoke with {doctorName}
+            {timedOut
+              ? `Your ${CONSULTATION_MINUTES}-minute session with ${doctorName} is complete.`
+              : `You spoke with ${doctorName}`}
           </p>
 
           <div
@@ -275,6 +283,13 @@ export default function LiveConsultation() {
           >
             <FileText className="w-4 h-4 mr-2" /> View prescription
           </Button>
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl mt-3"
+            onClick={() => navigate("/consultation")}
+          >
+            Book a follow-up consultation
+          </Button>
           <button
             className="w-full py-3 text-sm font-medium"
             style={{ color: CT.muted }}
@@ -283,6 +298,7 @@ export default function LiveConsultation() {
             Back to dashboard
           </button>
         </div>
+
         <div className="max-w-md w-full mx-auto">
           <StepTracker current="live" />
         </div>
