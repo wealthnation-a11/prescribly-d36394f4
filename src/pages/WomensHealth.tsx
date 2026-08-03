@@ -25,6 +25,7 @@ import { usePregnancyProfile } from "@/hooks/usePregnancyProfile";
 import { computeCycle, statusLabel, conceptionCurve } from "@/lib/cycleMath";
 import { computePregnancy, trimesterLabel } from "@/lib/pregnancyMath";
 import WHLayout from "@/components/womens-health/WHLayout";
+import PartnerAccess from "@/pages/womens-health/PartnerAccess";
 import GiftOnboarding from "@/components/womens-health/GiftOnboarding";
 import PeriodTodayFlo from "@/components/womens-health/PeriodTodayFlo";
 import SecretChats from "@/pages/womens-health/SecretChats";
