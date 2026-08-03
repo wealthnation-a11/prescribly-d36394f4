@@ -129,7 +129,7 @@ export default function ConsultationFlow() {
   const [params] = useSearchParams();
   const { initializePayment, loading: payLoading } = useConsultationPayment();
 
-  const [step, setStep] = useState<ConsultationStepKey>("type");
+  const [step, setStep] = useState<FlowStep>("type");
   const [consultType, setConsultType] = useState<"talk_now" | "book_later">("talk_now");
   const [mode, setMode] = useState<Mode>("chat");
   const [symptoms, setSymptoms] = useState("");
@@ -144,7 +144,15 @@ export default function ConsultationFlow() {
   const [payMethod, setPayMethod] = useState<"card" | "transfer" | "ussd">("card");
   const [waitSeconds, setWaitSeconds] = useState(0);
   const [musicOn, setMusicOn] = useState(true);
+  const [scheduleDate, setScheduleDate] = useState<string>(SCHEDULE_DAYS[0].value);
+  const [scheduleTime, setScheduleTime] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const isFree = !!userProfile?.is_legacy;
+  const scheduledAt =
+    consultType === "book_later" && scheduleDate && scheduleTime
+      ? new Date(`${scheduleDate}T${scheduleTime}:00`)
+      : null;
 
   // Restore after returning from the payment gateway
   useEffect(() => {
