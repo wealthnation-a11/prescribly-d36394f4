@@ -5,6 +5,7 @@ import {
   Droplet, Moon, Smile, Activity, Plus, Minus, Heart, Flower2, Baby,
   Calendar as CalIcon, ChevronLeft, ChevronRight, Sparkles, Zap,
   Bell, MoreVertical, Info, Share2, ClipboardList, Apple, CheckSquare,
+  Users,
 } from "lucide-react";
 import { addDays, format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfWeek, endOfWeek, isToday } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, CartesianGrid, ReferenceDot } from "recharts";
