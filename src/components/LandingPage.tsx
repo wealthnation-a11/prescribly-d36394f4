@@ -77,12 +77,27 @@ export const LandingPage = () => {
     icon: Heart,
     title: "Personalized Prescriptions",
     description: "Receive tailored treatment plans",
-    details: "Get customized medication recommendations and treatment plans based on your specific condition, including herbal alternatives."
+    details: "Get customized medication recommendations and evidence-based treatment plans based on your specific condition."
   }, {
     icon: Bot,
     title: "Medical Record History",
     description: "Secure digital health records",
     details: "Access your complete medical history anytime, anywhere with bank-level security."
+  }, {
+    icon: Heart,
+    title: "Women's Health & Cycle Tracking",
+    description: "Cycle, fertility and pregnancy insights",
+    details: "Track your period, ovulation and symptoms with Gift, your private AI companion — and optionally share access with a trusted partner."
+  }, {
+    icon: Heart,
+    title: "Wellness Challenges",
+    description: "Sleep, water, steps, meds & meditation",
+    details: "Daily goals, streaks and scores that keep your everyday health on track."
+  }, {
+    icon: Stethoscope,
+    title: "Home Visits & Facility Care",
+    description: "Care at home or at a nearby clinic",
+    details: "Request a doctor to visit you at home, or check in at a partner hospital or pharmacy with a secure registration code."
   }, {
     icon: Stethoscope,
     title: "Doctor Dashboard",
