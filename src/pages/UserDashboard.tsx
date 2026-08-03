@@ -105,7 +105,7 @@ export const UserDashboard = () => {
       variant: "outline" as const,
       color: "text-yellow-600"
     },
-    ...(userProfile?.gender === "female" ? [{
+    ...(userProfile?.gender === "female" || (userProfile as any)?.womens_health_access ? [{
       title: "Women's Health",
       description: "Cycle tracking, fertility insights, and pregnancy journey — built for you.",
       icon: Flower2,

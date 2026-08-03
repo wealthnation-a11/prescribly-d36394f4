@@ -64,6 +64,27 @@ const EMERGENCY_KEYWORDS = [
 ];
 
 type Mode = "chat" | "voice" | "video";
+type FlowStep = ConsultationStepKey | "schedule";
+
+// Next 14 days of bookable dates
+const SCHEDULE_DAYS = Array.from({ length: 14 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() + i);
+  const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+  return {
+    value,
+    weekday: i === 0 ? "Today" : d.toLocaleDateString(undefined, { weekday: "short" }),
+    day: d.getDate(),
+    month: d.toLocaleDateString(undefined, { month: "short" }),
+  };
+});
+
+const SCHEDULE_TIMES = Array.from({ length: 22 }, (_, i) => {
+  const total = 8 * 60 + i * 30; // 08:00 → 18:30
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+});
 
 interface DoctorMatch {
   user_id: string;
@@ -125,11 +146,11 @@ const Chip = ({
 
 export default function ConsultationFlow() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [params] = useSearchParams();
   const { initializePayment, loading: payLoading } = useConsultationPayment();
 
-  const [step, setStep] = useState<ConsultationStepKey>("type");
+  const [step, setStep] = useState<FlowStep>("type");
   const [consultType, setConsultType] = useState<"talk_now" | "book_later">("talk_now");
   const [mode, setMode] = useState<Mode>("chat");
   const [symptoms, setSymptoms] = useState("");
@@ -144,7 +165,15 @@ export default function ConsultationFlow() {
   const [payMethod, setPayMethod] = useState<"card" | "transfer" | "ussd">("card");
   const [waitSeconds, setWaitSeconds] = useState(0);
   const [musicOn, setMusicOn] = useState(true);
+  const [scheduleDate, setScheduleDate] = useState<string>(SCHEDULE_DAYS[0].value);
+  const [scheduleTime, setScheduleTime] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const isFree = !!userProfile?.is_legacy;
+  const scheduledAt =
+    consultType === "book_later" && scheduleDate && scheduleTime
+      ? new Date(`${scheduleDate}T${scheduleTime}:00`)
+      : null;
 
   // Restore after returning from the payment gateway
   useEffect(() => {
@@ -286,8 +315,9 @@ export default function ConsultationFlow() {
         other_symptoms: otherSymptoms,
         conditions,
         is_emergency: emergency,
+        scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
         status: "pending_payment",
-        fee: CONSULTATION_FEE,
+        fee: isFree ? 0 : CONSULTATION_FEE,
       })
       .select("id")
       .single();
@@ -303,6 +333,18 @@ export default function ConsultationFlow() {
   const handlePay = async () => {
     const id = await createSession();
     if (!id) return;
+
+    // Legacy / free-access accounts skip the payment gateway entirely.
+    if (isFree) {
+      await supabase
+        .from("consultation_sessions")
+        .update({ payment_method: "free_access", status: "paid", fee: 0 })
+        .eq("id", id);
+      toast.success("Free access applied — no payment needed");
+      setStep("confirmation");
+      return;
+    }
+
     await supabase
       .from("consultation_sessions")
       .update({ payment_method: payMethod })
@@ -413,9 +455,7 @@ export default function ConsultationFlow() {
                 className="w-full h-12 rounded-xl text-base"
                 style={{ backgroundColor: CT.blue }}
                 onClick={() =>
-                  consultType === "book_later"
-                    ? navigate("/book-appointment")
-                    : setStep("mode")
+                  consultType === "book_later" ? setStep("schedule") : setStep("mode")
                 }
               >
                 Continue
@@ -424,12 +464,108 @@ export default function ConsultationFlow() {
           </div>
         );
 
+      /* ---------------- SCREEN 1b: SCHEDULE (Book for later) ---------------- */
+      case "schedule":
+        return (
+          <div key="schedule" className="animate-fade-in pb-4">
+            {header("Pick a date & time", "Your doctor will be reserved for this slot.", () =>
+              setStep("type"),
+            )}
+            <div className="px-5">
+              <p className="text-sm font-semibold mb-2" style={{ color: CT.navy }}>
+                Select a date
+              </p>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-1">
+                {SCHEDULE_DAYS.map((d) => {
+                  const active = scheduleDate === d.value;
+                  return (
+                    <button
+                      key={d.value}
+                      type="button"
+                      onClick={() => setScheduleDate(d.value)}
+                      className="shrink-0 w-[64px] rounded-2xl border py-2.5 transition-all active:scale-95"
+                      style={{
+                        borderColor: active ? CT.blue : CT.border,
+                        backgroundColor: active ? CT.blue : "#fff",
+                        color: active ? "#fff" : CT.navy,
+                      }}
+                    >
+                      <span className="block text-[11px] opacity-80">{d.weekday}</span>
+                      <span className="block text-lg font-bold leading-tight">{d.day}</span>
+                      <span className="block text-[11px] opacity-80">{d.month}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="text-sm font-semibold mt-6 mb-2" style={{ color: CT.navy }}>
+                Select a time
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {SCHEDULE_TIMES.map((t) => {
+                  const disabled =
+                    scheduleDate === SCHEDULE_DAYS[0].value &&
+                    new Date(`${scheduleDate}T${t}:00`).getTime() < Date.now() + 15 * 60 * 1000;
+                  const active = scheduleTime === t;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setScheduleTime(t)}
+                      className="h-11 rounded-xl border text-sm font-medium transition-all active:scale-95 disabled:opacity-35"
+                      style={{
+                        borderColor: active ? CT.blue : CT.border,
+                        backgroundColor: active ? CT.blue : "#fff",
+                        color: active ? "#fff" : CT.navy,
+                      }}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {scheduledAt && (
+                <div
+                  className="mt-5 rounded-2xl p-4 flex items-start gap-3"
+                  style={{ backgroundColor: CT.blueSoft }}
+                >
+                  <CalendarClock className="w-5 h-5 shrink-0" style={{ color: CT.blue }} />
+                  <p className="text-sm" style={{ color: CT.navy }}>
+                    Your consultation will be held on{" "}
+                    <span className="font-semibold">
+                      {scheduledAt.toLocaleDateString(undefined, {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      })}{" "}
+                      at {scheduleTime}
+                    </span>
+                    . We'll remind you before it starts.
+                  </p>
+                </div>
+              )}
+
+              <Button
+                className="w-full h-12 rounded-xl text-base mt-6"
+                style={{ backgroundColor: CT.blue }}
+                disabled={!scheduledAt}
+                onClick={() => setStep("mode")}
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        );
+
+
       /* ---------------- SCREEN 2: MODE ---------------- */
       case "mode":
         return (
           <div key="mode" className="animate-fade-in">
             {header("How do you want to consult?", "Pick your preferred way to talk.", () =>
-              setStep("type"),
+              setStep(consultType === "book_later" ? "schedule" : "type"),
             )}
             <div className="px-5 space-y-3">
               {(Object.keys(modeMeta) as Mode[]).map((m) => {
@@ -693,8 +829,12 @@ export default function ConsultationFlow() {
       case "payment":
         return (
           <div key="payment" className="animate-fade-in">
-            {header("Payment", "Complete payment to connect with your doctor.", () =>
-              setStep("matching"),
+            {header(
+              isFree ? "Confirm consultation" : "Payment",
+              isFree
+                ? "Your account has free consultation access."
+                : "Complete payment to connect with your doctor.",
+              () => setStep("matching"),
             )}
             <div className="px-5 space-y-4">
               <div
@@ -702,34 +842,54 @@ export default function ConsultationFlow() {
                 style={{ backgroundColor: CT.navy, color: "#fff" }}
               >
                 <p className="text-sm opacity-70">Consultation fee</p>
-                <p className="text-3xl font-bold mt-1">{formatNaira(CONSULTATION_FEE)}</p>
+                <p className="text-3xl font-bold mt-1">
+                  {isFree ? "Free" : formatNaira(CONSULTATION_FEE)}
+                </p>
+                {isFree && (
+                  <span className="inline-block mt-2 text-[11px] font-medium px-2 py-1 rounded-full bg-white/15">
+                    Legacy free access
+                  </span>
+                )}
                 <div className="mt-4 pt-4 border-t border-white/15 space-y-1.5 text-sm opacity-90">
                   <p>· 20-minute session with {doctor?.name ?? "your doctor"}</p>
                   <p>· {modeMeta[mode].title} consultation</p>
+                  {scheduledAt && (
+                    <p>
+                      ·{" "}
+                      {scheduledAt.toLocaleDateString(undefined, {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                      })}{" "}
+                      at {scheduleTime}
+                    </p>
+                  )}
                   <p>· Digital prescription if needed</p>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                {[
-                  { key: "card", label: "Card", Icon: CreditCard },
-                  { key: "transfer", label: "Bank Transfer", Icon: Landmark },
-                  { key: "ussd", label: "USSD", Icon: Wallet },
-                ].map(({ key, label, Icon }) => (
-                  <Card
-                    key={key}
-                    selected={payMethod === key}
-                    onClick={() => setPayMethod(key as any)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5" style={{ color: CT.blue }} />
-                      <span className="font-medium" style={{ color: CT.navy }}>
-                        {label}
-                      </span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+              {!isFree && (
+                <div className="space-y-2">
+                  {[
+                    { key: "card", label: "Card", Icon: CreditCard },
+                    { key: "transfer", label: "Bank Transfer", Icon: Landmark },
+                    { key: "ussd", label: "USSD", Icon: Wallet },
+                  ].map(({ key, label, Icon }) => (
+                    <Card
+                      key={key}
+                      selected={payMethod === key}
+                      onClick={() => setPayMethod(key as any)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5" style={{ color: CT.blue }} />
+                        <span className="font-medium" style={{ color: CT.navy }}>
+                          {label}
+                        </span>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
 
               <Button
                 className="w-full h-12 rounded-xl text-base"
@@ -737,11 +897,22 @@ export default function ConsultationFlow() {
                 disabled={payLoading}
                 onClick={handlePay}
               >
-                {payLoading ? "Processing..." : `Pay ${formatNaira(CONSULTATION_FEE)}`}
+                {payLoading
+                  ? "Processing..."
+                  : isFree
+                    ? consultType === "book_later"
+                      ? "Confirm booking"
+                      : "Start free consultation"
+                    : `Pay ${formatNaira(CONSULTATION_FEE)}`}
               </Button>
-              <p className="text-center text-xs flex items-center justify-center gap-1.5" style={{ color: CT.muted }}>
-                <ShieldCheck className="w-3.5 h-3.5" /> Secured by Flutterwave
-              </p>
+              {!isFree && (
+                <p
+                  className="text-center text-xs flex items-center justify-center gap-1.5"
+                  style={{ color: CT.muted }}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" /> Secured by Flutterwave
+                </p>
+              )}
             </div>
           </div>
         );
@@ -757,10 +928,16 @@ export default function ConsultationFlow() {
               <CheckCircle2 className="w-10 h-10" style={{ color: CT.green }} />
             </div>
             <h1 className="text-2xl font-bold mt-5" style={{ color: CT.navy }}>
-              Payment successful
+              {consultType === "book_later"
+                ? "Appointment booked"
+                : isFree
+                  ? "Consultation confirmed"
+                  : "Payment successful"}
             </h1>
             <p className="text-sm mt-2" style={{ color: CT.muted }}>
-              Your consultation is confirmed. Your doctor has been notified.
+              {consultType === "book_later"
+                ? "We've reserved your slot and notified your doctor. You'll get a reminder before it starts."
+                : "Your consultation is confirmed. Your doctor has been notified."}
             </p>
 
             <div
@@ -770,8 +947,20 @@ export default function ConsultationFlow() {
               {[
                 ["Doctor", doctor?.name ?? "Next available doctor"],
                 ["Type", modeMeta[mode].title],
+                ...(scheduledAt
+                  ? ([
+                      [
+                        "Scheduled",
+                        `${scheduledAt.toLocaleDateString(undefined, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })} · ${scheduleTime}`,
+                      ],
+                    ] as string[][])
+                  : []),
                 ["Duration", "20 minutes"],
-                ["Amount paid", formatNaira(CONSULTATION_FEE)],
+                ["Amount paid", isFree ? "Free" : formatNaira(CONSULTATION_FEE)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between text-sm">
                   <span style={{ color: CT.muted }}>{k}</span>
@@ -782,15 +971,35 @@ export default function ConsultationFlow() {
               ))}
             </div>
 
-            <Button
-              className="w-full h-12 rounded-xl text-base mt-6"
-              style={{ backgroundColor: CT.blue }}
-              onClick={enterWaiting}
-            >
-              Start consultation
-            </Button>
+            {consultType === "book_later" ? (
+              <>
+                <Button
+                  className="w-full h-12 rounded-xl text-base mt-6"
+                  style={{ backgroundColor: CT.blue }}
+                  onClick={() => navigate("/consultation/record")}
+                >
+                  View my consultations
+                </Button>
+                <button
+                  className="w-full mt-3 text-sm font-medium py-2"
+                  style={{ color: CT.muted }}
+                  onClick={enterWaiting}
+                >
+                  Start now instead
+                </button>
+              </>
+            ) : (
+              <Button
+                className="w-full h-12 rounded-xl text-base mt-6"
+                style={{ backgroundColor: CT.blue }}
+                onClick={enterWaiting}
+              >
+                Start consultation
+              </Button>
+            )}
           </div>
         );
+
 
       /* ---------------- SCREEN 7: WAITING ROOM ---------------- */
       case "waiting":
@@ -909,7 +1118,7 @@ export default function ConsultationFlow() {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#fff" }}>
       <div className="flex-1 max-w-md w-full mx-auto pb-4">{content}</div>
       <div className="max-w-md w-full mx-auto">
-        <StepTracker current={step} />
+        <StepTracker current={step === "schedule" ? "type" : step} />
       </div>
     </div>
   );

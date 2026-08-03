@@ -5,6 +5,7 @@ import {
   Droplet, Moon, Smile, Activity, Plus, Minus, Heart, Flower2, Baby,
   Calendar as CalIcon, ChevronLeft, ChevronRight, Sparkles, Zap,
   Bell, MoreVertical, Info, Share2, ClipboardList, Apple, CheckSquare,
+  Users,
 } from "lucide-react";
 import { addDays, format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfWeek, endOfWeek, isToday } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, CartesianGrid, ReferenceDot } from "recharts";
@@ -24,6 +25,7 @@ import { usePregnancyProfile } from "@/hooks/usePregnancyProfile";
 import { computeCycle, statusLabel, conceptionCurve } from "@/lib/cycleMath";
 import { computePregnancy, trimesterLabel } from "@/lib/pregnancyMath";
 import WHLayout from "@/components/womens-health/WHLayout";
+import PartnerAccess from "@/pages/womens-health/PartnerAccess";
 import GiftOnboarding from "@/components/womens-health/GiftOnboarding";
 import PeriodTodayFlo from "@/components/womens-health/PeriodTodayFlo";
 import SecretChats from "@/pages/womens-health/SecretChats";
@@ -978,6 +980,7 @@ const WHEntry = () => {
     { label: "Baby Growth", desc: "Size, development & timeline", Icon: Baby, to: "/womens-health/pregnancy/baby-growth", grad: "linear-gradient(135deg, hsl(var(--wh-blue)/.18), hsl(var(--wh-blue)/.05))", color: "wh-blue" },
     { label: "Insights", desc: "Your personal cycle patterns", Icon: Sparkles, to: "/womens-health/insights", grad: "linear-gradient(135deg, hsl(var(--wh-pink)/.18), hsl(var(--wh-pink)/.05))", color: "wh-pink" },
     { label: "Secret Chats", desc: "Private PIN-locked chat with Gift", Icon: Zap, to: "/womens-health/secret-chats", grad: "linear-gradient(135deg, hsl(var(--wh-purple)/.18), hsl(var(--wh-purple)/.05))", color: "wh-purple" },
+    { label: "Partner Access", desc: "Let someone you trust help you track", Icon: Users, to: "/womens-health/partner-access", grad: "linear-gradient(135deg, hsl(var(--wh-blue)/.18), hsl(var(--wh-blue)/.05))", color: "wh-blue" },
   ];
   return (
     <WHLayout title="Women's Health">
@@ -1002,8 +1005,13 @@ const WHEntry = () => {
 // Router
 const WomensHealth = () => {
   const { userProfile } = useAuth();
-  // Privacy gate: only visible to female users
-  if (userProfile && userProfile.gender && userProfile.gender !== "female") {
+  // Privacy gate: female users, or users explicitly granted access (partners)
+  const allowed =
+    !userProfile ||
+    !userProfile.gender ||
+    userProfile.gender === "female" ||
+    (userProfile as any).womens_health_access === true;
+  if (!allowed) {
     return <Navigate to="/dashboard" replace />;
   }
   return (
@@ -1020,6 +1028,8 @@ const WomensHealth = () => {
       <Route path="profile" element={<WHProfile />} />
       <Route path="log-period" element={<LogPeriod />} />
       <Route path="secret-chats" element={<SecretChats />} />
+      <Route path="partner-access" element={<PartnerAccess />} />
+
 
       <Route path="fertility" element={<FertilityToday />} />
       <Route path="fertility/calendar" element={<FertilityCalendar />} />
