@@ -333,6 +333,18 @@ export default function ConsultationFlow() {
   const handlePay = async () => {
     const id = await createSession();
     if (!id) return;
+
+    // Legacy / free-access accounts skip the payment gateway entirely.
+    if (isFree) {
+      await supabase
+        .from("consultation_sessions")
+        .update({ payment_method: "free_access", status: "paid", fee: 0 })
+        .eq("id", id);
+      toast.success("Free access applied — no payment needed");
+      setStep("confirmation");
+      return;
+    }
+
     await supabase
       .from("consultation_sessions")
       .update({ payment_method: payMethod })
