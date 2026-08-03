@@ -24,7 +24,6 @@ import {
   CreditCard,
   Landmark,
   Wallet,
-  CalendarClock,
 } from "lucide-react";
 import { StepTracker, type ConsultationStepKey } from "@/components/consultation/StepTracker";
 import {
