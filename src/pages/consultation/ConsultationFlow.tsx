@@ -146,7 +146,7 @@ const Chip = ({
 
 export default function ConsultationFlow() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [params] = useSearchParams();
   const { initializePayment, loading: payLoading } = useConsultationPayment();
 
