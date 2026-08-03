@@ -829,8 +829,12 @@ export default function ConsultationFlow() {
       case "payment":
         return (
           <div key="payment" className="animate-fade-in">
-            {header("Payment", "Complete payment to connect with your doctor.", () =>
-              setStep("matching"),
+            {header(
+              isFree ? "Confirm consultation" : "Payment",
+              isFree
+                ? "Your account has free consultation access."
+                : "Complete payment to connect with your doctor.",
+              () => setStep("matching"),
             )}
             <div className="px-5 space-y-4">
               <div
@@ -838,34 +842,54 @@ export default function ConsultationFlow() {
                 style={{ backgroundColor: CT.navy, color: "#fff" }}
               >
                 <p className="text-sm opacity-70">Consultation fee</p>
-                <p className="text-3xl font-bold mt-1">{formatNaira(CONSULTATION_FEE)}</p>
+                <p className="text-3xl font-bold mt-1">
+                  {isFree ? "Free" : formatNaira(CONSULTATION_FEE)}
+                </p>
+                {isFree && (
+                  <span className="inline-block mt-2 text-[11px] font-medium px-2 py-1 rounded-full bg-white/15">
+                    Legacy free access
+                  </span>
+                )}
                 <div className="mt-4 pt-4 border-t border-white/15 space-y-1.5 text-sm opacity-90">
                   <p>· 20-minute session with {doctor?.name ?? "your doctor"}</p>
                   <p>· {modeMeta[mode].title} consultation</p>
+                  {scheduledAt && (
+                    <p>
+                      ·{" "}
+                      {scheduledAt.toLocaleDateString(undefined, {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                      })}{" "}
+                      at {scheduleTime}
+                    </p>
+                  )}
                   <p>· Digital prescription if needed</p>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                {[
-                  { key: "card", label: "Card", Icon: CreditCard },
-                  { key: "transfer", label: "Bank Transfer", Icon: Landmark },
-                  { key: "ussd", label: "USSD", Icon: Wallet },
-                ].map(({ key, label, Icon }) => (
-                  <Card
-                    key={key}
-                    selected={payMethod === key}
-                    onClick={() => setPayMethod(key as any)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5" style={{ color: CT.blue }} />
-                      <span className="font-medium" style={{ color: CT.navy }}>
-                        {label}
-                      </span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+              {!isFree && (
+                <div className="space-y-2">
+                  {[
+                    { key: "card", label: "Card", Icon: CreditCard },
+                    { key: "transfer", label: "Bank Transfer", Icon: Landmark },
+                    { key: "ussd", label: "USSD", Icon: Wallet },
+                  ].map(({ key, label, Icon }) => (
+                    <Card
+                      key={key}
+                      selected={payMethod === key}
+                      onClick={() => setPayMethod(key as any)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5" style={{ color: CT.blue }} />
+                        <span className="font-medium" style={{ color: CT.navy }}>
+                          {label}
+                        </span>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
 
               <Button
                 className="w-full h-12 rounded-xl text-base"
@@ -873,11 +897,22 @@ export default function ConsultationFlow() {
                 disabled={payLoading}
                 onClick={handlePay}
               >
-                {payLoading ? "Processing..." : `Pay ${formatNaira(CONSULTATION_FEE)}`}
+                {payLoading
+                  ? "Processing..."
+                  : isFree
+                    ? consultType === "book_later"
+                      ? "Confirm booking"
+                      : "Start free consultation"
+                    : `Pay ${formatNaira(CONSULTATION_FEE)}`}
               </Button>
-              <p className="text-center text-xs flex items-center justify-center gap-1.5" style={{ color: CT.muted }}>
-                <ShieldCheck className="w-3.5 h-3.5" /> Secured by Flutterwave
-              </p>
+              {!isFree && (
+                <p
+                  className="text-center text-xs flex items-center justify-center gap-1.5"
+                  style={{ color: CT.muted }}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" /> Secured by Flutterwave
+                </p>
+              )}
             </div>
           </div>
         );
@@ -893,10 +928,16 @@ export default function ConsultationFlow() {
               <CheckCircle2 className="w-10 h-10" style={{ color: CT.green }} />
             </div>
             <h1 className="text-2xl font-bold mt-5" style={{ color: CT.navy }}>
-              Payment successful
+              {consultType === "book_later"
+                ? "Appointment booked"
+                : isFree
+                  ? "Consultation confirmed"
+                  : "Payment successful"}
             </h1>
             <p className="text-sm mt-2" style={{ color: CT.muted }}>
-              Your consultation is confirmed. Your doctor has been notified.
+              {consultType === "book_later"
+                ? "We've reserved your slot and notified your doctor. You'll get a reminder before it starts."
+                : "Your consultation is confirmed. Your doctor has been notified."}
             </p>
 
             <div
@@ -906,8 +947,20 @@ export default function ConsultationFlow() {
               {[
                 ["Doctor", doctor?.name ?? "Next available doctor"],
                 ["Type", modeMeta[mode].title],
+                ...(scheduledAt
+                  ? ([
+                      [
+                        "Scheduled",
+                        `${scheduledAt.toLocaleDateString(undefined, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })} · ${scheduleTime}`,
+                      ],
+                    ] as string[][])
+                  : []),
                 ["Duration", "20 minutes"],
-                ["Amount paid", formatNaira(CONSULTATION_FEE)],
+                ["Amount paid", isFree ? "Free" : formatNaira(CONSULTATION_FEE)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between text-sm">
                   <span style={{ color: CT.muted }}>{k}</span>
@@ -918,15 +971,35 @@ export default function ConsultationFlow() {
               ))}
             </div>
 
-            <Button
-              className="w-full h-12 rounded-xl text-base mt-6"
-              style={{ backgroundColor: CT.blue }}
-              onClick={enterWaiting}
-            >
-              Start consultation
-            </Button>
+            {consultType === "book_later" ? (
+              <>
+                <Button
+                  className="w-full h-12 rounded-xl text-base mt-6"
+                  style={{ backgroundColor: CT.blue }}
+                  onClick={() => navigate("/consultation/record")}
+                >
+                  View my consultations
+                </Button>
+                <button
+                  className="w-full mt-3 text-sm font-medium py-2"
+                  style={{ color: CT.muted }}
+                  onClick={enterWaiting}
+                >
+                  Start now instead
+                </button>
+              </>
+            ) : (
+              <Button
+                className="w-full h-12 rounded-xl text-base mt-6"
+                style={{ backgroundColor: CT.blue }}
+                onClick={enterWaiting}
+              >
+                Start consultation
+              </Button>
+            )}
           </div>
         );
+
 
       /* ---------------- SCREEN 7: WAITING ROOM ---------------- */
       case "waiting":
