@@ -637,6 +637,7 @@ export type Database = {
           patient_id: string
           payment_method: string | null
           payment_reference: string | null
+          scheduled_at: string | null
           severity: number | null
           started_at: string | null
           status: string
@@ -659,6 +660,7 @@ export type Database = {
           patient_id: string
           payment_method?: string | null
           payment_reference?: string | null
+          scheduled_at?: string | null
           severity?: number | null
           started_at?: string | null
           status?: string
@@ -681,6 +683,7 @@ export type Database = {
           patient_id?: string
           payment_method?: string | null
           payment_reference?: string | null
+          scheduled_at?: string | null
           severity?: number | null
           started_at?: string | null
           status?: string
@@ -2452,6 +2455,7 @@ export type Database = {
           role: string
           updated_at: string
           user_id: string
+          womens_health_access: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -2472,6 +2476,7 @@ export type Database = {
           role?: string
           updated_at?: string
           user_id: string
+          womens_health_access?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -2492,6 +2497,7 @@ export type Database = {
           role?: string
           updated_at?: string
           user_id?: string
+          womens_health_access?: boolean
         }
         Relationships: []
       }
@@ -3468,6 +3474,45 @@ export type Database = {
         }
         Relationships: []
       }
+      women_partner_access: {
+        Row: {
+          can_view_cycle: boolean
+          can_view_pregnancy: boolean
+          can_view_symptoms: boolean
+          created_at: string
+          id: string
+          owner_id: string
+          partner_email: string
+          partner_user_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          can_view_cycle?: boolean
+          can_view_pregnancy?: boolean
+          can_view_symptoms?: boolean
+          created_at?: string
+          id?: string
+          owner_id: string
+          partner_email: string
+          partner_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          can_view_cycle?: boolean
+          can_view_pregnancy?: boolean
+          can_view_symptoms?: boolean
+          created_at?: string
+          id?: string
+          owner_id?: string
+          partner_email?: string
+          partner_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       women_profiles: {
         Row: {
           avg_cycle_length: number
@@ -3542,6 +3587,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_women_data: { Args: { _owner: string }; Returns: boolean }
       compute_eod_summary: {
         Args: { _date?: string; _user_id: string }
         Returns: {
