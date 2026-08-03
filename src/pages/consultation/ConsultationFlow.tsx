@@ -442,9 +442,7 @@ export default function ConsultationFlow() {
                 className="w-full h-12 rounded-xl text-base"
                 style={{ backgroundColor: CT.blue }}
                 onClick={() =>
-                  consultType === "book_later"
-                    ? navigate("/book-appointment")
-                    : setStep("mode")
+                  consultType === "book_later" ? setStep("schedule") : setStep("mode")
                 }
               >
                 Continue
