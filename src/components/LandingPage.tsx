@@ -16,7 +16,6 @@ import { Header } from "./Header";
 import { EnterpriseDemoModal } from "./EnterpriseDemoModal";
 import { SupportForm } from "./SupportForm";
 import { CustomTeamContactForm } from "./CustomTeamContactForm";
-import { HerbalPractitionerRegisterModal } from "./HerbalPractitionerRegisterModal";
 
 import { AdMobBanner } from "@/components/ads/AdMobBanner";
 import { BannerAdPosition } from "@capacitor-community/admob";
@@ -36,7 +35,6 @@ export const LandingPage = () => {
     loading
   } = useAuth();
   const [isEnterpriseDemoModalOpen, setIsEnterpriseDemoModalOpen] = useState(false);
-  const [showHerbalRegister, setShowHerbalRegister] = useState(false);
   
 
   // Don't auto-redirect admins if they want to visit landing page
@@ -334,7 +332,7 @@ export const LandingPage = () => {
                 At Prescribly, we believe health care should be human first. Our platform connects you with compassionate, licensed healthcare professionals who truly care about your well-being. 
               </p>
               <p className="text-base sm:text-lg leading-relaxed mt-4 sm:mt-6">
-                We promise transparent pricing, secure data handling, and healthcare that puts your needs first—whether you choose conventional medicine, herbal remedies, or an integrated approach. Every consultation is designed to make you feel heard, understood, and cared for—because your health deserves nothing less.
+                We promise transparent pricing, secure data handling, and healthcare that puts your needs first—from AI symptom checks to live consultations, home visits and everyday wellness tracking. Every consultation is designed to make you feel heard, understood, and cared for—because your health deserves nothing less.
               </p>
             </div>
           </div>
@@ -393,7 +391,7 @@ export const LandingPage = () => {
                     <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Browse & chat with verified doctors</span></div>
                     <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Medical Records Storage</span></div>
                     <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Prescription Management</span></div>
-                    <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Access to Herbal Features</span></div>
+                    <div className="flex items-center gap-3"><Check className="w-5 h-5 text-primary flex-shrink-0" /><span>Women's Health & Wellness Tracking</span></div>
 
                     <div className="pt-3 border-t border-border/30 mt-4 space-y-2">
                       <div className="flex justify-between text-sm"><span>Doctor Consultation</span><span className="font-semibold">₦3,500</span></div>
@@ -543,7 +541,7 @@ export const LandingPage = () => {
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Access to Herbal Features</span>
+                      <span>Women's Health & Wellness Tracking</span>
                     </div>
                     <div className="pt-2 text-xs text-orange-600 font-medium border-t border-border/20 mt-4">
                       * Extra charges are applied for doctor consultations
@@ -893,10 +891,6 @@ export const LandingPage = () => {
       </footer>
       
       <EnterpriseDemoModal open={isEnterpriseDemoModalOpen} onOpenChange={setIsEnterpriseDemoModalOpen} />
-      <HerbalPractitionerRegisterModal
-        isOpen={showHerbalRegister}
-        onClose={() => setShowHerbalRegister(false)}
-      />
       
     </div>;
 };
