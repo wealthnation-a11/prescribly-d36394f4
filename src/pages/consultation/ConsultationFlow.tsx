@@ -315,8 +315,9 @@ export default function ConsultationFlow() {
         other_symptoms: otherSymptoms,
         conditions,
         is_emergency: emergency,
+        scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
         status: "pending_payment",
-        fee: CONSULTATION_FEE,
+        fee: isFree ? 0 : CONSULTATION_FEE,
       })
       .select("id")
       .single();
