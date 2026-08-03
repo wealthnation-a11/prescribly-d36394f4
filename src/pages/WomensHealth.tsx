@@ -1004,8 +1004,13 @@ const WHEntry = () => {
 // Router
 const WomensHealth = () => {
   const { userProfile } = useAuth();
-  // Privacy gate: only visible to female users
-  if (userProfile && userProfile.gender && userProfile.gender !== "female") {
+  // Privacy gate: female users, or users explicitly granted access (partners)
+  const allowed =
+    !userProfile ||
+    !userProfile.gender ||
+    userProfile.gender === "female" ||
+    (userProfile as any).womens_health_access === true;
+  if (!allowed) {
     return <Navigate to="/dashboard" replace />;
   }
   return (
@@ -1022,6 +1027,8 @@ const WomensHealth = () => {
       <Route path="profile" element={<WHProfile />} />
       <Route path="log-period" element={<LogPeriod />} />
       <Route path="secret-chats" element={<SecretChats />} />
+      <Route path="partner-access" element={<PartnerAccess />} />
+
 
       <Route path="fertility" element={<FertilityToday />} />
       <Route path="fertility/calendar" element={<FertilityCalendar />} />
