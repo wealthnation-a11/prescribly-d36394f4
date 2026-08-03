@@ -64,6 +64,27 @@ const EMERGENCY_KEYWORDS = [
 ];
 
 type Mode = "chat" | "voice" | "video";
+type FlowStep = ConsultationStepKey | "schedule";
+
+// Next 14 days of bookable dates
+const SCHEDULE_DAYS = Array.from({ length: 14 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() + i);
+  const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+  return {
+    value,
+    weekday: i === 0 ? "Today" : d.toLocaleDateString(undefined, { weekday: "short" }),
+    day: d.getDate(),
+    month: d.toLocaleDateString(undefined, { month: "short" }),
+  };
+});
+
+const SCHEDULE_TIMES = Array.from({ length: 22 }, (_, i) => {
+  const total = 8 * 60 + i * 30; // 08:00 → 18:30
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+});
 
 interface DoctorMatch {
   user_id: string;
