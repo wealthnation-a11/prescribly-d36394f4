@@ -451,6 +451,102 @@ export default function ConsultationFlow() {
           </div>
         );
 
+      /* ---------------- SCREEN 1b: SCHEDULE (Book for later) ---------------- */
+      case "schedule":
+        return (
+          <div key="schedule" className="animate-fade-in pb-4">
+            {header("Pick a date & time", "Your doctor will be reserved for this slot.", () =>
+              setStep("type"),
+            )}
+            <div className="px-5">
+              <p className="text-sm font-semibold mb-2" style={{ color: CT.navy }}>
+                Select a date
+              </p>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-1">
+                {SCHEDULE_DAYS.map((d) => {
+                  const active = scheduleDate === d.value;
+                  return (
+                    <button
+                      key={d.value}
+                      type="button"
+                      onClick={() => setScheduleDate(d.value)}
+                      className="shrink-0 w-[64px] rounded-2xl border py-2.5 transition-all active:scale-95"
+                      style={{
+                        borderColor: active ? CT.blue : CT.border,
+                        backgroundColor: active ? CT.blue : "#fff",
+                        color: active ? "#fff" : CT.navy,
+                      }}
+                    >
+                      <span className="block text-[11px] opacity-80">{d.weekday}</span>
+                      <span className="block text-lg font-bold leading-tight">{d.day}</span>
+                      <span className="block text-[11px] opacity-80">{d.month}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="text-sm font-semibold mt-6 mb-2" style={{ color: CT.navy }}>
+                Select a time
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {SCHEDULE_TIMES.map((t) => {
+                  const disabled =
+                    scheduleDate === SCHEDULE_DAYS[0].value &&
+                    new Date(`${scheduleDate}T${t}:00`).getTime() < Date.now() + 15 * 60 * 1000;
+                  const active = scheduleTime === t;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setScheduleTime(t)}
+                      className="h-11 rounded-xl border text-sm font-medium transition-all active:scale-95 disabled:opacity-35"
+                      style={{
+                        borderColor: active ? CT.blue : CT.border,
+                        backgroundColor: active ? CT.blue : "#fff",
+                        color: active ? "#fff" : CT.navy,
+                      }}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {scheduledAt && (
+                <div
+                  className="mt-5 rounded-2xl p-4 flex items-start gap-3"
+                  style={{ backgroundColor: CT.blueSoft }}
+                >
+                  <CalendarClock className="w-5 h-5 shrink-0" style={{ color: CT.blue }} />
+                  <p className="text-sm" style={{ color: CT.navy }}>
+                    Your consultation will be held on{" "}
+                    <span className="font-semibold">
+                      {scheduledAt.toLocaleDateString(undefined, {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      })}{" "}
+                      at {scheduleTime}
+                    </span>
+                    . We'll remind you before it starts.
+                  </p>
+                </div>
+              )}
+
+              <Button
+                className="w-full h-12 rounded-xl text-base mt-6"
+                style={{ backgroundColor: CT.blue }}
+                disabled={!scheduledAt}
+                onClick={() => setStep("mode")}
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        );
+
+
       /* ---------------- SCREEN 2: MODE ---------------- */
       case "mode":
         return (
