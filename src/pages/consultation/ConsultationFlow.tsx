@@ -553,7 +553,7 @@ export default function ConsultationFlow() {
         return (
           <div key="mode" className="animate-fade-in">
             {header("How do you want to consult?", "Pick your preferred way to talk.", () =>
-              setStep("type"),
+              setStep(consultType === "book_later" ? "schedule" : "type"),
             )}
             <div className="px-5 space-y-3">
               {(Object.keys(modeMeta) as Mode[]).map((m) => {
