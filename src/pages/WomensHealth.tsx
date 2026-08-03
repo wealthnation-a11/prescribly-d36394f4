@@ -978,6 +978,7 @@ const WHEntry = () => {
     { label: "Baby Growth", desc: "Size, development & timeline", Icon: Baby, to: "/womens-health/pregnancy/baby-growth", grad: "linear-gradient(135deg, hsl(var(--wh-blue)/.18), hsl(var(--wh-blue)/.05))", color: "wh-blue" },
     { label: "Insights", desc: "Your personal cycle patterns", Icon: Sparkles, to: "/womens-health/insights", grad: "linear-gradient(135deg, hsl(var(--wh-pink)/.18), hsl(var(--wh-pink)/.05))", color: "wh-pink" },
     { label: "Secret Chats", desc: "Private PIN-locked chat with Gift", Icon: Zap, to: "/womens-health/secret-chats", grad: "linear-gradient(135deg, hsl(var(--wh-purple)/.18), hsl(var(--wh-purple)/.05))", color: "wh-purple" },
+    { label: "Partner Access", desc: "Let someone you trust help you track", Icon: Users, to: "/womens-health/partner-access", grad: "linear-gradient(135deg, hsl(var(--wh-blue)/.18), hsl(var(--wh-blue)/.05))", color: "wh-blue" },
   ];
   return (
     <WHLayout title="Women's Health">
