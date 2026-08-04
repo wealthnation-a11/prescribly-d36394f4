@@ -61,20 +61,36 @@ const HospitalRegistrationManagement = () => {
         .eq('id', id);
       if (updateError) throw updateError;
 
-      // If approved, add to facilities
+      // If approved, add to facilities AND link the applicant as facility staff
       if (action === 'approve') {
-        const { error: facilityError } = await supabase.from('facilities').insert({
-          name: reg.hospital_name,
-          facility_type: 'hospital',
-          address: reg.address,
-          city: reg.city,
-          state: reg.state,
-          country: reg.country,
-          phone: reg.phone,
-          email: reg.email,
-          is_verified: true,
-        });
+        const { data: facility, error: facilityError } = await supabase
+          .from('facilities')
+          .insert({
+            name: reg.hospital_name,
+            facility_type: 'hospital',
+            address: reg.address,
+            city: reg.city,
+            state: reg.state,
+            country: reg.country,
+            phone: reg.phone,
+            email: reg.email,
+            is_verified: true,
+            admin_user_id: (reg as any).user_id ?? null,
+          })
+          .select('id')
+          .single();
         if (facilityError) throw facilityError;
+
+        // Without this link the hospital can never sign in to its dashboard.
+        if ((reg as any).user_id && facility?.id) {
+          const { error: staffError } = await supabase.from('facility_staff').insert({
+            facility_id: facility.id,
+            user_id: (reg as any).user_id,
+            role: 'admin',
+            is_active: true,
+          });
+          if (staffError) throw staffError;
+        }
       }
     },
     onSuccess: (_, variables) => {
