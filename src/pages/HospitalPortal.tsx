@@ -156,12 +156,23 @@ const HospitalPortal = () => {
       if (staffError) throw staffError;
 
       if (!staffRecord) {
+        // Surface the real reason instead of a generic denial.
+        const { data: reg } = await supabase
+          .from("hospital_registrations")
+          .select("status, admin_notes")
+          .eq("user_id", authData.user.id)
+          .order("created_at", { ascending: false })
+          .maybeSingle();
         await supabase.auth.signOut();
-        toast({
-          title: "Access Denied",
-          description: "Your account is not linked to any facility yet. Your registration may still be under review.",
-          variant: "destructive",
-        });
+        const description =
+          reg?.status === "pending"
+            ? "Your hospital registration is still under review. We'll email you once it's approved."
+            : reg?.status === "rejected"
+              ? `Your registration was not approved.${reg.admin_notes ? ` Reason: ${reg.admin_notes}` : ""}`
+              : reg?.status === "approved"
+                ? "Your hospital is approved but your staff access is still being set up. Please contact support."
+                : "We couldn't find a hospital registration for this account.";
+        toast({ title: "Access not available yet", description, variant: "destructive" });
         return;
       }
 

@@ -21,6 +21,8 @@ import HomeVisitFeedback from "@/components/admin/HomeVisitFeedback";
 import RegistrationCodeVerification from "@/components/admin/RegistrationCodeVerification";
 import FacilityStaffManagement from "@/components/admin/FacilityStaffManagement";
 import AdminBroadcastManagement from "@/components/admin/AdminBroadcastManagement";
+import PharmacyManagement from "@/components/admin/PharmacyManagement";
+import PatientHealthRecords from "@/components/admin/PatientHealthRecords";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2, UserPlus, Star } from "lucide-react";
@@ -258,6 +260,40 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent className="pt-6">
             <HomeVisitFeedback />
+          </CardContent>
+        </Card>
+      );
+    case "pharmacies":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-green-500" />
+              Pharmacies
+            </CardTitle>
+            <CardDescription>
+              Review pharmacy registrations, approve, suspend or remove pharmacies and handle patient reports
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <PharmacyManagement />
+          </CardContent>
+        </Card>
+      );
+    case "patient-records":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-rose-400" />
+              Patient Health Records
+            </CardTitle>
+            <CardDescription>
+              Search a patient and review their consultations, prescriptions, labs, appointments and vitals
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <PatientHealthRecords />
           </CardContent>
         </Card>
       );
