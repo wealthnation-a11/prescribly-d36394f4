@@ -2099,43 +2099,70 @@ export type Database = {
       pharmacies: {
         Row: {
           address: string | null
+          admin_notes: string | null
           city: string | null
           created_at: string
           delivery_eta: string | null
+          description: string | null
+          email: string | null
           id: string
           is_active: boolean
+          license_number: string | null
+          logo_url: string | null
           name: string
+          opening_hours: string | null
+          owner_user_id: string | null
           phone: string | null
           rating: number | null
           review_count: number | null
+          state: string | null
+          status: string
           stock_status: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          admin_notes?: string | null
           city?: string | null
           created_at?: string
           delivery_eta?: string | null
+          description?: string | null
+          email?: string | null
           id?: string
           is_active?: boolean
+          license_number?: string | null
+          logo_url?: string | null
           name: string
+          opening_hours?: string | null
+          owner_user_id?: string | null
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          state?: string | null
+          status?: string
           stock_status?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          admin_notes?: string | null
           city?: string | null
           created_at?: string
           delivery_eta?: string | null
+          description?: string | null
+          email?: string | null
           id?: string
           is_active?: boolean
+          license_number?: string | null
+          logo_url?: string | null
           name?: string
+          opening_hours?: string | null
+          owner_user_id?: string | null
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          state?: string | null
+          status?: string
           stock_status?: string | null
           updated_at?: string
         }
@@ -2275,6 +2302,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "pharmacy_orders_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          details: string | null
+          id: string
+          order_id: string | null
+          pharmacy_id: string
+          reason: string
+          reporter_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          order_id?: string | null
+          pharmacy_id: string
+          reason: string
+          reporter_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          order_id?: string | null
+          pharmacy_id?: string
+          reason?: string
+          reporter_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_reports_pharmacy_id_fkey"
             columns: ["pharmacy_id"]
             isOneToOne: false
             referencedRelation: "pharmacies"
@@ -3624,6 +3698,8 @@ export type Database = {
         Returns: boolean
       }
       has_secret_pin: { Args: never; Returns: boolean }
+      is_pharmacy_owner: { Args: { _pharmacy_id: string }; Returns: boolean }
+      my_pharmacy_id: { Args: never; Returns: string }
       set_secret_pin: { Args: { _pin: string }; Returns: boolean }
       verify_registration_code: {
         Args: { _code: string }
