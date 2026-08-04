@@ -73,6 +73,7 @@ const navGroups: NavGroup[] = [
     title: "Healthcare Providers",
     items: [
       { id: "doctors", label: "Doctors", icon: Stethoscope, color: "text-cyan-500" },
+      { id: "pharmacies", label: "Pharmacies", icon: Package, color: "text-green-500" },
     ],
   },
   {
@@ -95,6 +96,7 @@ const navGroups: NavGroup[] = [
     items: [
       { id: "appointments", label: "Appointments", icon: Calendar, color: "text-teal-500" },
       { id: "payments", label: "Payments", icon: DollarSign, color: "text-lime-500" },
+      { id: "patient-records", label: "Patient Records", icon: FileText, color: "text-rose-400" },
       { id: "ai-logs", label: "AI Diagnosis", icon: Brain, color: "text-purple-500" },
       { id: "home-visit-feedback", label: "Home Visit Reviews", icon: Star, color: "text-yellow-500" },
       { id: "broadcasts", label: "Popup Broadcasts", icon: Megaphone, color: "text-fuchsia-500" },

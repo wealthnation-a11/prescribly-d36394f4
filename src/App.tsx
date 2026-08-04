@@ -14,6 +14,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { FacilityRoute } from "./components/FacilityRoute";
+import { PharmacyRoute } from "./components/PharmacyRoute";
 import { RealtimeNotifications } from "./components/RealtimeNotifications";
 import AIChatBubble from "./components/AIChatBubble";
 import BroadcastPopup from "./components/BroadcastPopup";
@@ -111,6 +112,8 @@ const HerbalPractitionerLogin = lazy(() => import("./pages/HerbalPractitionerLog
 const HerbalPractitionerRegister = lazy(() => import("./pages/HerbalPractitionerRegister"));
 const VerifyCode = lazy(() => import("./pages/VerifyCode"));
 const HospitalPortal = lazy(() => import("./pages/HospitalPortal"));
+const PharmacyPortal = lazy(() => import("./pages/pharmacy/PharmacyPortal"));
+const PharmacyDashboard = lazy(() => import("./pages/pharmacy/PharmacyDashboard"));
 const FacilityDashboard = lazy(() => import("./pages/facility/FacilityDashboard"));
 const FacilityCodeVerification = lazy(() => import("./pages/facility/FacilityCodeVerification"));
 const FacilityVisitHistory = lazy(() => import("./pages/facility/FacilityVisitHistory"));
@@ -205,6 +208,8 @@ const App = () => (
                     <Route path="/facility-login" element={<Navigate to="/hospital" replace />} />
 
                     {/* Facility Staff Routes */}
+                    <Route path="/pharmacy-portal" element={<PharmacyPortal />} />
+                    <Route path="/pharmacy-dashboard" element={<PharmacyRoute><PharmacyDashboard /></PharmacyRoute>} />
                     <Route path="/facility-dashboard" element={<FacilityRoute><FacilityDashboard /></FacilityRoute>} />
                     <Route path="/facility-dashboard/verify" element={<FacilityRoute><FacilityCodeVerification /></FacilityRoute>} />
                     <Route path="/facility-dashboard/visits" element={<FacilityRoute><FacilityVisitHistory /></FacilityRoute>} />
