@@ -2003,6 +2003,68 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_record_files: {
+        Row: {
+          appointment_id: string | null
+          category: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          patient_id: string
+          session_id: string | null
+          title: string
+          updated_at: string
+          uploaded_by: string
+          verified: boolean
+        }
+        Insert: {
+          appointment_id?: string | null
+          category?: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          patient_id: string
+          session_id?: string | null
+          title: string
+          updated_at?: string
+          uploaded_by: string
+          verified?: boolean
+        }
+        Update: {
+          appointment_id?: string | null
+          category?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          patient_id?: string
+          session_id?: string | null
+          title?: string
+          updated_at?: string
+          uploaded_by?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_record_files_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "consultation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           created_at: string

@@ -95,6 +95,7 @@ const navGroups: NavGroup[] = [
     title: "Operations",
     items: [
       { id: "appointments", label: "Appointments", icon: Calendar, color: "text-teal-500" },
+      { id: "consultations", label: "Consultations", icon: Stethoscope, color: "text-cyan-400" },
       { id: "payments", label: "Payments", icon: DollarSign, color: "text-lime-500" },
       { id: "patient-records", label: "Patient Records", icon: FileText, color: "text-rose-400" },
       { id: "ai-logs", label: "AI Diagnosis", icon: Brain, color: "text-purple-500" },

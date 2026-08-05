@@ -17,6 +17,8 @@ import {
   HeartPulse,
 } from "lucide-react";
 
+import PatientRecordFiles from "@/components/admin/PatientRecordFiles";
+
 const fmt = (d?: string | null) => (d ? new Date(d).toLocaleString() : "—");
 
 export default function PatientHealthRecords() {
@@ -113,12 +115,13 @@ export default function PatientHealthRecords() {
           <p className="text-sm text-muted-foreground">Loading health record…</p>
         ) : (
           <Tabs defaultValue="consultations">
-            <TabsList className="grid grid-cols-5 w-full">
+            <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="consultations" className="text-xs">Consults</TabsTrigger>
               <TabsTrigger value="prescriptions" className="text-xs">Rx</TabsTrigger>
               <TabsTrigger value="labs" className="text-xs">Labs</TabsTrigger>
               <TabsTrigger value="appointments" className="text-xs">Appts</TabsTrigger>
               <TabsTrigger value="vitals" className="text-xs">Vitals</TabsTrigger>
+              <TabsTrigger value="files" className="text-xs">Files</TabsTrigger>
             </TabsList>
 
             <TabsContent value="consultations" className="pt-4 space-y-2">
@@ -225,6 +228,10 @@ export default function PatientHealthRecords() {
                   </CardContent>
                 </Card>
               ))}
+            </TabsContent>
+
+            <TabsContent value="files" className="pt-4">
+              <PatientRecordFiles patientId={patient.user_id} sessions={record?.sessions ?? []} />
             </TabsContent>
           </Tabs>
         )}

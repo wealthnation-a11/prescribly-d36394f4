@@ -838,7 +838,7 @@ export const LandingPage = () => {
       {/* Footer */}
       <footer id="contact" className="bg-foreground text-background py-10 sm:py-16">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8">
             <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
               <h3 className="text-xl sm:text-2xl font-bold text-primary">Prescribly</h3>
               <p className="text-background/80 text-sm sm:text-base">Doctor in Your Pocket</p>
@@ -853,6 +853,15 @@ export const LandingPage = () => {
                 <li><Link to="/blog" className="hover:underline">Blog</Link></li>
                 <li><Link to="/press" className="hover:underline">Press</Link></li>
                 <li><Link to="/careers" className="hover:underline">Careers</Link></li>
+              </ul>
+            </div>
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="font-semibold text-background text-sm sm:text-base">For Partners</h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-background/80 list-disc list-inside">
+                <li><Link to="/doctor-register" className="hover:underline">Join as a Doctor</Link></li>
+                <li><Link to="/pharmacy-portal" className="hover:underline">Register your Pharmacy</Link></li>
+                <li><Link to="/hospital" className="hover:underline">Hospital &amp; Clinic Portal</Link></li>
+                <li><Link to="/facility-login" className="hover:underline">Facility Staff Login</Link></li>
               </ul>
             </div>
             <div className="space-y-3 sm:space-y-4">
