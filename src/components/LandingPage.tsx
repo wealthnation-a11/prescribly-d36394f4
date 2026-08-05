@@ -856,6 +856,15 @@ export const LandingPage = () => {
               </ul>
             </div>
             <div className="space-y-3 sm:space-y-4">
+              <h4 className="font-semibold text-background text-sm sm:text-base">For Partners</h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-background/80 list-disc list-inside">
+                <li><Link to="/doctor-register" className="hover:underline">Join as a Doctor</Link></li>
+                <li><Link to="/pharmacy-portal" className="hover:underline">Register your Pharmacy</Link></li>
+                <li><Link to="/hospital-portal" className="hover:underline">Hospital &amp; Clinic Portal</Link></li>
+                <li><Link to="/facility-login" className="hover:underline">Facility Staff Login</Link></li>
+              </ul>
+            </div>
+            <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-background text-sm sm:text-base">Legal</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-background/80 list-disc list-inside">
                 <li><Link to="/terms" className="hover:underline">Terms of Use</Link></li>
