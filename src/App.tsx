@@ -206,6 +206,9 @@ const App = () => (
                     <Route path="/install" element={<InstallPWA />} />
                     <Route path="/verify-code" element={<VerifyCode />} />
                     <Route path="/hospital" element={<HospitalPortal />} />
+                    <Route path="/hospital-portal" element={<Navigate to="/hospital" replace />} />
+                    <Route path="/pharmacy" element={<Navigate to="/pharmacy-portal" replace />} />
+                    <Route path="/pharmacy-register" element={<Navigate to="/pharmacy-portal" replace />} />
                     <Route path="/facility-login" element={<Navigate to="/hospital" replace />} />
 
                     {/* Facility Staff Routes */}

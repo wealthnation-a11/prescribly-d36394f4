@@ -860,7 +860,7 @@ export const LandingPage = () => {
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-background/80 list-disc list-inside">
                 <li><Link to="/doctor-register" className="hover:underline">Join as a Doctor</Link></li>
                 <li><Link to="/pharmacy-portal" className="hover:underline">Register your Pharmacy</Link></li>
-                <li><Link to="/hospital-portal" className="hover:underline">Hospital &amp; Clinic Portal</Link></li>
+                <li><Link to="/hospital" className="hover:underline">Hospital &amp; Clinic Portal</Link></li>
                 <li><Link to="/facility-login" className="hover:underline">Facility Staff Login</Link></li>
               </ul>
             </div>
