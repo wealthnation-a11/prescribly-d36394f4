@@ -185,7 +185,7 @@ export default function DoctorConsultations() {
   );
 
   return (
-    <DoctorLayout>
+    <DoctorLayout title="Consultations">
       <div className="p-4 sm:p-6 max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold">Consultations</h1>
         <p className="text-sm text-muted-foreground mt-1">
