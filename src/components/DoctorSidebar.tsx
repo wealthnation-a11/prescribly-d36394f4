@@ -20,6 +20,7 @@ import {
 
 const items = [
   { title: "Dashboard", url: "/doctor-dashboard", icon: Stethoscope },
+  { title: "Consultations", url: "/doctor/consultations", icon: MessageCircle },
   { title: "Today's Appointments", url: "/doctor/appointments", icon: Calendar },
   { title: "My Patients", url: "/doctor/patients", icon: Users },
   { title: "Write Prescription", url: "/doctor/prescriptions", icon: FileText },
