@@ -690,6 +690,11 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
   const [today, setToday] = useState<{ step_count: number; goal: number } | null>(null);
   const [week, setWeek] = useState<{ date: string; steps: number }[]>([]);
   const [adding, setAdding] = useState(false);
+  const [tracking, setTracking] = useState(false);
+  const [sessionSteps, setSessionSteps] = useState(0);
+  const pending = useRef(0);
+  const todayRef = useRef<{ step_count: number; goal: number } | null>(null);
+  todayRef.current = today;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -704,28 +709,60 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
   }, [userId]);
   useEffect(() => { load(); }, [load]);
 
-  const setupSteps = async () => {
-    setAdding(true);
+  const persist = useCallback(async (count: number, goal: number) => {
     const { error } = await supabase.from("user_steps").upsert(
-      { user_id: userId, date: todayISO(), step_count: 0, goal: 10000 },
+      { user_id: userId, date: todayISO(), step_count: count, goal, goal_reached: count >= goal },
       { onConflict: "user_id,date" }
     );
+    if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return false; }
+    return true;
+  }, [userId]);
+
+  const setupSteps = async () => {
+    setAdding(true);
+    const ok = await persist(0, 10000);
     setAdding(false);
-    if (error) { toast({ title: "Setup failed", description: error.message, variant: "destructive" }); return; }
+    if (!ok) return;
     toast({ title: "Steps tracking enabled", description: "Goal set to 10,000 steps" });
     await load(); onChange();
   };
 
   const addSteps = async (delta: number) => {
-    if (!today) return;
-    const next = Math.max(0, today.step_count + delta);
-    const { error } = await supabase.from("user_steps").upsert(
-      { user_id: userId, date: todayISO(), step_count: next, goal: today.goal, goal_reached: next >= today.goal },
-      { onConflict: "user_id,date" }
-    );
-    if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
-    setToday({ ...today, step_count: next });
+    const cur = todayRef.current;
+    if (!cur || !delta) return;
+    const next = Math.max(0, cur.step_count + delta);
+    const ok = await persist(next, cur.goal);
+    if (!ok) return;
+    setToday({ ...cur, step_count: next });
     onChange();
+  };
+
+  /* live pedometer: buffer detected steps and flush to the database every 5s */
+  useEffect(() => {
+    if (!tracking) return;
+    const id = window.setInterval(() => {
+      const n = pending.current;
+      if (n > 0) { pending.current = 0; void addSteps(n); }
+    }, 5000);
+    return () => {
+      window.clearInterval(id);
+      const n = pending.current;
+      if (n > 0) { pending.current = 0; void addSteps(n); }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracking]);
+
+  const toggleTracking = async () => {
+    if (!tracking) {
+      if (!todayRef.current) await setupSteps();
+      setSessionSteps(0);
+      pending.current = 0;
+      setTracking(true);
+      toast({ title: "Tracking started", description: "Keep your phone with you — steps save automatically." });
+    } else {
+      setTracking(false);
+      toast({ title: "Tracking stopped", description: `${sessionSteps.toLocaleString()} steps this session` });
+    }
   };
 
   if (loading) return <SectionLoading />;
@@ -740,7 +777,7 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
     );
   }
 
-  const steps = today?.step_count ?? 0;
+  const steps = (today?.step_count ?? 0) + pending.current;
   const stepsGoal = today?.goal ?? 10000;
   const kcal = Math.round(steps * 0.04);
   const kcalGoal = Math.round(stepsGoal * 0.05);
@@ -750,6 +787,11 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
 
   return (
     <div className="space-y-5">
+      <MotionSensor
+        isActive={tracking}
+        onStepDetected={() => { pending.current += 1; setSessionSteps(s => s + 1); }}
+      />
+
       <Surface className="p-6 flex flex-col items-center relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 45%, ${amber}22, transparent 60%)` }} />
         <div className="relative">
@@ -762,6 +804,22 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
           <Label className="mt-1">of {stepsGoal.toLocaleString()} steps</Label>
         </div>
       </Surface>
+
+      <button type="button" onClick={toggleTracking}
+        className="w-full h-[52px] rounded-[16px] font-medium flex items-center justify-center gap-2"
+        style={{
+          background: tracking ? "rgba(255,255,255,0.06)" : amber,
+          color: tracking ? "white" : "#0B1220",
+          border: tracking ? `1px solid ${amber}66` : "none",
+        }}>
+        {tracking ? <Square className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
+        {tracking ? `Stop tracking · ${sessionSteps.toLocaleString()} steps` : "Start live tracking"}
+      </button>
+      {tracking && (
+        <div className="text-center text-[12px]" style={{ color: MUTED }}>
+          Counting your steps with the motion sensor — saving every few seconds.
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-3">
         {[
@@ -800,6 +858,7 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
     </div>
   );
 };
+
 
 /* ───────────────────────── MEDICATION ───────────────────────── */
 type Dose = { id: string; drug_name: string; dosage: string|null; scheduled_at: string; status: "pending"|"taken"|"missed"|"skipped" };
