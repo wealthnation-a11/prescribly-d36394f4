@@ -141,7 +141,20 @@ const SectionLoading = () => (
 );
 
 /* ───────────────────────── SLEEP ───────────────────────── */
-type SleepData = { todayHours: number | null; trend: { date: string; hours: number }[] };
+type SleepRow = {
+  date: string;
+  hours_slept: number | null;
+  quality: string | null;
+  bedtime: string | null;
+  wake_time: string | null;
+  awakenings: number | null;
+  dream_type: string | null;
+  mood_on_wake: string | null;
+  restfulness: number | null;
+  late_caffeine: boolean | null;
+  screens_before_bed: boolean | null;
+  notes: string | null;
+};
 type SleepSchedule = { bedtime: string; wake: string };
 const SLEEP_SCHED_KEY = (uid: string) => `sleep_schedule_${uid}`;
 
@@ -149,13 +162,66 @@ const fmt12 = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
   const period = h >= 12 ? "PM" : "AM";
   const hour = h % 12 || 12;
-  return `${hour}:${m.toString().padStart(2,"0")} ${period}`;
+  return `${hour}:${(m || 0).toString().padStart(2, "0")} ${period}`;
+};
+
+const hoursBetween = (bed: string, wake: string) => {
+  const [bh, bm] = bed.split(":").map(Number);
+  const [wh, wm] = wake.split(":").map(Number);
+  let mins = wh * 60 + wm - (bh * 60 + bm);
+  if (mins <= 0) mins += 24 * 60;
+  return Math.round((mins / 60) * 10) / 10;
+};
+
+const DREAMS = [
+  { k: "none", l: "No dreams" },
+  { k: "good", l: "Good dreams" },
+  { k: "vivid", l: "Vivid" },
+  { k: "bad", l: "Bad dreams" },
+];
+const MOODS = [
+  { k: "refreshed", l: "Refreshed" },
+  { k: "okay", l: "Okay" },
+  { k: "groggy", l: "Groggy" },
+  { k: "exhausted", l: "Exhausted" },
+];
+
+/** Whole-routine sleep score: duration + restfulness + awakenings + dream/habit penalties. */
+const sleepScoreOf = (r: Partial<SleepRow>) => {
+  const h = Number(r.hours_slept ?? 0);
+  if (!h) return 0;
+  const duration = Math.max(0, 100 - Math.abs(8 - h) * 14); // 8h ideal
+  const rest = r.restfulness ? (r.restfulness / 5) * 100 : duration;
+  let score = duration * 0.55 + rest * 0.45;
+  score -= Math.min(20, (r.awakenings ?? 0) * 5);
+  if (r.dream_type === "bad") score -= 8;
+  if (r.late_caffeine) score -= 4;
+  if (r.screens_before_bed) score -= 3;
+  return Math.max(0, Math.min(100, Math.round(score)));
+};
+
+const sleepVerdict = (score: number, r: Partial<SleepRow>) => {
+  const bits: string[] = [];
+  const h = Number(r.hours_slept ?? 0);
+  if (h < 6) bits.push("you slept under 6 hours");
+  else if (h > 9.5) bits.push("you overslept");
+  if ((r.awakenings ?? 0) >= 3) bits.push(`you woke up ${r.awakenings} times`);
+  if (r.dream_type === "bad") bits.push("bad dreams disturbed you");
+  if (r.late_caffeine) bits.push("late caffeine may have delayed sleep");
+  if (r.screens_before_bed) bits.push("screens before bed reduce deep sleep");
+  const headline =
+    score >= 80 ? "Great night" : score >= 60 ? "Decent night" : score >= 40 ? "Rough night" : "Bad night";
+  const detail = bits.length
+    ? `Because ${bits.join(", ")}.`
+    : "Consistent timing and few interruptions — keep this routine.";
+  return { headline, detail };
 };
 
 const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ userId, onChange }) => {
   const color = FEATURES.sleep.color;
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<SleepData>({ todayHours: null, trend: [] });
+  const [todayRow, setTodayRow] = useState<SleepRow | null>(null);
+  const [trend, setTrend] = useState<SleepRow[]>([]);
   const [sched, setSched] = useState<SleepSchedule>(() => {
     try {
       const raw = localStorage.getItem(SLEEP_SCHED_KEY(userId));
@@ -165,17 +231,29 @@ const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
   });
   const [editing, setEditing] = useState<null | "bedtime" | "wake">(null);
   const [logOpen, setLogOpen] = useState(false);
-  const [hoursInput, setHoursInput] = useState("7.5");
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    bedtime: sched.bedtime,
+    wake: sched.wake,
+    awakenings: 0,
+    dream_type: "none",
+    mood_on_wake: "okay",
+    restfulness: 3,
+    late_caffeine: false,
+    screens_before_bed: false,
+    notes: "",
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
     const { data: rows } = await supabase
-      .from("user_sleep_log").select("date, hours_slept")
+      .from("user_sleep_log")
+      .select("date, hours_slept, quality, bedtime, wake_time, awakenings, dream_type, mood_on_wake, restfulness, late_caffeine, screens_before_bed, notes")
       .eq("user_id", userId).gte("date", dateNDaysAgo(6)).order("date");
-    const map = new Map<string, number>();
-    (rows ?? []).forEach((r: any) => map.set(r.date, Number(r.hours_slept ?? 0)));
-    const trend = last7Dates().map(d => ({ date: d, hours: map.get(d) ?? 0 }));
-    setData({ todayHours: map.has(todayISO()) ? map.get(todayISO())! : null, trend });
+    const map = new Map<string, SleepRow>();
+    ((rows ?? []) as any[]).forEach((r) => map.set(r.date, r as SleepRow));
+    setTrend(last7Dates().map(d => map.get(d) ?? ({ date: d, hours_slept: 0 } as SleepRow)));
+    setTodayRow(map.get(todayISO()) ?? null);
     setLoading(false);
   }, [userId]);
   useEffect(() => { load(); }, [load]);
@@ -183,39 +261,81 @@ const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
   const saveSchedule = (patch: Partial<SleepSchedule>) => {
     const next = { ...sched, ...patch };
     setSched(next);
+    setForm(f => ({ ...f, bedtime: next.bedtime, wake: next.wake }));
     localStorage.setItem(SLEEP_SCHED_KEY(userId), JSON.stringify(next));
     toast({ title: "Schedule saved", description: `Bedtime ${fmt12(next.bedtime)} · Wake ${fmt12(next.wake)}` });
     setEditing(null);
   };
 
+  const formHours = hoursBetween(form.bedtime, form.wake);
+
   const logSleep = async () => {
-    const h = parseFloat(hoursInput);
-    if (isNaN(h) || h <= 0 || h > 24) { toast({ title: "Enter hours between 0 and 24", variant: "destructive" }); return; }
+    setSaving(true);
+    const payload = {
+      user_id: userId,
+      date: todayISO(),
+      hours_slept: formHours,
+      bedtime: form.bedtime,
+      wake_time: form.wake,
+      awakenings: form.awakenings,
+      dream_type: form.dream_type,
+      mood_on_wake: form.mood_on_wake,
+      restfulness: form.restfulness,
+      late_caffeine: form.late_caffeine,
+      screens_before_bed: form.screens_before_bed,
+      notes: form.notes || null,
+    };
+    const score = sleepScoreOf(payload as any);
     const { error } = await supabase.from("user_sleep_log").upsert(
-      { user_id: userId, date: todayISO(), hours_slept: h },
+      { ...payload, quality: score >= 80 ? "great" : score >= 60 ? "good" : score >= 40 ? "poor" : "bad" } as any,
       { onConflict: "user_id,date" }
     );
+    setSaving(false);
     if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Sleep logged", description: `${h}h recorded for today` });
+    const v = sleepVerdict(score, payload as any);
+    toast({ title: `${v.headline} · ${score}/100`, description: v.detail });
     setLogOpen(false);
     await load(); onChange();
   };
 
   if (loading) return <SectionLoading />;
 
-  const anyData = data.todayHours !== null || data.trend.some(t => t.hours > 0);
+  const anyData = !!todayRow || trend.some(t => Number(t.hours_slept ?? 0) > 0);
   if (!anyData) {
     return (
       <EmptyState feature="sleep"
         title="Start your sleep journey"
-        subtitle="Log your first night to see scores, trends and insights tailored to you."
+        subtitle="Log last night — bedtime, wake up, interruptions and dreams — to see your sleep score and insights."
         ctaLabel="Set up Sleep" onCta={() => setLogOpen(true)} />
     );
   }
 
-  const hrs = data.todayHours ?? 0;
-  const score = Math.min(100, Math.round((hrs / 8) * 100));
-  const avg = data.trend.length ? Math.round((data.trend.reduce((a,b) => a + b.hours, 0) / data.trend.length) * 10) / 10 : 0;
+  const hrs = Number(todayRow?.hours_slept ?? 0);
+  const score = sleepScoreOf(todayRow ?? {});
+  const verdict = sleepVerdict(score, todayRow ?? {});
+  const avg = trend.length ? Math.round((trend.reduce((a, b) => a + Number(b.hours_slept ?? 0), 0) / trend.length) * 10) / 10 : 0;
+  const badNights = trend.filter(t => Number(t.hours_slept ?? 0) > 0 && sleepScoreOf(t) < 60).length;
+  const badDreams = trend.filter(t => t.dream_type === "bad").length;
+
+  const chipRow = (
+    items: { k: string; l: string }[],
+    value: string,
+    onPick: (k: string) => void,
+  ) => (
+    <div className="flex flex-wrap gap-2">
+      {items.map(i => (
+        <button key={i.k} type="button" onClick={() => onPick(i.k)}
+          className="h-9 px-3.5 rounded-full text-[12px]"
+          style={{
+            color: value === i.k ? "#fff" : MUTED,
+            background: value === i.k ? color : "rgba(255,255,255,0.05)",
+            border: `1px solid ${value === i.k ? color : BORDER}`,
+          }}>
+          {i.l}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-5">
@@ -227,8 +347,29 @@ const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
           <div className="mt-4 flex items-center justify-center gap-2 text-[22px]" style={{ color: "white" }}>
             <Moon className="w-5 h-5" style={{ color }} /> {Math.floor(hrs)}h {Math.round((hrs % 1) * 60)}m
           </div>
+          {todayRow && (
+            <div className="mt-4 rounded-2xl p-3 text-left" style={{ background: "rgba(255,255,255,0.04)" }}>
+              <div className="text-white text-[13px] font-medium">{verdict.headline}</div>
+              <div className="text-[12px] mt-0.5" style={{ color: MUTED }}>{verdict.detail}</div>
+            </div>
+          )}
         </div>
       </Surface>
+
+      {todayRow && (
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { v: String(todayRow.awakenings ?? 0), l: "Wake-ups" },
+            { v: DREAMS.find(d => d.k === todayRow.dream_type)?.l ?? "—", l: "Dreams" },
+            { v: MOODS.find(m => m.k === todayRow.mood_on_wake)?.l ?? "—", l: "On waking" },
+          ].map(s => (
+            <Surface key={s.l} className="p-4 text-center">
+              <div className="text-white text-[15px]">{s.v}</div>
+              <Label className="mt-2">{s.l}</Label>
+            </Surface>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         {([{ k: "bedtime" as const, l: "Bedtime", v: sched.bedtime }, { k: "wake" as const, l: "Wake up", v: sched.wake }]).map(c => (
@@ -252,18 +393,97 @@ const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
       </div>
 
       <button type="button" onClick={() => setLogOpen(v => !v)} className="w-full h-[52px] rounded-[16px] text-white font-medium flex items-center justify-center gap-2" style={{ background: color }}>
-        <Plus className="w-4 h-4" /> Log last night
+        <Plus className="w-4 h-4" /> {todayRow ? "Update last night" : "Log last night"}
       </button>
 
       {logOpen && (
-        <Surface className="p-5 space-y-3">
-          <Label>Hours slept</Label>
-          <input type="number" step="0.1" min="0" max="24" value={hoursInput} onChange={e => setHoursInput(e.target.value)}
-            className="w-full bg-transparent border-0 border-b text-white text-2xl py-2 outline-none"
-            style={{ borderColor: BORDER }} />
+        <Surface className="p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Went to bed</Label>
+              <input type="time" value={form.bedtime} onChange={e => setForm(f => ({ ...f, bedtime: e.target.value }))}
+                className="w-full bg-transparent border-0 border-b text-white text-lg py-2 outline-none" style={{ borderColor: BORDER }} />
+            </div>
+            <div>
+              <Label>Woke up</Label>
+              <input type="time" value={form.wake} onChange={e => setForm(f => ({ ...f, wake: e.target.value }))}
+                className="w-full bg-transparent border-0 border-b text-white text-lg py-2 outline-none" style={{ borderColor: BORDER }} />
+            </div>
+          </div>
+          <div className="text-[12px]" style={{ color: MUTED }}>That's <span style={{ color }}>{formHours}h</span> of sleep.</div>
+
+          <div className="space-y-2">
+            <Label>Times you woke up</Label>
+            <div className="flex gap-2">
+              {[0, 1, 2, 3, 4].map(n => (
+                <button key={n} type="button" onClick={() => setForm(f => ({ ...f, awakenings: n }))}
+                  className="flex-1 h-10 rounded-xl text-[13px]"
+                  style={{
+                    color: form.awakenings === n ? "#fff" : MUTED,
+                    background: form.awakenings === n ? color : "rgba(255,255,255,0.05)",
+                  }}>
+                  {n === 4 ? "4+" : n}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Dreams</Label>
+            {chipRow(DREAMS, form.dream_type, k => setForm(f => ({ ...f, dream_type: k })))}
+          </div>
+
+          <div className="space-y-2">
+            <Label>How you felt on waking</Label>
+            {chipRow(MOODS, form.mood_on_wake, k => setForm(f => ({ ...f, mood_on_wake: k })))}
+          </div>
+
+          <div className="space-y-2">
+            <Label>How rested (1–5)</Label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map(n => (
+                <button key={n} type="button" onClick={() => setForm(f => ({ ...f, restfulness: n }))}
+                  className="flex-1 h-10 rounded-xl text-[13px]"
+                  style={{
+                    color: form.restfulness === n ? "#fff" : MUTED,
+                    background: form.restfulness === n ? color : "rgba(255,255,255,0.05)",
+                  }}>
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {[
+              { k: "late_caffeine" as const, l: "Caffeine after 4pm" },
+              { k: "screens_before_bed" as const, l: "Screens in the last hour" },
+            ].map(t => (
+              <button key={t.k} type="button" onClick={() => setForm(f => ({ ...f, [t.k]: !f[t.k] }))}
+                className="w-full h-11 px-4 rounded-xl flex items-center justify-between text-[13px]"
+                style={{ background: "rgba(255,255,255,0.05)", color: "white" }}>
+                {t.l}
+                <span className="w-5 h-5 rounded-md flex items-center justify-center"
+                  style={{ background: form[t.k] ? color : "rgba(255,255,255,0.1)" }}>
+                  {form[t.k] && <Check className="w-3.5 h-3.5 text-white" />}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Notes (optional)</Label>
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+              rows={2} placeholder="Anything that affected your sleep…"
+              className="w-full bg-transparent border rounded-xl text-white text-[13px] p-3 outline-none"
+              style={{ borderColor: BORDER }} />
+          </div>
+
           <div className="flex gap-2">
             <button type="button" onClick={() => setLogOpen(false)} className="flex-1 h-11 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.06)" }}>Cancel</button>
-            <button type="button" onClick={logSleep} className="flex-1 h-11 rounded-xl text-white font-medium" style={{ background: color }}>Save</button>
+            <button type="button" onClick={logSleep} disabled={saving} className="flex-1 h-11 rounded-xl text-white font-medium flex items-center justify-center gap-2" style={{ background: color }}>
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />} Save night
+            </button>
           </div>
         </Surface>
       )}
@@ -273,14 +493,20 @@ const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
           <Label>7-day trend</Label>
           <div className="text-[11px]" style={{ color: MUTED }}>Avg {avg}h</div>
         </div>
-        <LineChart values={data.trend.map(t => t.hours)} color={color} />
+        <LineChart values={trend.map(t => Number(t.hours_slept ?? 0))} color={color} />
         <div className="flex justify-between text-[11px] mt-1" style={{ color: MUTED }}>
-          {data.trend.map((t, i) => <span key={i}>{DOW[new Date(t.date).getDay()]}</span>)}
+          {trend.map((t, i) => <span key={i}>{DOW[new Date(t.date).getDay()]}</span>)}
+        </div>
+        <div className="mt-4 text-[12px] leading-relaxed" style={{ color: MUTED }}>
+          {badNights === 0
+            ? "No bad nights this week — your routine is working."
+            : `${badNights} bad night${badNights > 1 ? "s" : ""} this week${badDreams ? `, ${badDreams} with bad dreams` : ""}.`}
         </div>
       </Surface>
     </div>
   );
 };
+
 
 /* ───────────────────────── WATER ───────────────────────── */
 type Slot = { id: string; slot_index: number; scheduled_at: string; ml: number; status: "pending"|"taken"|"missed"|"skipped"; taken_at: string|null };
