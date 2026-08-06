@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Moon, Droplets, Footprints, Pill, Brain, Pencil, Play, Plus, Flame, ChevronLeft, Check, Loader2, Square, Activity } from "lucide-react";
 import MotionSensor from "@/components/MotionSensor";
