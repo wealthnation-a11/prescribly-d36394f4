@@ -3294,28 +3294,58 @@ export type Database = {
       }
       user_sleep_log: {
         Row: {
+          awakenings: number
+          bedtime: string | null
           created_at: string
           date: string
+          dream_type: string | null
           hours_slept: number | null
           id: string
+          late_caffeine: boolean
+          mood_on_wake: string | null
+          notes: string | null
           quality: string | null
+          restfulness: number | null
+          screens_before_bed: boolean
+          updated_at: string
           user_id: string
+          wake_time: string | null
         }
         Insert: {
+          awakenings?: number
+          bedtime?: string | null
           created_at?: string
           date: string
+          dream_type?: string | null
           hours_slept?: number | null
           id?: string
+          late_caffeine?: boolean
+          mood_on_wake?: string | null
+          notes?: string | null
           quality?: string | null
+          restfulness?: number | null
+          screens_before_bed?: boolean
+          updated_at?: string
           user_id: string
+          wake_time?: string | null
         }
         Update: {
+          awakenings?: number
+          bedtime?: string | null
           created_at?: string
           date?: string
+          dream_type?: string | null
           hours_slept?: number | null
           id?: string
+          late_caffeine?: boolean
+          mood_on_wake?: string | null
+          notes?: string | null
           quality?: string | null
+          restfulness?: number | null
+          screens_before_bed?: boolean
+          updated_at?: string
           user_id?: string
+          wake_time?: string | null
         }
         Relationships: []
       }
