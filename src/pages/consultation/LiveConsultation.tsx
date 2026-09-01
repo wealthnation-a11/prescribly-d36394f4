@@ -79,14 +79,16 @@ export default function LiveConsultation() {
       let row = data as SessionRow;
 
       // Guarantee a server-side end time so the 20-minute limit always applies.
-      if (row.status !== "completed" && !row.ends_at) {
+      // The clock only starts once a doctor is attached, so a patient waiting
+      // in the room does not burn their consultation time.
+      if (row.status !== "completed" && !row.ends_at && row.doctor_id) {
         const startedAt = row.started_at ?? new Date().toISOString();
         const endsAt = new Date(
           new Date(startedAt).getTime() + CONSULTATION_MINUTES * 60 * 1000
         ).toISOString();
         const { data: updated } = await supabase
           .from("consultation_sessions")
-          .update({ started_at: startedAt, ends_at: endsAt })
+          .update({ started_at: startedAt, ends_at: endsAt, status: "active" })
           .eq("id", sessionId)
           .select("id,patient_id,doctor_id,mode,status,started_at,ends_at")
           .maybeSingle();
@@ -155,13 +157,13 @@ export default function LiveConsultation() {
         },
         (payload: any) => {
           const row = payload.new as SessionRow;
+          // Keep the local session in sync (doctor claim, status, timer).
+          setSession((s) => (s ? { ...s, ...row } : s));
           if (row.status === "completed" && !endingRef.current) {
             endingRef.current = true;
             call.hangup();
             setTimedOut(true);
             setEnded(true);
-          } else if (row.ends_at && row.ends_at !== session?.ends_at) {
-            setSession((s) => (s ? { ...s, ends_at: row.ends_at } : s));
           }
         }
       )

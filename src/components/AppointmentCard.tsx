@@ -62,7 +62,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const specialization = appointment.doctors?.specialization || 'General Medicine';
   
   const appointmentDate = new Date(appointment.scheduled_time);
-  const isApproved = appointment.status === 'approved';
+  const isApproved = ['approved', 'confirmed', 'scheduled'].includes(appointment.status);
   const isToday = format(appointmentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
   const canStartCall = isApproved && isToday;
 

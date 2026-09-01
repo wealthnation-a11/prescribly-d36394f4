@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -3790,9 +3790,14 @@ export type Database = {
         Returns: boolean
       }
       has_secret_pin: { Args: never; Returns: boolean }
+      is_approved_doctor: { Args: { _user_id: string }; Returns: boolean }
       is_pharmacy_owner: { Args: { _pharmacy_id: string }; Returns: boolean }
       my_pharmacy_id: { Args: never; Returns: string }
       set_secret_pin: { Args: { _pin: string }; Returns: boolean }
+      shares_care_relationship: {
+        Args: { _a: string; _b: string }
+        Returns: boolean
+      }
       verify_registration_code: {
         Args: { _code: string }
         Returns: {
