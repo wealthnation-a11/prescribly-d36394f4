@@ -21,15 +21,25 @@ export const useCallSession = () => {
     };
   }, [activeCall]);
 
-  const startCall = async (appointmentId: string, doctorId: string, callType: 'voice' | 'video') => {
+  const startCall = async (appointmentId: string, _otherPartyId: string, callType: 'voice' | 'video') => {
     try {
-      // Temporarily using any to bypass TypeScript until types regenerate
+      // Always resolve the real participants from the appointment so the call
+      // session is correct regardless of who initiates it (doctor or patient).
+      const { data: appointment, error: apptError } = await supabase
+        .from('appointments')
+        .select('patient_id, doctor_id')
+        .eq('id', appointmentId)
+        .maybeSingle();
+
+      if (apptError) throw apptError;
+      if (!appointment) throw new Error('Appointment not found');
+
       const { data, error } = await (supabase as any)
         .from('call_sessions')
         .insert({
           appointment_id: appointmentId,
-          patient_id: user?.id,
-          doctor_id: doctorId,
+          patient_id: appointment.patient_id,
+          doctor_id: appointment.doctor_id,
           channel_name: appointmentId,
           type: callType
         })
