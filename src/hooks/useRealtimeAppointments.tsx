@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedActivityLogger } from '@/hooks/useEnhancedActivityLogger';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface AppointmentUpdate {
   id: string;
@@ -16,6 +17,7 @@ export const useRealtimeAppointments = (role: 'doctor' | 'patient') => {
   const { user } = useAuth();
   const { toast } = useToast();
   const enhancedLogger = useEnhancedActivityLogger();
+  const queryClient = useQueryClient();
   const [appointments, setAppointments] = useState<AppointmentUpdate[]>([]);
 
   useEffect(() => {
@@ -78,6 +80,12 @@ export const useRealtimeAppointments = (role: 'doctor' | 'patient') => {
             }
           }
           
+          // Refresh any appointment-backed views immediately
+          queryClient.invalidateQueries({ queryKey: ['doctor-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['today-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['total-patients'] });
+
           // Update local state
           setAppointments(prev => {
             const exists = prev.find(apt => apt.id === appointment.id);
@@ -94,7 +102,7 @@ export const useRealtimeAppointments = (role: 'doctor' | 'patient') => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, role, toast]);
+  }, [user?.id, role, toast, queryClient]);
 
   return { appointments };
 };

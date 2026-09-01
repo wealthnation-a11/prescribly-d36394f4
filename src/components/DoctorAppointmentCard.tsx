@@ -36,7 +36,7 @@ export function DoctorAppointmentCard({ appointment }: DoctorAppointmentCardProp
   const patientAvatar = appointment.patient?.avatar_url;
   
   const appointmentDate = new Date(appointment.scheduled_time);
-  const isApproved = appointment.status === 'approved';
+  const isApproved = ['approved', 'confirmed', 'scheduled'].includes(appointment.status);
   const isToday = format(appointmentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
   const canStartCall = isApproved && isToday;
 
