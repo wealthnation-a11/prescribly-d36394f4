@@ -157,13 +157,13 @@ export default function LiveConsultation() {
         },
         (payload: any) => {
           const row = payload.new as SessionRow;
+          // Keep the local session in sync (doctor claim, status, timer).
+          setSession((s) => (s ? { ...s, ...row } : s));
           if (row.status === "completed" && !endingRef.current) {
             endingRef.current = true;
             call.hangup();
             setTimedOut(true);
             setEnded(true);
-          } else if (row.ends_at && row.ends_at !== session?.ends_at) {
-            setSession((s) => (s ? { ...s, ends_at: row.ends_at } : s));
           }
         }
       )
