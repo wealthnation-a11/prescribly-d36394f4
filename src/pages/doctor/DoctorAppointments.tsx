@@ -20,12 +20,14 @@ export const DoctorAppointments = () => {
   // Fetch appointments for the doctor (today and all pending)
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ['doctor-appointments', user?.id],
+    refetchInterval: 30000,
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID');
-      
+
+      // Show today's appointments plus every upcoming one, so a booking made
+      // for a future date appears in the doctor's dashboard immediately.
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
 
       const { data, error } = await supabase
         .from('appointments')
@@ -46,30 +48,31 @@ export const DoctorAppointments = () => {
         `)
         .eq('doctor_id', user.id)
         .gte('scheduled_time', startOfDay.toISOString())
-        .lte('scheduled_time', endOfDay.toISOString())
         .order('scheduled_time', { ascending: true });
-      
+
       if (error) throw error;
-      
-      const appointmentsWithPatients = await Promise.all(
-        (data || []).map(async (appointment: any) => {
-          const { data: patient } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, avatar_url')
-            .eq('user_id', appointment.patient_id)
-            .single();
-          
-          return {
-            ...appointment,
-            patient
-          };
-        })
+
+      const patientIds = Array.from(
+        new Set((data || []).map((a: any) => a.patient_id).filter(Boolean)),
       );
-      
-      return appointmentsWithPatients;
+
+      let profiles: any[] = [];
+      if (patientIds.length) {
+        const { data: p } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, avatar_url')
+          .in('user_id', patientIds);
+        profiles = p ?? [];
+      }
+
+      return (data || []).map((appointment: any) => ({
+        ...appointment,
+        patient: profiles.find((p) => p.user_id === appointment.patient_id) ?? null,
+      }));
     },
     enabled: !!user?.id,
   });
+
 
   // Mark appointment as completed
   const markCompletedMutation = useMutation({
