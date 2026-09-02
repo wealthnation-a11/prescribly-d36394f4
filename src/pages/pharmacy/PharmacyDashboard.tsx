@@ -84,7 +84,35 @@ export default function PharmacyDashboard() {
       .select("*")
       .eq("pharmacy_id", id)
       .order("created_at", { ascending: false });
-    setOrders(data ?? []);
+
+    const rows = data ?? [];
+    const patientIds = Array.from(new Set(rows.map((o: any) => o.patient_id).filter(Boolean)));
+    const rxIds = Array.from(new Set(rows.map((o: any) => o.prescription_id).filter(Boolean)));
+
+    let patients: any[] = [];
+    let prescriptions: any[] = [];
+    if (patientIds.length) {
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("user_id, first_name, last_name, phone, email")
+        .in("user_id", patientIds);
+      patients = p ?? [];
+    }
+    if (rxIds.length) {
+      const { data: rx } = await supabase
+        .from("prescriptions")
+        .select("id, medication, dosage, frequency, duration, instructions")
+        .in("id", rxIds);
+      prescriptions = rx ?? [];
+    }
+
+    setOrders(
+      rows.map((o: any) => ({
+        ...o,
+        patient: patients.find((p) => p.user_id === o.patient_id) ?? null,
+        prescription: prescriptions.find((r) => r.id === o.prescription_id) ?? null,
+      })),
+    );
   };
 
   useEffect(() => {
@@ -165,6 +193,30 @@ export default function PharmacyDashboard() {
   };
 
   const pendingOrders = useMemo(() => orders.filter((o) => o.status !== "delivered"), [orders]);
+  const deliveries = useMemo(
+    () => orders.filter((o) => ["confirmed", "dispatched", "delivered"].includes(o.status)),
+    [orders],
+  );
+  const patients = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; phone?: string; orders: number; last: string }>();
+    for (const o of orders) {
+      const name =
+        `${o.patient?.first_name ?? ""} ${o.patient?.last_name ?? ""}`.trim() || "Patient";
+      const prev = map.get(o.patient_id);
+      map.set(o.patient_id, {
+        id: o.patient_id,
+        name,
+        phone: o.patient?.phone ?? undefined,
+        orders: (prev?.orders ?? 0) + 1,
+        last: prev?.last ?? o.created_at,
+      });
+    }
+    return Array.from(map.values());
+  }, [orders]);
+  const revenue = useMemo(
+    () => orders.filter((o) => o.status === "delivered").reduce((s, o) => s + Number(o.total_amount || 0), 0),
+    [orders],
+  );
   const activeOrder = orders.find((o) => o.id === activeOrderId) ?? null;
 
   if (isLoading) {
@@ -235,12 +287,148 @@ export default function PharmacyDashboard() {
       </header>
 
       <main className="max-w-5xl mx-auto p-4">
-        <Tabs defaultValue="orders">
-          <TabsList className="grid grid-cols-3 w-full">
+        <Tabs defaultValue="overview">
+          <TabsList className="w-full flex overflow-x-auto justify-start">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="patients">Patients</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
             <TabsTrigger value="prices">Price list</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
           </TabsList>
+
+          {/* ---------------- OVERVIEW ---------------- */}
+          <TabsContent value="overview" className="pt-4 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "Open orders", value: pendingOrders.length },
+                { label: "Total orders", value: orders.length },
+                { label: "Patients served", value: patients.length },
+                { label: "Delivered revenue", value: naira(revenue) },
+              ].map((s) => (
+                <Card key={s.label}>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-muted-foreground">{s.label}</p>
+                    <p className="text-xl font-bold mt-1">{s.value}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Latest orders</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {orders.slice(0, 5).map((o) => (
+                  <div key={o.id} className="flex items-center justify-between text-sm">
+                    <span className="truncate">
+                      {`${o.patient?.first_name ?? ""} ${o.patient?.last_name ?? ""}`.trim() || "Patient"}
+                    </span>
+                    <Badge variant="secondary" className="capitalize">{o.status}</Badge>
+                  </div>
+                ))}
+                {orders.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No orders yet.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ---------------- PATIENTS ---------------- */}
+          <TabsContent value="patients" className="pt-4 space-y-2">
+            {patients.length === 0 && (
+              <p className="text-sm text-muted-foreground py-10 text-center">
+                Patients appear here once they order from you.
+              </p>
+            )}
+            {patients.map((p) => (
+              <Card key={p.id}>
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{p.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{p.phone ?? "No phone on file"}</p>
+                  </div>
+                  <Badge variant="secondary">{p.orders} order{p.orders === 1 ? "" : "s"}</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          {/* ---------------- MESSAGES ---------------- */}
+          <TabsContent value="messages" className="pt-4">
+            {activeOrder ? (
+              <Card className="overflow-hidden">
+                <CardHeader className="border-b py-3">
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveOrderId(null)}>
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <CardTitle className="text-base truncate">
+                      {`${activeOrder.patient?.first_name ?? ""} ${activeOrder.patient?.last_name ?? ""}`.trim() ||
+                        `Order #${activeOrder.id.slice(0, 8)}`}
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 h-[60vh]">
+                  <RealtimeChat kind="pharmacy" parentId={activeOrder.id} myRole="pharmacy" className="h-full" />
+                </CardContent>
+              </Card>
+            ) : orders.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-10 text-center">
+                Conversations open automatically with each order.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {orders.map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => setActiveOrderId(o.id)}
+                    className="w-full text-left rounded-xl border p-3 hover:bg-muted/50 transition-colors flex items-center gap-3"
+                  >
+                    <MessageSquare className="h-4 w-4 text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
+                        {`${o.patient?.first_name ?? ""} ${o.patient?.last_name ?? ""}`.trim() || "Patient"}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Order #{o.id.slice(0, 8)} · {o.status}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ---------------- DELIVERIES ---------------- */}
+          <TabsContent value="deliveries" className="pt-4 space-y-2">
+            {deliveries.length === 0 && (
+              <p className="text-sm text-muted-foreground py-10 text-center">
+                Confirmed orders show up here for dispatch tracking.
+              </p>
+            )}
+            {deliveries.map((o) => (
+              <Card key={o.id}>
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
+                        {`${o.patient?.first_name ?? ""} ${o.patient?.last_name ?? ""}`.trim() || "Patient"}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{o.delivery_address}</p>
+                    </div>
+                    <Badge variant="secondary" className="capitalize">{o.status}</Badge>
+                  </div>
+                  {o.status !== "delivered" && (
+                    <Button size="sm" className="w-full" onClick={() => advanceOrder(o)}>
+                      Mark {ORDER_STAGES[ORDER_STAGES.indexOf(o.status) + 1] ?? "delivered"}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
 
           {/* ---------------- ORDERS + CHAT ---------------- */}
           <TabsContent value="orders" className="pt-4">
@@ -288,7 +476,16 @@ export default function PharmacyDashboard() {
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-semibold truncate">Order #{o.id.slice(0, 8)}</p>
+                          <p className="font-semibold truncate">
+                            {`${o.patient?.first_name ?? ""} ${o.patient?.last_name ?? ""}`.trim() ||
+                              `Order #${o.id.slice(0, 8)}`}
+                          </p>
+                          {o.prescription && (
+                            <p className="text-xs text-primary truncate">
+                              Rx: {o.prescription.medication} · {o.prescription.dosage} ·{" "}
+                              {o.prescription.frequency}
+                            </p>
+                          )}
                           <p className="text-xs text-muted-foreground truncate">
                             {o.delivery_address}
                           </p>
