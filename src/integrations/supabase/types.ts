@@ -3793,6 +3793,7 @@ export type Database = {
       is_approved_doctor: { Args: { _user_id: string }; Returns: boolean }
       is_pharmacy_owner: { Args: { _pharmacy_id: string }; Returns: boolean }
       my_pharmacy_id: { Args: never; Returns: string }
+      pharmacy_serves_patient: { Args: { _patient: string }; Returns: boolean }
       set_secret_pin: { Args: { _pin: string }; Returns: boolean }
       shares_care_relationship: {
         Args: { _a: string; _b: string }

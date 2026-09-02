@@ -50,6 +50,7 @@ export default function PharmacyList() {
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [medications, setMedications] = useState<string[]>([]);
+  const [prescriptionId, setPrescriptionId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -57,6 +58,7 @@ export default function PharmacyList() {
         .from("pharmacies")
         .select("*")
         .eq("is_active", true)
+        .eq("status", "approved")
         .order("rating", { ascending: false });
       const list = (pharms ?? []) as Pharmacy[];
       setPharmacies(list);
@@ -65,12 +67,15 @@ export default function PharmacyList() {
       if (user?.id) {
         const { data: rx } = await supabase
           .from("prescriptions")
-          .select("medication")
+          .select("id, medication")
           .eq("patient_id", user.id)
           .order("created_at", { ascending: false })
           .limit(5);
         meds = (rx ?? []).map((r: any) => r.medication as string).filter(Boolean);
         setMedications(meds);
+        // Link the order to the most recent prescription so the pharmacy sees
+        // exactly what was prescribed.
+        setPrescriptionId((rx ?? [])[0]?.id ?? null);
       }
 
       if (list.length) {
@@ -138,6 +143,7 @@ export default function PharmacyList() {
       .insert({
         patient_id: user.id,
         pharmacy_id: selected.id,
+        prescription_id: prescriptionId,
         items: (selectedStock?.items ?? []) as any,
         total_amount: selectedTotal,
         delivery_address: address.trim(),
