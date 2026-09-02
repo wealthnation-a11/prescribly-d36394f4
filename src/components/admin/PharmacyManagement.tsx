@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PharmacyOrdersAdmin from "@/components/admin/PharmacyOrdersAdmin";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -123,7 +124,7 @@ export default function PharmacyManagement() {
   return (
     <div className="space-y-4">
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-6 w-full">
           <TabsTrigger value="pending" className="text-xs sm:text-sm">
             Pending
             {(pharmacies ?? []).filter((p: any) => p.status === "pending").length > 0 && (
@@ -136,9 +137,14 @@ export default function PharmacyManagement() {
           <TabsTrigger value="suspended" className="text-xs sm:text-sm">Suspended</TabsTrigger>
           <TabsTrigger value="reported" className="text-xs sm:text-sm">Reported</TabsTrigger>
           <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
+          <TabsTrigger value="orders" className="text-xs sm:text-sm">Orders</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={tab} className="pt-4 space-y-3">
+        <TabsContent value="orders" className="pt-4">
+          <PharmacyOrdersAdmin />
+        </TabsContent>
+
+        <TabsContent value={tab === "orders" ? "__none" : tab} className="pt-4 space-y-3">
           {isLoading && <p className="text-sm text-muted-foreground">Loading pharmacies…</p>}
           {!isLoading && list.length === 0 && (
             <p className="text-sm text-muted-foreground py-8 text-center">
