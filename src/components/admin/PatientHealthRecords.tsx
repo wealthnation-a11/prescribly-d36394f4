@@ -49,7 +49,7 @@ export default function PatientHealthRecords() {
     enabled: !!patient?.user_id,
     queryFn: async () => {
       const id = patient.user_id;
-      const [sessions, rx, labs, appts, diagnoses, vitals] = await Promise.all([
+      const [sessions, rx, labs, appts, diagnoses, vitals, pharmOrders] = await Promise.all([
         supabase
           .from("consultation_sessions")
           .select("*")
@@ -81,7 +81,21 @@ export default function PatientHealthRecords() {
           .eq("user_id", id)
           .order("created_at", { ascending: false })
           .limit(30),
+        supabase
+          .from("pharmacy_orders")
+          .select("*")
+          .eq("patient_id", id)
+          .order("created_at", { ascending: false }),
       ]);
+
+      const orderRows = pharmOrders.data ?? [];
+      const pharmacyIds = Array.from(
+        new Set(orderRows.map((o: any) => o.pharmacy_id).filter(Boolean)),
+      );
+      const pharmacies = pharmacyIds.length
+        ? (await supabase.from("pharmacies").select("id, name, city").in("id", pharmacyIds)).data ?? []
+        : [];
+
       return {
         sessions: sessions.data ?? [],
         rx: rx.data ?? [],
@@ -89,9 +103,15 @@ export default function PatientHealthRecords() {
         appts: appts.data ?? [],
         diagnoses: diagnoses.data ?? [],
         vitals: vitals.data ?? [],
+        pharmacyOrders: orderRows.map((o: any) => ({
+          ...o,
+          pharmacy: pharmacies.find((p: any) => p.id === o.pharmacy_id) ?? null,
+          prescription: (rx.data ?? []).find((r: any) => r.id === o.prescription_id) ?? null,
+        })),
       };
     },
   });
+
 
   if (patient) {
     return (
@@ -115,13 +135,15 @@ export default function PatientHealthRecords() {
           <p className="text-sm text-muted-foreground">Loading health record…</p>
         ) : (
           <Tabs defaultValue="consultations">
-            <TabsList className="grid grid-cols-6 w-full">
+            <TabsList className="grid grid-cols-7 w-full">
               <TabsTrigger value="consultations" className="text-xs">Consults</TabsTrigger>
               <TabsTrigger value="prescriptions" className="text-xs">Rx</TabsTrigger>
+              <TabsTrigger value="pharmacy" className="text-xs">Pharmacy</TabsTrigger>
               <TabsTrigger value="labs" className="text-xs">Labs</TabsTrigger>
               <TabsTrigger value="appointments" className="text-xs">Appts</TabsTrigger>
               <TabsTrigger value="vitals" className="text-xs">Vitals</TabsTrigger>
               <TabsTrigger value="files" className="text-xs">Files</TabsTrigger>
+
             </TabsList>
 
             <TabsContent value="consultations" className="pt-4 space-y-2">
@@ -229,6 +251,38 @@ export default function PatientHealthRecords() {
                 </Card>
               ))}
             </TabsContent>
+
+            <TabsContent value="pharmacy" className="pt-4 space-y-2">
+              {record?.pharmacyOrders.length === 0 && (
+                <p className="text-sm text-muted-foreground">No pharmacy orders recorded.</p>
+              )}
+              {record?.pharmacyOrders.map((o: any) => (
+                <Card key={o.id}>
+                  <CardContent className="p-3 text-sm space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium flex items-center gap-1.5 min-w-0 truncate">
+                        <Pill className="h-4 w-4 text-primary shrink-0" />
+                        {o.pharmacy?.name ?? "Pharmacy"}
+                        {o.pharmacy?.city ? ` · ${o.pharmacy.city}` : ""}
+                      </p>
+                      <Badge variant="secondary" className="capitalize shrink-0">{o.status}</Badge>
+                    </div>
+                    {o.prescription && (
+                      <p className="text-xs text-primary">
+                        Rx: {o.prescription.medication} · {o.prescription.dosage}
+                      </p>
+                    )}
+                    {o.delivery_address && (
+                      <p className="text-xs text-muted-foreground">{o.delivery_address}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      ₦{Number(o.total_amount || 0).toLocaleString("en-NG")} · {fmt(o.created_at)}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
+
 
             <TabsContent value="files" className="pt-4">
               <PatientRecordFiles patientId={patient.user_id} sessions={record?.sessions ?? []} />
