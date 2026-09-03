@@ -252,6 +252,38 @@ export default function PatientHealthRecords() {
               ))}
             </TabsContent>
 
+            <TabsContent value="pharmacy" className="pt-4 space-y-2">
+              {record?.pharmacyOrders.length === 0 && (
+                <p className="text-sm text-muted-foreground">No pharmacy orders recorded.</p>
+              )}
+              {record?.pharmacyOrders.map((o: any) => (
+                <Card key={o.id}>
+                  <CardContent className="p-3 text-sm space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium flex items-center gap-1.5 min-w-0 truncate">
+                        <Pill className="h-4 w-4 text-primary shrink-0" />
+                        {o.pharmacy?.name ?? "Pharmacy"}
+                        {o.pharmacy?.city ? ` · ${o.pharmacy.city}` : ""}
+                      </p>
+                      <Badge variant="secondary" className="capitalize shrink-0">{o.status}</Badge>
+                    </div>
+                    {o.prescription && (
+                      <p className="text-xs text-primary">
+                        Rx: {o.prescription.medication} · {o.prescription.dosage}
+                      </p>
+                    )}
+                    {o.delivery_address && (
+                      <p className="text-xs text-muted-foreground">{o.delivery_address}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      ₦{Number(o.total_amount || 0).toLocaleString("en-NG")} · {fmt(o.created_at)}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
+
+
             <TabsContent value="files" className="pt-4">
               <PatientRecordFiles patientId={patient.user_id} sessions={record?.sessions ?? []} />
             </TabsContent>
