@@ -135,7 +135,8 @@ export default function PatientHealthRecords() {
           <p className="text-sm text-muted-foreground">Loading health record…</p>
         ) : (
           <Tabs defaultValue="consultations">
-            <TabsList className="grid grid-cols-6 w-full">
+            <TabsList className="grid grid-cols-7 w-full">
+
               <TabsTrigger value="consultations" className="text-xs">Consults</TabsTrigger>
               <TabsTrigger value="prescriptions" className="text-xs">Rx</TabsTrigger>
               <TabsTrigger value="labs" className="text-xs">Labs</TabsTrigger>
