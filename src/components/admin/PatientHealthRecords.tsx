@@ -49,7 +49,7 @@ export default function PatientHealthRecords() {
     enabled: !!patient?.user_id,
     queryFn: async () => {
       const id = patient.user_id;
-      const [sessions, rx, labs, appts, diagnoses, vitals] = await Promise.all([
+      const [sessions, rx, labs, appts, diagnoses, vitals, pharmOrders] = await Promise.all([
         supabase
           .from("consultation_sessions")
           .select("*")
@@ -81,7 +81,21 @@ export default function PatientHealthRecords() {
           .eq("user_id", id)
           .order("created_at", { ascending: false })
           .limit(30),
+        supabase
+          .from("pharmacy_orders")
+          .select("*")
+          .eq("patient_id", id)
+          .order("created_at", { ascending: false }),
       ]);
+
+      const orderRows = pharmOrders.data ?? [];
+      const pharmacyIds = Array.from(
+        new Set(orderRows.map((o: any) => o.pharmacy_id).filter(Boolean)),
+      );
+      const pharmacies = pharmacyIds.length
+        ? (await supabase.from("pharmacies").select("id, name, city").in("id", pharmacyIds)).data ?? []
+        : [];
+
       return {
         sessions: sessions.data ?? [],
         rx: rx.data ?? [],
@@ -89,9 +103,15 @@ export default function PatientHealthRecords() {
         appts: appts.data ?? [],
         diagnoses: diagnoses.data ?? [],
         vitals: vitals.data ?? [],
+        pharmacyOrders: orderRows.map((o: any) => ({
+          ...o,
+          pharmacy: pharmacies.find((p: any) => p.id === o.pharmacy_id) ?? null,
+          prescription: (rx.data ?? []).find((r: any) => r.id === o.prescription_id) ?? null,
+        })),
       };
     },
   });
+
 
   if (patient) {
     return (
