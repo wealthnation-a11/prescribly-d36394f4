@@ -3753,6 +3753,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_wellness_points: {
+        Args: { _activity: string; _qty?: number }
+        Returns: {
+          current_streak: number
+          level: number
+          points: number
+        }[]
+      }
       can_view_women_data: { Args: { _owner: string }; Returns: boolean }
       compute_eod_summary: {
         Args: { _date?: string; _user_id: string }
@@ -3782,6 +3790,27 @@ export type Database = {
         }
       }
       confirm_registration_code: { Args: { _code: string }; Returns: boolean }
+      ensure_daily_challenges: {
+        Args: never
+        Returns: {
+          challenge_name: string
+          challenge_type: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          progress: number | null
+          started_at: string
+          status: string
+          target: number | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_challenges"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3794,10 +3823,35 @@ export type Database = {
       is_pharmacy_owner: { Args: { _pharmacy_id: string }; Returns: boolean }
       my_pharmacy_id: { Args: never; Returns: string }
       pharmacy_serves_patient: { Args: { _patient: string }; Returns: boolean }
+      refresh_daily_challenges: {
+        Args: never
+        Returns: {
+          challenge_name: string
+          challenge_type: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          progress: number | null
+          started_at: string
+          status: string
+          target: number | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_challenges"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       set_secret_pin: { Args: { _pin: string }; Returns: boolean }
       shares_care_relationship: {
         Args: { _a: string; _b: string }
         Returns: boolean
+      }
+      update_user_points: {
+        Args: { points_to_add: number; user_uuid: string }
+        Returns: undefined
       }
       verify_registration_code: {
         Args: { _code: string }
