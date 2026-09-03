@@ -136,13 +136,14 @@ export default function PatientHealthRecords() {
         ) : (
           <Tabs defaultValue="consultations">
             <TabsList className="grid grid-cols-7 w-full">
-
               <TabsTrigger value="consultations" className="text-xs">Consults</TabsTrigger>
               <TabsTrigger value="prescriptions" className="text-xs">Rx</TabsTrigger>
+              <TabsTrigger value="pharmacy" className="text-xs">Pharmacy</TabsTrigger>
               <TabsTrigger value="labs" className="text-xs">Labs</TabsTrigger>
               <TabsTrigger value="appointments" className="text-xs">Appts</TabsTrigger>
               <TabsTrigger value="vitals" className="text-xs">Vitals</TabsTrigger>
               <TabsTrigger value="files" className="text-xs">Files</TabsTrigger>
+
             </TabsList>
 
             <TabsContent value="consultations" className="pt-4 space-y-2">
