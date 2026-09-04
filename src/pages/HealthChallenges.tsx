@@ -562,6 +562,7 @@ const WaterSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
       .eq("id", slot.id);
     if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
     setSlots(prev => prev.map(s => s.id === slot.id ? { ...s, status: "taken", taken_at: new Date().toISOString() } : s));
+    await awardPoints("water_slot", 1);
     onChange();
   };
 
