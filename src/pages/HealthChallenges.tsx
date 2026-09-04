@@ -739,6 +739,8 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
     const ok = await persist(next, cur.goal);
     if (!ok) return;
     setToday({ ...cur, step_count: next });
+    const milestones = Math.floor(next / 1000) - Math.floor(cur.step_count / 1000);
+    if (milestones > 0) await awardPoints("steps_1000", milestones);
     onChange();
   };
 
