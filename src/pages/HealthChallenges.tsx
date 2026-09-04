@@ -1211,6 +1211,7 @@ const HealthChallenges: React.FC = () => {
   const [tab, setTab] = useState<FeatureKey>("sleep");
   const [scores, setScores] = useState<Scores>({ sleep: 0, water: 0, steps: 0, medication: 0, meditation: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
+  const [progress, setProgress] = useState<WellnessProgress | null>(null);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -1261,6 +1262,13 @@ const HealthChallenges: React.FC = () => {
 
   useEffect(() => { loadScores(); }, [loadScores, refreshKey]);
 
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    loadWellnessProgress(user.id).then(p => { if (!cancelled) setProgress(p); });
+    return () => { cancelled = true; };
+  }, [user, refreshKey]);
+
   const overall = Math.round(ORDER.reduce((a, k) => a + scores[k], 0) / ORDER.length);
   const bump = useCallback(() => setRefreshKey(k => k + 1), []);
 
@@ -1297,6 +1305,44 @@ const HealthChallenges: React.FC = () => {
           <div className="text-[13px]" style={{ color: MUTED }}>{greeting}, {firstName}</div>
           <h1 className="mt-1" style={{ fontSize: 28, fontWeight: 500 }}>Health Challenges</h1>
         </div>
+
+        {progress && (
+          <Surface className="mt-5 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div style={{ fontSize: 30, fontWeight: 300, lineHeight: 1 }}>{progress.points.toLocaleString()}</div>
+                <Label className="mt-1.5">Wellness points · Level {progress.level}</Label>
+              </div>
+              <span className="px-3 py-1.5 rounded-full text-[12px] font-medium text-white" style={{ background: "rgba(255,255,255,0.06)", border: `0.5px solid ${BORDER}` }}>
+                <Flame className="w-3 h-3 inline mr-1 text-orange-400" /> {progress.streak} day streak
+              </span>
+            </div>
+
+            {progress.challenges.length > 0 && (
+              <div className="mt-5 space-y-3">
+                <Label>Today's challenges</Label>
+                {progress.challenges.map(c => {
+                  const f = (FEATURES as any)[c.challenge_type] ?? FEATURES.sleep;
+                  const pct = Math.min(100, Math.round((Number(c.progress) / Math.max(1, Number(c.target))) * 100));
+                  const done = c.status === "completed";
+                  return (
+                    <div key={c.id}>
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span style={{ color: done ? f.color : "rgba(255,255,255,0.85)" }}>
+                          {done && <Check className="w-3 h-3 inline mr-1" />}{c.challenge_name}
+                        </span>
+                        <span style={{ color: MUTED }}>{Number(c.progress).toLocaleString()}/{Number(c.target).toLocaleString()}</span>
+                      </div>
+                      <div className="mt-1.5 h-[6px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: f.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Surface>
+        )}
 
         <div className="mt-6 flex flex-col items-center relative">
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
