@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { buildHydrationSchedule } from "@/lib/wellnessAlarm";
+import { awardPoints, loadWellnessProgress, type WellnessProgress } from "@/lib/wellnessPoints";
 
 /* ───────────────────────── design tokens ───────────────────────── */
 const BG = "#080C12";
