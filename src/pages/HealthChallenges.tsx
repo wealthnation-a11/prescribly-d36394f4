@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { buildHydrationSchedule } from "@/lib/wellnessAlarm";
+import { awardPoints, loadWellnessProgress, type WellnessProgress } from "@/lib/wellnessPoints";
 
 /* ───────────────────────── design tokens ───────────────────────── */
 const BG = "#080C12";
@@ -293,10 +294,12 @@ const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
     setSaving(false);
     if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
     const v = sleepVerdict(score, payload as any);
+    await awardPoints("sleep_logged", 1);
     toast({ title: `${v.headline} · ${score}/100`, description: v.detail });
     setLogOpen(false);
     await load(); onChange();
   };
+
 
   if (loading) return <SectionLoading />;
 
@@ -559,6 +562,7 @@ const WaterSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
       .eq("id", slot.id);
     if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
     setSlots(prev => prev.map(s => s.id === slot.id ? { ...s, status: "taken", taken_at: new Date().toISOString() } : s));
+    await awardPoints("water_slot", 1);
     onChange();
   };
 
@@ -577,6 +581,7 @@ const WaterSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
       .update({ status: "taken", taken_at: new Date().toISOString() }).in("id", ids);
     if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
     setSlots(prev => prev.map(s => ids.includes(s.id) ? { ...s, status: "taken", taken_at: new Date().toISOString() } : s));
+    await awardPoints("water_slot", toMark.length);
     toast({ title: `+${ml}ml logged`, description: `${toMark.length} glass${toMark.length>1?"es":""} marked done` });
     onChange();
   };
@@ -734,6 +739,8 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
     const ok = await persist(next, cur.goal);
     if (!ok) return;
     setToday({ ...cur, step_count: next });
+    const milestones = Math.floor(next / 1000) - Math.floor(cur.step_count / 1000);
+    if (milestones > 0) await awardPoints("steps_1000", milestones);
     onChange();
   };
 
@@ -863,12 +870,22 @@ const StepsSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
 /* ───────────────────────── MEDICATION ───────────────────────── */
 type Dose = { id: string; drug_name: string; dosage: string|null; scheduled_at: string; status: "pending"|"taken"|"missed"|"skipped" };
 
+const FREQUENCIES = [
+  { k: "once_daily", l: "Once daily", times: ["08:00"] },
+  { k: "twice_daily", l: "Twice daily", times: ["08:00", "20:00"] },
+  { k: "three_times", l: "3× daily", times: ["08:00", "14:00", "20:00"] },
+  { k: "four_times", l: "4× daily", times: ["06:00", "12:00", "18:00", "22:00"] },
+];
+
 const MedicationSection: React.FC<{ userId: string; onChange: () => void }> = ({ userId, onChange }) => {
   const color = FEATURES.medication.color;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [doses, setDoses] = useState<Dose[]>([]);
   const [adherence, setAdherence] = useState<number | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [med, setMed] = useState({ name: "", dosage: "", frequency: "once_daily", days: 7, notes: "" });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -896,17 +913,119 @@ const MedicationSection: React.FC<{ userId: string; onChange: () => void }> = ({
       .eq("id", d.id);
     if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
     setDoses(prev => prev.map(x => x.id === d.id ? { ...x, status } : x));
+    if (status === "taken") await awardPoints("medication_taken", 1);
     onChange();
   };
+
+  /** Creates a reminder plus the scheduled doses for the next N days. */
+  const saveMedication = async () => {
+    if (!med.name.trim()) { toast({ title: "Enter the medication name", variant: "destructive" }); return; }
+    setSaving(true);
+    const freq = FREQUENCIES.find(f => f.k === med.frequency) ?? FREQUENCIES[0];
+
+    const { data: reminder, error: rErr } = await supabase.from("drug_reminders").insert({
+      user_id: userId,
+      drug_name: med.name.trim(),
+      dosage: med.dosage.trim() || null,
+      remind_at: freq.times[0],
+      frequency: freq.k,
+      is_active: true,
+    }).select("id").single();
+
+    if (rErr) { setSaving(false); toast({ title: "Could not save", description: rErr.message, variant: "destructive" }); return; }
+
+    const rows: any[] = [];
+    const days = Math.max(1, Math.min(30, med.days));
+    for (let day = 0; day < days; day++) {
+      for (const t of freq.times) {
+        const [h, m] = t.split(":").map(Number);
+        const when = new Date();
+        when.setDate(when.getDate() + day);
+        when.setHours(h, m, 0, 0);
+        if (day === 0 && when.getTime() < Date.now() - 60 * 60 * 1000) continue; // skip long-past slots today
+        rows.push({
+          user_id: userId,
+          reminder_id: reminder!.id,
+          drug_name: med.name.trim(),
+          dosage: med.dosage.trim() || null,
+          scheduled_at: when.toISOString(),
+          status: "pending",
+          notes: med.notes.trim() || null,
+        });
+      }
+    }
+    if (rows.length) {
+      const { error: dErr } = await supabase.from("medication_doses").insert(rows);
+      if (dErr) { setSaving(false); toast({ title: "Could not schedule doses", description: dErr.message, variant: "destructive" }); return; }
+    }
+    setSaving(false);
+    setAddOpen(false);
+    setMed({ name: "", dosage: "", frequency: "once_daily", days: 7, notes: "" });
+    toast({ title: "Medication added", description: `${rows.length} dose${rows.length === 1 ? "" : "s"} scheduled` });
+    await load(); onChange();
+  };
+
+  const addForm = (
+    <Surface className="p-5 space-y-4">
+      <div className="text-white text-[15px] font-medium">Add a medication</div>
+      <div className="space-y-3">
+        <input value={med.name} onChange={e => setMed(m => ({ ...m, name: e.target.value }))}
+          placeholder="Medication name (e.g. Amoxicillin)"
+          className="w-full h-12 px-4 rounded-[14px] bg-transparent text-white text-[14px] outline-none"
+          style={{ border: `1px solid ${BORDER}` }} />
+        <input value={med.dosage} onChange={e => setMed(m => ({ ...m, dosage: e.target.value }))}
+          placeholder="Dosage (e.g. 500mg, 1 tablet)"
+          className="w-full h-12 px-4 rounded-[14px] bg-transparent text-white text-[14px] outline-none"
+          style={{ border: `1px solid ${BORDER}` }} />
+        <div className="flex flex-wrap gap-2">
+          {FREQUENCIES.map(f => (
+            <button key={f.k} type="button" onClick={() => setMed(m => ({ ...m, frequency: f.k }))}
+              className="h-9 px-3.5 rounded-full text-[12px]"
+              style={med.frequency === f.k
+                ? { background: color, color: "#fff" }
+                : { color: MUTED, background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
+              {f.l}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[12px]" style={{ color: MUTED }}>For</span>
+          {[3, 5, 7, 14, 30].map(d => (
+            <button key={d} type="button" onClick={() => setMed(m => ({ ...m, days: d }))}
+              className="h-9 px-3 rounded-full text-[12px]"
+              style={med.days === d
+                ? { background: color, color: "#fff" }
+                : { color: MUTED, background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
+              {d}d
+            </button>
+          ))}
+        </div>
+        <input value={med.notes} onChange={e => setMed(m => ({ ...m, notes: e.target.value }))}
+          placeholder="Instructions (e.g. after meals)"
+          className="w-full h-12 px-4 rounded-[14px] bg-transparent text-white text-[14px] outline-none"
+          style={{ border: `1px solid ${BORDER}` }} />
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={saveMedication} disabled={saving}
+          className="flex-1 h-12 rounded-[14px] text-white font-medium flex items-center justify-center gap-2 disabled:opacity-60"
+          style={{ background: color }}>
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Save medication
+        </button>
+        <button type="button" onClick={() => setAddOpen(false)}
+          className="h-12 px-5 rounded-[14px] text-[14px]"
+          style={{ color: MUTED, border: `1px solid ${BORDER}` }}>Cancel</button>
+      </div>
+    </Surface>
+  );
 
   if (loading) return <SectionLoading />;
 
   if (!doses.length && adherence === null) {
-    return (
+    return addOpen ? addForm : (
       <EmptyState feature="medication"
         title="Start your medication journey"
-        subtitle="Add your prescriptions to schedule reminders and track adherence over time."
-        ctaLabel="Set up Medication" onCta={() => navigate("/my-prescriptions")} />
+        subtitle="Add your medication, dosage and schedule to get reminders and track adherence over time."
+        ctaLabel="Set up Medication" onCta={() => setAddOpen(true)} />
     );
   }
 
@@ -960,8 +1079,16 @@ const MedicationSection: React.FC<{ userId: string; onChange: () => void }> = ({
         )}
       </Surface>
 
-      <button type="button" onClick={() => navigate("/my-prescriptions")} className="w-full h-[52px] rounded-[16px] text-white font-medium flex items-center justify-center gap-2" style={{ background: FEATURES.water.color }}>
-        <Plus className="w-4 h-4" /> Manage Medications
+      {addOpen ? addForm : (
+        <button type="button" onClick={() => setAddOpen(true)} className="w-full h-[52px] rounded-[16px] text-white font-medium flex items-center justify-center gap-2" style={{ background: color }}>
+          <Plus className="w-4 h-4" /> Add medication
+        </button>
+      )}
+
+      <button type="button" onClick={() => navigate("/health-challenges/medication/history")}
+        className="w-full h-[52px] rounded-[16px] text-[14px] flex items-center justify-center gap-2"
+        style={{ color: MUTED, border: `1px solid ${BORDER}` }}>
+        View adherence history
       </button>
     </div>
   );
@@ -1002,6 +1129,7 @@ const MeditationSection: React.FC<{ userId: string; onChange: () => void }> = ({
     });
     setLogging(false);
     if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
+    await awardPoints("meditation_minute", minutes);
     toast({ title: `${title} complete`, description: `${minutes} min logged` });
     await load(); onChange();
   };
@@ -1083,6 +1211,7 @@ const HealthChallenges: React.FC = () => {
   const [tab, setTab] = useState<FeatureKey>("sleep");
   const [scores, setScores] = useState<Scores>({ sleep: 0, water: 0, steps: 0, medication: 0, meditation: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
+  const [progress, setProgress] = useState<WellnessProgress | null>(null);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -1133,6 +1262,13 @@ const HealthChallenges: React.FC = () => {
 
   useEffect(() => { loadScores(); }, [loadScores, refreshKey]);
 
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    loadWellnessProgress(user.id).then(p => { if (!cancelled) setProgress(p); });
+    return () => { cancelled = true; };
+  }, [user, refreshKey]);
+
   const overall = Math.round(ORDER.reduce((a, k) => a + scores[k], 0) / ORDER.length);
   const bump = useCallback(() => setRefreshKey(k => k + 1), []);
 
@@ -1169,6 +1305,44 @@ const HealthChallenges: React.FC = () => {
           <div className="text-[13px]" style={{ color: MUTED }}>{greeting}, {firstName}</div>
           <h1 className="mt-1" style={{ fontSize: 28, fontWeight: 500 }}>Health Challenges</h1>
         </div>
+
+        {progress && (
+          <Surface className="mt-5 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div style={{ fontSize: 30, fontWeight: 300, lineHeight: 1 }}>{progress.points.toLocaleString()}</div>
+                <Label className="mt-1.5">Wellness points · Level {progress.level}</Label>
+              </div>
+              <span className="px-3 py-1.5 rounded-full text-[12px] font-medium text-white" style={{ background: "rgba(255,255,255,0.06)", border: `0.5px solid ${BORDER}` }}>
+                <Flame className="w-3 h-3 inline mr-1 text-orange-400" /> {progress.streak} day streak
+              </span>
+            </div>
+
+            {progress.challenges.length > 0 && (
+              <div className="mt-5 space-y-3">
+                <Label>Today's challenges</Label>
+                {progress.challenges.map(c => {
+                  const f = (FEATURES as any)[c.challenge_type] ?? FEATURES.sleep;
+                  const pct = Math.min(100, Math.round((Number(c.progress) / Math.max(1, Number(c.target))) * 100));
+                  const done = c.status === "completed";
+                  return (
+                    <div key={c.id}>
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span style={{ color: done ? f.color : "rgba(255,255,255,0.85)" }}>
+                          {done && <Check className="w-3 h-3 inline mr-1" />}{c.challenge_name}
+                        </span>
+                        <span style={{ color: MUTED }}>{Number(c.progress).toLocaleString()}/{Number(c.target).toLocaleString()}</span>
+                      </div>
+                      <div className="mt-1.5 h-[6px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: f.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Surface>
+        )}
 
         <div className="mt-6 flex flex-col items-center relative">
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
