@@ -1085,7 +1085,7 @@ const MedicationSection: React.FC<{ userId: string; onChange: () => void }> = ({
         </button>
       )}
 
-      <button type="button" onClick={() => navigate("/medication-adherence-history")}
+      <button type="button" onClick={() => navigate("/health-challenges/medication/history")}
         className="w-full h-[52px] rounded-[16px] text-[14px] flex items-center justify-center gap-2"
         style={{ color: MUTED, border: `1px solid ${BORDER}` }}>
         View adherence history
@@ -1129,6 +1129,7 @@ const MeditationSection: React.FC<{ userId: string; onChange: () => void }> = ({
     });
     setLogging(false);
     if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
+    await awardPoints("meditation_minute", minutes);
     toast({ title: `${title} complete`, description: `${minutes} min logged` });
     await load(); onChange();
   };
