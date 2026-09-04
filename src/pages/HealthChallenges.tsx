@@ -294,10 +294,12 @@ const SleepSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
     setSaving(false);
     if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
     const v = sleepVerdict(score, payload as any);
+    await awardPoints("sleep_logged", 1);
     toast({ title: `${v.headline} · ${score}/100`, description: v.detail });
     setLogOpen(false);
     await load(); onChange();
   };
+
 
   if (loading) return <SectionLoading />;
 
