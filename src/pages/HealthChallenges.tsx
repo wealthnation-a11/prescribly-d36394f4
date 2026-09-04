@@ -581,6 +581,7 @@ const WaterSection: React.FC<{ userId: string; onChange: () => void }> = ({ user
       .update({ status: "taken", taken_at: new Date().toISOString() }).in("id", ids);
     if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
     setSlots(prev => prev.map(s => ids.includes(s.id) ? { ...s, status: "taken", taken_at: new Date().toISOString() } : s));
+    await awardPoints("water_slot", toMark.length);
     toast({ title: `+${ml}ml logged`, description: `${toMark.length} glass${toMark.length>1?"es":""} marked done` });
     onChange();
   };
