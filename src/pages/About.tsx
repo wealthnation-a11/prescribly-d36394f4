@@ -1,6 +1,8 @@
+import { Link } from "react-router-dom";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Shield, Globe, Sparkles, Handshake, Heart, Stethoscope } from "lucide-react";
+import { Shield, Globe, Sparkles, Handshake, Heart, Stethoscope, Pill, Building2, Activity, Video } from "lucide-react";
 
 export default function About() {
   usePageSEO({
