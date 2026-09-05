@@ -661,6 +661,81 @@ export const LandingPage = () => {
         </div>
       </section>
 
+      {/* Partner with Prescribly - Doctors, Hospitals, Pharmacies */}
+      <section id="partners" className="py-12 sm:py-16 lg:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-14">
+            <Badge variant="secondary" className="mb-4 px-3 py-1 rounded-full">Now open for partners</Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
+              Partner with Prescribly
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
+              Doctors, hospitals and pharmacies now run on Prescribly. Registration is free — get verified and start
+              receiving patients, prescriptions and medicine orders.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <Card className="card-gradient border-0 medical-shadow hover-lift">
+              <CardHeader>
+                <Stethoscope className="w-8 h-8 text-primary mb-2" />
+                <CardTitle className="text-xl">Doctors</CardTitle>
+                <CardDescription>Consult from anywhere and get paid per session.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>· Chat, voice and video consultations</p>
+                <p>· Digital prescriptions and patient records</p>
+                <p>· Home visit and clinic bookings</p>
+                <Button variant="medical" className="w-full mt-4" asChild>
+                  <Link to="/doctor-register">Join as a Doctor</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="card-gradient border-0 medical-shadow hover-lift ring-1 ring-primary/20">
+              <CardHeader>
+                <Heart className="w-8 h-8 text-primary mb-2" />
+                <CardTitle className="text-xl">Pharmacies</CardTitle>
+                <CardDescription>Receive prescription orders from nearby patients.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>· Pharmacy dashboard with your own price list</p>
+                <p>· Real-time chat with patients on every order</p>
+                <p>· Delivery tracking and order history</p>
+                <Button variant="cta" className="w-full mt-4" aria-label="Register your Pharmacy" asChild>
+                  <Link to="/pharmacy-portal">Register your Pharmacy</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="card-gradient border-0 medical-shadow hover-lift">
+              <CardHeader>
+                <Users className="w-8 h-8 text-primary mb-2" />
+                <CardTitle className="text-xl">Hospitals & Clinics</CardTitle>
+                <CardDescription>Appear on the map and take patient check-ins.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>· Facility dashboard for staff and records</p>
+                <p>· Secure 6-digit patient check-in codes</p>
+                <p>· Appointment and visit history</p>
+                <Button variant="medical" className="w-full mt-4" onClick={() => navigate("/hospital")}>
+                  Register your Hospital
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground mt-8">
+            Already registered?{" "}
+            <Link to="/pharmacy-portal" className="text-primary hover:underline font-medium">Pharmacy login</Link>
+            {" · "}
+            <Link to="/doctor-login" className="text-primary hover:underline font-medium">Doctor login</Link>
+            {" · "}
+            <Link to="/facility-login" className="text-primary hover:underline font-medium">Hospital login</Link>
+          </p>
+        </div>
+      </section>
+
       {/* Hospitals Near You - Location-based */}
       <NearbyHospitals />
 

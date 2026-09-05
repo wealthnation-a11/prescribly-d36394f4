@@ -84,7 +84,7 @@ export const PaymentCallback = () => {
       setMessage('Payment was cancelled or failed');
     };
 
-    const handleSuccess = (data: { type: string }) => {
+    const handleSuccess = (data: { type: string; consultation_session_id?: string | null }) => {
       setStatus('success');
       
       if (data.type === 'subscription') {
@@ -93,8 +93,15 @@ export const PaymentCallback = () => {
         setTimeout(() => navigate('/user-dashboard'), 2000);
       } else if (data.type === 'consultation') {
         setMessage('Consultation payment completed!');
-        toast.success('You can now chat with your doctor.');
-        
+        toast.success('You can now connect with your doctor.');
+
+        const flowSessionId = data.consultation_session_id || localStorage.getItem('consultation_flow_session');
+        if (flowSessionId) {
+          localStorage.setItem('consultation_flow_session', flowSessionId);
+          setTimeout(() => navigate('/consultation?status=successful'), 2000);
+          return;
+        }
+
         const callbackData = localStorage.getItem('consultation_payment_callback');
         if (callbackData) {
           const { appointmentId } = JSON.parse(callbackData);

@@ -87,6 +87,7 @@ serve(async (req) => {
     const type = meta.type || 'subscription'
     const plan = meta.plan || 'monthly'
     const appointmentId = meta.appointment_id
+    const consultationSessionId = meta.consultation_session_id || null
 
     if (type === 'subscription') {
       const now = new Date()
@@ -113,6 +114,39 @@ serve(async (req) => {
 
       if (subError) {
         console.error('Subscription upsert error:', subError)
+      }
+    } else if (type === 'consultation' && consultationSessionId) {
+      // New consultation flow: settle the consultation session
+      const { data: session } = await supabase
+        .from('consultation_sessions')
+        .select('id, doctor_id, patient_id')
+        .eq('id', consultationSessionId)
+        .maybeSingle()
+
+      if (session && session.patient_id === user.id) {
+        const { error: csError } = await supabase
+          .from('consultation_sessions')
+          .update({
+            status: 'paid',
+            payment_reference: txData.tx_ref,
+          })
+          .eq('id', consultationSessionId)
+        if (csError) console.error('Consultation session update error:', csError)
+
+        if (session.doctor_id) {
+          const { error: cpError } = await supabase
+            .from('consultation_payments')
+            .insert({
+              patient_id: user.id,
+              doctor_id: session.doctor_id,
+              amount: txData.amount,
+              currency: txData.currency,
+              payment_reference: txData.tx_ref,
+              status: 'completed',
+              payment_method: 'flutterwave',
+            })
+          if (cpError) console.error('Consultation payment insert error:', cpError)
+        }
       }
     } else if (type === 'consultation' && appointmentId) {
       // Get doctor_id from appointment
@@ -152,7 +186,14 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       status: true,
-      data: { type, plan, amount: txData.amount, currency: txData.currency },
+      data: {
+        type,
+        plan,
+        amount: txData.amount,
+        currency: txData.currency,
+        consultation_session_id: consultationSessionId,
+        appointment_id: appointmentId || null,
+      },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,

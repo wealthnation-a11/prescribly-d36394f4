@@ -7,6 +7,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 interface InitOptions {
   metadata?: Record<string, any>;
+  /** 'appointment' (default) or 'session' for the new consultation flow */
+  kind?: 'appointment' | 'session';
 }
 
 export const useConsultationPayment = () => {
@@ -23,6 +25,7 @@ export const useConsultationPayment = () => {
 
     try {
       const isUuid = UUID_RE.test(appointmentIdOrRef);
+      const isSession = options.kind === 'session';
       const body: Record<string, any> = {
         email: user.email,
         amount: 3500,
@@ -30,10 +33,11 @@ export const useConsultationPayment = () => {
         currency: 'NGN',
         metadata: {
           ...(options.metadata || {}),
+          ...(isSession ? { consultation_session_id: appointmentIdOrRef } : {}),
           ...(isUuid ? {} : { client_ref: appointmentIdOrRef }),
         },
       };
-      if (isUuid) body.appointment_id = appointmentIdOrRef;
+      if (isUuid && !isSession) body.appointment_id = appointmentIdOrRef;
 
       const { data: initData, error: initError } = await supabase.functions.invoke('flutterwave-initialize', {
         body,

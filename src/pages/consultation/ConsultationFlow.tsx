@@ -351,6 +351,7 @@ export default function ConsultationFlow() {
       .eq("id", id);
     localStorage.setItem("consultation_flow_session", id);
     const url = await initializePayment(id, {
+      kind: "session",
       metadata: { consultation_session_id: id, flow: "consultation" },
     });
     if (url) window.location.href = url;
