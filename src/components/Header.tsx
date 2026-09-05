@@ -21,6 +21,7 @@ export const Header = () => {
     { name: t("Offer"), href: "#offer" },
     { name: t("about"), href: "#about" },
     { name: t("pricing"), href: "#pricing" },
+    { name: "Partners", href: "#partners" },
     { name: t("contact"), href: "#contact" }
   ];
 
