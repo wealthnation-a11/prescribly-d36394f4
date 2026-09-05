@@ -54,6 +54,80 @@ export default function About() {
         </section>
 
         <section>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">What's New on Prescribly</h2>
+          <p className="text-muted-foreground mb-6 max-w-3xl">
+            Prescribly is now a complete care network — doctors, hospitals and pharmacies working together in one app.
+          </p>
+          <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-6">
+            <Card className="card-gradient border-0">
+              <CardContent className="p-6 space-y-2">
+                <Video className="w-6 h-6 text-primary" />
+                <h3 className="font-semibold">Consult in chat, voice or video</h3>
+                <p className="text-sm text-muted-foreground">
+                  A guided symptom intake matches you with a verified doctor, then a secure 20-minute session — ₦3,500 per
+                  consultation, or book one for later.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="card-gradient border-0">
+              <CardContent className="p-6 space-y-2">
+                <Pill className="w-6 h-6 text-primary" />
+                <h3 className="font-semibold">Pharmacies on Prescribly</h3>
+                <p className="text-sm text-muted-foreground">
+                  Send your prescription to a nearby verified pharmacy, compare prices, chat with the pharmacist and track
+                  delivery.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="card-gradient border-0">
+              <CardContent className="p-6 space-y-2">
+                <Building2 className="w-6 h-6 text-primary" />
+                <h3 className="font-semibold">Hospitals & home visits</h3>
+                <p className="text-sm text-muted-foreground">
+                  Find clinics near you, check in with a secure code, or request a doctor to come to your home.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="card-gradient border-0">
+              <CardContent className="p-6 space-y-2">
+                <Heart className="w-6 h-6 text-primary" />
+                <h3 className="font-semibold">Women's Health with Gift</h3>
+                <p className="text-sm text-muted-foreground">
+                  Cycle, ovulation and pregnancy tracking with a private PIN-locked space — and optional access for a
+                  trusted partner.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="card-gradient border-0">
+              <CardContent className="p-6 space-y-2">
+                <Activity className="w-6 h-6 text-primary" />
+                <h3 className="font-semibold">Daily wellness tracking</h3>
+                <p className="text-sm text-muted-foreground">
+                  Sleep, water, steps, medication and meditation in one hub, with streaks, points and daily challenges.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="card-gradient border-0">
+              <CardContent className="p-6 space-y-2">
+                <Stethoscope className="w-6 h-6 text-primary" />
+                <h3 className="font-semibold">Free to join as a partner</h3>
+                <p className="text-sm text-muted-foreground">
+                  Doctors, pharmacies and hospitals can register free and get verified by our team.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Button size="sm" variant="medical" asChild>
+                    <Link to="/pharmacy-portal">Register a Pharmacy</Link>
+                  </Button>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to="/doctor-register">Join as a Doctor</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section>
           <h2 className="text-2xl font-semibold text-foreground mb-6">Our Values</h2>
           <div className="grid md:grid-cols-4 sm:grid-cols-2 gap-6">
             <Card className="card-gradient border-0">
