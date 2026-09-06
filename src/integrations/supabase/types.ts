@@ -850,6 +850,91 @@ export type Database = {
           },
         ]
       }
+      delivery_orders: {
+        Row: {
+          assigned_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_fee: number
+          id: string
+          logistics_company_id: string | null
+          notes: string | null
+          order_id: string
+          patient_id: string | null
+          pharmacy_id: string
+          pickup_address: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
+          rider_name: string | null
+          rider_phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_fee?: number
+          id?: string
+          logistics_company_id?: string | null
+          notes?: string | null
+          order_id: string
+          patient_id?: string | null
+          pharmacy_id: string
+          pickup_address?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          rider_name?: string | null
+          rider_phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_fee?: number
+          id?: string
+          logistics_company_id?: string | null
+          notes?: string | null
+          order_id?: string
+          patient_id?: string | null
+          pharmacy_id?: string
+          pickup_address?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          rider_name?: string | null
+          rider_phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_orders_logistics_company_id_fkey"
+            columns: ["logistics_company_id"]
+            isOneToOne: false
+            referencedRelation: "logistics_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_availability: {
         Row: {
           created_at: string
@@ -1766,6 +1851,69 @@ export type Database = {
           session_id?: string | null
           status?: string
           test_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      logistics_companies: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          city: string | null
+          contact_person: string | null
+          coverage_areas: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          owner_user_id: string
+          phone: string | null
+          rating: number
+          registration_number: string | null
+          state: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          city?: string | null
+          contact_person?: string | null
+          coverage_areas?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_user_id: string
+          phone?: string | null
+          rating?: number
+          registration_number?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          city?: string | null
+          contact_person?: string | null
+          coverage_areas?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_user_id?: string
+          phone?: string | null
+          rating?: number
+          registration_number?: string | null
+          state?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -3840,6 +3988,7 @@ export type Database = {
       has_secret_pin: { Args: never; Returns: boolean }
       is_approved_doctor: { Args: { _user_id: string }; Returns: boolean }
       is_pharmacy_owner: { Args: { _pharmacy_id: string }; Returns: boolean }
+      my_logistics_company_id: { Args: never; Returns: string }
       my_pharmacy_id: { Args: never; Returns: string }
       pharmacy_serves_patient: { Args: { _patient: string }; Returns: boolean }
       refresh_daily_challenges: {
