@@ -3750,7 +3750,95 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      blog_comments_public: {
+        Row: {
+          approved: boolean | null
+          author_name: string | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          post_id: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          author_name?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          post_id?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          author_name?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctors_public: {
+        Row: {
+          bio: string | null
+          consultation_fee: number | null
+          created_at: string | null
+          home_service_fee: number | null
+          id: string | null
+          latitude: number | null
+          longitude: number | null
+          offers_home_service: boolean | null
+          rating: number | null
+          service_locations: Json | null
+          specialization: string | null
+          total_reviews: number | null
+          user_id: string | null
+          verification_status: string | null
+          years_of_experience: number | null
+        }
+        Insert: {
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string | null
+          home_service_fee?: number | null
+          id?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          offers_home_service?: boolean | null
+          rating?: number | null
+          service_locations?: Json | null
+          specialization?: string | null
+          total_reviews?: number | null
+          user_id?: string | null
+          verification_status?: string | null
+          years_of_experience?: number | null
+        }
+        Update: {
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string | null
+          home_service_fee?: number | null
+          id?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          offers_home_service?: boolean | null
+          rating?: number | null
+          service_locations?: Json | null
+          specialization?: string | null
+          total_reviews?: number | null
+          user_id?: string | null
+          verification_status?: string | null
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       award_wellness_points: {
