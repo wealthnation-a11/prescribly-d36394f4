@@ -26,18 +26,26 @@ export default function CommentModeration() {
   const { data: comments, isLoading } = useQuery({
     queryKey: ["admin-blog-comments"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("blog_comments")
-        .select(`
-          *,
-          blog_posts!inner(title)
-        `)
-        .order("created_at", { ascending: false });
-      
+      const { data, error } = await (supabase as any).rpc("admin_list_blog_comments");
       if (error) throw error;
-      return data as BlogComment[];
+
+      const rows = (data || []) as BlogComment[];
+      const postIds = Array.from(new Set(rows.map((c) => c.post_id).filter(Boolean)));
+      let titles = new Map<string, string>();
+      if (postIds.length) {
+        const { data: posts } = await supabase
+          .from("blog_posts")
+          .select("id, title")
+          .in("id", postIds);
+        titles = new Map((posts || []).map((p: any) => [p.id, p.title]));
+      }
+      return rows.map((c) => ({
+        ...c,
+        blog_posts: c.post_id ? { title: titles.get(c.post_id) || "" } : null,
+      })) as BlogComment[];
     },
   });
+
 
   const updateCommentMutation = useMutation({
     mutationFn: async ({ id, approved }: { id: string; approved: boolean }) => {

@@ -3753,6 +3753,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_blog_comments: {
+        Args: never
+        Returns: {
+          approved: boolean
+          author_email: string
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+        }[]
+      }
       award_wellness_points: {
         Args: { _activity: string; _qty?: number }
         Returns: {
@@ -3810,6 +3822,13 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_my_doctor_credentials: {
+        Args: never
+        Returns: {
+          kyc_documents: Json
+          license_number: string
+        }[]
       }
       has_role: {
         Args: {
