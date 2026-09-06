@@ -110,7 +110,7 @@ export const DoctorProfile = () => {
     try {
       const { data, error } = await supabase
         .from('doctors')
-        .select('*')
+        .select('id, user_id, specialization, bio, consultation_fee, years_of_experience, verification_status, rating, total_reviews, offers_home_service, home_service_fee, service_locations, latitude, longitude')
         .eq('user_id', user?.id)
         .single();
 
@@ -120,8 +120,12 @@ export const DoctorProfile = () => {
       }
 
       if (data) {
+        // License number is private: read it through a protected routine
+        const { data: creds } = await (supabase as any).rpc('get_my_doctor_credentials');
+        const license = Array.isArray(creds) ? creds[0]?.license_number : creds?.license_number;
         setProfileData({
           ...data,
+          license_number: license || '',
           service_locations: (data.service_locations as any[] | null) || [],
         });
       }
@@ -129,6 +133,7 @@ export const DoctorProfile = () => {
       console.error('Error:', error);
     }
   };
+
 
   const fetchAvailability = async () => {
     try {
