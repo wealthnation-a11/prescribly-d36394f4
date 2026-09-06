@@ -410,9 +410,6 @@ export const LandingPage = () => {
                       <Badge variant="secondary" className="px-3 py-1 rounded-full">
                         Perfect for Hospitals & Clinics
                       </Badge>
-                      <Badge className="bg-amber-500 text-white px-3 py-1 rounded-full animate-pulse">
-                        Coming Soon
-                      </Badge>
                     </div>
                     <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
                     <CardDescription>
@@ -426,43 +423,27 @@ export const LandingPage = () => {
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Appear on Prescribly's Hospital Map for Nearby Patients</span>
+                      <span>Get discovered on the nearby hospital map</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Receive Patient Appointment Bookings Directly</span>
+                      <span>Receive direct patient appointment bookings</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Get Featured in AI-Powered Doctor & Facility Recommendations</span>
+                      <span>Featured in AI-powered doctor & facility recommendations</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Access to a Growing Network of Verified Patients</span>
+                      <span>Free digital profile page for your hospital</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Free Digital Profile Page for Your Hospital</span>
+                      <span>Real-time appointment & consultation alerts</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Real-Time Appointment & Consultation Notifications</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Patient Reviews & Ratings to Build Trust</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Seamless Integration with Prescribly's Booking System</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Analytics Dashboard to Track Patient Engagement</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Priority Listing During Launch Period</span>
+                      <span>Patient reviews and engagement analytics</span>
                     </div>
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
@@ -559,9 +540,6 @@ export const LandingPage = () => {
                       <Badge variant="secondary" className="px-3 py-1 rounded-full">
                         Perfect for Hospitals & Clinics
                       </Badge>
-                      <Badge className="bg-amber-500 text-white px-3 py-1 rounded-full animate-pulse">
-                        Coming Soon
-                      </Badge>
                     </div>
                     <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
                     <CardDescription>
@@ -575,43 +553,27 @@ export const LandingPage = () => {
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Appear on Prescribly's Hospital Map for Nearby Patients</span>
+                      <span>Get discovered on the nearby hospital map</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Receive Patient Appointment Bookings Directly</span>
+                      <span>Receive direct patient appointment bookings</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Get Featured in AI-Powered Doctor & Facility Recommendations</span>
+                      <span>Featured in AI-powered doctor & facility recommendations</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Access to a Growing Network of Verified Patients</span>
+                      <span>Free digital profile page for your hospital</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Free Digital Profile Page for Your Hospital</span>
+                      <span>Real-time appointment & consultation alerts</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Real-Time Appointment & Consultation Notifications</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Patient Reviews & Ratings to Build Trust</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Seamless Integration with Prescribly's Booking System</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Analytics Dashboard to Track Patient Engagement</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span>Priority Listing During Launch Period</span>
+                      <span>Patient reviews and engagement analytics</span>
                     </div>
                     <div className="pt-2 text-xs text-muted-foreground font-medium border-t border-border/20 mt-4">
                       Registration is free during our launch period
