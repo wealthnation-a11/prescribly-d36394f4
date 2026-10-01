@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { FacilityRoute } from "./components/FacilityRoute";
 import { PharmacyRoute } from "./components/PharmacyRoute";
+import { LogisticsRoute } from "./components/LogisticsRoute";
 import { RealtimeNotifications } from "./components/RealtimeNotifications";
 import AIChatBubble from "./components/AIChatBubble";
 import BroadcastPopup from "./components/BroadcastPopup";
