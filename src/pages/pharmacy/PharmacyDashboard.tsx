@@ -420,6 +420,9 @@ export default function PharmacyDashboard() {
                     </div>
                     <Badge variant="secondary" className="capitalize">{o.status}</Badge>
                   </div>
+                  {pharmacyId && (
+                    <AssignDelivery order={o} pharmacyId={pharmacyId} pickupAddress={pharmacy?.address} />
+                  )}
                   {o.status !== "delivered" && (
                     <Button size="sm" className="w-full" onClick={() => advanceOrder(o)}>
                       Mark {ORDER_STAGES[ORDER_STAGES.indexOf(o.status) + 1] ?? "delivered"}
