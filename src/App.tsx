@@ -115,6 +115,8 @@ const VerifyCode = lazy(() => import("./pages/VerifyCode"));
 const HospitalPortal = lazy(() => import("./pages/HospitalPortal"));
 const PharmacyPortal = lazy(() => import("./pages/pharmacy/PharmacyPortal"));
 const PharmacyDashboard = lazy(() => import("./pages/pharmacy/PharmacyDashboard"));
+const LogisticsPortal = lazy(() => import("./pages/logistics/LogisticsPortal"));
+const LogisticsDashboard = lazy(() => import("./pages/logistics/LogisticsDashboard"));
 const FacilityDashboard = lazy(() => import("./pages/facility/FacilityDashboard"));
 const FacilityCodeVerification = lazy(() => import("./pages/facility/FacilityCodeVerification"));
 const FacilityVisitHistory = lazy(() => import("./pages/facility/FacilityVisitHistory"));
