@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { FacilityRoute } from "./components/FacilityRoute";
 import { PharmacyRoute } from "./components/PharmacyRoute";
+import { LogisticsRoute } from "./components/LogisticsRoute";
 import { RealtimeNotifications } from "./components/RealtimeNotifications";
 import AIChatBubble from "./components/AIChatBubble";
 import BroadcastPopup from "./components/BroadcastPopup";
@@ -115,6 +116,8 @@ const VerifyCode = lazy(() => import("./pages/VerifyCode"));
 const HospitalPortal = lazy(() => import("./pages/HospitalPortal"));
 const PharmacyPortal = lazy(() => import("./pages/pharmacy/PharmacyPortal"));
 const PharmacyDashboard = lazy(() => import("./pages/pharmacy/PharmacyDashboard"));
+const LogisticsPortal = lazy(() => import("./pages/logistics/LogisticsPortal"));
+const LogisticsDashboard = lazy(() => import("./pages/logistics/LogisticsDashboard"));
 const FacilityDashboard = lazy(() => import("./pages/facility/FacilityDashboard"));
 const FacilityCodeVerification = lazy(() => import("./pages/facility/FacilityCodeVerification"));
 const FacilityVisitHistory = lazy(() => import("./pages/facility/FacilityVisitHistory"));
@@ -213,6 +216,9 @@ const App = () => (
 
                     {/* Facility Staff Routes */}
                     <Route path="/pharmacy-portal" element={<PharmacyPortal />} />
+                    <Route path="/logistics" element={<Navigate to="/logistics-portal" replace />} />
+                    <Route path="/logistics-portal" element={<LogisticsPortal />} />
+                    <Route path="/logistics-dashboard" element={<LogisticsRoute><LogisticsDashboard /></LogisticsRoute>} />
                     <Route path="/pharmacy-dashboard" element={<PharmacyRoute><PharmacyDashboard /></PharmacyRoute>} />
                     <Route path="/facility-dashboard" element={<FacilityRoute><FacilityDashboard /></FacilityRoute>} />
                     <Route path="/facility-dashboard/verify" element={<FacilityRoute><FacilityCodeVerification /></FacilityRoute>} />
