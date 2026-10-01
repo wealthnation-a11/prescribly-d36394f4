@@ -215,6 +215,9 @@ const App = () => (
 
                     {/* Facility Staff Routes */}
                     <Route path="/pharmacy-portal" element={<PharmacyPortal />} />
+                    <Route path="/logistics" element={<Navigate to="/logistics-portal" replace />} />
+                    <Route path="/logistics-portal" element={<LogisticsPortal />} />
+                    <Route path="/logistics-dashboard" element={<LogisticsRoute><LogisticsDashboard /></LogisticsRoute>} />
                     <Route path="/pharmacy-dashboard" element={<PharmacyRoute><PharmacyDashboard /></PharmacyRoute>} />
                     <Route path="/facility-dashboard" element={<FacilityRoute><FacilityDashboard /></FacilityRoute>} />
                     <Route path="/facility-dashboard/verify" element={<FacilityRoute><FacilityCodeVerification /></FacilityRoute>} />
