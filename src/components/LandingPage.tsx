@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle, Shield, Lock, FileText, Users } from "lucide-react";
+import { Heart, Stethoscope, Bot, Globe, MessageSquare, Check, Linkedin, Instagram, Twitter, HelpCircle, Shield, Lock, FileText, Users, Truck, Building2 } from "lucide-react";
 import { NearbyHospitals } from "./landing/NearbyHospitals";
 import { FeatureCard } from "./FeatureCard";
 import { TestimonialCard } from "./TestimonialCard";
@@ -63,24 +63,24 @@ export const LandingPage = () => {
   }, [user, userProfile, loading, navigate]);
   const features = [{
     icon: Bot,
-    title: "AI Symptom Checker",
-    description: "Get instant analysis of your symptoms",
-    details: "Our advanced AI analyzes your symptoms and provides preliminary diagnosis recommendations in seconds."
+    title: "Health Companion",
+    description: "Understand symptoms before your consultation",
+    details: "Record symptoms, answer guided health questions and prepare a clear summary to discuss with a licensed doctor."
   }, {
     icon: Stethoscope,
-    title: "Book a Doctor Instantly",
-    description: "Connect with verified doctors 24/7",
-    details: "Schedule consultations with licensed medical professionals available around the clock."
+    title: "Doctor Consultations",
+    description: "Chat, voice or video care",
+    details: "Book now or later and connect with a verified doctor through secure chat, voice or video."
   }, {
-    icon: Heart,
-    title: "Personalized Prescriptions",
-    description: "Receive tailored treatment plans",
-    details: "Get customized medication recommendations and evidence-based treatment plans based on your specific condition."
+    icon: MessageSquare,
+    title: "Pharmacy Orders",
+    description: "Send prescriptions and compare prices",
+    details: "Choose an approved pharmacy, chat with a pharmacist and follow your medicine order through delivery."
   }, {
-    icon: Bot,
-    title: "Medical Record History",
-    description: "Secure digital health records",
-    details: "Access your complete medical history anytime, anywhere with bank-level security."
+    icon: FileText,
+    title: "Health Records",
+    description: "Your care history in one secure place",
+    details: "Keep consultation notes, prescriptions, appointments and uploaded records together for easier continuity of care."
   }, {
     icon: Heart,
     title: "Women's Health & Cycle Tracking",
@@ -92,15 +92,15 @@ export const LandingPage = () => {
     description: "Sleep, water, steps, meds & meditation",
     details: "Daily goals, streaks and scores that keep your everyday health on track."
   }, {
-    icon: Stethoscope,
+    icon: Building2,
     title: "Home Visits & Facility Care",
     description: "Care at home or at a nearby clinic",
-    details: "Request a doctor to visit you at home, or check in at a partner hospital or pharmacy with a secure registration code."
+    details: "Request a doctor at home, find nearby hospitals and check in securely at a participating facility."
   }, {
-    icon: Stethoscope,
-    title: "Doctor Dashboard",
-    description: "Comprehensive practice management",
-    details: "Streamlined tools for doctors to manage patients, consultations, and grow their practice."
+    icon: Truck,
+    title: "Tracked Medicine Delivery",
+    description: "Pharmacy orders delivered by approved partners",
+    details: "Follow delivery progress from pharmacy pickup to your door with rider and status updates."
   }];
   const testimonials = [{
     quote: "I was able to speak to a doctor the same day I booked—helped me feel seen and cared for.",
@@ -117,6 +117,16 @@ export const LandingPage = () => {
     author: "Fatima",
     role: "Accra",
     avatar: "👩🏿‍💼"
+  }, {
+    quote: "Keeping my appointments, health records and wellness goals together makes it much easier to stay consistent.",
+    author: "Chidinma",
+    role: "Abuja",
+    avatar: "👩🏾"
+  }, {
+    quote: "I sent my prescription to a pharmacy, chatted about availability and followed the delivery from one place.",
+    author: "Tunde",
+    role: "Lagos",
+    avatar: "👨🏾"
   }];
   const faqs = [{
     question: "Is Prescribly really free to register?",
@@ -229,13 +239,14 @@ export const LandingPage = () => {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-12 sm:mb-16 fade-in-up px-4">
             Why Patients Choose Prescribly
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up text-center">
               <CardHeader>
                 <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Heart className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Compassionate Healthcare When You Need It</CardTitle>
+                <CardTitle className="text-lg">Care That Fits Your Day</CardTitle>
+                <CardDescription>Book now or later, then consult by chat, voice, video or home visit.</CardDescription>
               </CardHeader>
             </Card>
             
@@ -245,6 +256,7 @@ export const LandingPage = () => {
                   <Check className="w-8 h-8 text-primary" />
                 </div>
                 <CardTitle className="text-lg">Clear, Fair Pricing</CardTitle>
+                <CardDescription>See the service cost before booking, with no monthly fee to join.</CardDescription>
               </CardHeader>
             </Card>
 
@@ -253,7 +265,8 @@ export const LandingPage = () => {
                 <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Stethoscope className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Professional & Trusted</CardTitle>
+                <CardTitle className="text-lg">Verified Care Partners</CardTitle>
+                <CardDescription>Connect with approved doctors, hospitals, pharmacies and delivery companies.</CardDescription>
               </CardHeader>
             </Card>
 
@@ -262,7 +275,28 @@ export const LandingPage = () => {
                 <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Globe className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Data You Control</CardTitle>
+                <CardTitle className="text-lg">Private Records You Control</CardTitle>
+                <CardDescription>Your health history stays secure and is shared only when care requires it.</CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-4 text-center">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Heart className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Everyday Health Support</CardTitle>
+                <CardDescription>Track sleep, water, steps, medication, meditation and women's health.</CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up stagger-5 text-center">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Truck className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Connected From Care to Delivery</CardTitle>
+                <CardDescription>Move from consultation to pharmacy order and tracked delivery without starting over.</CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -280,40 +314,40 @@ export const LandingPage = () => {
               <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 1
               </div>
-              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Sign Up</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground px-2">Create your secure account</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Create Your Account</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Join free and set up your health profile</p>
             </div>
             
             <div className="text-center fade-in-up stagger-1">
               <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 2
               </div>
-              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Choose Subscription</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground px-2">Select your healthcare plan</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Choose the Care You Need</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Consult a doctor, request a home visit or find a facility</p>
             </div>
 
             <div className="text-center fade-in-up stagger-2">
               <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 3
               </div>
-              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Select Service</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground px-2">Make your selection</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Book Now or Later</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Pick a suitable time and complete secure payment when required</p>
             </div>
 
             <div className="text-center fade-in-up stagger-3">
               <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 4
               </div>
-              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Connect to a Doctor</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground px-2">Schedule with licensed professionals</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Receive Your Care</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Meet securely by chat, voice, video, at home or in a facility</p>
             </div>
 
             <div className="text-center fade-in-up stagger-4">
               <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">
                 5
               </div>
-              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Receive Care</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground px-2">Get treatment and medications</p>
+              <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">Continue Your Care</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">Access records, order from a pharmacy and track delivery</p>
             </div>
           </div>
         </div>
@@ -623,7 +657,7 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Partner with Prescribly - Doctors, Hospitals, Pharmacies */}
+      {/* Partner with Prescribly */}
       <section id="partners" className="py-12 sm:py-16 lg:py-20">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-14">
@@ -632,12 +666,12 @@ export const LandingPage = () => {
               Partner with Prescribly
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
-              Doctors, hospitals and pharmacies now run on Prescribly. Registration is free — get verified and start
-              receiving patients, prescriptions and medicine orders.
+               Doctors, hospitals, pharmacies and logistics companies work together on Prescribly. Registration is free —
+               apply, get verified and manage your services from one place.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             <Card className="card-gradient border-0 medical-shadow hover-lift">
               <CardHeader>
                 <Stethoscope className="w-8 h-8 text-primary mb-2" />
@@ -650,6 +684,22 @@ export const LandingPage = () => {
                 <p>· Home visit and clinic bookings</p>
                 <Button variant="medical" className="w-full mt-4" asChild>
                   <Link to="/doctor-register">Join as a Doctor</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="card-gradient border-0 medical-shadow hover-lift">
+              <CardHeader>
+                <Truck className="w-8 h-8 text-primary mb-2" />
+                <CardTitle className="text-xl">Logistics Companies</CardTitle>
+                <CardDescription>Deliver pharmacy orders assigned to your company.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>· Receive delivery jobs from partner pharmacies</p>
+                <p>· Assign riders and update each delivery stage</p>
+                <p>· Track completed jobs and delivery earnings</p>
+                <Button variant="medical" className="w-full mt-4" asChild>
+                  <Link to="/logistics-portal">Register or Log in</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -694,6 +744,8 @@ export const LandingPage = () => {
             <Link to="/doctor-login" className="text-primary hover:underline font-medium">Doctor login</Link>
             {" · "}
             <Link to="/facility-login" className="text-primary hover:underline font-medium">Hospital login</Link>
+            {" · "}
+            <Link to="/logistics-portal" className="text-primary hover:underline font-medium">Logistics login</Link>
           </p>
         </div>
       </section>
@@ -899,6 +951,7 @@ export const LandingPage = () => {
                 <li><Link to="/pharmacy-portal" className="hover:underline">Register your Pharmacy</Link></li>
                 <li><Link to="/hospital" className="hover:underline">Hospital &amp; Clinic Portal</Link></li>
                 <li><Link to="/facility-login" className="hover:underline">Facility Staff Login</Link></li>
+                <li><Link to="/logistics-portal" className="hover:underline">Logistics Portal</Link></li>
               </ul>
             </div>
             <div className="space-y-3 sm:space-y-4">
