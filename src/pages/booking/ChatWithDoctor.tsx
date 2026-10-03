@@ -68,7 +68,7 @@ export default function ChatWithDoctor() {
     try {
       // Use the doctor's user_id as the payment reference (lightweight "session" id)
       const ref = `consult_${selectedDoctor.user_id}_${Date.now()}`;
-      const url = await initializePayment(ref);
+      const url = await initializePayment(ref, { metadata: { doctor_id: selectedDoctor.user_id } });
       if (url) {
         localStorage.setItem(
           'consultation_payment_callback',

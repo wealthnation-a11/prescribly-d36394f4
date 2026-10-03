@@ -88,8 +88,34 @@ serve(async (req) => {
     const plan = meta.plan || 'monthly'
     const appointmentId = meta.appointment_id
     const consultationSessionId = meta.consultation_session_id || null
+    const directDoctorId = meta.doctor_id || null
 
-    if (type === 'subscription') {
+    // Only the payer can settle this transaction
+    if (meta.user_id && meta.user_id !== user.id) {
+      return new Response(JSON.stringify({ status: false, message: 'Payment belongs to another account' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403,
+      })
+    }
+
+    // Idempotency: if this transaction was already recorded, just return success
+    const { data: existing } = await supabase
+      .from('consultation_payments').select('id').eq('payment_reference', txData.tx_ref).maybeSingle()
+    const alreadyRecorded = !!existing
+
+    if (alreadyRecorded) {
+      // skip writes
+    } else if (type === 'consultation' && !consultationSessionId && !appointmentId && directDoctorId) {
+      const { error: cpError } = await supabase.from('consultation_payments').insert({
+        patient_id: user.id,
+        doctor_id: directDoctorId,
+        amount: txData.amount,
+        currency: txData.currency,
+        payment_reference: txData.tx_ref,
+        status: 'completed',
+        payment_method: 'flutterwave',
+      })
+      if (cpError) console.error('Direct consultation payment insert error:', cpError)
+    } else if (type === 'subscription') {
       const now = new Date()
       const expiresAt = new Date(now)
       if (plan === 'yearly') {
