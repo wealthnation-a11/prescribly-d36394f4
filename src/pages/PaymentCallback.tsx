@@ -39,7 +39,7 @@ export const PaymentCallback = () => {
       }
 
       // Flutterwave flow
-      if (transactionId && flwStatus === 'successful') {
+      if (transactionId && (flwStatus === 'successful' || flwStatus === 'completed')) {
         try {
           const { data: verifyData, error: verifyError } = await supabase.functions.invoke('flutterwave-verify', {
             body: { transaction_id: transactionId, tx_ref: txRef }

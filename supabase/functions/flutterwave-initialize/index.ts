@@ -71,7 +71,11 @@ serve(async (req) => {
       currency,
       // Enable all major Flutterwave payment options so users can choose their method
       payment_options: 'card,account,ussd,banktransfer,mobilemoneyghana,mobilemoneyuganda,mpesa,qr,credit',
-      redirect_url: `${req.headers.get('origin')}/payment-callback`,
+      redirect_url: `${(() => {
+        const o = req.headers.get('origin') || ''
+        // Native app (capacitor://) or missing origin can't receive the redirect — use the live site
+        return /^https?:\/\//.test(o) ? o : 'https://prescribly.lovable.app'
+      })()}/payment-callback`,
       customer: {
         email,
         name: user.user_metadata?.first_name
