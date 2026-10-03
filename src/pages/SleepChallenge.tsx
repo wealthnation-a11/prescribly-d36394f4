@@ -75,8 +75,18 @@ const SleepChallenge = () => {
         .eq('date', today)
         .single();
 
+      const qMap: Record<string, number> = { poor: 1, fair: 2, okay: 3, good: 4, excellent: 5 };
+      const toLog = (r: any): SleepLog => {
+        const hours = Number(r.hours_slept ?? 0);
+        const q = r.quality ? (qMap[r.quality] ?? (Number(r.quality) || r.restfulness || 3)) : (r.restfulness || 3);
+        return {
+          id: r.id, date: r.date, bedtime: r.bedtime ?? '', wake_time: r.wake_time ?? '',
+          sleep_hours: hours, sleep_quality: q, goal_reached: hours >= 7 && hours <= 9,
+        };
+      };
+
       if (todayData) {
-        setTodaySleep(todayData as unknown as SleepLog);
+        setTodaySleep(toLog(todayData));
       }
 
       // Fetch weekly logs
@@ -87,7 +97,7 @@ const SleepChallenge = () => {
         .gte('date', weekAgoStr)
         .order('date', { ascending: false });
 
-      const logs = (weeklyData || []) as unknown as SleepLog[];
+      const logs = ((weeklyData || []) as any[]).map(toLog);
       setWeeklyLogs(logs);
 
       // Calculate streak
@@ -143,6 +153,7 @@ const SleepChallenge = () => {
       const sleepHours = calculateSleepHours(bedtime, wakeTime);
       const goalReached = sleepHours >= 7 && sleepHours <= 9;
 
+      const qNames = ['poor', 'poor', 'fair', 'okay', 'good', 'excellent'];
       const { error } = await supabase
         .from('user_sleep_log' as any)
         .upsert({
@@ -150,14 +161,16 @@ const SleepChallenge = () => {
           date: today,
           bedtime,
           wake_time: wakeTime,
-          sleep_hours: sleepHours,
-          sleep_quality: sleepQuality[0],
-          goal_reached: goalReached
+          hours_slept: Number(sleepHours.toFixed(2)),
+          quality: qNames[sleepQuality[0]] ?? 'okay',
+          restfulness: sleepQuality[0],
         }, {
           onConflict: 'user_id,date'
         });
 
       if (error) throw error;
+      void goalReached;
+      try { await supabase.rpc('award_wellness_points' as any, { _activity: 'sleep_logged', _qty: 1 }); } catch { /* points optional */ }
 
       // Award points if goal reached
       if (goalReached) {
