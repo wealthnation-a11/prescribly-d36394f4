@@ -151,10 +151,7 @@ const HydrationChallenge = () => {
       setTodayGlasses(newGlassCount);
       
       // Update user points
-      await (supabase.rpc as any)('update_user_points', {
-        user_uuid: user.id,
-        points_to_add: 10
-      });
+      try { await supabase.rpc('award_wellness_points' as any, { _activity: 'water_slot', _qty: 1 }); } catch { /* optional */ }
 
       toast({
         title: "Great job! 💧",
