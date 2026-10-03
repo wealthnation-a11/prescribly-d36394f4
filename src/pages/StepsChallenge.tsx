@@ -138,10 +138,8 @@ export default function StepsChallenge() {
         .from('user_steps')
         .update({
           step_count: stepCount,
-          calories_burned: calories,
-          distance_km: distance,
           goal_reached: goalReached
-        })
+        } as any)
         .eq('id', todayData.id);
 
       if (error) throw error;
@@ -155,16 +153,16 @@ export default function StepsChallenge() {
         goal_reached: goalReached
       } : null);
 
+      // Award points every 1,000 steps
+      if (Math.floor(stepCount / 1000) > Math.floor(todaySteps / 1000)) {
+        try { await supabase.rpc('award_wellness_points' as any, { _activity: 'steps_1000', _qty: 1 }); } catch { /* optional */ }
+      }
+
       // Check for goal achievement
       if (goalReached && todaySteps < DAILY_GOAL) {
         toast({
           title: "Goal Achieved! 🎉",
           description: "You've reached your daily step goal!",
-        });
-
-        // Award achievements
-        await (supabase.rpc as any)('check_and_award_step_achievements', {
-          user_uuid: user.id
         });
       }
 
