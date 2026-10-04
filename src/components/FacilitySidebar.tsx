@@ -1,4 +1,5 @@
 import { Building2, CheckCircle, ClipboardList, FileText, LogOut, User } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -42,7 +43,7 @@ export function FacilitySidebar() {
           <SidebarGroupLabel>
             {!collapsed && (
               <span className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
+                <Logo size="sm" />
                 Facility Portal
               </span>
             )}

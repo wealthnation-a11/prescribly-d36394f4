@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { Truck, Loader2, CheckCircle2 } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Company name is required").max(120),
@@ -192,7 +193,8 @@ export default function LogisticsPortal() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/30">
       <Card className="w-full max-w-lg border-border/50 shadow-lg">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <div className="mx-auto flex items-center gap-2">
+            <Logo size="lg" withLink priority />
             <Truck className="h-6 w-6 text-primary" />
           </div>
           <CardTitle>Prescribly Logistics Portal</CardTitle>

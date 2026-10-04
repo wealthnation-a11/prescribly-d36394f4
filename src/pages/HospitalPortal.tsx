@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { Building2, LogIn, Loader2, MapPin, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { PasswordValidator } from "@/components/PasswordValidator";
 import { z } from "zod";
@@ -189,10 +190,11 @@ const HospitalPortal = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
       <Card className="w-full max-w-lg border-border/50 shadow-lg">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Building2 className="h-7 w-7 text-primary" />
+          <div className="mx-auto flex items-center gap-2">
+            <Logo size="lg" withLink priority />
+            <Building2 className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Hospital Portal</CardTitle>
+          <CardTitle className="text-2xl">Prescribly Hospital Portal</CardTitle>
           <CardDescription>Register your facility or sign in to your dashboard</CardDescription>
         </CardHeader>
         <CardContent>
