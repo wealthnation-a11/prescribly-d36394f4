@@ -24,6 +24,7 @@ import AdminBroadcastManagement from "@/components/admin/AdminBroadcastManagemen
 import PharmacyManagement from "@/components/admin/PharmacyManagement";
 import PatientHealthRecords from "@/components/admin/PatientHealthRecords";
 import ConsultationManagement from "@/components/admin/ConsultationManagement";
+import LogisticsManagement from "@/components/admin/LogisticsManagement";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, TrendingUp, Activity, UserCircle, Building2, UserPlus, Star } from "lucide-react";
@@ -278,6 +279,21 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent className="pt-6">
             <PharmacyManagement />
+          </CardContent>
+        </Card>
+      );
+    case "logistics":
+      return (
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b border-border/30 bg-muted/30">
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-amber-600" />
+              Logistics Partners
+            </CardTitle>
+            <CardDescription>Review delivery companies, approve, suspend or reactivate them</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <LogisticsManagement />
           </CardContent>
         </Card>
       );

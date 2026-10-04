@@ -27,6 +27,7 @@ import {
   UserPlus,
   Star,
   Megaphone,
+  Truck,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -74,6 +75,7 @@ const navGroups: NavGroup[] = [
     items: [
       { id: "doctors", label: "Doctors", icon: Stethoscope, color: "text-cyan-500" },
       { id: "pharmacies", label: "Pharmacies", icon: Package, color: "text-green-500" },
+      { id: "logistics", label: "Logistics", icon: Truck, color: "text-amber-600" },
     ],
   },
   {
