@@ -1918,6 +1918,60 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_result_scans: {
+        Row: {
+          amount: number
+          created_at: string
+          error_message: string | null
+          file_name: string | null
+          file_path: string
+          findings_count: number | null
+          flagged_count: number | null
+          id: string
+          interpretation_json: Json | null
+          paid_at: string | null
+          payment_reference: string | null
+          status: string
+          summary_teaser: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          error_message?: string | null
+          file_name?: string | null
+          file_path: string
+          findings_count?: number | null
+          flagged_count?: number | null
+          id?: string
+          interpretation_json?: Json | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          status?: string
+          summary_teaser?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          error_message?: string | null
+          file_name?: string | null
+          file_path?: string
+          findings_count?: number | null
+          flagged_count?: number | null
+          id?: string
+          interpretation_json?: Json | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          status?: string
+          summary_teaser?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medication_doses: {
         Row: {
           created_at: string
@@ -3971,6 +4025,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_daily_questions_for_user: {
+        Args: { user_uuid: string }
+        Returns: {
+          category: string
+          id: string
+          options: Json
+          question_text: string
+        }[]
+      }
       get_my_doctor_credentials: {
         Args: never
         Returns: {
@@ -3978,6 +4041,7 @@ export type Database = {
           license_number: string
         }[]
       }
+      get_scan_report: { Args: { _scan_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
