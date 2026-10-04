@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { Truck, Package, ShieldAlert, LogOut, MapPin, Phone } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 const naira = (n: number) => `₦${Number(n || 0).toLocaleString()}`;
 
@@ -252,6 +253,7 @@ export default function LogisticsDashboard() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Logo size="md" withLink />
           <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
             <Truck className="h-5 w-5 text-primary" />
           </div>

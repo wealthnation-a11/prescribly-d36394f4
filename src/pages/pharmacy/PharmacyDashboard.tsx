@@ -265,6 +265,7 @@ export default function PharmacyDashboard() {
     <div className="min-h-screen bg-muted/20">
       <header className="bg-background border-b sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Logo size="md" withLink />
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Pill className="h-5 w-5 text-primary" />
           </div>

@@ -1,0 +1,2 @@
+CREATE POLICY prf_storage_patient_scan_upload ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'patient-records' AND (storage.foldername(name))[1] = auth.uid()::text AND (storage.foldername(name))[2] = 'scans');
