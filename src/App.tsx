@@ -118,6 +118,8 @@ const PharmacyPortal = lazy(() => import("./pages/pharmacy/PharmacyPortal"));
 const PharmacyDashboard = lazy(() => import("./pages/pharmacy/PharmacyDashboard"));
 const LogisticsPortal = lazy(() => import("./pages/logistics/LogisticsPortal"));
 const LogisticsDashboard = lazy(() => import("./pages/logistics/LogisticsDashboard"));
+const ScanResults = lazy(() => import("./pages/scan/ScanResults"));
+const ScanResultDetail = lazy(() => import("./pages/scan/ScanResultDetail"));
 const FacilityDashboard = lazy(() => import("./pages/facility/FacilityDashboard"));
 const FacilityCodeVerification = lazy(() => import("./pages/facility/FacilityCodeVerification"));
 const FacilityVisitHistory = lazy(() => import("./pages/facility/FacilityVisitHistory"));
@@ -236,6 +238,8 @@ const App = () => (
                     <Route path="/ai-health-companion" element={<PatientRoute><AIHealthCompanion /></PatientRoute>} />
                     <Route path="/health-diagnostic" element={<PatientRoute><HealthDiagnostic /></PatientRoute>} />
                     <Route path="/health-challenges" element={<PatientRoute><HealthChallenges /></PatientRoute>} />
+                    <Route path="/scan-results" element={<ProtectedRoute><ScanResults /></ProtectedRoute>} />
+                    <Route path="/scan-results/:id" element={<ProtectedRoute><ScanResultDetail /></ProtectedRoute>} />
                     <Route path="/health-challenges/hydration" element={<PatientRoute><HydrationChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/steps" element={<PatientRoute><StepsChallenge /></PatientRoute>} />
                     <Route path="/health-challenges/sleep" element={<PatientRoute><SleepChallenge /></PatientRoute>} />

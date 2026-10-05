@@ -1,4 +1,4 @@
-import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain, HelpCircle, Trophy, Target, Flower2 } from "lucide-react";
+import { Home, Stethoscope, FileText, Calendar, CalendarPlus, MessageCircle, User, BookOpen, Brain, HelpCircle, Trophy, Target, Flower2, ScanLine } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { Logo } from "./Logo";
@@ -30,6 +30,7 @@ export function AppSidebar() {
     { title: t("book_appointment"), url: "/book-appointment", icon: CalendarPlus, requiresSubscription: true },
     { title: "Health Companion", url: "/ai-health-companion", icon: MessageCircle, requiresSubscription: true },
     { title: "Health Diagnostic", url: "/health-diagnostic", icon: Brain, requiresSubscription: true },
+    { title: "Scan Lab Results", url: "/scan-results", icon: ScanLine, requiresSubscription: false },
     { title: "Health Challenges", url: "/health-challenges", icon: Target, requiresSubscription: true },
     { title: "Women's Health", url: "/womens-health", icon: Flower2, requiresSubscription: true },
     
