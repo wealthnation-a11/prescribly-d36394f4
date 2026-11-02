@@ -263,7 +263,7 @@ export const BayesianResultsDisplay: React.FC<BayesianResultsDisplayProps> = ({
           size="lg"
         >
           <Stethoscope className="h-5 w-5 mr-2" />
-          👩‍⚕️ Consult a Prescribly Doctor
+          👩‍⚕️ Consult a PrescriblyCare Doctor
         </Button>
         <Button 
           variant="outline" 

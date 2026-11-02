@@ -36,8 +36,8 @@ export default function Blog() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   usePageSEO({
-    title: "Prescribly Blog | Insights on Digital Health",
-    description: "Featured stories and insights on telemedicine, data privacy, and how Prescribly enhances virtual care.",
+    title: "PrescriblyCare Blog | Insights on Digital Health",
+    description: "Featured stories and insights on telemedicine, data privacy, and how PrescriblyCare enhances virtual care.",
     canonicalPath: "/blog",
   });
 
@@ -106,7 +106,7 @@ export default function Blog() {
       <div className="min-h-screen bg-background">
         <header className="bg-secondary/30 border-b border-border/50">
           <div className="container mx-auto px-4 py-10">
-            <h1 className="text-4xl font-bold text-foreground">Prescribly Blog</h1>
+            <h1 className="text-4xl font-bold text-foreground">PrescriblyCare Blog</h1>
             <p className="text-muted-foreground mt-2">Featured articles and the latest posts</p>
           </div>
         </header>
@@ -125,7 +125,7 @@ export default function Blog() {
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-10">
-          <h1 className="text-4xl font-bold text-foreground">Prescribly Blog</h1>
+          <h1 className="text-4xl font-bold text-foreground">PrescriblyCare Blog</h1>
           <p className="text-muted-foreground mt-2">Featured articles and the latest posts</p>
         </div>
       </header>

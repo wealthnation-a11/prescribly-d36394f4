@@ -50,7 +50,7 @@ const AdminDashboard = () => {
   }, [userProfile]);
 
   usePageSEO({
-    title: "Admin Dashboard - Prescribly",
+    title: "Admin Dashboard - PrescriblyCare",
     description: "Administrative dashboard for managing the entire platform",
   });
 

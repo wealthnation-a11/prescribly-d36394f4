@@ -74,7 +74,7 @@ import { Logo } from "@/components/Logo";
                 onCheckedChange={(checked) => setAgreed(checked === true)}
               />
               <label htmlFor="agreement" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                I confirm that the information I will provide is accurate and I agree to Prescribly's confidentiality policy.
+                I confirm that the information I will provide is accurate and I agree to PrescriblyCare's confidentiality policy.
               </label>
             </div>
           </div>

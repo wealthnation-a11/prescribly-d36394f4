@@ -6,7 +6,7 @@ interface SubscriptionGuardProps {
 }
 
 /**
- * Prescribly is now free to register. Patients only pay per appointment booking
+ * PrescriblyCare is now free to register. Patients only pay per appointment booking
  * (₦15,000) or home visit (₦47,000). This guard now only enforces authentication.
  */
 export const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {

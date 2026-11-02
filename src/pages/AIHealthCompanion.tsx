@@ -38,7 +38,7 @@ interface Message {
 
 const AIHealthCompanion = () => {
   usePageSEO({
-    title: "Daily Health Check-in - Prescribly",
+    title: "Daily Health Check-in - PrescriblyCare",
     description: "Complete your daily health check-in with our AI companion and track your wellness journey.",
     canonicalPath: "/ai-health-companion"
   });

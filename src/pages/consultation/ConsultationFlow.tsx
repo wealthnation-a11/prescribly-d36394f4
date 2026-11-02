@@ -804,7 +804,7 @@ export default function ConsultationFlow() {
                     className="mt-4 pt-4 border-t flex items-center gap-2 text-sm"
                     style={{ borderColor: CT.border, color: CT.green }}
                   >
-                    <ShieldCheck className="w-4 h-4" /> Verified by Prescribly
+                    <ShieldCheck className="w-4 h-4" /> Verified by PrescriblyCare
                   </div>
                 </div>
                 <Button

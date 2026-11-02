@@ -16,7 +16,7 @@ const FacilityDashboard = () => {
   const { facilityId } = useFacilityStaff();
 
   usePageSEO({
-    title: "Facility Dashboard - Prescribly",
+    title: "Facility Dashboard - PrescriblyCare",
     description: "Hospital staff dashboard for managing patient visits",
   });
 
@@ -83,14 +83,14 @@ const FacilityDashboard = () => {
   ];
 
   const platformFeatures = [
-    { icon: MapPin, title: "Hospital Map Visibility", description: "Your facility appears on Prescribly's hospital map for nearby patients to discover you.", active: facility?.is_verified },
+    { icon: MapPin, title: "Hospital Map Visibility", description: "Your facility appears on PrescriblyCare's hospital map for nearby patients to discover you.", active: facility?.is_verified },
     { icon: Calendar, title: "Direct Appointment Bookings", description: "Patients can book appointments with your facility directly through the platform.", active: true },
     { icon: Brain, title: "AI-Powered Recommendations", description: "Featured in AI-driven doctor & facility recommendations to relevant patients.", active: facility?.is_verified },
-    { icon: Users, title: "Verified Patient Network", description: "Access a growing network of verified patients on the Prescribly platform.", active: true },
+    { icon: Users, title: "Verified Patient Network", description: "Access a growing network of verified patients on the PrescriblyCare platform.", active: true },
     { icon: Building2, title: "Free Digital Profile", description: "Your hospital has a professional digital profile page visible to all patients.", active: true },
     { icon: Bell, title: "Real-Time Notifications", description: "Get instant notifications for new appointment bookings and consultations.", active: true },
     { icon: Star, title: "Patient Reviews & Ratings", description: "Build trust with patient reviews and ratings on your facility profile.", active: true },
-    { icon: Shield, title: "Seamless Booking Integration", description: "Fully integrated with Prescribly's booking system for smooth patient flow.", active: true },
+    { icon: Shield, title: "Seamless Booking Integration", description: "Fully integrated with PrescriblyCare's booking system for smooth patient flow.", active: true },
     { icon: BarChart3, title: "Analytics Dashboard", description: "Track patient engagement, visit trends, and facility performance metrics.", active: true },
     { icon: TrendingUp, title: "Priority Launch Listing", description: "Get priority listing during the platform launch period for maximum visibility.", active: facility?.is_verified },
   ];
@@ -149,7 +149,7 @@ const FacilityDashboard = () => {
 
         {/* Platform Features */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold mb-4">Your Prescribly Benefits</h2>
+          <h2 className="text-xl font-bold mb-4">Your PrescriblyCare Benefits</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {platformFeatures.map((feature) => (
               <Card key={feature.title} className="border-border/50 hover:shadow-md transition-shadow">

@@ -29,7 +29,7 @@ export default function HomeVisit() {
               <h2 className="text-2xl font-bold">Home Visits are on the way</h2>
               <p className="text-sm text-muted-foreground">
                 We're putting the final touches on our doctor home-visit service so a verified
-                Prescribly doctor can come to your address. You'll be the first to know once it
+                PrescriblyCare doctor can come to your address. You'll be the first to know once it
                 goes live.
               </p>
               <Button className="w-full" onClick={() => navigate('/book-appointment')}>

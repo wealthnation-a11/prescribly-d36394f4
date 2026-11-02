@@ -32,8 +32,8 @@ export const HerbalPractitionerRegister = () => {
   const navigate = useNavigate();
 
   usePageSEO({
-    title: 'Herbal Practitioner Registration - Prescribly',
-    description: 'Register as a herbal practitioner on Prescribly',
+    title: 'Herbal Practitioner Registration - PrescriblyCare',
+    description: 'Register as a herbal practitioner on PrescriblyCare',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

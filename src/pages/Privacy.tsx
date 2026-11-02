@@ -2,8 +2,8 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 
 export default function Privacy() {
   usePageSEO({
-    title: "Prescribly Privacy Policy",
-    description: "Learn how Prescribly collects, uses, stores, and protects your data, including HIPAA safeguards for medical information.",
+    title: "PrescriblyCare Privacy Policy",
+    description: "Learn how PrescriblyCare collects, uses, stores, and protects your data, including HIPAA safeguards for medical information.",
     canonicalPath: "/privacy",
   });
 

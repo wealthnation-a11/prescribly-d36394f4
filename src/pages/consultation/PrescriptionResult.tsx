@@ -63,7 +63,7 @@ export default function PrescriptionResult() {
     if (!items.length) return;
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text("Prescribly — Prescription", 14, 20);
+    doc.text("PrescriblyCare — Prescription", 14, 20);
     doc.setFontSize(11);
     doc.text(`Issued by: ${doctorName}`, 14, 30);
     doc.text(`Date: ${new Date(items[0].created_at).toLocaleDateString()}`, 14, 37);
@@ -83,7 +83,7 @@ export default function PrescriptionResult() {
       }
       y += 6;
     });
-    doc.save("prescribly-prescription.pdf");
+    doc.save("prescriblycare-prescription.pdf");
     toast.success("Prescription downloaded");
   };
 

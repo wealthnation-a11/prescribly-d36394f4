@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.prescribly.app',
-  appName: 'Prescribly',
+  appId: 'com.prescriblycare.app',
+  appName: 'PrescriblyCare',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

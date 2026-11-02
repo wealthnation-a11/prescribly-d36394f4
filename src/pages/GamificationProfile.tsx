@@ -111,7 +111,7 @@ const getLevelInfo = (points: number) => {
 
 const GamificationProfile = () => {
   usePageSEO({
-    title: "My Wellness Profile - Prescribly",
+    title: "My Wellness Profile - PrescriblyCare",
     description: "Track your health achievements, levels, badges and wellness journey progress.",
     canonicalPath: "/gamification-profile"
   });

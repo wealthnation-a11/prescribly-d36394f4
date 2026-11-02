@@ -34,7 +34,7 @@ interface MindfulnessLog {
 
 const MindfulnessChallenge = () => {
   usePageSEO({
-    title: "Mindfulness Challenge - Prescribly",
+    title: "Mindfulness Challenge - PrescriblyCare",
     description: "Practice daily meditation and mindfulness with the 7-day mindfulness challenge.",
     canonicalPath: "/health-challenges/mindfulness"
   });

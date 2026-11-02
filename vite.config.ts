@@ -16,10 +16,10 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'pwa-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
-        name: 'Prescribly - Doctor in Your Pocket',
-        short_name: 'Prescribly',
+        name: 'PrescriblyCare - Doctor in Your Pocket',
+        short_name: 'PrescriblyCare',
         description: 'AI-powered healthcare platform connecting patients with doctors 24/7. Get instant symptom analysis and professional medical consultations.',
         theme_color: '#0077b6',
         background_color: '#ffffff',

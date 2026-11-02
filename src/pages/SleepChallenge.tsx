@@ -38,7 +38,7 @@ interface SleepLog {
 
 const SleepChallenge = () => {
   usePageSEO({
-    title: "Sleep Challenge - Prescribly",
+    title: "Sleep Challenge - PrescriblyCare",
     description: "Track your sleep patterns and improve your rest quality with the 7-day sleep challenge.",
     canonicalPath: "/health-challenges/sleep"
   });

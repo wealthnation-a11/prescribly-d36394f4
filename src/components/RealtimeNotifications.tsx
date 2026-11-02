@@ -75,7 +75,7 @@ export const RealtimeNotifications = () => {
           });
 
           // Show browser notification for important events
-          showBrowserNotification(notification.title || 'Prescribly', notification.message || '');
+          showBrowserNotification(notification.title || 'PrescriblyCare', notification.message || '');
 
           // Invalidate relevant queries based on notification type
           if (notification.type?.startsWith('appointment')) {

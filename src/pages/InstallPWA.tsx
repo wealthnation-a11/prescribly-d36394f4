@@ -64,7 +64,7 @@ const InstallPWA = () => {
         setIsInstalled(true);
         toast({
           title: "Successfully Installed!",
-          description: "Prescribly has been added to your device.",
+          description: "PrescriblyCare has been added to your device.",
         });
       }
       
@@ -103,12 +103,12 @@ const InstallPWA = () => {
           <div className="inline-flex items-center justify-center mb-6">
             <img 
               src="/pwa-icon.png" 
-              alt="Prescribly" 
+              alt="PrescriblyCare" 
               className="w-24 h-24 rounded-2xl shadow-lg"
             />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-            Install Prescribly
+            Install PrescriblyCare
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Get the full app experience with faster loading, offline access, and easy access from your home screen.
@@ -123,10 +123,10 @@ const InstallPWA = () => {
             </CardTitle>
             <CardDescription>
               {isInstalled 
-                ? "You can access Prescribly from your home screen anytime."
+                ? "You can access PrescriblyCare from your home screen anytime."
                 : isIOS
                 ? "Follow these simple steps to install on iOS"
-                : "Click the button below to install Prescribly on your device"}
+                : "Click the button below to install PrescriblyCare on your device"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -165,7 +165,7 @@ const InstallPWA = () => {
                   <div>
                     <p className="font-medium">Tap "Add"</p>
                     <p className="text-sm text-muted-foreground">
-                      Prescribly will appear on your home screen
+                      PrescriblyCare will appear on your home screen
                     </p>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ const InstallPWA = () => {
         {/* Footer */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            Installing the app is optional. You can continue using Prescribly in your browser.
+            Installing the app is optional. You can continue using PrescriblyCare in your browser.
           </p>
           <Button variant="outline" onClick={() => navigate("/")}>
             Continue in Browser

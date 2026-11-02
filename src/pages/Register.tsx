@@ -119,7 +119,7 @@ import { lovable } from "@/integrations/lovable";
 
         toast({
           title: "Registration Successful!",
-          description: "Welcome to Prescribly — registration is free.",
+          description: "Welcome to PrescriblyCare — registration is free.",
         });
         navigate("/dashboard");
       }

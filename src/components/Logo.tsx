@@ -13,7 +13,7 @@ export const Logo = ({ size = "md", withLink = false, className, priority = fals
   const Img = (
     <img
       src="/prescribly-logo.jpg"
-      alt="Prescribly logo"
+      alt="PrescriblyCare logo"
       width={236}
       height={286}
       className={cn("w-auto", heightCls, className)}

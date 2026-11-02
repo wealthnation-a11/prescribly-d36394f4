@@ -74,7 +74,7 @@ serve(async (req) => {
       redirect_url: `${(() => {
         const o = req.headers.get('origin') || ''
         // Native app (capacitor://) or missing origin can't receive the redirect — use the live site
-        return /^https?:\/\//.test(o) ? o : 'https://prescribly.lovable.app'
+        return /^https?:\/\//.test(o) ? o : 'https://prescriblycare.lovable.app'
       })()}/payment-callback`,
       customer: {
         email,
@@ -83,8 +83,8 @@ serve(async (req) => {
           : email,
       },
       customizations: {
-        title: type === 'subscription' ? 'Prescribly Subscription' : type === 'consultation' ? 'Appointment Booking Fee' : 'Order Payment',
-        logo: 'https://prescribly.lovable.app/favicon.ico',
+        title: type === 'subscription' ? 'PrescriblyCare Subscription' : type === 'consultation' ? 'Appointment Booking Fee' : 'Order Payment',
+        logo: 'https://prescriblycare.lovable.app/__l5e/assets-v1/abc4acb3-95f1-46d4-a47a-859a56b565e2/prescriblycare-header-logo.png',
       },
       meta: {
         user_id: user.id,

@@ -68,7 +68,7 @@ export const PWAInstallPrompt = () => {
     if (isIOS) {
       // Show iOS-specific instructions
       toast({
-        title: "Install Prescribly",
+        title: "Install PrescriblyCare",
         description: "Tap the share button and select 'Add to Home Screen' to install.",
         duration: 8000,
       });
@@ -87,7 +87,7 @@ export const PWAInstallPrompt = () => {
       if (outcome === 'accepted') {
         toast({
           title: "Thanks for installing!",
-          description: "Prescribly is now available on your device.",
+          description: "PrescriblyCare is now available on your device.",
         });
       }
       
@@ -115,13 +115,13 @@ export const PWAInstallPrompt = () => {
             <div className="flex-shrink-0">
               <img 
                 src="/pwa-icon.png" 
-                alt="Prescribly" 
+                alt="PrescriblyCare" 
                 className="w-12 h-12 rounded-xl shadow-md"
               />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground mb-1">
-                Install Prescribly
+                Install PrescriblyCare
               </h3>
               <p className="text-sm text-muted-foreground mb-3">
                 {isIOS 

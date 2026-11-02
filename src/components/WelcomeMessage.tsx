@@ -65,7 +65,7 @@ export const WelcomeMessage = ({ onStartTour, showTourButton = true }: WelcomeMe
           <div className="flex-1 space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
               {isFirstVisit ? (
-                <>Welcome to Prescribly, {firstName}! 🎉</>
+                <>Welcome to PrescriblyCare, {firstName}! 🎉</>
               ) : (
                 <>Welcome back, {firstName}! 👋</>
               )}

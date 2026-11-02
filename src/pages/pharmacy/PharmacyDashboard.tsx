@@ -43,8 +43,8 @@ interface InventoryRow {
 
 export default function PharmacyDashboard() {
   usePageSEO({
-    title: "Pharmacy Dashboard | Prescribly",
-    description: "Manage your drug price list, patient orders and chats on Prescribly.",
+    title: "Pharmacy Dashboard | PrescriblyCare",
+    description: "Manage your drug price list, patient orders and chats on PrescriblyCare.",
   });
 
   const navigate = useNavigate();
@@ -244,7 +244,7 @@ export default function PharmacyDashboard() {
             </h1>
             <p className="text-sm text-muted-foreground">
               {pharmacy.admin_notes ||
-                "The Prescribly team is reviewing your pharmacy. You'll get access to your dashboard once it's approved."}
+                "The PrescriblyCare team is reviewing your pharmacy. You'll get access to your dashboard once it's approved."}
             </p>
             <Button
               variant="outline"

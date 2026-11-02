@@ -59,7 +59,7 @@ const HospitalPortal = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   usePageSEO({
-    title: "Hospital Portal - Prescribly",
+    title: "Hospital Portal - PrescriblyCare",
     description: "Register your hospital or log in to the facility staff dashboard",
   });
 
@@ -194,7 +194,7 @@ const HospitalPortal = () => {
             <Logo size="lg" withLink priority />
             <Building2 className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Prescribly Hospital Portal</CardTitle>
+          <CardTitle className="text-2xl">PrescriblyCare Hospital Portal</CardTitle>
           <CardDescription>Register your facility or sign in to your dashboard</CardDescription>
         </CardHeader>
         <CardContent>

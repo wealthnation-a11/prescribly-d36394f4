@@ -17,7 +17,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-      self.registration.showNotification(data.title || 'Prescribly', options)
+      self.registration.showNotification(data.title || 'PrescriblyCare', options)
     );
   } catch (error) {
     console.error('Error handling push notification:', error);

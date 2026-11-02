@@ -20,7 +20,7 @@ type Dose = {
 
 export default function MedicationAdherenceHistory() {
   usePageSEO({
-    title: "Medication Adherence History - Prescribly",
+    title: "Medication Adherence History - PrescriblyCare",
     description: "Detailed log of every drug reminder, taken/missed status and dose adjustments.",
     canonicalPath: "/health-challenges/medication/history",
   });

@@ -16,7 +16,7 @@ const FacilityLogin = () => {
   const navigate = useNavigate();
 
   usePageSEO({
-    title: "Facility Staff Login - Prescribly",
+    title: "Facility Staff Login - PrescriblyCare",
     description: "Login portal for hospital and clinic staff members",
   });
 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Press() {
   usePageSEO({
-    title: "Press | Prescribly in the News",
+    title: "Press | PrescriblyCare in the News",
     description: "Press resources, media mentions, awards, and contact information for journalists.",
     canonicalPath: "/press",
   });
@@ -19,7 +19,7 @@ export default function Press() {
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-10">
-          <h1 className="text-4xl font-bold text-foreground">Prescribly in the News</h1>
+          <h1 className="text-4xl font-bold text-foreground">PrescriblyCare in the News</h1>
           <p className="text-muted-foreground mt-2">Press kit and media resources</p>
           <div className="mt-4">
             <Button asChild variant="medical">

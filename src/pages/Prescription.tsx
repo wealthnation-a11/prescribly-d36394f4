@@ -37,7 +37,7 @@ interface PrescriptionData {
 
 export default function Prescription() {
   usePageSEO({
-    title: "Prescription Results | Prescribly",
+    title: "Prescription Results | PrescriblyCare",
     description: "View and download your prescription results from the wellness assessment",
   });
 
@@ -111,7 +111,7 @@ export default function Prescription() {
       // Header
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('Prescribly Health Assessment', pageWidth / 2, yPosition, { align: 'center' });
+      doc.text('PrescriblyCare Health Assessment', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 15;
 
       doc.setFontSize(12);

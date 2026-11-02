@@ -55,7 +55,7 @@ export function HerbalPractitionerSidebar() {
             <Logo size="sm" />
             {!isCollapsed && (
               <div className="flex-1">
-                <h2 className="font-bold text-lg text-sidebar-foreground">Prescribly</h2>
+                <h2 className="font-bold text-lg text-sidebar-foreground">PrescriblyCare</h2>
                 <p className="text-xs text-muted-foreground">Herbal Portal</p>
               </div>
             )}

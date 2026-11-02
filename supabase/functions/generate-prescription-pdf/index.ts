@@ -95,7 +95,7 @@ serve(async (req) => {
 function generateSinglePrescriptionHTML(prescription: any, user: any): string {
   const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Prescription</title></head><body>
-    <h1>PRESCRIBLY</h1><p>Patient: ${user.email}</p><p>Date: ${currentDate}</p>
+    <h1>PrescriblyCare</h1><p>Patient: ${user.email}</p><p>Date: ${currentDate}</p>
     <h2>DIAGNOSIS: ${prescription.condition_name}</h2>
     ${prescription.drugs.map((drug: any) => `<div><strong>${drug.name}</strong><br>Dosage: ${drug.dosage}<br>${drug.usage || ''}</div>`).join('')}
     <p><strong>DISCLAIMER:</strong> This prescription is AI-generated and for informational purposes only.</p>
@@ -105,7 +105,7 @@ function generateSinglePrescriptionHTML(prescription: any, user: any): string {
 function generateAllPrescriptionsHTML(prescriptions: any[], user: any): string {
   const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Prescriptions</title></head><body>
-    <h1>PRESCRIBLY - Complete Prescription History</h1><p>Patient: ${user.email}</p><p>Date: ${currentDate}</p>
+    <h1>PrescriblyCare - Complete Prescription History</h1><p>Patient: ${user.email}</p><p>Date: ${currentDate}</p>
     ${prescriptions.map((p, i) => `<div><h3>Prescription #${i + 1} - ${p.condition_name}</h3>
       ${p.drugs.map((d: any) => `<div><strong>${d.name}</strong> - ${d.dosage}</div>`).join('')}</div>`).join('')}
     <p><strong>DISCLAIMER:</strong> These prescriptions are AI-generated and for informational purposes only.</p>

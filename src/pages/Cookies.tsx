@@ -2,8 +2,8 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 
 export default function Cookies() {
   usePageSEO({
-    title: "Prescribly Cookies Policy",
-    description: "Understand how Prescribly uses cookies and similar technologies, and how to manage your preferences.",
+    title: "PrescriblyCare Cookies Policy",
+    description: "Understand how PrescriblyCare uses cookies and similar technologies, and how to manage your preferences.",
     canonicalPath: "/cookies",
   });
 

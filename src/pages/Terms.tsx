@@ -2,8 +2,8 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 
 export default function Terms() {
   usePageSEO({
-    title: "Prescribly Terms of Use",
-    description: "Read the Prescribly Terms of Use covering acceptable use, intellectual property, disclaimers, and limitations of liability.",
+    title: "PrescriblyCare Terms of Use",
+    description: "Read the PrescriblyCare Terms of Use covering acceptable use, intellectual property, disclaimers, and limitations of liability.",
     canonicalPath: "/terms",
   });
 
@@ -20,7 +20,7 @@ export default function Terms() {
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">1. Acceptance of Terms</h2>
           <p className="text-muted-foreground">
-            By accessing or using Prescribly, you agree to these Terms. If you do not agree, do not use the service.
+            By accessing or using PrescriblyCare, you agree to these Terms. If you do not agree, do not use the service.
           </p>
         </section>
 
@@ -29,7 +29,7 @@ export default function Terms() {
           <ul className="list-disc list-inside text-muted-foreground space-y-1">
             <li>You must provide accurate account information and maintain its security.</li>
             <li>You are responsible for all activity that occurs under your account.</li>
-            <li>Healthcare guidance provided on Prescribly does not replace in‑person emergency care. Call local emergency services in an emergency.</li>
+            <li>Healthcare guidance provided on PrescriblyCare does not replace in‑person emergency care. Call local emergency services in an emergency.</li>
           </ul>
         </section>
 
@@ -45,7 +45,7 @@ export default function Terms() {
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">4. Intellectual Property</h2>
           <p className="text-muted-foreground">
-            Prescribly, including content, logos, software, and materials, is protected by intellectual property laws. You may not copy, modify, or distribute our materials without permission.
+            PrescriblyCare, including content, logos, software, and materials, is protected by intellectual property laws. You may not copy, modify, or distribute our materials without permission.
           </p>
         </section>
 
@@ -54,21 +54,21 @@ export default function Terms() {
           <ul className="list-disc list-inside text-muted-foreground space-y-1">
             <li>Services are provided on an "as is" and "as available" basis.</li>
             <li>We do not warrant uninterrupted or error‑free operation.</li>
-            <li>Information provided by clinicians on Prescribly is for medical consultation purposes but may not be suitable for emergencies.</li>
+            <li>Information provided by clinicians on PrescriblyCare is for medical consultation purposes but may not be suitable for emergencies.</li>
           </ul>
         </section>
 
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">6. Limitation of Liability</h2>
           <p className="text-muted-foreground">
-            To the maximum extent permitted by law, Prescribly and its affiliates are not liable for indirect, incidental, special, or consequential damages, or any loss of profits or data.
+            To the maximum extent permitted by law, PrescriblyCare and its affiliates are not liable for indirect, incidental, special, or consequential damages, or any loss of profits or data.
           </p>
         </section>
 
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">7. Indemnification</h2>
           <p className="text-muted-foreground">
-            You agree to defend, indemnify, and hold harmless Prescribly from claims arising out of your use of the services or violation of these Terms.
+            You agree to defend, indemnify, and hold harmless PrescriblyCare from claims arising out of your use of the services or violation of these Terms.
           </p>
         </section>
 

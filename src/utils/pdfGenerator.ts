@@ -1,3 +1,4 @@
+import brandLogo from "@/assets/prescriblycare-header-logo.png.asset.json";
 import jsPDF from 'jspdf';
 
 interface DiagnosisData {
@@ -38,7 +39,7 @@ export const generateDiagnosisPDF = async (
     await new Promise((resolve, reject) => {
       logoImg.onload = resolve;
       logoImg.onerror = reject;
-      logoImg.src = '/lovable-uploads/f0e7a9d5-ed9f-4f1e-9b54-765017780d65.png';
+      logoImg.src = brandLogo.url;
     });
     
     const logoWidth = 40;
@@ -222,12 +223,12 @@ export const shareOnWhatsApp = async (blob: Blob, filename: string) => {
       const file = new File([blob], filename, { type: 'application/pdf' });
       await navigator.share({
         title: 'Medical Diagnosis Report',
-        text: 'Here is my medical diagnosis report from Prescribly',
+        text: 'Here is my medical diagnosis report from PrescriblyCare',
         files: [file]
       });
     } else {
       // Fallback: open WhatsApp Web with message
-      const message = encodeURIComponent('Here is my medical diagnosis report from Prescribly. Please find the PDF attached.');
+      const message = encodeURIComponent('Here is my medical diagnosis report from PrescriblyCare. Please find the PDF attached.');
       const whatsappUrl = `https://wa.me/?text=${message}`;
       window.open(whatsappUrl, '_blank');
       

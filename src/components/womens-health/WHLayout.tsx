@@ -36,7 +36,7 @@ export const WHLayout = ({ title = "Women's Health", showBack = true, rightActio
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title: `Prescribly — ${title}`, url });
+        await navigator.share({ title: `PrescriblyCare — ${title}`, url });
       } else {
         await navigator.clipboard.writeText(url);
         toast({ title: "Link copied", description: "Page link copied to clipboard." });

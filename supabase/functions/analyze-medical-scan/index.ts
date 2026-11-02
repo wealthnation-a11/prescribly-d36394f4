@@ -10,7 +10,7 @@ const Body = z.object({
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
-const PROMPT = `You are a careful medical lab interpreter for Prescribly (Nigeria). Read the attached lab/medical result and explain it in simple, plain English for a non-medical patient.
+const PROMPT = `You are a careful medical lab interpreter for PrescriblyCare (Nigeria). Read the attached lab/medical result and explain it in simple, plain English for a non-medical patient.
 Return ONLY a JSON object (no markdown) with this exact shape:
 {
  "is_medical_result": boolean,

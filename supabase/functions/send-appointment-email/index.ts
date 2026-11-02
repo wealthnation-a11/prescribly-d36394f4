@@ -57,15 +57,15 @@ serve(async (req) => {
     if (notification_type === 'appointment_request') {
       emailData = {
         to_email: appointment.doctor_profile?.email || '',
-        subject: 'New Appointment Request - Prescribly',
-        message: `Dear Dr. ${appointment.doctor_profile?.first_name || ''} ${appointment.doctor_profile?.last_name || ''},\n\nYou have received a new appointment request from ${appointment.patient_profile?.first_name || ''} ${appointment.patient_profile?.last_name || ''}.\n\nScheduled Time: ${new Date(appointment.scheduled_time).toLocaleString()}\n\nPlease log in to your dashboard to review and approve this appointment.\n\nBest regards,\nPrescribly Team`,
+        subject: 'New Appointment Request - PrescriblyCare',
+        message: `Dear Dr. ${appointment.doctor_profile?.first_name || ''} ${appointment.doctor_profile?.last_name || ''},\n\nYou have received a new appointment request from ${appointment.patient_profile?.first_name || ''} ${appointment.patient_profile?.last_name || ''}.\n\nScheduled Time: ${new Date(appointment.scheduled_time).toLocaleString()}\n\nPlease log in to your dashboard to review and approve this appointment.\n\nBest regards,\nPrescriblyCare Team`,
         notification_type: 'appointment_request'
       };
     } else if (notification_type === 'appointment_approved') {
       emailData = {
         to_email: appointment.patient_profile?.email || '',
-        subject: 'Appointment Approved - Prescribly',
-        message: `Dear ${appointment.patient_profile?.first_name || ''} ${appointment.patient_profile?.last_name || ''},\n\nYour appointment with Dr. ${appointment.doctor_profile?.first_name || ''} ${appointment.doctor_profile?.last_name || ''} has been approved!\n\nScheduled Time: ${new Date(appointment.scheduled_time).toLocaleString()}\n\nYou can now access your consultation through your dashboard.\n\nBest regards,\nPrescribly Team`,
+        subject: 'Appointment Approved - PrescriblyCare',
+        message: `Dear ${appointment.patient_profile?.first_name || ''} ${appointment.patient_profile?.last_name || ''},\n\nYour appointment with Dr. ${appointment.doctor_profile?.first_name || ''} ${appointment.doctor_profile?.last_name || ''} has been approved!\n\nScheduled Time: ${new Date(appointment.scheduled_time).toLocaleString()}\n\nYou can now access your consultation through your dashboard.\n\nBest regards,\nPrescriblyCare Team`,
         notification_type: 'appointment_approved'
       };
     }

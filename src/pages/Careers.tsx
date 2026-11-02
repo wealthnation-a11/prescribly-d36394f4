@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 export default function Careers() {
   usePageSEO({
     title: "Careers | Join the Team Revolutionizing Healthcare",
-    description: "Explore culture, benefits, and open roles at Prescribly. Build the future of accessible healthcare.",
+    description: "Explore culture, benefits, and open roles at PrescriblyCare. Build the future of accessible healthcare.",
     canonicalPath: "/careers",
   });
 

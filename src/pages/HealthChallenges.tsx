@@ -1202,7 +1202,7 @@ type Scores = Record<FeatureKey, number>;
 
 const HealthChallenges: React.FC = () => {
   usePageSEO({
-    title: "Health Challenges - Prescribly",
+    title: "Health Challenges - PrescriblyCare",
     description: "Sleep, water, steps, medication and meditation — all in one wellness hub.",
     canonicalPath: "/health-challenges",
   });

@@ -81,7 +81,7 @@ export default function BlogPost() {
   }).mutate();
 
   usePageSEO({
-    title: post ? `${post.title} | Prescribly Blog` : "Blog Post | Prescribly",
+    title: post ? `${post.title} | PrescriblyCare Blog` : "Blog Post | PrescriblyCare",
     description: post?.meta_description || post?.excerpt || "Read our latest blog post",
     canonicalPath: `/blog/${slug}`,
   });

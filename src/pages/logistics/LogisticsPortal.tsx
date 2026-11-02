@@ -43,9 +43,9 @@ const empty = {
 
 export default function LogisticsPortal() {
   usePageSEO({
-    title: "Logistics Portal | Prescribly",
+    title: "Logistics Portal | PrescriblyCare",
     description:
-      "Register your logistics company on Prescribly and deliver medication orders from partner pharmacies.",
+      "Register your logistics company on PrescriblyCare and deliver medication orders from partner pharmacies.",
   });
 
   const navigate = useNavigate();
@@ -197,7 +197,7 @@ export default function LogisticsPortal() {
             <Logo size="lg" withLink priority />
             <Truck className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle>Prescribly Logistics Portal</CardTitle>
+          <CardTitle>PrescriblyCare Logistics Portal</CardTitle>
           <CardDescription>
             Register your delivery company, get approved and start fulfilling medication deliveries
             for partner pharmacies.
