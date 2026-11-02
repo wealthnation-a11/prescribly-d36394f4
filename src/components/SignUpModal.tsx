@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Stethoscope, Shield, FileText, MapPin, AlertTriangle, User } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -36,8 +37,7 @@ export const SignUpModal = ({ isOpen, onClose, userType }: SignUpModalProps) => 
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-4 text-center">
           <div className="flex items-center justify-center space-x-2">
-            <Stethoscope className="w-6 h-6 text-primary" />
-            <span className="text-xl font-bold">PrescriblyCare</span>
+            <Logo size="lg" priority />
           </div>
           <DialogTitle className="text-2xl">
             {userType === "patient" ? (

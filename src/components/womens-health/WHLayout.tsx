@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
+import { Logo } from "@/components/Logo";
 
 interface Props {
   title?: string;
@@ -60,7 +61,8 @@ export const WHLayout = ({ title = "Women's Health", showBack = true, rightActio
                 <ArrowLeft className="h-5 w-5" />
               </button>
             )}
-            <h1 className="text-base font-semibold tracking-tight">{title}</h1>
+            <Logo compact withLink />
+            <h1 className="text-base font-semibold">{title}</h1>
           </div>
           <div className="flex items-center gap-1">
             {rightAction}

@@ -1,31 +1,33 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/prescriblycare-header-logo.png.asset.json";
 
 interface LogoProps {
   size?: "sm" | "md" | "lg";
   withLink?: boolean;
   className?: string;
   priority?: boolean;
+  compact?: boolean;
 }
 
-export const Logo = ({ size = "md", withLink = false, className, priority = false }: LogoProps) => {
-  const heightCls = size === "sm" ? "h-6" : size === "lg" ? "h-10" : "h-8";
+export const Logo = ({ size = "md", withLink = false, className, priority = false, compact = false }: LogoProps) => {
+  const heightCls = size === "sm" ? "h-10" : size === "lg" ? "h-24" : "h-14";
   const Img = (
     <img
-      src="/prescribly-logo.jpg"
+      src={compact ? "/favicon.png" : logoAsset.url}
       alt="PrescriblyCare logo"
-      width={236}
-      height={286}
-      className={cn("w-auto", heightCls, className)}
+      width={compact ? 64 : 408}
+      height={compact ? 64 : 220}
+      className={cn("w-auto max-w-full object-contain shrink-0 rounded bg-background", compact ? "h-8 w-8" : heightCls, className)}
       loading={priority ? "eager" : "lazy"}
-      {...(priority ? { fetchpriority: "high" } : {})}
+      fetchPriority={priority ? "high" : undefined}
       decoding="async"
     />
   );
 
   if (withLink) {
     return (
-      <Link to="/" aria-label="Go to home" className="flex items-center">
+      <Link to="/" aria-label="PrescriblyCare home" className="flex items-center shrink-0 max-w-full">
         {Img}
       </Link>
     );

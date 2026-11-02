@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "@/hooks/use-toast";
 import { Building2, LogIn } from "lucide-react";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { Logo } from "@/components/Logo";
 
 const FacilityLogin = () => {
   const [email, setEmail] = useState("");
@@ -69,6 +70,7 @@ const FacilityLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
       <Card className="w-full max-w-md border-border/50 shadow-lg">
         <CardHeader className="text-center space-y-2">
+          <div className="flex justify-center"><Logo size="lg" withLink priority /></div>
           <div className="mx-auto w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
             <Building2 className="h-7 w-7 text-primary" />
           </div>
