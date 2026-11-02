@@ -1,3 +1,4 @@
 - Paid lab-scan reports: the full interpretation is readable only via the `get_scan_report` RPC once a scan is `paid`; status changes happen only in edge functions (`analyze-medical-scan`, `scan-payment`). Why: clients must never read or unlock paid content themselves.
 - Delivery progress reaches patients through a DB trigger copying `delivery_orders` rider/status into `pharmacy_orders`. Why: one source of truth regardless of which dashboard updates the delivery.
 - Render branding through the shared Logo component and its canonical uploaded asset; compact navigation uses its icon variant. Why: consistent branding without crowding narrow headers.
+- Keep the native package identifier aligned with the explicitly approved rebranding configuration; synchronize native projects before release. Why: changing package identity requires a deliberate new native release.
