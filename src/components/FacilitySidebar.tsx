@@ -40,8 +40,8 @@ export function FacilitySidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {!collapsed && (
+          <SidebarGroupLabel className="h-auto py-3">
+            {collapsed ? <Logo compact /> : (
               <span className="flex items-center gap-2">
                 <Logo size="sm" />
                 Facility Portal

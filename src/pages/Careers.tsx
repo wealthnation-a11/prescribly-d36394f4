@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function Careers() {
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-10">
+          <div className="flex justify-center mb-5"><Logo size="md" withLink /></div>
           <h1 className="text-4xl font-bold text-foreground">Join the Team Revolutionizing Healthcare</h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">We are a mission‑driven team building accessible, secure, and trusted healthcare experiences for everyone.</p>
         </div>

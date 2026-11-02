@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePageSEO } from "@/hooks/usePageSEO";
@@ -121,6 +122,7 @@ ${formData.fullName}
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-center mb-5"><Logo size="md" withLink /></div>
           <Button 
             onClick={() => navigate("/careers")} 
             variant="ghost" 

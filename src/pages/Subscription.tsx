@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ const Subscription = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="max-w-lg w-full">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-3"><Logo size="md" withLink /></div>
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
             <CheckCircle className="h-6 w-6 text-primary" />
           </div>

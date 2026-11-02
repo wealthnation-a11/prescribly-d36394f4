@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -929,7 +930,7 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8">
             <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
-              <h3 className="text-xl sm:text-2xl font-bold text-primary">PrescriblyCare</h3>
+              <Logo size="md" withLink />
               <p className="text-background/80 text-sm sm:text-base">Doctor in Your Pocket</p>
               <p className="text-xs sm:text-sm text-background/60">
                 Revolutionizing healthcare with AI-powered solutions for patients and doctors worldwide.

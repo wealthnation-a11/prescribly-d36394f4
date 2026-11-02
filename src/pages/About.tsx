@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { Link } from "react-router-dom";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ export default function About() {
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-12 text-center">
+          <div className="flex justify-center mb-5"><Logo size="md" withLink /></div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">Our Mission is Your Wellbeing</h1>
           <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
             PrescriblyCare connects patients with trusted doctors anytime, anywhere. We believe modern care should be

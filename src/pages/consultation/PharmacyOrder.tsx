@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,7 @@ export default function PharmacyOrder() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <div className="max-w-md w-full mx-auto px-5 pt-3"><Logo compact withLink /></div>
       <div className="flex-1 max-w-md w-full mx-auto flex flex-col min-h-0">
         <div className="px-5 pt-5">
           <button onClick={() => navigate("/prescriptions/pharmacies")} className="mb-3 -ml-1 p-1">

@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -234,6 +235,7 @@ export default function LiveConsultation() {
   if (ended) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
+      <div className="max-w-md w-full mx-auto px-5 pt-3"><Logo compact withLink /></div>
         <div className="flex-1 max-w-md w-full mx-auto px-5 pt-12 text-center">
           <div
             className="w-16 h-16 rounded-full mx-auto flex items-center justify-center"
@@ -315,6 +317,7 @@ export default function LiveConsultation() {
   if (isCall) {
     return (
       <div className="min-h-screen relative" style={{ backgroundColor: CT.navy }}>
+      <div className="max-w-md w-full mx-auto px-5 pt-3"><Logo compact withLink /></div>
         {session?.mode === "video" && (
           <video
             ref={remoteVideoRef}
@@ -443,6 +446,7 @@ export default function LiveConsultation() {
   /* --------------- SCREEN 8A: CHAT CONSULTATION --------------- */
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <div className="max-w-md w-full mx-auto px-5 pt-3"><Logo compact withLink /></div>
       <div className="max-w-md w-full mx-auto flex-1 flex flex-col relative">
         <div
           className="flex items-center justify-between px-4 py-3 border-b"

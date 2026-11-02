@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -1117,6 +1118,7 @@ export default function ConsultationFlow() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#fff" }}>
+      <div className="max-w-md w-full mx-auto px-5 pt-3"><Logo compact withLink /></div>
       <div className="flex-1 max-w-md w-full mx-auto pb-4">{content}</div>
       <div className="max-w-md w-full mx-auto">
         <StepTracker current={step === "schedule" ? "type" : step} />

@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useParams, Link } from "react-router-dom";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { Button } from "@/components/ui/button";
@@ -188,6 +189,7 @@ export default function BlogPost() {
       <div className="min-h-screen bg-background">
         <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-center mb-5"><Logo size="md" withLink /></div>
           <Button variant="ghost" asChild className="mb-4">
             <Link to="/blog">
               <ChevronLeft className="h-4 w-4 mr-2" />
