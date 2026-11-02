@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { Link } from "react-router-dom";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,8 @@ import { Shield, Globe, Sparkles, Handshake, Heart, Stethoscope, Pill, Building2
 
 export default function About() {
   usePageSEO({
-    title: "About Prescribly | Our Mission is Your Wellbeing",
-    description: "Learn why Prescribly was founded and our mission to make quality healthcare accessible, secure, and trusted for everyone.",
+    title: "About PrescriblyCare | Our Mission is Your Wellbeing",
+    description: "Learn why PrescriblyCare was founded and our mission to make quality healthcare accessible, secure, and trusted for everyone.",
     canonicalPath: "/about",
   });
 
@@ -15,9 +16,10 @@ export default function About() {
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-12 text-center">
+          <div className="flex justify-center mb-5"><Logo size="md" withLink /></div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">Our Mission is Your Wellbeing</h1>
           <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
-            Prescribly connects patients with trusted doctors anytime, anywhere. We believe modern care should be
+            PrescriblyCare connects patients with trusted doctors anytime, anywhere. We believe modern care should be
             accessible, secure, and powered by compassionate clinicians supported by smart technology.
           </p>
         </div>
@@ -28,7 +30,7 @@ export default function About() {
           <article className="space-y-4">
             <h2 className="text-2xl font-semibold text-foreground">Our Story</h2>
             <p className="text-muted-foreground">
-              Prescribly was founded to remove barriers between people and quality healthcare. After seeing patients wait
+              PrescriblyCare was founded to remove barriers between people and quality healthcare. After seeing patients wait
               days for appointments—or avoid care entirely—we set out to build a platform that offers immediate access to
               licensed doctors, secure records, and seamless follow‑up.
             </p>
@@ -54,9 +56,9 @@ export default function About() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">What's New on Prescribly</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">What's New on PrescriblyCare</h2>
           <p className="text-muted-foreground mb-6 max-w-3xl">
-            Prescribly is now a complete care network — doctors, hospitals and pharmacies working together in one app.
+            PrescriblyCare is now a complete care network — doctors, hospitals and pharmacies working together in one app.
           </p>
           <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-6">
             <Card className="card-gradient border-0">
@@ -72,7 +74,7 @@ export default function About() {
             <Card className="card-gradient border-0">
               <CardContent className="p-6 space-y-2">
                 <Pill className="w-6 h-6 text-primary" />
-                <h3 className="font-semibold">Pharmacies on Prescribly</h3>
+                <h3 className="font-semibold">Pharmacies on PrescriblyCare</h3>
                 <p className="text-sm text-muted-foreground">
                   Send your prescription to a nearby verified pharmacy, compare prices, chat with the pharmacist and track
                   delivery.

@@ -174,7 +174,7 @@ export const BayesianResults: React.FC<BayesianResultsProps> = ({
           size="lg"
         >
           <Activity className="h-4 w-4 mr-2" />
-          Consult a Prescribly Doctor
+          Consult a PrescriblyCare Doctor
         </Button>
         <Button 
           variant="outline" 

@@ -29,7 +29,7 @@ const fireSummary = async (userId: string, email?: string | null) => {
         await supabase.functions.invoke("send-email-notification", {
           body: {
             to_email: email,
-            subject: `Your Prescribly daily summary — Score ${score}`,
+            subject: `Your PrescriblyCare daily summary — Score ${score}`,
             message: `Hi! Here's your wellness recap for ${date}.\n\nTotal score: ${score}\nPoints earned: ${earned}\nPoints lost: ${lost}\nWater taken/missed: ${s?.water_taken ?? 0}/${s?.water_missed ?? 0}\nMeds taken/missed: ${s?.meds_taken ?? 0}/${s?.meds_missed ?? 0}\nMeditation minutes: ${s?.meditation_minutes ?? 0}\nSteps: ${s?.steps ?? 0}\nSleep: ${s?.sleep_hours ?? 0}h\n\nKeep it up!`,
             notification_type: "eod_summary",
           },

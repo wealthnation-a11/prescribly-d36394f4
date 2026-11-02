@@ -30,7 +30,7 @@ export function DoctorLayout({ children, title, subtitle, showBackButton = true 
             
             {/* Logo on mobile */}
             <div className="lg:hidden flex-shrink-0">
-              <Logo size="sm" withLink />
+              <Logo compact withLink />
             </div>
 
             <div className="flex-1 min-w-0 flex items-center gap-2 sm:gap-4">

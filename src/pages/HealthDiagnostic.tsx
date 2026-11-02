@@ -25,7 +25,7 @@ interface DiagnosticSessionData {
 
 const HealthDiagnostic = () => {
   usePageSEO({
-    title: "AI Health Diagnostic - Prescribly",
+    title: "AI Health Diagnostic - PrescriblyCare",
     description: "Advanced AI-powered health diagnostic system with symptom analysis and medical recommendations.",
     canonicalPath: "/health-diagnostic"
   });

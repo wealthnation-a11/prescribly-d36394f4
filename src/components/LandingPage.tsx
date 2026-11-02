@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -108,7 +109,7 @@ export const LandingPage = () => {
     role: "Lagos",
     avatar: "👩🏾‍💼"
   }, {
-    quote: "Affordable, reliable, and empathetic. I trust Prescribly like I would a clinic.",
+    quote: "Affordable, reliable, and empathetic. I trust PrescriblyCare like I would a clinic.",
     author: "James",
     role: "London",
     avatar: "👨🏻‍💼"
@@ -129,17 +130,17 @@ export const LandingPage = () => {
     avatar: "👨🏾"
   }];
   const faqs = [{
-    question: "Is Prescribly really free to register?",
-    answer: "Yes — creating an account on Prescribly is 100% free. There is no monthly subscription. You only pay when you book a service: ₦3,500 for a doctor consultation, or ₦47,000 for a home visit."
+    question: "Is PrescriblyCare really free to register?",
+    answer: "Yes — creating an account on PrescriblyCare is 100% free. There is no monthly subscription. You only pay when you book a service: ₦3,500 for a doctor consultation, or ₦47,000 for a home visit."
   }, {
     question: "How much does it cost to book a doctor?",
     answer: "An online doctor consultation (chat / video / voice) costs ₦3,500. A home visit, where the doctor comes to your address, costs ₦47,000. There are no other fees."
   }, {
     question: "How does the doctor get paid?",
-    answer: "Consultation fees and home-visit fees are split between the doctor and Prescribly to cover platform, payment, and support costs. Doctors receive their share directly to their payout account."
+    answer: "Consultation fees and home-visit fees are split between the doctor and PrescriblyCare to cover platform, payment, and support costs. Doctors receive their share directly to their payout account."
   }, {
     question: "Can I talk to a real doctor?",
-    answer: "Absolutely. All Prescribly doctors are licensed medical professionals who are verified before they appear on the platform. Our AI helps with quick symptom analysis, but every consultation is with a real doctor."
+    answer: "Absolutely. All PrescriblyCare doctors are licensed medical professionals who are verified before they appear on the platform. Our AI helps with quick symptom analysis, but every consultation is with a real doctor."
   }, {
     question: "Which payment methods can I use?",
     answer: "Payments are processed securely through Flutterwave. You can pay with debit/credit card, bank account, bank transfer, USSD, or mobile money — pick whichever works best for you at checkout."
@@ -165,7 +166,7 @@ export const LandingPage = () => {
                 </span>
               </h1>
               <p className="text-base sm:text-lg lg:text-xl text-muted-foreground fade-in-up stagger-1 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                Prescribly connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
+                PrescriblyCare connects you with licensed healthcare professionals you can trust — fast, affordable, and always accessible.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start fade-in-up stagger-2 max-w-md mx-auto lg:mx-0">
                 {user ? <Button variant="cta" size="lg" className="button-enhanced w-full sm:w-auto text-base px-8 py-6 min-h-[3.5rem]" onClick={() => {
@@ -233,11 +234,11 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Why Prescribly Section */}
+      {/* Why PrescriblyCare Section */}
       <section id="why-prescribly" className="py-12 sm:py-16 lg:py-20">
         <div className="container mx-auto px-4 sm:px-6">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-12 sm:mb-16 fade-in-up px-4">
-            Why Patients Choose Prescribly
+            Why Patients Choose PrescriblyCare
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <Card className="card-gradient border-0 medical-shadow hover-lift fade-in-up text-center">
@@ -307,7 +308,7 @@ export const LandingPage = () => {
       <section id="how-it-works" className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-foreground mb-12 sm:mb-16 fade-in-up px-4">
-            How Prescribly Works
+            How PrescriblyCare Works
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 max-w-6xl mx-auto">
             <div className="text-center fade-in-up">
@@ -363,7 +364,7 @@ export const LandingPage = () => {
             </h2>
             <div className="prose prose-lg mx-auto text-muted-foreground fade-in-up stagger-1 px-4">
               <p className="text-base sm:text-lg leading-relaxed">
-                At Prescribly, we believe health care should be human first. Our platform connects you with compassionate, licensed healthcare professionals who truly care about your well-being. 
+                At PrescriblyCare, we believe health care should be human first. Our platform connects you with compassionate, licensed healthcare professionals who truly care about your well-being. 
               </p>
               <p className="text-base sm:text-lg leading-relaxed mt-4 sm:mt-6">
                 We promise transparent pricing, secure data handling, and healthcare that puts your needs first—from AI symptom checks to live consultations, home visits and everyday wellness tracking. Every consultation is designed to make you feel heard, understood, and cared for—because your health deserves nothing less.
@@ -447,7 +448,7 @@ export const LandingPage = () => {
                     </div>
                     <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
                     <CardDescription>
-                      Register your hospital, clinic, or pharmacy to join the Prescribly network and connect with patients.
+                      Register your hospital, clinic, or pharmacy to join the PrescriblyCare network and connect with patients.
                     </CardDescription>
                      <div className="mt-4">
                        <span className="text-4xl font-bold text-primary">Free</span>
@@ -577,7 +578,7 @@ export const LandingPage = () => {
                     </div>
                     <CardTitle className="text-2xl mb-1">Healthcare Plans for Organizations</CardTitle>
                     <CardDescription>
-                      Register your hospital, clinic, or pharmacy to join the Prescribly network and connect with patients.
+                      Register your hospital, clinic, or pharmacy to join the PrescriblyCare network and connect with patients.
                     </CardDescription>
                      <div className="mt-4">
                        <span className="text-4xl font-bold text-primary">Free</span>
@@ -657,16 +658,16 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Partner with Prescribly */}
+      {/* Partner with PrescriblyCare */}
       <section id="partners" className="py-12 sm:py-16 lg:py-20">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-14">
             <Badge variant="secondary" className="mb-4 px-3 py-1 rounded-full">Now open for partners</Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
-              Partner with Prescribly
+              Partner with PrescriblyCare
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
-               Doctors, hospitals, pharmacies and logistics companies work together on Prescribly. Registration is free —
+               Doctors, hospitals, pharmacies and logistics companies work together on PrescriblyCare. Registration is free —
                apply, get verified and manage your services from one place.
             </p>
           </div>
@@ -915,7 +916,7 @@ export const LandingPage = () => {
               <span className="text-primary">{t('app_name')}</span>
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-muted-foreground">
-              Join thousands of patients and doctors who trust Prescribly for better healthcare outcomes.
+              Join thousands of patients and doctors who trust PrescriblyCare for better healthcare outcomes.
             </p>
             <Button variant="cta" size="lg" className="text-lg sm:text-xl px-8 sm:px-12 py-5 sm:py-6" asChild aria-label="Navigate to registration page">
               <Link to="/register">Sign Up Now</Link>
@@ -929,7 +930,7 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8">
             <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
-              <h3 className="text-xl sm:text-2xl font-bold text-primary">Prescribly</h3>
+              <Logo size="md" withLink />
               <p className="text-background/80 text-sm sm:text-base">Doctor in Your Pocket</p>
               <p className="text-xs sm:text-sm text-background/60">
                 Revolutionizing healthcare with AI-powered solutions for patients and doctors worldwide.
@@ -984,7 +985,7 @@ export const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-background/20 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-background/60">
-            © 2025 Prescribly. All rights reserved.
+            © 2025 PrescriblyCare. All rights reserved.
           </div>
         </div>
       </footer>

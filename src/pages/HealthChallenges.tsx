@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Moon, Droplets, Footprints, Pill, Brain, Pencil, Play, Plus, Flame, ChevronLeft, Check, Loader2, Square, Activity } from "lucide-react";
@@ -1202,7 +1203,7 @@ type Scores = Record<FeatureKey, number>;
 
 const HealthChallenges: React.FC = () => {
   usePageSEO({
-    title: "Health Challenges - Prescribly",
+    title: "Health Challenges - PrescriblyCare",
     description: "Sleep, water, steps, medication and meditation — all in one wellness hub.",
     canonicalPath: "/health-challenges",
   });
@@ -1298,7 +1299,7 @@ const HealthChallenges: React.FC = () => {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <Label>Wellness hub</Label>
-          <div className="w-10" />
+          <Logo compact withLink />
         </div>
 
         <div className="mt-2">

@@ -1,9 +1,10 @@
+import { Logo } from "@/components/Logo";
 import { usePageSEO } from "@/hooks/usePageSEO";
 
 export default function HipaaCompliance() {
   usePageSEO({
-    title: "Prescribly HIPAA Compliance",
-    description: "Learn how Prescribly safeguards PHI with HIPAA-aligned administrative, technical, and physical controls.",
+    title: "PrescriblyCare HIPAA Compliance",
+    description: "Learn how PrescriblyCare safeguards PHI with HIPAA-aligned administrative, technical, and physical controls.",
     canonicalPath: "/hipaa-compliance",
   });
 
@@ -11,6 +12,7 @@ export default function HipaaCompliance() {
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-10">
+          <div className="flex justify-center mb-5"><Logo size="md" withLink /></div>
           <h1 className="text-4xl font-bold text-foreground">HIPAA Compliance</h1>
           <p className="text-muted-foreground mt-2">How we protect Protected Health Information (PHI)</p>
         </div>
@@ -20,7 +22,7 @@ export default function HipaaCompliance() {
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-foreground">1. Overview</h2>
           <p className="text-muted-foreground">
-            Prescribly maintains administrative, technical, and physical safeguards designed to meet HIPAA requirements for protecting PHI. We continually evaluate and enhance our controls.
+            PrescriblyCare maintains administrative, technical, and physical safeguards designed to meet HIPAA requirements for protecting PHI. We continually evaluate and enhance our controls.
           </p>
         </section>
 

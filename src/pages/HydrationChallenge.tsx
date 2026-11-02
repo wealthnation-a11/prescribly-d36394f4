@@ -27,7 +27,7 @@ interface HydrationLog {
 
 const HydrationChallenge = () => {
   usePageSEO({
-    title: "7-Day Hydration Challenge - Prescribly",
+    title: "7-Day Hydration Challenge - PrescriblyCare",
     description: "Track your daily water intake with our 7-day hydration challenge. Monitor progress and earn badges.",
     canonicalPath: "/health-challenges/hydration"
   });

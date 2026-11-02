@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -804,7 +805,7 @@ export default function ConsultationFlow() {
                     className="mt-4 pt-4 border-t flex items-center gap-2 text-sm"
                     style={{ borderColor: CT.border, color: CT.green }}
                   >
-                    <ShieldCheck className="w-4 h-4" /> Verified by Prescribly
+                    <ShieldCheck className="w-4 h-4" /> Verified by PrescriblyCare
                   </div>
                 </div>
                 <Button
@@ -1117,6 +1118,7 @@ export default function ConsultationFlow() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#fff" }}>
+      <div className="max-w-md w-full mx-auto px-5 pt-3"><Logo compact withLink /></div>
       <div className="flex-1 max-w-md w-full mx-auto pb-4">{content}</div>
       <div className="max-w-md w-full mx-auto">
         <StepTracker current={step === "schedule" ? "type" : step} />

@@ -121,7 +121,7 @@ export const EnterpriseDemoModal = ({ open, onOpenChange }: EnterpriseDemoModalP
                   </div>
                   <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-sm">24/7 access to Prescribly's medical AI Hs</span>
+                    <span className="text-sm">24/7 access to PrescriblyCare's medical AI Hs</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-primary flex-shrink-0" />

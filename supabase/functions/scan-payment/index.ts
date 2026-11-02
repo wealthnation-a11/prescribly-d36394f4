@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     if (body.action === 'init') {
       const o = req.headers.get('origin') || ''
-      const origin = /^https?:\/\//.test(o) ? o : 'https://prescribly.lovable.app'
+      const origin = /^https?:\/\//.test(o) ? o : 'https://prescriblycare.lovable.app'
       const tx_ref = `flw-scan-${scan.id}-${Date.now()}`
       const r = await fetch('https://api.flutterwave.com/v3/payments', {
         method: 'POST',
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
           payment_options: 'card,account,ussd,banktransfer',
           redirect_url: `${origin}/scan-results/${scan.id}`,
           customer: { email: user.email, name: user.user_metadata?.first_name || user.email },
-          customizations: { title: 'Prescribly Lab Result Interpretation', logo: 'https://prescribly.lovable.app/prescribly-logo.png' },
+          customizations: { title: 'PrescriblyCare Lab Result Interpretation', logo: 'https://prescriblycare.lovable.app/__l5e/assets-v1/abc4acb3-95f1-46d4-a47a-859a56b565e2/prescriblycare-header-logo.png' },
           meta: { user_id: user.id, type: 'scan', scan_id: scan.id },
         }),
       })

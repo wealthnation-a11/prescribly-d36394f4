@@ -21,7 +21,7 @@ const OVERALL: Record<string, string> = {
 };
 
 export default function ScanResultDetail() {
-  usePageSEO({ title: "Your Lab Result - Prescribly", description: "Your lab result explained in plain English." });
+  usePageSEO({ title: "Your Lab Result - PrescriblyCare", description: "Your lab result explained in plain English." });
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ export default function ScanResultDetail() {
   const textSummary = () => {
     if (!report) return "";
     const lines = [
-      `Prescribly Lab Result — ${report.test_type}`,
+      `PrescriblyCare Lab Result — ${report.test_type}`,
       `Overall: ${OVERALL[report.overall_status] ?? report.overall_status}`,
       "",
       report.summary,
@@ -114,7 +114,7 @@ export default function ScanResultDetail() {
       }
       y += 2;
     };
-    line("Prescribly", 18, true);
+    line("PrescriblyCare", 18, true);
     line("Lab Result Interpretation", 12, true);
     line(`${report.test_type} · ${new Date(scan?.created_at).toLocaleDateString()}`, 9);
     line(`Overall: ${OVERALL[report.overall_status] ?? report.overall_status}`, 11, true);
@@ -127,19 +127,19 @@ export default function ScanResultDetail() {
     if (report.next_steps?.length) { line("Next steps", 12, true); report.next_steps.forEach((s) => line(`• ${s}`)); }
     if (report.questions_for_doctor?.length) { line("Questions for your doctor", 12, true); report.questions_for_doctor.forEach((s) => line(`• ${s}`)); }
     if (report.lifestyle_tips?.length) { line("Healthy habits", 12, true); report.lifestyle_tips.forEach((s) => line(`• ${s}`)); }
-    line("This explanation is for education only and does not replace diagnosis by a licensed doctor. Book a doctor on Prescribly for treatment.", 8);
+    line("This explanation is for education only and does not replace diagnosis by a licensed doctor. Book a doctor on PrescriblyCare for treatment.", 8);
     return doc;
   };
 
-  const download = () => buildPdf()?.save(`prescribly-lab-result-${id?.slice(0, 8)}.pdf`);
+  const download = () => buildPdf()?.save(`prescriblycare-lab-result-${id?.slice(0, 8)}.pdf`);
 
   const share = async () => {
     const doc = buildPdf();
     if (!doc) return;
-    const file = new File([doc.output("blob")], "prescribly-lab-result.pdf", { type: "application/pdf" });
+    const file = new File([doc.output("blob")], "prescriblycare-lab-result.pdf", { type: "application/pdf" });
     const nav = navigator as any;
     if (nav.canShare?.({ files: [file] })) {
-      try { await nav.share({ files: [file], title: "My lab result", text: "My Prescribly lab result" }); } catch { /* cancelled */ }
+      try { await nav.share({ files: [file], title: "My lab result", text: "My PrescriblyCare lab result" }); } catch { /* cancelled */ }
     } else if (nav.share) {
       try { await nav.share({ title: "My lab result", text: textSummary() }); } catch { /* cancelled */ }
     } else {

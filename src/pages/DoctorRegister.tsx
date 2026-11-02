@@ -261,7 +261,7 @@ export const DoctorRegister = () => {
               <Logo size="sm" priority />
             </div>
             <h1 className="text-xl font-bold">Doctor Registration</h1>
-            <p className="text-sm text-primary-foreground/80">Join Prescribly's medical network</p>
+            <p className="text-sm text-primary-foreground/80">Join PrescriblyCare's medical network</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">

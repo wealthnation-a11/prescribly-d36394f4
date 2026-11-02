@@ -38,7 +38,7 @@ interface DeliveryRow {
 
 export default function LogisticsDashboard() {
   usePageSEO({
-    title: "Logistics Dashboard | Prescribly",
+    title: "Logistics Dashboard | PrescriblyCare",
     description: "Manage medication delivery jobs assigned to your logistics company.",
   });
 

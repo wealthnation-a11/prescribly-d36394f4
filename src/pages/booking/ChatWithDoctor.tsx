@@ -164,7 +164,7 @@ export default function ChatWithDoctor() {
                   <ul className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
-                      Pay securely through Prescribly
+                      Pay securely through PrescriblyCare
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
@@ -172,7 +172,7 @@ export default function ChatWithDoctor() {
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
-                      Chat, voice, or video — all from inside Prescribly
+                      Chat, voice, or video — all from inside PrescriblyCare
                     </li>
                   </ul>
                 </div>

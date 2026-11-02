@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Stethoscope, Shield, FileText, MapPin, AlertTriangle, User } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -36,8 +37,7 @@ export const SignUpModal = ({ isOpen, onClose, userType }: SignUpModalProps) => 
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-4 text-center">
           <div className="flex items-center justify-center space-x-2">
-            <Stethoscope className="w-6 h-6 text-primary" />
-            <span className="text-xl font-bold">Prescribly</span>
+            <Logo size="lg" priority />
           </div>
           <DialogTitle className="text-2xl">
             {userType === "patient" ? (
@@ -146,9 +146,9 @@ export const SignUpModal = ({ isOpen, onClose, userType }: SignUpModalProps) => 
               />
               <label htmlFor="modal-agreement" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 {userType === "patient" ? (
-                  "I confirm that my information is accurate and I agree to Prescribly's confidentiality policy."
+                  "I confirm that my information is accurate and I agree to PrescriblyCare's confidentiality policy."
                 ) : (
-                  "I confirm that my information and documents are valid. I agree to Prescribly's verification terms."
+                  "I confirm that my information and documents are valid. I agree to PrescriblyCare's verification terms."
                 )}
               </label>
             </div>

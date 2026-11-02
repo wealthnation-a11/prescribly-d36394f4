@@ -19,7 +19,7 @@ const STATUS: Record<string, { label: string; variant: "default" | "secondary" |
 };
 
 export default function ScanResults() {
-  usePageSEO({ title: "Scan Lab Results - Prescribly", description: "Upload your lab result and get it explained in plain English." });
+  usePageSEO({ title: "Scan Lab Results - PrescriblyCare", description: "Upload your lab result and get it explained in plain English." });
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);

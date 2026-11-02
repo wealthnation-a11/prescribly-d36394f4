@@ -136,12 +136,12 @@ npx cap run android --target=device
 1. **Log in to Google Play Console**: https://play.google.com/console
 2. **Create New App**:
    - Click "Create app"
-   - Fill in app details (name: Prescribly, default language, etc.)
+   - Fill in app details (name: PrescriblyCare, default language, etc.)
    - Declare if it's an app or game
    - Accept policies
 
 3. **Set Up Store Listing**:
-   - **App name**: Prescribly
+   - **App name**: PrescriblyCare
    - **Short description**: Your 80-character pitch
    - **Full description**: Detailed description of features
    - **App icon**: Upload `public/pwa-512x512.png`

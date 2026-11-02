@@ -44,7 +44,7 @@ Appointments: ${JSON.stringify(appts ?? [])}
 Prescriptions: ${JSON.stringify(rx ?? [])}
 Recent payments: ${JSON.stringify(pays ?? [])}`;
 
-    const system = `You are Prescribly's AI Health Assistant. Help the user with:
+    const system = `You are PrescriblyCare's AI Health Assistant. Help the user with:
 1) Their personal data (appointments, prescriptions, payments) using the context below.
 2) General health and wellness questions.
 

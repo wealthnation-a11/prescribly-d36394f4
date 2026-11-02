@@ -103,11 +103,11 @@ html[dir="rtl"] .rtl\:ml-auto {
   margin-right: unset;
 }
 
-/* Prescribly Design System - Brand Colors */
+/* PrescriblyCare Design System - Brand Colors */
 
 @layer base {
   :root {
-    /* Prescribly Brand Colors */
+    /* PrescriblyCare Brand Colors */
     --prescribly-primary: 199 100% 35%; /* #0077b6 */
     --prescribly-accent: 195 77% 59%; /* #48cae4 */
     --prescribly-background: 194 100% 91%; /* #caf0f8 */
@@ -122,17 +122,17 @@ html[dir="rtl"] .rtl\:ml-auto {
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
 
-    --primary: 199 100% 35%; /* Prescribly primary #0077b6 */
+    --primary: 199 100% 35%; /* PrescriblyCare primary #0077b6 */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 195 77% 59%; /* Prescribly accent #48cae4 */
+    --primary-glow: 195 77% 59%; /* PrescriblyCare accent #48cae4 */
 
-    --secondary: 194 100% 95%; /* Light Prescribly background */
+    --secondary: 194 100% 95%; /* Light PrescriblyCare background */
     --secondary-foreground: 199 100% 35%;
 
     --muted: 194 100% 95%;
     --muted-foreground: 215 15% 50%;
 
-    --accent: 195 77% 59%; /* Prescribly accent #48cae4 */
+    --accent: 195 77% 59%; /* PrescriblyCare accent #48cae4 */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -198,7 +198,7 @@ html[dir="rtl"] .rtl\:ml-auto {
     --wh-pink: 335 100% 72%;          /* #FF6FAE */
     --wh-pink-soft: 340 100% 96%;
     --wh-pink-deep: 335 80% 55%;
-    --wh-blue: 217 100% 50%;          /* #0066FF Prescribly Blue */
+    --wh-blue: 217 100% 50%;          /* #0066FF PrescriblyCare Blue */
     --wh-blue-soft: 217 100% 96%;
     --wh-purple: 270 70% 65%;         /* Ovulation */
     --wh-purple-soft: 270 70% 96%;
@@ -226,13 +226,13 @@ html[dir="rtl"] .rtl\:ml-auto {
     --popover: 222.2 84% 6%;
     --popover-foreground: 210 40% 98%;
 
-    /* Prescribly Dark Mode Brand Colors */
+    /* PrescriblyCare Dark Mode Brand Colors */
     --prescribly-primary: 195 100% 60%; /* Brighter blue for dark mode */
     --prescribly-accent: 195 77% 70%; /* Lighter accent for visibility */
     --prescribly-background: 222.2 84% 8%; /* Dark background with slight tint */
     --prescribly-light: 210 40% 98%; /* Light text color */
 
-    --primary: 195 100% 60%; /* Use Prescribly primary for consistency */
+    --primary: 195 100% 60%; /* Use PrescriblyCare primary for consistency */
     --primary-foreground: 222.2 84% 4.9%;
     --primary-glow: 195 77% 70%;
 
@@ -242,7 +242,7 @@ html[dir="rtl"] .rtl\:ml-auto {
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 70%; /* Increased contrast */
 
-    --accent: 195 77% 70%; /* Use Prescribly accent */
+    --accent: 195 77% 70%; /* Use PrescriblyCare accent */
     --accent-foreground: 222.2 84% 4.9%;
 
     --destructive: 0 62.8% 50%;

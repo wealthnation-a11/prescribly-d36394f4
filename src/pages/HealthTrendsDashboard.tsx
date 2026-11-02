@@ -47,7 +47,7 @@ interface TrendData {
 
 const HealthTrendsDashboard = () => {
   usePageSEO({
-    title: "Health Trends Dashboard - Prescribly",
+    title: "Health Trends Dashboard - PrescriblyCare",
     description: "Track your health trends and wellness journey with visual insights from your daily check-ins.",
     canonicalPath: "/health-trends"
   });

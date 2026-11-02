@@ -64,10 +64,10 @@ export function AppSidebar() {
       <SidebarContent className="bg-sidebar">
         <div className="p-4 border-b border-sidebar-border">
           <NavLink to="/" end className="flex items-center gap-3" aria-label="Go to home">
-            <Logo size="sm" />
+            <Logo size="sm" compact={isCollapsed} />
             {!isCollapsed && (
-              <div className="flex-1">
-                <h2 className="font-bold text-lg text-sidebar-foreground">Prescribly</h2>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-bold text-sm text-sidebar-foreground break-words">PrescriblyCare</h2>
                 <p className="text-xs text-sidebar-foreground/70">Health Platform</p>
               </div>
             )}

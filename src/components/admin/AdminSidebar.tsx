@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Logo } from "@/components/Logo";
 import {
   BarChart3,
   Users,
@@ -139,18 +140,14 @@ export function AdminSidebar({
         <div className="flex items-center justify-between">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                <Shield className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <h2 className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              <Logo size="sm" />
+              <h2 className="text-sm font-bold text-foreground">
                 Admin Panel
               </h2>
             </div>
           )}
           {collapsed && (
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mx-auto">
-              <Shield className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <Logo compact />
           )}
           <Button
             variant="ghost"

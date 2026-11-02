@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePageSEO } from "@/hooks/usePageSEO";
@@ -36,8 +37,8 @@ export default function JobApplication() {
   const jobInfo = jobPositions[position as keyof typeof jobPositions];
   
   usePageSEO({
-    title: `Apply for ${jobInfo?.title || 'Position'} | Prescribly Careers`,
-    description: `Submit your application for ${jobInfo?.title || 'this position'} at Prescribly. Join our mission to revolutionize healthcare.`,
+    title: `Apply for ${jobInfo?.title || 'Position'} | PrescriblyCare Careers`,
+    description: `Submit your application for ${jobInfo?.title || 'this position'} at PrescriblyCare. Join our mission to revolutionize healthcare.`,
     canonicalPath: `/careers/apply/${position}`,
   });
 
@@ -86,7 +87,7 @@ export default function JobApplication() {
     // Create email content
     const subject = `Job Application: ${jobInfo.title} - ${formData.fullName}`;
     const body = `
-Dear Prescribly Hiring Team,
+Dear PrescriblyCare Hiring Team,
 
 I am applying for the ${jobInfo.title} position.
 
@@ -121,6 +122,7 @@ ${formData.fullName}
     <div className="min-h-screen bg-background">
       <header className="bg-secondary/30 border-b border-border/50">
         <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-center mb-5"><Logo size="md" withLink /></div>
           <Button 
             onClick={() => navigate("/careers")} 
             variant="ghost" 

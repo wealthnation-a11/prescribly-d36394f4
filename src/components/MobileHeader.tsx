@@ -21,7 +21,7 @@ export const MobileHeader = ({ title, showSupportButton = true }: MobileHeaderPr
       
       {/* Logo - visible when sidebar is hidden (mobile/collapsed) */}
       <div className="lg:hidden">
-        <Logo size="sm" withLink />
+        <Logo compact withLink />
       </div>
       
       {/* Desktop spacer when sidebar is visible */}

@@ -41,9 +41,9 @@ const empty = {
 
 export default function PharmacyPortal() {
   usePageSEO({
-    title: "Pharmacy Portal | Prescribly",
+    title: "Pharmacy Portal | PrescriblyCare",
     description:
-      "Register your pharmacy on Prescribly, manage your drug price list and fulfil patient prescription orders.",
+      "Register your pharmacy on PrescriblyCare, manage your drug price list and fulfil patient prescription orders.",
   });
 
   const navigate = useNavigate();
@@ -198,9 +198,9 @@ export default function PharmacyPortal() {
             <Logo size="lg" withLink priority />
             <Pill className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle>Prescribly Pharmacy Portal</CardTitle>
+          <CardTitle>PrescriblyCare Pharmacy Portal</CardTitle>
           <CardDescription>
-            Join the Prescribly pharmacy network — publish your prices, chat with patients and
+            Join the PrescriblyCare pharmacy network — publish your prices, chat with patients and
             fulfil prescription orders.
           </CardDescription>
         </CardHeader>
@@ -271,7 +271,7 @@ export default function PharmacyPortal() {
                 Submit application
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Applications are reviewed by the Prescribly team before your pharmacy becomes
+                Applications are reviewed by the PrescriblyCare team before your pharmacy becomes
                 visible to patients.
               </p>
             </TabsContent>

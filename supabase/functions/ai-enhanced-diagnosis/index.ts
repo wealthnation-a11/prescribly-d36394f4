@@ -206,7 +206,7 @@ serve(async (req) => {
     );
 
     // 6. Enhanced AI validation with comprehensive analysis
-    const aiPrompt = `You are Prescribly's AI Diagnostic Assistant. Analyze this medical case comprehensively:
+    const aiPrompt = `You are PrescriblyCare's AI Diagnostic Assistant. Analyze this medical case comprehensively:
 
 PATIENT PROFILE:
 - Symptoms: ${symptoms}

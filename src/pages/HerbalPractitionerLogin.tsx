@@ -19,7 +19,7 @@ export const HerbalPractitionerLogin = () => {
   const navigate = useNavigate();
 
   usePageSEO({
-    title: 'Herbal Practitioner Login - Prescribly',
+    title: 'Herbal Practitioner Login - PrescriblyCare',
     description: 'Login to your herbal practitioner account',
   });
 

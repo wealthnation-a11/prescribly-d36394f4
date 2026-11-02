@@ -176,7 +176,7 @@ export const AIChatBubble = () => {
       {open && (
         <Card className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[92vw] h-[520px] max-h-[80vh] flex flex-col shadow-2xl border-primary/20">
           <div className="flex items-center justify-between p-3 border-b bg-primary text-primary-foreground rounded-t-lg">
-            <div className="flex items-center gap-2"><Headset className="w-4 h-4" /><span className="font-semibold text-sm">Prescribly Assistant</span></div>
+            <div className="flex items-center gap-2"><Headset className="w-4 h-4" /><span className="font-semibold text-sm">PrescriblyCare Assistant</span></div>
             <div className="flex items-center gap-1">
               <button onClick={dismiss} aria-label="Dismiss for this session" className="text-xs underline opacity-80 hover:opacity-100">Hide</button>
               <button onClick={() => setOpen(false)} aria-label="Close" className="ml-2"><X className="w-4 h-4" /></button>
