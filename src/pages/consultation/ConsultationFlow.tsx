@@ -364,6 +364,10 @@ export default function ConsultationFlow() {
         .from("consultation_sessions")
         .update({ status: "waiting" })
         .eq("id", sessionId);
+      // Alert doctors' phones (fire-and-forget; never blocks the patient).
+      supabase.functions
+        .invoke("notify-doctors-waiting", { body: { session_id: sessionId } })
+        .catch(() => {});
     }
     setStep("waiting");
   };

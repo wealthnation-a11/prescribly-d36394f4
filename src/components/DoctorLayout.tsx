@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { DoctorSidebar } from "./DoctorSidebar";
 import { Logo } from "./Logo";
 import { NotificationBell } from "./NotificationBell";
+import { DoctorAlertsBanner } from "./doctor/DoctorAlertsBanner";
 
 interface DoctorLayoutProps {
   children: ReactNode;
@@ -57,6 +58,7 @@ export function DoctorLayout({ children, title, subtitle, showBackButton = true 
           {/* Main Content */}
           <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-muted/30 overflow-auto">
             <div className="max-w-7xl mx-auto">
+              <DoctorAlertsBanner />
               {children}
             </div>
           </main>
