@@ -77,6 +77,7 @@ const navGroups: NavGroup[] = [
       { id: "doctors", label: "Doctors", icon: Stethoscope, color: "text-cyan-500" },
       { id: "pharmacies", label: "Pharmacies", icon: Package, color: "text-green-500" },
       { id: "logistics", label: "Logistics", icon: Truck, color: "text-amber-600" },
+      { id: "lab-scans", label: "Lab Scans", icon: Truck, color: "text-sky-600" },
     ],
   },
   {
