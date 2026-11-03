@@ -3967,6 +3967,21 @@ export type Database = {
           post_id: string
         }[]
       }
+      admin_list_scans: {
+        Args: never
+        Returns: {
+          amount: number
+          created_at: string
+          file_name: string
+          id: string
+          paid_at: string
+          patient_email: string
+          patient_name: string
+          payment_reference: string
+          status: string
+          user_id: string
+        }[]
+      }
       award_wellness_points: {
         Args: { _activity: string; _qty?: number }
         Returns: {
