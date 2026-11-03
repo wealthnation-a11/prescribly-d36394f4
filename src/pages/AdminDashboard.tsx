@@ -80,6 +80,27 @@ const AdminDashboard = () => {
     },
   });
 
+  const { data: revenue } = useQuery({
+    queryKey: ["admin-revenue-kpis"],
+    queryFn: async () => {
+      const [pay, scans, ph, lg] = await Promise.all([
+        supabase.from("consultation_payments").select("amount").in("status", ["completed", "successful", "paid"]),
+        (supabase.rpc as any)("admin_list_scans"),
+        supabase.from("pharmacies").select("id", { count: "exact", head: true }).eq("status", "approved" as any),
+        supabase.from("logistics_companies").select("id", { count: "exact", head: true }).eq("status", "approved" as any),
+      ]);
+      const paidScans = ((scans.data || []) as any[]).filter((s) => s.status === "paid" && s.payment_reference);
+      return {
+        consultRevenue: (pay.data || []).reduce((t, p: any) => t + Number(p.amount || 0), 0),
+        consultCount: pay.data?.length || 0,
+        scanRevenue: paidScans.reduce((t, s) => t + Number(s.amount || 0), 0),
+        scanCount: paidScans.length,
+        pharmacies: ph.count || 0,
+        couriers: lg.count || 0,
+      };
+    },
+  });
+
   const renderContent = () => {
     switch (activeSection) {
       case "analytics":
@@ -427,6 +448,42 @@ const AdminDashboard = () => {
       color: "from-violet-500/20 to-violet-600/10",
       iconColor: "text-violet-500",
       borderColor: "border-violet-500/20",
+    },
+    {
+      title: "Consultation Revenue",
+      value: `₦${(revenue?.consultRevenue || 0).toLocaleString()}`,
+      subtitle: `${revenue?.consultCount || 0} paid sessions (₦3,500)`,
+      icon: TrendingUp,
+      color: "from-cyan-500/20 to-cyan-600/10",
+      iconColor: "text-cyan-500",
+      borderColor: "border-cyan-500/20",
+    },
+    {
+      title: "Lab Scan Revenue",
+      value: `₦${(revenue?.scanRevenue || 0).toLocaleString()}`,
+      subtitle: `${revenue?.scanCount || 0} unlocks (₦4,500)`,
+      icon: Activity,
+      color: "from-sky-500/20 to-sky-600/10",
+      iconColor: "text-sky-500",
+      borderColor: "border-sky-500/20",
+    },
+    {
+      title: "Active Pharmacies",
+      value: revenue?.pharmacies || 0,
+      subtitle: "Approved",
+      icon: Building2,
+      color: "from-green-500/20 to-green-600/10",
+      iconColor: "text-green-500",
+      borderColor: "border-green-500/20",
+    },
+    {
+      title: "Active Couriers",
+      value: revenue?.couriers || 0,
+      subtitle: "Approved logistics",
+      icon: UserCheck,
+      color: "from-amber-500/20 to-amber-600/10",
+      iconColor: "text-amber-600",
+      borderColor: "border-amber-500/20",
     },
   ];
 
