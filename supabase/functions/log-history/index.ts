@@ -8,8 +8,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+// Resolve the caller: either the platform service or a signed-in user.
+async function getCaller(req: Request): Promise<{ userId: string | null; isService: boolean }> {
+  const auth = req.headers.get('Authorization') ?? '';
+  if (SERVICE_KEY && auth === `Bearer ${SERVICE_KEY}`) return { userId: null, isService: true };
+  if (!auth) return { userId: null, isService: false };
+  const client = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: auth } } });
+  const { data } = await client.auth.getUser();
+  return { userId: data?.user?.id ?? null, isService: false };
+}
+
 const requestSchema = z.object({
-  user_id: z.string().uuid(),
   input_text: z.string().max(10000).optional().nullable(),
   parsed_symptoms: z.unknown().optional().nullable(),
   suggested_conditions: z.unknown().optional().nullable(),
@@ -25,10 +38,15 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const { userId, isService } = await getCaller(req);
+    if (!isService && !userId) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     const body = await req.json();
     const validation = requestSchema.safeParse(body);
@@ -39,8 +57,9 @@ serve(async (req) => {
       );
     }
 
-    const { user_id, input_text, parsed_symptoms, suggested_conditions, confirmed_condition, drug, dosage, notes } = validation.data;
-    console.log('Logging history for user:', user_id);
+    // History is always written under the caller's own identity.
+    const user_id = userId;
+    const { input_text, parsed_symptoms, suggested_conditions, confirmed_condition, drug, dosage, notes } = validation.data;
 
     const { data, error } = await supabase
       .from('user_diagnosis_history')
@@ -49,14 +68,13 @@ serve(async (req) => {
       .single();
 
     if (error) {
-      console.error('Error logging history:', error);
+      console.error('Error logging history:', error.message);
       return new Response(
         JSON.stringify({ error: 'Failed to save history' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('History logged successfully:', data.id);
     return new Response(
       JSON.stringify({ success: true, id: data.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
