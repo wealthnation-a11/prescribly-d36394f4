@@ -15,6 +15,13 @@
       "when": 1793764214849,
       "tag": "0001_tighten_baby_growth_and_symptom_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793765286339,
+      "tag": "0002_payment_and_role_integrity_guards",
+      "breakpoints": true
     }
   ]
 }
