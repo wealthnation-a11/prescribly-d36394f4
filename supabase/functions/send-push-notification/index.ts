@@ -6,6 +6,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+// Resolve the caller: either the platform service or a signed-in user.
+async function getCaller(req: Request): Promise<{ userId: string | null; isService: boolean }> {
+  const auth = req.headers.get('Authorization') ?? '';
+  if (SERVICE_KEY && auth === `Bearer ${SERVICE_KEY}`) return { userId: null, isService: true };
+  if (!auth) return { userId: null, isService: false };
+  const client = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: auth } } });
+  const { data } = await client.auth.getUser();
+  return { userId: data?.user?.id ?? null, isService: false };
+}
+
 const requestSchema = z.object({
   userId: z.string().uuid(),
   title: z.string().min(1).max(500),
@@ -22,7 +36,7 @@ interface PushSubscription {
 
 async function sendPushNotification(subscription: PushSubscription, payload: any): Promise<boolean> {
   try {
-    console.log('Sending push notification to:', subscription.endpoint);
+    console.log('Sending push notification to device endpoint');
     return true;
   } catch (error) {
     console.error('Error sending push notification:', error);
@@ -36,9 +50,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { userId: callerId, isService } = await getCaller(req);
+    if (!isService && !callerId) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     const rawBody = await req.json();
     const validation = requestSchema.safeParse(rawBody);
@@ -50,6 +70,14 @@ Deno.serve(async (req) => {
     }
 
     const { userId, title, body, url, type } = validation.data;
+
+    // Signed-in callers may only push to themselves; the platform service may target anyone.
+    if (!isService && userId !== callerId) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: cannot send push notifications for another user' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
@@ -91,7 +119,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
