@@ -128,6 +128,17 @@ serve(async (req) => {
       );
     }
 
+    // A doctor may only review sessions belonging to a patient in their care.
+    const { data: inCare } = await supabase
+      .rpc('shares_care_relationship', { _a: user.id, _b: session.user_id });
+    if (!inCare) {
+      await logSecurityEvent(supabase, 'session_not_assigned', user.id, req, 'high');
+      return new Response(
+        JSON.stringify({ error: 'This diagnosis session is not assigned to you' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check for emergency flags that would prevent prescription
     if (action === 'approve' || action === 'modify') {
       const { data: emergencyFlags } = await supabase

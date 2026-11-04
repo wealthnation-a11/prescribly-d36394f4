@@ -125,7 +125,11 @@ serve(async (req) => {
       }
 
       if (searchQuery) {
-        query = query.or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
+        // Strip PostgREST filter metacharacters so the search text cannot alter the query structure.
+        const safeSearch = searchQuery.replace(/[,()\"'*%\\]/g, ' ').trim();
+        if (safeSearch) {
+          query = query.or(`first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`);
+        }
       }
 
       const { data: users, error, count } = await query;
