@@ -33,8 +33,14 @@ Deno.serve(async (req) => {
     if (!secret) return json({ error: 'Payment provider not configured' }, 500)
 
     if (body.action === 'init') {
+      // Payment return destinations are restricted to the app's own origins.
+      const ALLOWED_LOCAL = ['http://localhost:8080', 'https://localhost:8080', 'capacitor://localhost']
       const o = req.headers.get('origin') || ''
-      const origin = /^https?:\/\//.test(o) ? o : 'https://prescriblycare.lovable.app'
+      let origin = 'https://prescriblycare.lovable.app'
+      try {
+        const host = new URL(o).host
+        if (ALLOWED_LOCAL.includes(o.replace(/\/$/, '')) || host === 'prescriblycare.lovable.app' || host.endsWith('.lovable.app')) origin = o
+      } catch { /* keep default */ }
       const tx_ref = `flw-scan-${scan.id}-${Date.now()}`
       const r = await fetch('https://api.flutterwave.com/v3/payments', {
         method: 'POST',
