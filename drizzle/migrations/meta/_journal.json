@@ -29,6 +29,13 @@
       "when": 1793765299836,
       "tag": "0003_wellness_points_daily_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793765396064,
+      "tag": "0004_fix_wellness_points_ambiguity",
+      "breakpoints": true
     }
   ]
 }
