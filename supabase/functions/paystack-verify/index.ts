@@ -137,7 +137,6 @@ serve(async (req) => {
           doctor_id: doctorId,
           appointment_id: metadata.appointment_id || null,
           amount,
-          reference,
           status: 'completed',
           currency: metadata.currency || 'NGN',
           payment_reference: reference,
