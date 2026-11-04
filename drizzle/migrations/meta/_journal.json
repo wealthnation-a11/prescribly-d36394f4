@@ -22,6 +22,13 @@
       "when": 1793765286339,
       "tag": "0002_payment_and_role_integrity_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793765299836,
+      "tag": "0003_wellness_points_daily_ledger",
+      "breakpoints": true
     }
   ]
 }
