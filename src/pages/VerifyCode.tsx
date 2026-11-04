@@ -124,7 +124,7 @@ const VerifyCode = () => {
                   onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
                   placeholder="e.g. ABC123"
                   className="text-center text-2xl font-mono tracking-[0.3em] uppercase"
-                  maxLength={6}
+                  maxLength={12}
                   onKeyDown={(e) => e.key === "Enter" && handleVerify()}
                 />
                 <Button onClick={handleVerify} disabled={loading || code.trim().length !== 6} size="lg">

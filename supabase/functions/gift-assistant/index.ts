@@ -56,8 +56,10 @@ serve(async (req) => {
     } else if (mode === "insight") {
       userMessages = [{ role: "user", content: "Give me ONE short daily insight about my current cycle phase (2 sentences)." }];
     } else {
-      userMessages = messages ?? [];
+      // Callers may not inject their own system-level instructions.
+      userMessages = (messages ?? []).filter((m) => m.role !== "system");
     }
+    if (userMessages.length === 0) return json({ error: "Invalid input" }, 400);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY missing" }, 500);

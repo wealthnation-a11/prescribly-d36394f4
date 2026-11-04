@@ -39,17 +39,14 @@ serve(async (req) => {
       );
     }
 
-    // Check doctor role
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
+    // Verify the caller is an approved doctor using the server-side check,
+    // not the client-editable profile field.
+    const { data: approvedDoctor, error: approvedError } = await supabase
+      .rpc('is_approved_doctor', { _user_id: user.id });
 
-    if (profileError || !profile || profile.role !== 'doctor') {
-      await logSecurityEvent(supabase, 'unauthorized_access', user.id, req, 'high');
+    if (approvedError || !approvedDoctor) {
       return new Response(
-        JSON.stringify({ error: 'Access denied. Doctor role required.' }),
+        JSON.stringify({ error: 'Access denied. Approved doctor status required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -128,6 +125,17 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Diagnosis session not found or not available for review' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // A doctor may only review sessions belonging to a patient in their care.
+    const { data: inCare } = await supabase
+      .rpc('shares_care_relationship', { _a: user.id, _b: session.user_id });
+    if (!inCare) {
+      await logSecurityEvent(supabase, 'session_not_assigned', user.id, req, 'high');
+      return new Response(
+        JSON.stringify({ error: 'This diagnosis session is not assigned to you' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

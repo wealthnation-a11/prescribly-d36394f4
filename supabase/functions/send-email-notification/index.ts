@@ -36,7 +36,9 @@ serve(async (req) => {
     }
 
     const { to_email, subject, message, notification_type } = validation.data;
-    console.log('Sending email notification:', { to_email, subject, notification_type });
+    // Never write the recipient's contact details to server logs.
+    const maskedEmail = to_email.replace(/^(.).*(@.*)$/, '$1***$2');
+    console.log('Sending email notification:', { to_email: maskedEmail, subject, notification_type });
 
     // In production, integrate with Gmail API or SMTP service
     const mailtoLink = `mailto:${to_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;

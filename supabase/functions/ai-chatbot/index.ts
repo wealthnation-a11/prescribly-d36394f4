@@ -31,6 +31,9 @@ serve(async (req) => {
 
     const parsed = Body.safeParse(await req.json());
     if (!parsed.success) return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Callers may not inject their own system-level instructions.
+    const userMessages = parsed.data.messages.filter((m) => m.role !== "system");
+    if (userMessages.length === 0) return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     // Fetch dashboard context (compact)
     const [{ data: appts }, { data: rx }, { data: pays }] = await Promise.all([
@@ -60,7 +63,7 @@ ${context}`;
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: system }, ...parsed.data.messages],
+        messages: [{ role: "system", content: system }, ...userMessages],
         stream: true,
       }),
     });

@@ -97,6 +97,26 @@ serve(async (req) => {
       })
     }
 
+    // Server-side price check: the settled amount must match the listed price.
+    const BASE_FEE_USD = 7
+    const CONSULTATION_NGN = 3500
+    const YEARLY_FACTOR = 10
+    const { data: rateRow } = await supabase
+      .from('exchange_rates')
+      .select('rate')
+      .eq('target_currency', txData.currency)
+      .eq('base_currency', 'USD')
+      .maybeSingle()
+    const rate = rateRow?.rate && rateRow.rate > 0 ? rateRow.rate : 1
+    const expected = type === 'consultation'
+      ? (txData.currency === 'NGN' ? CONSULTATION_NGN : Math.round(BASE_FEE_USD / rate))
+      : Math.round((plan === 'yearly' ? 4 * YEARLY_FACTOR : 4) / rate)
+    if (Number(txData.amount) + 1e-9 < expected * 0.98) {
+      return new Response(JSON.stringify({ status: false, message: 'Payment amount does not match the listed price' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400,
+      })
+    }
+
     // Idempotency: if this transaction was already recorded, just return success
     const { data: existing } = await supabase
       .from('consultation_payments').select('id').eq('payment_reference', txData.tx_ref).maybeSingle()

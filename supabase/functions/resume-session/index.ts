@@ -8,6 +8,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
 const requestSchema = z.object({
   session_id: z.string().uuid(),
 });
@@ -18,10 +22,24 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Only the owner may resume a saved session.
+    const auth = req.headers.get('Authorization') ?? '';
+    if (!auth) {
+      return new Response(
+        JSON.stringify({ found: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const authClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: auth } } });
+    const { data: { user } } = await authClient.auth.getUser();
+    if (!user) {
+      return new Response(
+        JSON.stringify({ found: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     const body = await req.json();
     const validation = requestSchema.safeParse(body);
@@ -38,6 +56,7 @@ serve(async (req) => {
       .from('user_sessions')
       .select('*')
       .eq('id', session_id)
+      .eq('user_id', user.id)
       .single();
 
     if (error || !session) {

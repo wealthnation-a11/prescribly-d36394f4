@@ -15,6 +15,34 @@
       "when": 1793764214849,
       "tag": "0001_tighten_baby_growth_and_symptom_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793765286339,
+      "tag": "0002_payment_and_role_integrity_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793765299836,
+      "tag": "0003_wellness_points_daily_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793765396064,
+      "tag": "0004_fix_wellness_points_ambiguity",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793765445632,
+      "tag": "0005_tighten_consultation_paid_guard",
+      "breakpoints": true
     }
   ]
 }

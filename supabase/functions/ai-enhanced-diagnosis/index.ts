@@ -59,9 +59,31 @@ serve(async (req) => {
   }
 
   try {
+    // Paid AI guidance requires a signed-in caller.
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!authHeader || (SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`)) {
+      return new Response(
+        JSON.stringify({ status: 'error', message: 'Authentication required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user: caller } } = await authClient.auth.getUser();
+    if (!caller) {
+      return new Response(
+        JSON.stringify({ status: 'error', message: 'Authentication required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      SERVICE_KEY
     );
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -84,7 +106,9 @@ serve(async (req) => {
       );
     }
 
-    const { symptoms, userId, age, gender, additionalContext } = validation.data;
+    // History is always recorded under the verified caller's identity.
+    const userId = caller.id;
+    const { symptoms, age, gender, additionalContext } = validation.data;
 
     console.log('Processing diagnosis for symptoms:', symptoms);
 

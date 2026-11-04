@@ -8,6 +8,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+// Resolve the caller: either the platform service or a signed-in user.
+async function getCaller(req: Request): Promise<{ userId: string | null; isService: boolean }> {
+  const auth = req.headers.get('Authorization') ?? '';
+  if (SERVICE_KEY && auth === `Bearer ${SERVICE_KEY}`) return { userId: null, isService: true };
+  if (!auth) return { userId: null, isService: false };
+  const client = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: auth } } });
+  const { data } = await client.auth.getUser();
+  return { userId: data?.user?.id ?? null, isService: false };
+}
+
 const requestSchema = z.object({
   event_type: z.string().min(1).max(200),
   entity_id: z.string().max(200).optional().nullable(),
@@ -23,10 +37,15 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const { userId, isService } = await getCaller(req);
+    if (!isService && !userId) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     const body = await req.json();
     const validation = requestSchema.safeParse(body);
@@ -38,7 +57,6 @@ serve(async (req) => {
     }
 
     const { event_type, entity_id, event_data, success, error_message, latency_ms } = validation.data;
-    console.log('Logging monitoring event:', { event_type, entity_id, success });
 
     const { data: log, error } = await supabase
       .from('monitoring_logs')
@@ -52,22 +70,22 @@ serve(async (req) => {
       .single();
 
     if (error) {
-      console.error('Error creating monitoring log:', error);
+      console.error('Error logging monitoring event:', error.message);
       return new Response(
-        JSON.stringify({ success: false, error: error.message }),
+        JSON.stringify({ error: 'Failed to log monitoring event' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
-      JSON.stringify({ success: true, log_id: log.id, message: 'Monitoring event logged successfully' }),
+      JSON.stringify({ success: true, id: log.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in log-monitoring-event:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

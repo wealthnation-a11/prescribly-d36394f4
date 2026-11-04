@@ -3737,6 +3737,30 @@ export type Database = {
         }
         Relationships: []
       }
+      wellness_points_ledger: {
+        Row: {
+          activity: string
+          awarded_at: string
+          id: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          awarded_at?: string
+          id?: string
+          points: number
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          awarded_at?: string
+          id?: string
+          points?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       wellness_rewards: {
         Row: {
           created_at: string

@@ -41,7 +41,8 @@ export default function FacilityVisit() {
     if (!user) return;
     setGenerating(true);
     try {
-      const code = crypto.randomUUID().slice(0, 6).toUpperCase();
+      // 12 hex characters (48 bits of entropy) so codes cannot be guessed by trial.
+      const code = (crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "")).slice(0, 12).toUpperCase();
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const qrData = JSON.stringify({ code, facility_id: facility.id, patient_id: user.id });
 
