@@ -83,29 +83,29 @@ serve(async (req) => {
 
     // Idempotency: skip if this reference was already recorded.
     const { data: existingPayment } = await supabase
-      .from('payments')
+      .from('consultation_payments')
       .select('id')
-      .eq('reference', reference)
+      .eq('payment_reference', reference)
       .maybeSingle();
-    if (existingPayment) {
+
+    if (type === 'subscription') {
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('payment_reference', reference)
+        .maybeSingle();
+      if (existingSub || existingPayment) {
+        return new Response(
+          JSON.stringify({ status: true, message: 'Payment verified successfully', data: { amount, type, plan } }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        );
+      }
+    } else if (existingPayment) {
       return new Response(
         JSON.stringify({ status: true, message: 'Payment verified successfully', data: { amount, type, plan } }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
-
-    // Insert payment record
-    const { error: paymentError } = await supabase
-      .from('payments')
-      .insert({
-        user_id, amount, reference,
-        status: 'completed',
-        currency: metadata.currency || 'NGN',
-        local_amount: metadata.local_amount || (data.data.amount / 100),
-        exchange_rate_used: metadata.exchange_rate_used, provider: 'paystack'
-      });
-
-    if (paymentError) throw paymentError;
 
     if (type === 'subscription') {
       const startedAt = new Date();
