@@ -180,6 +180,7 @@ export default function ConsultationFlow() {
   useEffect(() => {
     const pendingId = localStorage.getItem("consultation_flow_session");
     const status = params.get("status");
+    const txId = params.get("transaction_id");
     if (pendingId && (status === "successful" || status === "completed")) {
       setSessionId(pendingId);
       localStorage.removeItem("consultation_flow_session");
@@ -192,11 +193,34 @@ export default function ConsultationFlow() {
         if (data) {
           setMode(data.mode as Mode);
           setConsultType(data.consult_type as any);
-          await supabase
-            .from("consultation_sessions")
-            .update({ status: "paid" })
-            .eq("id", pendingId);
-          await loadDoctor(data.doctor_id);
+          let paid = data.status === "paid";
+          if (!paid && txId) {
+            // Confirm the payment with the server before unlocking the consultation —
+            // the URL status alone is never trusted.
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
+              "flutterwave-verify",
+              { body: { transaction_id: txId } }
+            );
+            if (verifyError || !verifyData?.status) {
+              toast.error("We could not confirm your payment. If you were charged, contact support.");
+              setStep("payment");
+              return;
+            }
+            const { data: fresh } = await supabase
+              .from("consultation_sessions")
+              .select("status, doctor_id")
+              .eq("id", pendingId)
+              .maybeSingle();
+            paid = fresh?.status === "paid";
+            if (paid) await loadDoctor(fresh.doctor_id);
+          } else if (paid) {
+            await loadDoctor(data.doctor_id);
+          }
+          if (!paid) {
+            toast.error("We could not confirm your payment. If you were charged, contact support.");
+            setStep("payment");
+            return;
+          }
         }
         setStep("confirmation");
       })();
