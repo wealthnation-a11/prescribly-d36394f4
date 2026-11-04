@@ -117,21 +117,31 @@ serve(async (req) => {
         .from('subscriptions')
         .upsert({
           user_id, status: 'active', plan,
-          started_at: startedAt.toISOString(),
+          starts_at: startedAt.toISOString(),
           expires_at: expiresAt.toISOString(),
-          authorization_code: data.data.authorization?.authorization_code || null,
-          subscription_code: data.data.subscription_code || null,
+          payment_reference: reference,
+          amount: metadata.base_usd_amount || null,
+          currency: metadata.currency || 'NGN',
         });
       if (subError) throw subError;
     } else if (type === 'consultation') {
+      // Consultation payments require the linked doctor from the checkout metadata.
+      const doctorId = metadata.doctor_id;
+      if (!doctorId) {
+        throw new Error('Consultation payment is missing doctor details');
+      }
       const { error: consultationError } = await supabase
         .from('consultation_payments')
         .insert({
-          patient_id: user_id, amount, reference,
+          patient_id: user_id,
+          doctor_id: doctorId,
+          appointment_id: metadata.appointment_id || null,
+          amount,
+          reference,
           status: 'completed',
           currency: metadata.currency || 'NGN',
-          local_amount: metadata.local_amount || (data.data.amount / 100),
-          exchange_rate_used: metadata.exchange_rate_used, payment_method: 'paystack'
+          payment_reference: reference,
+          payment_method: 'paystack'
         });
       if (consultationError) throw consultationError;
     } else {
