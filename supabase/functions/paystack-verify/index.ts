@@ -17,6 +17,25 @@ serve(async (req) => {
   }
 
   try {
+    // Only the paying account may verify and record its own payment.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ status: false, message: 'Authentication required' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ status: false, message: 'Authentication required' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const body = await req.json();
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
@@ -27,11 +46,11 @@ serve(async (req) => {
     }
 
     const { reference } = validation.data;
-    
+
     const paystackSecret = Deno.env.get('PAYSTACK_SECRET');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     if (!paystackSecret) {
       throw new Error('Paystack secret not configured');
     }
@@ -50,9 +69,30 @@ serve(async (req) => {
       throw new Error('Payment verification failed');
     }
 
+    const metadata = data.data.metadata || {};
+    // Payments always settle against the verified caller's account.
+    const user_id = user.id;
+    const type = metadata.type;
+    const plan = metadata.plan;
+    const cart_items = metadata.cart_items;
+    const shipping_info = metadata.shipping_info;
+    const practitioner_id = metadata.practitioner_id;
+    const amount = metadata.base_usd_amount || (data.data.amount / 100);
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { user_id, type, plan, base_usd_amount, currency, local_amount, exchange_rate_used, cart_items, shipping_info, practitioner_id } = data.data.metadata;
-    const amount = base_usd_amount || (data.data.amount / 100);
+
+    // Idempotency: skip if this reference was already recorded.
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('reference', reference)
+      .maybeSingle();
+    if (existingPayment) {
+      return new Response(
+        JSON.stringify({ status: true, message: 'Payment verified successfully', data: { amount, type, plan } }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
 
     // Insert payment record
     const { error: paymentError } = await supabase
@@ -60,9 +100,9 @@ serve(async (req) => {
       .insert({
         user_id, amount, reference,
         status: 'completed',
-        currency: currency || 'NGN',
-        local_amount: local_amount || (data.data.amount / 100),
-        exchange_rate_used, provider: 'paystack'
+        currency: metadata.currency || 'NGN',
+        local_amount: metadata.local_amount || (data.data.amount / 100),
+        exchange_rate_used: metadata.exchange_rate_used, provider: 'paystack'
       });
 
     if (paymentError) throw paymentError;
@@ -87,27 +127,16 @@ serve(async (req) => {
       const { error: consultationError } = await supabase
         .from('consultation_payments')
         .insert({
-          user_id, amount, reference,
+          patient_id: user_id, amount, reference,
           status: 'completed',
-          currency: currency || 'NGN',
-          local_amount: local_amount || (data.data.amount / 100),
-          exchange_rate_used, provider: 'paystack'
+          currency: metadata.currency || 'NGN',
+          local_amount: metadata.local_amount || (data.data.amount / 100),
+          exchange_rate_used: metadata.exchange_rate_used, payment_method: 'paystack'
         });
       if (consultationError) throw consultationError;
-    } else if (type === 'order') {
-      const adminCommission = amount * 0.10;
-      const practitionerEarnings = amount * 0.90;
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id, practitioner_id, total_amount: amount,
-          admin_commission: adminCommission,
-          practitioner_earnings: practitionerEarnings,
-          items: cart_items, shipping_address: shipping_info,
-          payment_reference: reference, status: 'pending',
-        });
-      if (orderError) throw orderError;
-      await supabase.from('shopping_cart').delete().eq('user_id', user_id);
+    } else {
+      // Orders (legacy) are no longer supported.
+      throw new Error('Unsupported payment type');
     }
 
     return new Response(
