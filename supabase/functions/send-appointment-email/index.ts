@@ -35,6 +35,39 @@ serve(async (req) => {
 
     const { appointment_id, notification_type } = validation.data;
 
+    // Only the platform service or a participant of the appointment may trigger its emails.
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!serviceKey || authHeader !== `Bearer ${serviceKey}`) {
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: 'Authentication required' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      const authClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: { user: caller } } = await authClient.auth.getUser();
+      if (!caller) {
+        return new Response(JSON.stringify({ error: 'Authentication required' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      const { data: appointmentAccess } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('id', appointment_id)
+        .or(`patient_id.eq.${caller.id},doctor_id.eq.${caller.id}`)
+        .maybeSingle();
+      if (!appointmentAccess) {
+        return new Response(JSON.stringify({ error: 'Forbidden: not a participant of this appointment' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     const { data: appointment, error: appointmentError } = await supabase
       .from('appointments')
       .select(`
