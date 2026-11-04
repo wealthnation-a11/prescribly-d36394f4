@@ -77,21 +77,31 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
-      // Upsert scoped to both the id and the owner so one user cannot overwrite another's session.
-      const { error } = await supabase
+      // Update only if the session belongs to the caller; never overwrite another user's row.
+      const { data: updated, error } = await supabase
         .from('user_sessions')
-        .upsert({
-          id: session_id, user_id,
+        .update({
           path: path || 'entry',
           payload: payload || {},
           updated_at: new Date().toISOString()
-        }, { onConflict: 'id,user_id' });
+        })
+        .eq('id', session_id)
+        .eq('user_id', user_id)
+        .select('id')
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating session:', error.message);
         return new Response(
           JSON.stringify({ error: 'Failed to update session' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!updated) {
+        return new Response(
+          JSON.stringify({ error: 'Session not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 

@@ -55,8 +55,14 @@ serve(async (req) => {
     }
 
     const { diagnosis_id, action, details } = validation.data;
-    // The recorded actor is always the verified caller.
-    const actor_id = userId!;
+    // The recorded actor is the verified caller; platform-service callers must supply it.
+    const actor_id = userId ?? validation.data.actor_id ?? null;
+    if (!actor_id) {
+      return new Response(
+        JSON.stringify({ error: 'Actor is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const { data: auditLog, error } = await supabase
       .from('audit_logs')
