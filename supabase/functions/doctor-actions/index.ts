@@ -55,16 +55,14 @@ serve(async (req) => {
       );
     }
 
-    // Verify user is a doctor
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
+    // Verify the caller is an approved doctor using the server-side check,
+    // not the client-editable profile field.
+    const { data: approvedDoctor, error: approvedError } = await supabase
+      .rpc('is_approved_doctor', { _user_id: user.id });
 
-    if (profile?.role !== 'doctor') {
+    if (approvedError || !approvedDoctor) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized: Doctor access required' }),
+        JSON.stringify({ error: 'Access denied. Approved doctor status required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
