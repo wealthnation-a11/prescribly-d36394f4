@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Headset, X, Send, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { X, Send, Sparkles, Minus, Stethoscope, ShieldCheck, CalendarDays, Pill, Wallet, Activity, Moon, Droplets } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,12 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 type Msg = { role: "user" | "assistant"; content: string };
 
 const SUGGESTIONS = [
-  "What's my next appointment?",
-  "Show my active prescriptions",
-  "How much have I paid for consultations?",
-  "What does my last symptom check suggest?",
-  "Tips to improve my sleep",
-  "How can I stay hydrated?",
+  { q: "What's my next appointment?", label: "Next appointment", Icon: CalendarDays },
+  { q: "Show my active prescriptions", label: "My prescriptions", Icon: Pill },
+  { q: "What does my last symptom check suggest?", label: "Last symptom check", Icon: Activity },
+  { q: "How much have I paid for consultations?", label: "My payments", Icon: Wallet },
+  { q: "Tips to improve my sleep", label: "Better sleep tips", Icon: Moon },
+  { q: "How can I stay hydrated?", label: "Hydration tips", Icon: Droplets },
 ];
 
 const dismissKey = (uid: string) => `ai-bubble-dismissed:${uid}`;
@@ -118,100 +115,162 @@ export const AIChatBubble = () => {
     }
   };
 
+  const firstName = (user?.user_metadata as any)?.first_name || (user?.user_metadata as any)?.full_name?.split(" ")[0] || "";
+
   return (
     <>
       {!open && (
         <div className="fixed bottom-6 right-6 z-50 group">
-          {/* Friendly tooltip label */}
-          <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 whitespace-nowrap bg-foreground text-background text-xs font-medium px-2.5 py-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            Ask me anything
+          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full border bg-card/95 backdrop-blur px-3 py-1.5 text-xs font-medium text-foreground shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            Ask PrescriblyCare AI
           </div>
-
-          {/* Dismiss (X) button */}
           <button
             onClick={dismiss}
             aria-label="Dismiss assistant"
-            className="absolute -top-1 -right-1 z-10 h-5 w-5 rounded-full bg-foreground text-background grid place-items-center shadow-md hover:scale-110 transition-transform"
+            className="absolute -top-1.5 -left-1.5 z-10 h-5 w-5 rounded-full border bg-card text-muted-foreground grid place-items-center shadow opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground"
           >
             <X className="w-3 h-3" />
           </button>
-
-          {/* Pulsing ring */}
-          <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" aria-hidden />
-
-          {/* Circular trigger with cartoon support agent */}
           <button
             onClick={() => setOpen(true)}
             aria-label="Open AI assistant"
-            className="relative h-14 w-14 rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform overflow-hidden"
-            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--wh-pink, var(--primary))))" }}
+            className="relative h-14 w-14 rounded-full grid place-items-center text-primary-foreground transition-transform duration-300 hover:scale-110 hover:-translate-y-0.5"
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)))", boxShadow: "0 10px 30px -6px hsl(var(--primary) / 0.55)" }}
           >
-            {/* Cartoon-style support agent: head + headset */}
-            <svg viewBox="0 0 64 64" className="h-9 w-9 drop-shadow" aria-hidden>
-              {/* Face */}
-              <circle cx="32" cy="30" r="14" fill="#FFD9B8" />
-              {/* Hair */}
-              <path d="M18 26 Q20 14 32 14 Q44 14 46 26 Q40 22 32 22 Q24 22 18 26 Z" fill="#3a2a1f" />
-              {/* Eyes */}
-              <circle cx="27" cy="31" r="1.6" fill="#1a1a1a" />
-              <circle cx="37" cy="31" r="1.6" fill="#1a1a1a" />
-              {/* Smile */}
-              <path d="M27 36 Q32 40 37 36" stroke="#7a3a2a" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-              {/* Cheek blush */}
-              <circle cx="24" cy="35" r="1.4" fill="#ff9bb9" opacity="0.6" />
-              <circle cx="40" cy="35" r="1.4" fill="#ff9bb9" opacity="0.6" />
-              {/* Headset band */}
-              <path d="M16 28 Q32 8 48 28" stroke="#ffffff" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-              {/* Ear cups */}
-              <rect x="13" y="27" width="6" height="9" rx="2" fill="#ffffff" />
-              <rect x="45" y="27" width="6" height="9" rx="2" fill="#ffffff" />
-              {/* Mic boom */}
-              <path d="M45 32 Q42 42 32 44" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-              <circle cx="32" cy="45" r="2" fill="#ffffff" />
-            </svg>
+            <span className="absolute inset-0 rounded-full ring-4 ring-primary/15" aria-hidden />
+            <Sparkles className="w-6 h-6" />
+            <span className="absolute top-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-card bg-emerald-500" aria-hidden>
+              <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-60" />
+            </span>
           </button>
         </div>
       )}
 
       {open && (
-        <Card className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[92vw] h-[520px] max-h-[80vh] flex flex-col shadow-2xl border-primary/20">
-          <div className="flex items-center justify-between p-3 border-b bg-primary text-primary-foreground rounded-t-lg">
-            <div className="flex items-center gap-2"><Headset className="w-4 h-4" /><span className="font-semibold text-sm">PrescriblyCare Assistant</span></div>
-            <div className="flex items-center gap-1">
-              <button onClick={dismiss} aria-label="Dismiss for this session" className="text-xs underline opacity-80 hover:opacity-100">Hide</button>
-              <button onClick={() => setOpen(false)} aria-label="Close" className="ml-2"><X className="w-4 h-4" /></button>
+        <div
+          className="fixed z-50 inset-x-3 bottom-3 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[380px] h-[600px] max-h-[85vh] flex flex-col overflow-hidden rounded-3xl border bg-card/95 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-300"
+          style={{ boxShadow: "0 24px 60px -12px hsl(var(--primary) / 0.35)" }}
+        >
+          {/* Header */}
+          <div
+            className="relative px-4 pt-4 pb-5 text-primary-foreground"
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)))" }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative h-10 w-10 rounded-2xl bg-primary-foreground/20 backdrop-blur grid place-items-center">
+                <Stethoscope className="w-5 h-5" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-primary bg-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm leading-tight">PrescriblyCare Assistant</p>
+                <p className="text-[11px] opacity-85">Online · Your 24/7 health companion</p>
+              </div>
+              <button onClick={() => setOpen(false)} aria-label="Minimize" className="h-8 w-8 rounded-full grid place-items-center hover:bg-primary-foreground/15 transition-colors">
+                <Minus className="w-4 h-4" />
+              </button>
+              <button onClick={dismiss} aria-label="Close for this session" className="h-8 w-8 rounded-full grid place-items-center hover:bg-primary-foreground/15 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
-          <ScrollArea className="flex-1 p-3" ref={scrollRef as any}>
+          {/* Messages */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto -mt-3 rounded-t-3xl bg-card px-4 pt-5 pb-3 space-y-4">
             {messages.length === 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-primary" />Hi! Pick a question or type your own:</p>
-                <div className="flex flex-col gap-2">
-                  {SUGGESTIONS.map(q => (
-                    <button key={q} onClick={() => send(q)} className="text-left text-sm p-2 rounded-md border hover:bg-accent transition-colors">{q}</button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {messages.map((m, i) => (
-                  <div key={i} className={`text-sm rounded-lg p-2 max-w-[85%] ${m.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted"}`}>
-                    {m.content || (loading && i === messages.length - 1 ? "…" : "")}
+              <>
+                <AssistantRow>
+                  <p className="font-medium">Hello{firstName ? ` ${firstName}` : ""}! 👋</p>
+                  <p className="text-muted-foreground mt-0.5">I'm your PrescriblyCare health assistant. How can I help you today?</p>
+                </AssistantRow>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-1">Suggested topics</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SUGGESTIONS.map(({ q, label, Icon }) => (
+                      <button
+                        key={q}
+                        onClick={() => send(q)}
+                        className="group/s flex items-start gap-2 text-left rounded-2xl border bg-background p-3 hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-0.5 transition-all"
+                      >
+                        <span className="h-7 w-7 shrink-0 rounded-xl bg-primary/10 text-primary grid place-items-center group-hover/s:bg-primary group-hover/s:text-primary-foreground transition-colors">
+                          <Icon className="w-3.5 h-3.5" />
+                        </span>
+                        <span className="text-xs font-medium leading-snug text-foreground">{label}</span>
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              </>
+            ) : (
+              messages.map((m, i) =>
+                m.role === "user" ? (
+                  <div key={i} className="flex justify-end animate-in fade-in slide-in-from-bottom-1">
+                    <div
+                      className="max-w-[80%] rounded-2xl rounded-br-md px-3.5 py-2 text-sm text-primary-foreground shadow-sm whitespace-pre-wrap"
+                      style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)))" }}
+                    >
+                      {m.content}
+                    </div>
+                  </div>
+                ) : (
+                  <AssistantRow key={i}>
+                    {m.content ? <span className="whitespace-pre-wrap">{m.content}</span> : <TypingDots />}
+                  </AssistantRow>
+                )
+              )
             )}
-          </ScrollArea>
+          </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="p-3 border-t flex gap-2">
-            <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type a message…" className="flex-1 text-sm rounded-md border px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary" disabled={loading} />
-            <Button type="submit" size="icon" disabled={loading || !input.trim()}><Send className="w-4 h-4" /></Button>
-          </form>
-        </Card>
+          {/* Composer */}
+          <div className="border-t bg-card px-3 pt-3 pb-2">
+            <form
+              onSubmit={(e) => { e.preventDefault(); send(input); }}
+              className="flex items-center gap-2 rounded-full border bg-background pl-4 pr-1.5 py-1.5 focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10 transition-all"
+            >
+              <input
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Ask about symptoms, meds, visits…"
+                className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground"
+                disabled={loading}
+              />
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                aria-label="Send"
+                className="h-9 w-9 shrink-0 rounded-full grid place-items-center text-primary-foreground transition-all disabled:opacity-40 disabled:scale-95 hover:scale-105"
+                style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)))" }}
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
+            <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+              <ShieldCheck className="w-3 h-3" /> Private & secure · For emergencies call 112
+            </p>
+          </div>
+        </div>
       )}
     </>
   );
 };
+
+const AssistantRow = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1">
+    <div
+      className="h-7 w-7 shrink-0 rounded-full grid place-items-center text-primary-foreground"
+      style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)))" }}
+    >
+      <Sparkles className="w-3.5 h-3.5" />
+    </div>
+    <div className="max-w-[80%] rounded-2xl rounded-bl-md bg-muted px-3.5 py-2 text-sm text-foreground">{children}</div>
+  </div>
+);
+
+const TypingDots = () => (
+  <span className="flex items-center gap-1 py-1" aria-label="Assistant is typing">
+    {[0, 150, 300].map(d => (
+      <span key={d} className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+    ))}
+  </span>
+);
 
 export default AIChatBubble;
