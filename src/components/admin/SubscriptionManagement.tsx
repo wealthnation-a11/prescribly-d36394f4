@@ -75,13 +75,27 @@ export const SubscriptionManagement = () => {
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ["admin-subscription-users"],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        method: "POST",
-        body: { action: "list", page: 1, limit: 1000 },
-      });
+      // The endpoint caps page size at 100, so fetch every page in a loop.
+      const fetchPage = (page: number) =>
+        supabase.functions.invoke("admin-users", {
+          method: "POST",
+          body: { action: "list", page, limit: 100 },
+        });
 
-      if (error) throw error;
-      return data.users as User[];
+      const first = await fetchPage(1);
+      if (first.error) throw first.error;
+
+      const collected = [...(first.data.users || [])];
+      let page = 1;
+      while (first.data.hasMore && page < 50) {
+        page += 1;
+        const next = await fetchPage(page);
+        if (next.error) throw next.error;
+        collected.push(...(next.data.users || []));
+        if (!(next.data.hasMore)) break;
+      }
+
+      return collected as User[];
     },
   });
 
