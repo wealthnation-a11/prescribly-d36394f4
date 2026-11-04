@@ -108,7 +108,7 @@ serve(async (req) => {
 
     // History is always recorded under the verified caller's identity.
     const userId = caller.id;
-    const { age, gender, additionalContext } = validation.data;
+    const { symptoms, age, gender, additionalContext } = validation.data;
 
     console.log('Processing diagnosis for symptoms:', symptoms);
 
