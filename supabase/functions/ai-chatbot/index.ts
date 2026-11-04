@@ -30,7 +30,10 @@ serve(async (req) => {
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const parsed = Body.safeParse(await req.json());
-    if (!parsed.success) return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!parsed.success) return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: { ...c
+    // Callers may not inject their own system-level instructions.
+    const userMessages = parsed.data.messages.filter((m) => m.role !== "system");
+    if (userMessages.length === 0) return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     // Fetch dashboard context (compact)
     const [{ data: appts }, { data: rx }, { data: pays }] = await Promise.all([
