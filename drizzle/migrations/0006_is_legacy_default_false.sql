@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ALTER COLUMN is_legacy SET DEFAULT false;

@@ -61,7 +61,7 @@ export const ConsultationAccessGuard = ({
   }
 
   // Legacy users get free consultation access
-  if (userProfile?.is_legacy) {
+  if (userProfile?.is_legacy && (userProfile?.email || user?.email || '').toLowerCase() === 'synectics01@gmail.com') {
     return <>{children}</>;
   }
 

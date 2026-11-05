@@ -170,7 +170,9 @@ export default function ConsultationFlow() {
   const [scheduleTime, setScheduleTime] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const isFree = !!userProfile?.is_legacy;
+  const isFree =
+    !!userProfile?.is_legacy &&
+    (userProfile?.email || user?.email || "").toLowerCase() === "synectics01@gmail.com";
   const scheduledAt =
     consultType === "book_later" && scheduleDate && scheduleTime
       ? new Date(`${scheduleDate}T${scheduleTime}:00`)
