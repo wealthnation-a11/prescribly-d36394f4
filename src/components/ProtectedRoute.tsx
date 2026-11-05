@@ -66,7 +66,8 @@ export const ProtectedRoute = ({
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (requirePatient && !isPatient) {
+  const adminAllowedPatientPath = location.pathname.startsWith('/womens-health');
+  if (requirePatient && !isPatient && !(isAdmin && adminAllowedPatientPath)) {
     return <Navigate to="/dashboard" replace />;
   }
 

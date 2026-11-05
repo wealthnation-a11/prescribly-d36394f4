@@ -1005,8 +1005,10 @@ const WHEntry = () => {
 // Router
 const WomensHealth = () => {
   const { userProfile } = useAuth();
+  const { isAdmin } = useUserRole();
   // Privacy gate: female users, or users explicitly granted access (partners)
   const allowed =
+    isAdmin ||
     !userProfile ||
     !userProfile.gender ||
     userProfile.gender === "female" ||
