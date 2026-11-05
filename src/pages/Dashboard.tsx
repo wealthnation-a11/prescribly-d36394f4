@@ -41,10 +41,7 @@ const Dashboard = () => {
   }
   
   if (isPatient) {
-    // Check if patient needs subscription before accessing dashboard
-    if (needsSubscription && !isLegacyUser) {
-      return <Navigate to="/subscription" replace />;
-    }
+    // Dashboard is free for all patients; payment happens only at consultation (₦3,500)
     return <Navigate to="/user-dashboard" replace />;
   }
 

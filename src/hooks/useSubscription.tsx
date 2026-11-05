@@ -66,6 +66,8 @@ export const useSubscription = () => {
   };
 
   const needsSubscription = () => {
+    // No platform subscription: dashboard access is free for everyone.
+    return false;
     // Admins have full access without subscription
     if (userProfile?.role === 'admin') return false;
     

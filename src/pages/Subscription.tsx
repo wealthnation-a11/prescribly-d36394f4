@@ -23,8 +23,8 @@ const Subscription = () => {
             when you book a service:
           </p>
           <div className="rounded-lg border bg-muted/30 p-4 text-left space-y-2">
-            <div className="flex justify-between"><span>Doctor Appointment Booking</span><span className="font-semibold">₦15,000</span></div>
-            <div className="flex justify-between"><span>Doctor Home Visit</span><span className="font-semibold">₦47,000</span></div>
+            <div className="flex justify-between"><span>Doctor Consultation</span><span className="font-semibold">₦3,500</span></div>
+            <div className="flex justify-between"><span>Lab Result Interpretation</span><span className="font-semibold">₦4,500</span></div>
           </div>
           <Button className="w-full" onClick={() => navigate('/dashboard')}>
             Go to Dashboard
