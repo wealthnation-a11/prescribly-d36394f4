@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Droplet, Moon, Smile, Activity, Plus, Minus, Heart, Flower2, Baby,
   Calendar as CalIcon, ChevronLeft, ChevronRight, Sparkles, Zap,
@@ -1005,8 +1006,10 @@ const WHEntry = () => {
 // Router
 const WomensHealth = () => {
   const { userProfile } = useAuth();
+  const { isAdmin } = useUserRole();
   // Privacy gate: female users, or users explicitly granted access (partners)
   const allowed =
+    isAdmin ||
     !userProfile ||
     !userProfile.gender ||
     userProfile.gender === "female" ||
