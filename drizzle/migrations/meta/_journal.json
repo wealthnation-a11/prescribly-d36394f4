@@ -43,6 +43,13 @@
       "when": 1793765445632,
       "tag": "0005_tighten_consultation_paid_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793837511577,
+      "tag": "0006_is_legacy_default_false",
+      "breakpoints": true
     }
   ]
 }
