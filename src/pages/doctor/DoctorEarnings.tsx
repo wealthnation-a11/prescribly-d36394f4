@@ -40,17 +40,15 @@ export const DoctorEarnings = () => {
 
     const fetchData = async () => {
       setLoading(true);
-      // Temporarily using any to bypass TypeScript until types regenerate
       const { data, error } = await (supabase as any)
-        .from("call_logs")
-        .select("id, call_date, patient_id, patient_payment, doctor_earnings, admin_fee, status")
+        .from("doctor_earnings")
+        .select("id, earned_at, patient_id, patient_payment, doctor_earnings, admin_fee, status")
         .eq("doctor_id", user.id)
-        .eq("status", "completed")
-        .order("call_date", { ascending: false });
+        .order("earned_at", { ascending: false });
       if (error) {
         console.error(error);
       } else {
-        setRows((data as any[]) as CallLogRow[]);
+        setRows(((data as any[]) || []).map((r) => ({ ...r, call_date: r.earned_at })) as CallLogRow[]);
       }
       setLoading(false);
     };
@@ -58,10 +56,10 @@ export const DoctorEarnings = () => {
     fetchData();
 
     const channel = supabase
-      .channel("call_logs_changes")
+      .channel(`doctor_earnings_${user.id}_${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "call_logs" },
+        { event: "*", schema: "public", table: "doctor_earnings", filter: `doctor_id=eq.${user.id}` },
         (payload) => {
           const doc = (payload.new as any) || (payload.old as any);
           if (doc?.doctor_id === user.id) {
