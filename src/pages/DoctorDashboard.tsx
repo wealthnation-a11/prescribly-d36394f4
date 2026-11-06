@@ -360,7 +360,7 @@ export const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <p className="text-2xl font-bold text-slate-900">{formatUSD(earnings.monthlyEarnings)}</p>
+                    <p className="text-2xl font-bold text-slate-900">₦{earnings.monthlyEarnings.toLocaleString()}</p>
                     <p className="text-sm text-slate-600">this month</p>
                   </div>
                   <p className="text-slate-600 mb-4 text-sm">

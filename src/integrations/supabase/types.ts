@@ -965,6 +965,42 @@ export type Database = {
         }
         Relationships: []
       }
+      doctor_earnings: {
+        Row: {
+          admin_fee: number
+          doctor_earnings: number
+          doctor_id: string
+          earned_at: string
+          id: string
+          patient_id: string | null
+          patient_payment: number
+          session_id: string
+          status: string
+        }
+        Insert: {
+          admin_fee?: number
+          doctor_earnings?: number
+          doctor_id: string
+          earned_at?: string
+          id?: string
+          patient_id?: string | null
+          patient_payment?: number
+          session_id: string
+          status?: string
+        }
+        Update: {
+          admin_fee?: number
+          doctor_earnings?: number
+          doctor_id?: string
+          earned_at?: string
+          id?: string
+          patient_id?: string | null
+          patient_payment?: number
+          session_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       doctor_reviews: {
         Row: {
           appointment_id: string | null

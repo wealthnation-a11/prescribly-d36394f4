@@ -168,8 +168,8 @@ export const DoctorProfile = () => {
     try {
       // Temporarily using any to bypass TypeScript until types regenerate
       const { data, error } = await (supabase as any)
-        .from('call_logs')
-        .select('doctor_earnings, duration_minutes')
+        .from('doctor_earnings')
+        .select('doctor_earnings')
         .eq('doctor_id', user?.id);
 
       if (error) {
@@ -315,7 +315,7 @@ export const DoctorProfile = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-card-foreground">
-              {formatNGNAsUSD(earningsData.total_earnings, exchangeRate)}
+              ₦{earningsData.total_earnings.toLocaleString()}
             </p>
             <p className="text-sm text-muted-foreground">from {earningsData.total_calls} calls</p>
           </CardContent>
@@ -610,7 +610,7 @@ export const DoctorProfile = () => {
                       <CardContent className="p-4 text-center">
                         <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
                          <p className="text-2xl font-bold text-card-foreground">
-                           {formatNGNAsUSD(earningsData.total_earnings, exchangeRate)}
+                           ₦{earningsData.total_earnings.toLocaleString()}
                          </p>
                          <p className="text-sm text-muted-foreground">Total Earnings</p>
                        </CardContent>
@@ -652,11 +652,11 @@ export const DoctorProfile = () => {
                     <CardContent className="space-y-3">
                        <div className="flex justify-between">
                          <span className="text-muted-foreground">Rate per call:</span>
-                         <span className="font-semibold text-card-foreground">$8.00 ($10 patient fee)</span>
+                         <span className="font-semibold text-card-foreground">₦1,500 (₦3,500 patient fee)</span>
                        </div>
                        <div className="flex justify-between">
                          <span className="text-muted-foreground">Platform fee:</span>
-                         <span className="font-semibold text-card-foreground">$2.00 per call</span>
+                         <span className="font-semibold text-card-foreground">₦2,000 per call</span>
                        </div>
                        <div className="flex justify-between">
                          <span className="text-muted-foreground">Next payout:</span>
@@ -671,7 +671,7 @@ export const DoctorProfile = () => {
                    <h3 className="text-xl font-semibold text-card-foreground mb-2">No earnings yet</h3>
                    <p className="text-muted-foreground max-w-md mx-auto">
                      You haven't earned yet. Once patients schedule paid calls, your earnings will show here.
-                     Each successful call earns you $8 ($10 patient fee minus $2 platform fee).
+                     Each completed consultation earns you ₦1,500 (₦3,500 patient fee minus ₦2,000 platform fee).
                    </p>
                  </div>
                )}

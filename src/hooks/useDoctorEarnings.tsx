@@ -12,17 +12,9 @@ export interface DoctorEarnings {
 }
 
 /**
- * Revenue split (NGN):
- *  - Appointment booking ₦15,000  → Doctor ₦8,000   / Platform ₦7,000
- *  - Home visit          ₦47,000  → Doctor ₦33,000  / Platform ₦14,000
+ * Doctor earnings come from the server-recorded `doctor_earnings` ledger
+ * (₦1,500 per completed ₦3,500 consultation, written by a DB trigger).
  */
-const doctorShare = (paymentAmount: number, type?: string | null) => {
-  if (!paymentAmount) return 0;
-  if (type === 'home_visit') return 33000;
-  // default to standard appointment booking
-  return 8000;
-};
-
 export const useDoctorEarnings = () => {
   const { user } = useAuth();
   const [earnings, setEarnings] = useState<DoctorEarnings>({
@@ -44,36 +36,26 @@ export const useDoctorEarnings = () => {
 
     const fetchEarnings = async () => {
       try {
-        setLoading(true);
-
-        const { data: appointments, error } = await supabase
-          .from('appointments')
-          .select('*')
+        const { data, error } = await (supabase as any)
+          .from('doctor_earnings')
+          .select('doctor_earnings, earned_at')
           .eq('doctor_id', user.id);
-
         if (error) throw error;
 
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-        const completed = appointments?.filter((a) => a.status === 'completed') || [];
-        const weekly = completed.filter((a) => new Date(a.created_at) >= oneWeekAgo);
-        const monthly = completed.filter((a) => new Date(a.created_at) >= oneMonthAgo);
-
-        const sumDoctor = (list: any[]) =>
-          list.reduce((s, a) => s + doctorShare(a.payment_amount || 0, a.appointment_type), 0);
-
-        const totalDoctor = sumDoctor(completed);
-        const averageFee = completed.length > 0 ? totalDoctor / completed.length : 0;
+        const rows = (data as { doctor_earnings: number; earned_at: string }[]) || [];
+        const now = Date.now();
+        const week = now - 7 * 864e5;
+        const month = now - 30 * 864e5;
+        const sum = (list: typeof rows) => list.reduce((s, r) => s + Number(r.doctor_earnings || 0), 0);
+        const total = sum(rows);
 
         setEarnings({
-          totalEarnings: totalDoctor,
-          totalAppointments: appointments?.length || 0,
-          completedAppointments: completed.length,
-          averageFee,
-          monthlyEarnings: sumDoctor(monthly),
-          weeklyEarnings: sumDoctor(weekly),
+          totalEarnings: total,
+          totalAppointments: rows.length,
+          completedAppointments: rows.length,
+          averageFee: rows.length ? total / rows.length : 0,
+          monthlyEarnings: sum(rows.filter((r) => new Date(r.earned_at).getTime() >= month)),
+          weeklyEarnings: sum(rows.filter((r) => new Date(r.earned_at).getTime() >= week)),
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch earnings');
@@ -83,6 +65,13 @@ export const useDoctorEarnings = () => {
     };
 
     fetchEarnings();
+    const channel = supabase
+      .channel(`doctor_earnings_hook_${user.id}_${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'doctor_earnings', filter: `doctor_id=eq.${user.id}` }, fetchEarnings)
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   return { earnings, loading, error };
