@@ -50,6 +50,13 @@
       "when": 1793837511577,
       "tag": "0006_is_legacy_default_false",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793937081522,
+      "tag": "0007_doctor_earnings_ledger",
+      "breakpoints": true
     }
   ]
 }
