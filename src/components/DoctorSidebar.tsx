@@ -49,7 +49,7 @@ export function DoctorSidebar() {
         {/* Header */}
         <div className="p-4 border-b border-white/10">
           <NavLink to="/" end className="flex items-center gap-3" aria-label="Go to home">
-            <Logo size="sm" compact={isCollapsed} />
+            <Logo size="sm" compact={isCollapsed} onDark />
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-sm text-sidebar-foreground break-words">PrescriblyCare</h2>

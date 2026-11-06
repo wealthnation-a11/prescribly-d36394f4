@@ -1,4 +1,4 @@
-import brandLogo from "@/assets/prescriblycare-header-logo.png.asset.json";
+import brandLogo from "@/assets/prescriblycare-logo-light.png.asset.json";
 import jsPDF from 'jspdf';
 
 interface DiagnosisData {

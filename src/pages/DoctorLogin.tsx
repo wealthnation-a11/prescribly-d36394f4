@@ -87,7 +87,7 @@ export const DoctorLogin = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
-            <div className="rounded-2xl bg-white px-4 py-2 shadow-lg"><Logo size="lg" priority /></div>
+            <Logo size="lg" priority onDark />
           </div>
           <div className="mx-auto w-20 h-20 bg-gradient-to-br from-teal-400 to-sky-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-teal-500/40 ring-4 ring-teal-400/20">
             <Stethoscope className="w-10 h-10 text-white" />
