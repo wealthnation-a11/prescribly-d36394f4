@@ -127,7 +127,7 @@ export const DoctorEarnings = () => {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-slate-900">{formatNGN(totals.doctor)}</p>
-              <p className="text-sm text-slate-600">₦8,000 per appointment (Home visit: ₦33,000)</p>
+              <p className="text-sm text-slate-600">₦1,500 per completed consultation</p>
             </CardContent>
           </Card>
 
@@ -198,7 +198,7 @@ export const DoctorEarnings = () => {
         <Card className="bg-white shadow-sm rounded-xl border border-gray-200">
           <CardContent className="p-6">
             <p className="text-sm text-slate-600">
-              Earnings are calculated based on completed audio calls. You earn ₦8,000 per appointment (Home visit: ₦33,000). Payments are processed weekly or
+              Earnings are calculated based on completed audio calls. You earn ₦1,500 per completed consultation. Payments are processed weekly or
               monthly.
             </p>
           </CardContent>
