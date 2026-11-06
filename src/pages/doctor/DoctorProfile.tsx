@@ -315,7 +315,7 @@ export const DoctorProfile = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-card-foreground">
-              {formatNGNAsUSD(earningsData.total_earnings, exchangeRate)}
+              ₦{earningsData.total_earnings.toLocaleString()}
             </p>
             <p className="text-sm text-muted-foreground">from {earningsData.total_calls} calls</p>
           </CardContent>
@@ -610,7 +610,7 @@ export const DoctorProfile = () => {
                       <CardContent className="p-4 text-center">
                         <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
                          <p className="text-2xl font-bold text-card-foreground">
-                           {formatNGNAsUSD(earningsData.total_earnings, exchangeRate)}
+                           ₦{earningsData.total_earnings.toLocaleString()}
                          </p>
                          <p className="text-sm text-muted-foreground">Total Earnings</p>
                        </CardContent>
